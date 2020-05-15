@@ -101,7 +101,6 @@ class Simulation():
                 self.output_spectrum.lineshape = sum(output_list)
                 self.output_spectrum.normalize()
                 
- 
             else:
                print('Scaling parameters have to sum to 1!') 
                print('Simulated spectrum was not changed!') 
@@ -223,7 +222,7 @@ if __name__ == '__main__':
     sim = Simulation(input_spectra)
     sim.combine_linear(scaling_params = [0.4,0.4,0.1,0.1])                
 
-    sim.change_spectrum(shift_x = 0,
+    sim.change_spectrum(shift_x = 2,
                         signal_to_noise = 40,
                         fwhm = 1050)
     

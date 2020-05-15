@@ -152,7 +152,9 @@ class SimulatedSpectrum(Spectrum):
         
         acceptable_values = list(range(-9, 9))
         
-        if shift_x in acceptable_values:
+        if shift_x == None:
+            pass
+        elif shift_x in acceptable_values:
             # scale the shift by the step size
             shift = int(np.round(shift_x/self.step, 1))
             
@@ -201,7 +203,7 @@ class SimulatedSpectrum(Spectrum):
         self.normalize()
 
 
-    def add_noise(self, signal_to_noise = 15):
+    def add_noise(self, signal_to_noise):
         """
         Adds noise from a Poisson distribution.
         
@@ -214,14 +216,18 @@ class SimulatedSpectrum(Spectrum):
         -------
         None.
         """
-        intensity_max = np.max(self.lineshape)
-        noise = intensity_max/signal_to_noise
+        if (signal_to_noise == 0 or signal_to_noise == None):
+            pass
+        else:
+            intensity_max = np.max(self.lineshape)
+            noise = intensity_max/signal_to_noise
         
-        poisson_noise = noise* np.random.poisson(1,
-                                                 self.lineshape.shape)
+            poisson_noise = noise* np.random.poisson(1,
+                                                     self.lineshape.shape)
         
-        self.lineshape = self.lineshape + poisson_noise                         
-        self.normalize()
+            self.lineshape = self.lineshape + poisson_noise                         
+            self.normalize()
+
                     
         
     def change_resolution(self, resolution):
@@ -250,42 +256,45 @@ class SimulatedSpectrum(Spectrum):
         x = self.x
         y = self.lineshape
         
-        fwhm = np.mean(x)/ float(resolution) 
-        sigma = fwhm / (2.0 * np.sqrt(2.0 * np.log(2.0)))
+
+        if (resolution == 0 or resolution == None):
+            fwhm = resolution
+        else:
+            fwhm = np.mean(x)/ float(resolution) 
+            sigma = fwhm / (2.0 * np.sqrt(2.0 * np.log(2.0)))
         
-        # To preserve the position of spectral lines, the broadening
-        # function must be centered at N//2 - (1-N%2) = N//2 + N%2 - 1.
-        lenx = len(x)
-        step = self.step
-        gauss_x = (np.arange(lenx,
-                             dtype=np.int) - sum(divmod(lenx, 2)) + 1) * step
+            # To preserve the position of spectral lines, the broadening
+            # function must be centered at N//2 - (1-N%2) = N//2 + N%2 - 1.
+            lenx = len(x)
+            step = self.step
+            gauss_x = (np.arange(
+                lenx, dtype=np.int) - sum(divmod(lenx, 2)) + 1) * step
         
         
-        # The broadening spectrum is a synthetic spectrum.
-        broadening_spectrum = SyntheticSpectrum(gauss_x[0],
-                                                gauss_x[-1],
-                                                step,
-                                                label = 'Gauss')
-        broadening_spectrum.addComponent(Gauss(position = 0,
-                                               width = sigma,
-                                               intensity = 1))
+            # The broadening spectrum is a synthetic spectrum.
+            broadening_spectrum = SyntheticSpectrum(gauss_x[0],
+                                                    gauss_x[-1],
+                                                    step,
+                                                    label = 'Gauss')
+            broadening_spectrum.addComponent(Gauss(position = 0,
+                                                   width = sigma,
+                                                   intensity = 1))
+                     
+            # This assures that the edges are handled correctly.
+            len_y = len(y)
+            y = np.concatenate((np.ones(len_y) * y[0],
+                                y,
+                                np.ones(len_y) * y[-1]))
         
-                
-        # This assures that the edges are handled correctly.
-        len_y = len(y)
-        y = np.concatenate((np.ones(len_y) * y[0],
-                            y,
-                            np.ones(len_y) * y[-1]))
-        
-        # This performs the convolution of the initial lineshape with
-        # the Gaussian kernel.
-        result = fftconvolve(y,
-                             broadening_spectrum.lineshape,
-                             mode="same")
-        result = result[len_y:-len_y]
-        
-        self.lineshape = result
-        self.normalize()
+            # This performs the convolution of the initial lineshape with
+            # the Gaussian kernel.
+            result = fftconvolve(y,
+                                 broadening_spectrum.lineshape,
+                                 mode="same")
+            result = result[len_y:-len_y]
+            
+            self.lineshape = result
+            self.normalize()
         self.fwhm = fwhm    
         
 class Figure:
@@ -307,7 +316,7 @@ if __name__ == '__main__':
     label = 'Fe2O3'
     datapath = os.path.dirname(
                 os.path.abspath(__file__)).partition(
-                        'augmentation')[0] + '\\data'
+                        'augmentation')[0] + '\\data' + '\\measured'
                     
     filename = datapath + '\\' + label + '.txt'
         

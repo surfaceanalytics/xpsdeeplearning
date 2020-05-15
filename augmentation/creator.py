@@ -12,7 +12,6 @@ from time import time
 import pickle
 import matplotlib.pyplot as plt
 import pymongo # MongoDB upload
-import psutil # memory usage
 
 
 from base_model import MeasuredSpectrum, Figure
@@ -20,22 +19,46 @@ from simulation import Simulation
 
 
 class Creator():
-    def __init__(self, no_of_simulations):
+    """
+    Class for simulating large amounts of XPS spectra based on a 
+    number of input_spectra
+    """
+    def __init__(self, no_of_simulations, input_labels, single = False):
+        """
+        Loading the input spectra and creating the empty augmentation
+        matrix based on the number of input spectra.
+        
+        Parameters
+        ----------
+        no_of_simulations : int
+            The number of spectra that will be simulated.
+        input_labels : list
+            List of strings that defines the seed spectra for the 
+            simulations.
+        single : bool, optional
+            If single, then only one of the input spectra will be used
+            for creating a single spectrum. If not single, a linear 
+            combination of all spectra will be used.
+            The default is True.
+
+        Returns
+        -------
+        None.
+
+        """
         self.no_of_simulations = no_of_simulations
         
         datapath = os.path.dirname(
             os.path.abspath(__file__)).partition(
                         'augmentation')[0] + '\\data' + '\\measured'
-       
-        labels = ['Fe_metal','FeO','Fe3O4','Fe2O3']
-        
+
         self.input_spectra = []
-        for label in labels:
+        for label in input_labels:
             filename = datapath + '\\' + label + '.txt'
             self.input_spectra += [MeasuredSpectrum(filename)]
         
         linear_params = []
-        for i in range(len(labels)):
+        for i in range(len(input_labels)):
             linear_params.append(1.0)
         
         # No. of parameter = no. of linear parameter + 3
@@ -46,10 +69,13 @@ class Creator():
         self.augmentation_matrix = np.zeros((self.no_of_simulations,
                                              no_of_params))
         
-        self.create_matrix()
+        if single:
+            self.create_matrix(single = True)
+        else:
+            self.create_matrix(single = False)
 
     
-    def create_matrix(self):
+    def create_matrix(self, single = False):
         """
         Creates the numpy array 'augmenttion_matrix' (instance
         variable) that is used to simulate the new spectra.
@@ -59,45 +85,50 @@ class Creator():
             p = no. of input spectra + 3 (resolution,shift,noise)
         The parameters are chosen randomly. For the last three
         parameters, the random numbers are integers drawn from specific
-        intervals that create reasonable spectra-
+        intervals that create reasonable spectra.
 
         Returns
         -------
         None.
 
         """
-        
-        shift_x_values = list(range(-9,9,1))
-        noise_values = list(range(25,100,5))
-        resolution_values = list(range(250,1000,50))
-        
-        for i in range(self.no_of_simulations):
-            # Linear parameters
-            r = [np.random.uniform(0.1,1.0) for j \
-                 in range(self.no_of_linear_params)]
-            s = sum(r)
-            linear_params = [ k/s for k in r ]
 
-            while all(p >= 0.1 for p in linear_params) == False:
-                # sample again if one of the parameters is smaller than
-                # 0.1.
-                r = [np.random.uniform(0.1,1.0) for j in \
-                     range(self.no_of_linear_params)]
+        for i in range(self.no_of_simulations):
+            if single == False:          
+                # Linear parameters
+                r = [np.random.uniform(0.1,1.0) for j \
+                     in range(self.no_of_linear_params)]
                 s = sum(r)
                 linear_params = [ k/s for k in r ]
 
-            self.augmentation_matrix[i,0:self.no_of_linear_params] = \
-                linear_params
+                while all(p >= 0.1 for p in linear_params) == False:
+                    # sample again if one of the parameters is smaller than
+                    # 0.1.
+                    r = [np.random.uniform(0.1,1.0) for j in \
+                         range(self.no_of_linear_params)]
+                    s = sum(r)
+                    linear_params = [ k/s for k in r ]
+
+                self.augmentation_matrix[i,0:self.no_of_linear_params] = \
+                    linear_params
+        
+            else:
+                q = np.random.choice(list(range(self.no_of_linear_params)))
+                print(q)
+                self.augmentation_matrix[i,q] = 1.0
+                self.augmentation_matrix[i,:q] = 0
+                self.augmentation_matrix[i,q+1:] = 0
+            
 
             # FWHM
-            self.augmentation_matrix[i][-3] = np.random.randint(250,1500)
+            self.augmentation_matrix[i,-3] = np.random.randint(145,722)
             # shift_x
-            self.augmentation_matrix[i][-2] = np.random.randint(-8,9)
+            self.augmentation_matrix[i,-2] = np.random.randint(-8,9)
             # Signal-to-noise
-            self.augmentation_matrix[i][-1] = np.random.randint(25,100)
+            self.augmentation_matrix[i,-1] = np.random.randint(15,200)
   
                 
-    def run(self):
+    def run(self, broaden = True, x_shift = True, noise = True):
         """
         The artificial spectra and stare createad using the simulation
         class and the augmentation matrix. All data is then stored in 
@@ -108,6 +139,13 @@ class Creator():
         None.
 
         """
+        if broaden == False:
+            self.augmentation_matrix[:,-3] = 0
+        if x_shift == False:
+            self.augmentation_matrix[:,-2] = 0
+        if noise == False:
+            self.augmentation_matrix[:,-1] = 0
+
         dict_list = []
         for i in range(self.no_of_simulations):
             sim = Simulation(self.input_spectra)
@@ -188,10 +226,21 @@ class Creator():
                 fig_text += str(key) + ": " + \
                     str(np.round(row['label'][key],decimals =2)) + '\n'
             fig_text += '\n'
-            fig_text += 'FHWM: ' + \
-                str(np.round(row['FWHM'], decimals = 2)) + '\n'
-            fig_text += 'X shift: ' + str(int(row['shift_x'])) + '\n'
-            fig_text += 'S/N: ' + str(int(row['noise'])) + '\n'            
+            if (row['FWHM'] != None and row['FWHM'] != 0):
+                fig_text += 'FHWM: ' + \
+                    str(np.round(row['FWHM'], decimals = 2)) + '\n'
+            else:
+                fig_text += 'FHWM: not changed' + '\n'
+                
+            if (row['shift_x'] != None and row['shift_x'] != 0):
+                fig_text += 'X shift: ' + str(int(row['shift_x'])) + '\n'
+            else:
+                fig_text += 'X shift: none' + '\n'
+                
+            if (row['noise'] != None and row['noise'] != 0):
+                fig_text += 'S/N: ' + str(int(row['noise'])) + '\n'      
+            else:
+                fig_text += 'S/N: not changed' + '\n'
  
             fig.ax.text(0.1, 0.45,fig_text,
                         horizontalalignment='left',
@@ -467,13 +516,14 @@ def drop_db_collection(collection_name):
 #%%
 if __name__ == "__main__":
     t0 = time()
-    no_of_simulations = 20
-    creator = Creator(no_of_simulations)
-    creator.run()
-    creator.plot_random(0)
-    filename = 'Sim_50_reduced'
-    creator.upload_to_DB(filename, reduced = True)
-    collections, data = check_db(filename)
+    no_of_simulations = 25
+    input_labels =  ['Fe_metal','FeO','Fe3O4','Fe2O3']
+    creator = Creator(no_of_simulations, input_labels, single = True)
+    creator.run(broaden = True, x_shift = True, noise = True)
+    creator.plot_random(6)
+    filename = 'Fe_metal_500_reduced'
+    #creator.upload_to_DB(filename, reduced = True)
+    #collections, data = check_db(filename)
     #drop_db_collection(filename)
 
 # =============================================================================
