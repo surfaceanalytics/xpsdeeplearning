@@ -11,6 +11,8 @@ import pandas as pd
 from time import time
 import pickle
 import matplotlib.pyplot as plt
+import pymongo # MongoDB upload
+import psutil # memory usage
 
 
 from base_model import MeasuredSpectrum, Figure
@@ -123,12 +125,12 @@ class Creator():
             
             d = self.dict_from_one_simulation(sim)
             dict_list.append(d)   
-            print(i, self.no_of_simulations)
+            print('Simulation: ' + str(i) + '/' + str(self.no_of_simulations))
             
         self.df = pd.DataFrame(dict_list)
         self.reduced_df = self.df[['x', 'y','label']]
         
-        print("Number of created spectra " + str(self.no_of_simulations))
+        print('Number of created spectra: ' + str(self.no_of_simulations))
             
                      
     def dict_from_one_simulation(self, sim):
@@ -290,9 +292,89 @@ class Creator():
         
             
     
-    def upload_to_DB(self,collection_name):
-        pass
-              
+    def upload_to_DB(self,collection_name, reduced = True):
+        """
+        Upload the simulated data to a collection in the SIALab
+        MongoDB. 
+
+        Parameters
+        ----------
+        collection_name : str, optional
+            The name of the new collections.
+            The default is None.
+        reduced : bool, optional
+            DESCRIPTION. The default is True.
+
+        Returns
+        -------
+        None
+
+        """
+        client = pymongo.MongoClient(
+            credentials.connectionstring) #port 27017
+
+        db = client['sia']
+        
+        # Decide whether all or only the reduced data shall be saved.
+        if reduced:
+            df = self.reduced_df
+        else:
+            df = self.df
+        
+        # Check for overwriting.
+        write = True
+        collections = [collection for collection \
+                       in db.list_collection_names()]
+        
+        while collection_name in collections:
+            print('\n SIALAb MongoDB: Collection already exists!')
+            answer = None
+            while answer not in ('yes','no'):
+                answer = input('Do you want to overwrite it? (yes/no)')
+                if answer == 'yes':
+                    write = True
+                    print('Collection overwritten.')
+                elif answer == 'no':
+                    write = False
+                    print('Collection not overwritten.')
+                    
+                    answer2 = None
+                    while answer2 not in ('yes', 'no'):
+                        answer2 = input(
+                            'Do you want to create a new collection? (yes/no)')
+                        if answer2 == "yes":
+                            write = True
+                            collection_name = input(
+                                'Please enter a new collection name.') 
+                            print('New collection was uploaded.')
+                        elif answer2 == 'no':
+                            write = False
+                            print('Data was not uploaded.')
+                    
+                elif answer2 == 'no':
+                    write = False
+                    
+                else:
+                    print('Please enter yes or no.')
+                    
+            if answer == 'yes':
+                break
+            if answer2 == 'no':
+                break
+        
+        collection = db[collection_name]
+
+        if write:
+            #Upload data to DB 
+            db[collection_name].delete_many({})
+            for i in range(self.no_of_simulations):
+                row = self.df.iloc[i]
+                data = row.to_dict()
+                data['x'] = list(np.round(data['x'],decimals = 2))
+                data['y'] = list(data['y'])
+                db[collection_name].insert_one(data)
+                print('Upload: ' + str(i) + '/' + str(self.no_of_simulations))
+        
 
         
 def calculate_runtime(start, end):
@@ -319,24 +401,91 @@ def calculate_runtime(start, end):
     runtime = "{:0>2}:{:0>2}:{:05.2f}".format(int(hours),int(minutes),seconds)
     
     return runtime
+
+
+
+def check_db(collection_name):  
+    """
+    Check which data was uploaded. 
+
+    Parameters
+    ----------
+    collection_name : str, optional
+        Name of the collection for which the data is to be checked.
+
+    Returns
+    -------
+    c : dict
+        All collections in the db.
+    all_data : TYPE
+        DESCRIPTION.
+
+    """
+    client = pymongo.MongoClient(
+            credentials.connectionstring) #port 27017
+
+    db = client['sia']
+    collection = db[collection_name]
+
+    all_data = []
+    for doc in collection.find():
+        data_single = doc
+        # Remove MongoDB id
+        del data_single['_id']
+        data_single['x'] = np.array(data_single['x'])
+        data_single['y'] = np.array(data_single['y'])
+        all_data.append(data_single)
         
-                
+    c = dict((collection,
+              [document for document in db.collection.find()])
+             for collection in db.list_collection_names())
+    client.close()
+
+    return c, all_data      
+
+def drop_db_collection(collection_name):  
+    """
+    Removes a collection from the SIALab MongoDB.
+
+    Parameters
+    ----------
+    collection_name : str, optional
+        Name of the collection which shall be deleted.
+
+    Returns
+    -------
+    None.
+
+    """
+    client = pymongo.MongoClient(
+            credentials.connectionstring) #port 27017
+
+    db = client['sia']
+    collection = db[collection_name]
+    collection.drop()
+              
 #%%
 if __name__ == "__main__":
     t0 = time()
-    no_of_simulations = 5000000
+    no_of_simulations = 20
     creator = Creator(no_of_simulations)
     creator.run()
-    creator.plot_random(20)
+    creator.plot_random(0)
+    filename = 'Sim_50_reduced'
+    creator.upload_to_DB(filename, reduced = True)
+    collections, data = check_db(filename)
+    #drop_db_collection(filename)
+
+# =============================================================================
+#     creator.to_file(name = 'filename',
+#                     filetype = 'json',
+#                     how = 'full',
+#                     single = False)
+# =============================================================================
     t1 = time()
     runtime = calculate_runtime(t0,t1)
     print(f'Runtime: {runtime}.')
-    del(t0,t1,runtime)
-    
-    creator.to_file(name = 'sim_5000000_full',
-                    filetype = 'json',
-                    how = 'full',
-                    single = False)
+    del(t0,t1,runtime,filename)
     
 # =============================================================================
 # # Runtime test

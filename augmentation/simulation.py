@@ -14,9 +14,26 @@ from base_model import Spectrum, MeasuredSpectrum, SimulatedSpectrum, \
 
 class Simulation():
     """
+    Basic class for simulating a spectrum from input spectra.
+    The main methods are linear combination of the input spectra and
+    changes to the resolution, S/N ratio and x-axis of a spectrum.
     """
     def __init__(self, input_spectra):  
-        a = 1
+        """
+        Initialize the input spectra (a list) and and empty 
+        SimulatedSpectrum for the output. The x-range for the output
+        spectrum is originally the same as the first input spectrum.
+
+        Parameters
+        ----------
+        input_spectra : list
+            List of instances of the MeasuredSpectrum class.
+
+        Returns
+        -------
+        None.
+
+        """
         self.input_spectra = input_spectra
         for spectrum in input_spectra:
             spectrum.normalize()
@@ -51,35 +68,43 @@ class Simulation():
         None.
 
         """
+        # Make sure that the right amount of params is given.
         if len(self.input_spectra) < len(scaling_params):
-            print("Please supply the correct amount of scaling parameters.")
-            print("Simulated spectrum was not changed!") 
+            print('Please supply the correct amount of scaling parameters.')
+            print('Simulated spectrum was not changed!') 
             
         elif len(self.input_spectra) > len(scaling_params):
-            print("Please supply enough scaling parameters.")
-            print("Simulated spectrum was not changed!") 
+            print('Please supply enough scaling parameters.')
+            print('Simulated spectrum was not changed!') 
          
         else:
             self.output_spectrum.label = {}
             if np.round(sum(scaling_params),decimals = 1) == 1.0:
                 output_list = []
                 for i in range(len(self.input_spectra)):
+                    # Species = List of input spectra names
                     species = list(self.input_spectra[i].label.keys())[0]
                     concentration = scaling_params[i]
                     
                     intensity = self.input_spectra[i].lineshape* \
                                 scaling_params[i]
                     output_list.append(intensity)
-
-                    self.output_spectrum.label[species] = concentration
+                    
+                    # For each species, the label gets a new key:value
+                    # pair of the format species: concentration
+                    if concentration == 0:
+                        pass
+                    else:
+                        self.output_spectrum.label[species] = concentration
            
+                # Linear combination
                 self.output_spectrum.lineshape = sum(output_list)
                 self.output_spectrum.normalize()
                 
  
             else:
-               print("Scaling parameters have to sum to 1!") 
-               print("Simulated spectrum was not changed!") 
+               print('Scaling parameters have to sum to 1!') 
+               print('Simulated spectrum was not changed!') 
 
 
     def change_spectrum(self, spectrum = None, **kwargs, ):
@@ -88,46 +113,44 @@ class Simulation():
         ----------
         spectrum : Spectrum, optional
             A Spectrum object can be supplied if one wants to change a
-            single spectrum and not change a spectrum that was already
-            created using a linear combination. If spectrum = none, 
-            then the current output spectrum is changed. 
-            The default is None.
+            single inout spectrum and not change a spectrum that was 
+            already created using a linear combination. 
+            If spectrum == None,then the current output spectrum is
+            changed. The default is None.
         **kwargs : str
-        resolution: int
-            To perform a convolution of the spectrum with a
-            gaussian with FWHM = resolution/mean(x) where x is the 
-            x-axis of the spectrum.
-        signal_to_noise: int
-            To add poisson-distributed noise at to the spectrum. 
-            Signal-to-noise describes the S/N ratio of the resulting 
-            spectrum.
-        shift_x: int
-            To shift the spectrum by some eV.
-        scale_y: float
-            To scale the intensity by a factor.
+            resolution: int
+                To perform a convolution of the spectrum with a
+                gaussian with FWHM = resolution/mean(x) where x is the 
+                x-axis of the spectrum.
+            signal_to_noise: int
+                To add poisson-distributed noise at to the spectrum. 
+                Signal-to-noise describes the S/N ratio of the
+                resulting spectrum.
+            shift_x: int
+                To shift the spectrum by some eV.
+            scale_y: float
+                To scale the intensity by a factor.
             
         Returns
         -------
         None.
 
         """
-# =============================================================================
-#         if spectrum != None:
-#             # The step width must be defined by the measured spectrum. 
-#             # All synthetic pectra need to have their step widths 
-#             # redefined and their lineshapes rebuilt.
-#             self.output_spectrum.lineshape = spectrum.lineshape
-#             start = self.spectrum.start 
-#             stop = self.spectrum.stop    
-#             step = self.spectrum.step 
-#             self.label = self.spectrum.label
-#             self.output_spectrum.x = np.flip(np.arange(
-#                                                  start,
-#                                                  stop+step,
-#                                                  step))
-#         else:
-#             pass
-# =============================================================================
+        if spectrum != None:
+            # The step width is defined by the measured spectrum. 
+            # The output spectrum needs to have its step widths 
+            # redefined.
+            self.output_spectrum.lineshape = spectrum.lineshape
+            start = self.spectrum.start 
+            stop = self.spectrum.stop    
+            step = self.spectrum.step 
+            self.label = self.spectrum.label
+            self.output_spectrum.x = np.flip(np.arange(
+                                                 start,
+                                                 stop+step,
+                                                 step))
+        else:
+            pass
             
         if 'fwhm' in kwargs.keys():
             self.output_spectrum.resolution = kwargs['fwhm']
@@ -146,15 +169,35 @@ class Simulation():
             
         self.output_spectrum.normalize()
 
+
     def plot_simulation(self, plot_inputs = False):   
+        """
+        Creates Figure objects for the output pectrum and (optionally)
+        for the input spectra.
+
+        Parameters
+        ----------
+        plot_inputs : bool, optional
+            If plot_inputs == True, the input spectra are also plotted.
+            Otherwise, only the output spectrum is plotted.
+            The default is False.
+
+        Returns
+        -------
+        None.
+
+        """
         xlabel = 'Binding energy (eV)'
         ylabel = 'Intensity (arb. units)' 
         
         if plot_inputs:
+            figs_input = []
             for spectrum in self.input_spectra:
                 x = spectrum.x
                 y = spectrum.lineshape
-                fig = Figure(x, y, xlabel,ylabel,title=spectrum.label)
+                title = next(iter(spectrum.label))
+                fig_input = Figure(x, y, title = title)
+                figs_input.append(fig_input)
         
         fig_out = Figure(self.output_spectrum.x,
                          self.output_spectrum.lineshape,
@@ -166,7 +209,7 @@ class Simulation():
 if __name__ == '__main__':
     datapath = os.path.dirname(
                 os.path.abspath(__file__)).partition(
-                        'augmentation')[0] + '\\data'
+                        'augmentation')[0] + '\\data' + '\\measured'
        
     labels = ['Fe_metal','FeO','Fe3O4','Fe2O3']
     
@@ -185,7 +228,7 @@ if __name__ == '__main__':
                         fwhm = 1050)
     
     print('Linear combination parameters: ' + str(sim.output_spectrum.label))
-    sim.plot_simulation(plot_inputs = False)
+    sim.plot_simulation(plot_inputs = True)
 
 
 
