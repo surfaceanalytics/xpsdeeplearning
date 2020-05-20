@@ -10,7 +10,6 @@ import os
 from scipy.signal import fftconvolve
 
 
-
 class Spectrum:
     def __init__(self,start,stop,step,label):
         self.start = start

@@ -223,7 +223,7 @@ if __name__ == '__main__':
     sim.combine_linear(scaling_params = [0.4,0.4,0.1,0.1])                
 
     sim.change_spectrum(shift_x = 2,
-                        signal_to_noise = 40,
+                        signal_to_noise = 150,
                         fwhm = 1050)
     
     print('Linear combination parameters: ' + str(sim.output_spectrum.label))

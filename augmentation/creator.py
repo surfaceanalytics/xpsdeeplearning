@@ -16,6 +16,7 @@ import pymongo # MongoDB upload
 
 from base_model import MeasuredSpectrum, Figure
 from simulation import Simulation
+import credentials
 
 
 class Creator():
@@ -92,7 +93,6 @@ class Creator():
         None.
 
         """
-
         for i in range(self.no_of_simulations):
             if single == False:          
                 # Linear parameters
@@ -114,7 +114,6 @@ class Creator():
         
             else:
                 q = np.random.choice(list(range(self.no_of_linear_params)))
-                print(q)
                 self.augmentation_matrix[i,q] = 1.0
                 self.augmentation_matrix[i,:q] = 0
                 self.augmentation_matrix[i,q+1:] = 0
@@ -125,7 +124,7 @@ class Creator():
             # shift_x
             self.augmentation_matrix[i,-2] = np.random.randint(-8,9)
             # Signal-to-noise
-            self.augmentation_matrix[i,-1] = np.random.randint(15,200)
+            self.augmentation_matrix[i,-1] = np.random.randint(15,120)
   
                 
     def run(self, broaden = True, x_shift = True, noise = True):
@@ -163,7 +162,7 @@ class Creator():
             
             d = self.dict_from_one_simulation(sim)
             dict_list.append(d)   
-            print('Simulation: ' + str(i) + '/' + str(self.no_of_simulations))
+            print('Simulation: ' + str(i+1) + '/' + str(self.no_of_simulations))
             
         self.df = pd.DataFrame(dict_list)
         self.reduced_df = self.df[['x', 'y','label']]
@@ -278,9 +277,13 @@ class Creator():
 
         """
         filetypes = ['excel', 'json', 'pickle']
-        datafolder = os.path.dirname(
-            os.path.abspath(__file__)).partition(
-                        'augmentation')[0] + '\\data' + '\\\\simulated' 
+# =============================================================================
+#         datafolder = os.path.dirname(
+#             os.path.abspath(__file__)).partition(
+#                         'augmentation')[0] + '\\data' + '\\\\simulated' 
+# =============================================================================
+        
+        datafolder = r'C:\Users\pielsticker\Simulations'
         
         filepath = datafolder + '\\' + name
         
@@ -328,7 +331,7 @@ class Creator():
         if filetype == 'json':
             file = filename + ".json"
             with open(file, 'w') as json_file:
-                self.test_df = df.to_json(json_file)
+                self.test_df = df.to_json(json_file, orient = 'records')
 #                # Test if saving worked for single = False.
 #                self.test_df = pd.read_json(file) 
             
@@ -359,10 +362,9 @@ class Creator():
         None
 
         """
-        client = pymongo.MongoClient(
-            credentials.connectionstring) #port 27017
+        client = pymongo.MongoClient(credentials.connectionstring)
 
-        db = client['sia']
+        db = client[credentials.db_name]
         
         # Decide whether all or only the reduced data shall be saved.
         if reduced:
@@ -410,8 +412,6 @@ class Creator():
                 break
             if answer2 == 'no':
                 break
-        
-        collection = db[collection_name]
 
         if write:
             #Upload data to DB 
@@ -422,7 +422,7 @@ class Creator():
                 data['x'] = list(np.round(data['x'],decimals = 2))
                 data['y'] = list(data['y'])
                 db[collection_name].insert_one(data)
-                print('Upload: ' + str(i) + '/' + str(self.no_of_simulations))
+                print('Upload: ' + str(i+1) + '/' + str(self.no_of_simulations))
         
 
         
@@ -452,7 +452,6 @@ def calculate_runtime(start, end):
     return runtime
 
 
-
 def check_db(collection_name):  
     """
     Check which data was uploaded. 
@@ -470,27 +469,31 @@ def check_db(collection_name):
         DESCRIPTION.
 
     """
-    client = pymongo.MongoClient(
-            credentials.connectionstring) #port 27017
+    client = pymongo.MongoClient(credentials.connectionstring)
 
-    db = client['sia']
+    db = client[credentials.db_name]
     collection = db[collection_name]
+    
 
-    all_data = []
-    for doc in collection.find():
-        data_single = doc
-        # Remove MongoDB id
-        del data_single['_id']
-        data_single['x'] = np.array(data_single['x'])
-        data_single['y'] = np.array(data_single['y'])
-        all_data.append(data_single)
+
+# =============================================================================
+#     all_data = []
+#     for doc in collection.find():
+#         data_single = doc
+#         # Remove MongoDB id
+#         del data_single['_id']
+#         data_single['x'] = np.array(data_single['x'])
+#         data_single['y'] = np.array(data_single['y'])
+#         all_data.append(data_single)
+# =============================================================================
         
     c = dict((collection,
               [document for document in db.collection.find()])
              for collection in db.list_collection_names())
     client.close()
 
-    return c, all_data      
+    return c#, all_data      
+
 
 def drop_db_collection(collection_name):  
     """
@@ -506,28 +509,29 @@ def drop_db_collection(collection_name):
     None.
 
     """
-    client = pymongo.MongoClient(
-            credentials.connectionstring) #port 27017
+    client = pymongo.MongoClient(credentials.connectionstring)
 
-    db = client['sia']
+    db = client[credentials.db_name]
     collection = db[collection_name]
     collection.drop()
-              
+    
+
+             
 #%%
 if __name__ == "__main__":
     t0 = time()
-    no_of_simulations = 25
+    no_of_simulations = 20
     input_labels =  ['Fe_metal','FeO','Fe3O4','Fe2O3']
     creator = Creator(no_of_simulations, input_labels, single = True)
     creator.run(broaden = True, x_shift = True, noise = True)
-    creator.plot_random(6)
-    filename = 'Fe_metal_500_reduced'
-    #creator.upload_to_DB(filename, reduced = True)
-    #collections, data = check_db(filename)
-    #drop_db_collection(filename)
-
+    creator.plot_random(5)
+    filename = 'Single_species_100000_reduced_20200518'
 # =============================================================================
-#     creator.to_file(name = 'filename',
+#     creator.upload_to_DB(filename, reduced = True)
+#    #collections = check_db(filename)
+#     #drop_db_collection(filename)
+# 
+#     creator.to_file(name = filename,
 #                     filetype = 'json',
 #                     how = 'full',
 #                     single = False)
@@ -553,3 +557,4 @@ if __name__ == "__main__":
 # 
 # plt.plot(simulations, times)
 # =============================================================================
+collections = check_db(filename)
