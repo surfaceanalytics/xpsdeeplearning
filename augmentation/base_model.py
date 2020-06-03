@@ -322,6 +322,3 @@ if __name__ == '__main__':
     spec = MeasuredSpectrum(filename)
     
     fig = Figure(spec.x, spec.lineshape, title = label)
-    
-
-            

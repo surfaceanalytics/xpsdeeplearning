@@ -6,17 +6,14 @@ Created on Thu Jan 23 12:21:27 2020
 """
 import numpy as np
 import os
-import json
 import pandas as pd
 from time import time
-import pickle
-import matplotlib.pyplot as plt
 import pymongo # MongoDB upload
-
 
 from base_model import MeasuredSpectrum, Figure
 from simulation import Simulation
 import credentials
+from upload_to_db import connect_to_db
 
 
 class Creator():
@@ -49,13 +46,13 @@ class Creator():
         """
         self.no_of_simulations = no_of_simulations
         
-        datapath = os.path.dirname(
+        input_datapath = os.path.dirname(
             os.path.abspath(__file__)).partition(
                         'augmentation')[0] + '\\data' + '\\measured'
 
         self.input_spectra = []
         for label in input_labels:
-            filename = datapath + '\\' + label + '.txt'
+            filename = input_datapath + '\\' + label + '.txt'
             self.input_spectra += [MeasuredSpectrum(filename)]
         
         linear_params = []
@@ -122,7 +119,8 @@ class Creator():
             # FWHM
             self.augmentation_matrix[i,-3] = np.random.randint(145,722)
             # shift_x
-            self.augmentation_matrix[i,-2] = np.random.randint(-8,9)
+            self.augmentation_matrix[i,-2] = np.random.randint(-5,4)
+            #self.augmentation_matrix[i,-2] = np.random.randint(-8,9)
             # Signal-to-noise
             self.augmentation_matrix[i,-1] = np.random.randint(15,120)
   
@@ -197,6 +195,7 @@ class Creator():
              'y': spectrum.lineshape}
         
         return d
+    
     
     def plot_random(self, no_of_spectra):
         if no_of_spectra > self.no_of_simulations:
@@ -277,15 +276,9 @@ class Creator():
 
         """
         filetypes = ['excel', 'json', 'pickle']
-# =============================================================================
-#         datafolder = os.path.dirname(
-#             os.path.abspath(__file__)).partition(
-#                         'augmentation')[0] + '\\data' + '\\\\simulated' 
-# =============================================================================
+        datafolder = r'U:\Simulations'
         
-        datafolder = r'C:\Users\pielsticker\Simulations'
-        
-        filepath = datafolder + '\\' + name
+        filepath = datafolder + '\\' + name + '\\' + name
         
         if filetype not in filetypes:
             print('Saving was not successful. Choose a valid filetype!')
@@ -308,19 +301,6 @@ class Creator():
                 self._save_to_file(df.iloc[i], filepath, filetype)
                 filenumber +=1
 
-#                # Test if saving to json worked for single = True.
-#                with open(filename + ".json") as json_file:
-#                     test = json.load(json_file)#[i]
-#                test_data.append(test) 
-#            self.test_df = pd.DataFrame(test_data)
-
-# =============================================================================
-#                 # Test if saving to pickle worked for single = True.
-# #                with open(filename + ".json") as json_file:
-# #                    test = json.load(json_file)#[i]
-# #                test_data.append(test) 
-# #            self.test_df = pd.DataFrame(test_data)
-# =============================================================================
 
     def _save_to_file(self, df, filename, filetype):
         if filetype == 'excel': 
@@ -331,19 +311,14 @@ class Creator():
         if filetype == 'json':
             file = filename + ".json"
             with open(file, 'w') as json_file:
-                self.test_df = df.to_json(json_file, orient = 'records')
-#                # Test if saving worked for single = False.
-#                self.test_df = pd.read_json(file) 
+                df.to_json(json_file, orient = 'records')
             
         if filetype == 'pickle':
             file = filename + ".pkl"
             with open(file, 'wb') as pickle_file:
                 df.to_pickle(pickle_file)
-#                # Test if saving worked for single = False.
-#                self.test_df = pd.read_pickle(pickle_file)
-        
-            
-    
+
+                
     def upload_to_DB(self,collection_name, reduced = True):
         """
         Upload the simulated data to a collection in the SIALab
@@ -419,7 +394,7 @@ class Creator():
             for i in range(self.no_of_simulations):
                 row = self.df.iloc[i]
                 data = row.to_dict()
-                data['x'] = list(np.round(data['x'],decimals = 2))
+                data['X'] = list(np.round(data['x'],decimals = 2))
                 data['y'] = list(data['y'])
                 db[collection_name].insert_one(data)
                 print('Upload: ' + str(i+1) + '/' + str(self.no_of_simulations))
@@ -469,30 +444,24 @@ def check_db(collection_name):
         DESCRIPTION.
 
     """
-    client = pymongo.MongoClient(credentials.connectionstring)
-
-    db = client[credentials.db_name]
+    client, db = connect_to_db()
     collection = db[collection_name]
     
-
-
-# =============================================================================
-#     all_data = []
-#     for doc in collection.find():
-#         data_single = doc
-#         # Remove MongoDB id
-#         del data_single['_id']
-#         data_single['x'] = np.array(data_single['x'])
-#         data_single['y'] = np.array(data_single['y'])
-#         all_data.append(data_single)
-# =============================================================================
+    all_data = []
+    for doc in collection.find():
+        data_single = doc
+        # Remove MongoDB id
+        del data_single['_id']
+        data_single['x'] = np.array(data_single['x'])
+        data_single['y'] = np.array(data_single['y'])
+        all_data.append(data_single)
         
     c = dict((collection,
               [document for document in db.collection.find()])
              for collection in db.list_collection_names())
     client.close()
 
-    return c#, all_data      
+    return c, all_data      
 
 
 def drop_db_collection(collection_name):  
@@ -509,12 +478,10 @@ def drop_db_collection(collection_name):
     None.
 
     """
-    client = pymongo.MongoClient(credentials.connectionstring)
-
-    db = client[credentials.db_name]
+    client, db = connect_to_db()
     collection = db[collection_name]
     collection.drop()
-    
+    client.close()    
 
              
 #%%
@@ -526,35 +493,18 @@ if __name__ == "__main__":
     creator.run(broaden = True, x_shift = True, noise = True)
     creator.plot_random(5)
     filename = 'Single_species_100000_reduced_20200518'
-# =============================================================================
-#     creator.upload_to_DB(filename, reduced = True)
-#    #collections = check_db(filename)
-#     #drop_db_collection(filename)
-# 
-#     creator.to_file(name = filename,
-#                     filetype = 'json',
-#                     how = 'full',
-#                     single = False)
-# =============================================================================
+    creator.upload_to_DB(filename, reduced = True)
+    #collections = check_db(filename)
+    #drop_db_collection(filename)
+
+    creator.to_file(name = filename,
+                    filetype = 'json',
+                    how = 'full',
+                    single = True)
     t1 = time()
     runtime = calculate_runtime(t0,t1)
     print(f'Runtime: {runtime}.')
     del(t0,t1,runtime,filename)
     
-# =============================================================================
-# # Runtime test
-# times = []
-# simulations = [1,10,100,1000,5000,10000,150000]
-# for i in simulations:
-#     t0 = time()
-#     no_of_simulations = i
-#     creator = Creator(no_of_simulations)
-#     #creator.run()
-#     t1 = time() 
-#     runtime = calculate_runtime(t0,t1)
-#     print(f'Runtime for {i} spectra: {runtime}.')
-#     times.append(runtime)
-# 
-# plt.plot(simulations, times)
-# =============================================================================
-collections = check_db(filename)
+    #collections = check_db(filename)
+  

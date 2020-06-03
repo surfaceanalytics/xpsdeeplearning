@@ -1,13 +1,5 @@
 # -*- coding: utf-8 -*-
 """
-Created on Tue Jun  2 10:58:25 2020
-
-@author: pielsticker
-"""
-
-
-# -*- coding: utf-8 -*-
-"""
 Created on Fri Apr 17 09:16:51 2020
 
 @author: pielsticker
@@ -16,30 +8,28 @@ Created on Fri Apr 17 09:16:51 2020
 
 import os
 import numpy as np
-import json
-import random
 import datetime
-import h5py
 from matplotlib import pyplot as plt
 
 from sklearn.utils import shuffle
-
 
 import tensorflow as tf
 # Run tensorflow on local CPU
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
-from tensorflow import keras
+#from tensorflow import keras
 from keras.models import Sequential
 # from keras.layers.pooling import GlobalAveragePooling1D
 from keras.layers.normalization import BatchNormalization
 from keras.layers import Dropout, Dense, Flatten
 from keras.layers.convolutional import Convolution1D,AveragePooling1D,MaxPooling1D
-from keras.utils import plot_model
-from keras.models import model_from_json
+from keras.utils import plot_model, to_categorical
 from keras.optimizers import Adam
 from keras.callbacks import TensorBoard
+from keras.datasets import mnist
+from keras.models import model_from_json
+from keras import backend as K
 
 
 
@@ -50,24 +40,69 @@ class Classifier():
         self.model_name = model_name
         self.time = datetime.datetime.now().strftime("%Y%m%d_%Hh%Mm")
         
-        self.epochs = 200
+        self.epochs = 20
         self.batch_size = 16
-        self.train_test_split_percentage = 0.2
         self.train_val_split_percentage = 0.2
-        self.no_of_examples = 200000
+        self.num_classes = 10
         
-        # Determine which dataset t shall be used
-        self.input_file = '20200528_iron_single_x_shift.h5'
-        self.label_values = ['Fe metal', 'FeO', 'Fe3O4', 'Fe2O3']
-        self.num_classes = len(self.label_values)
+        # input image dimensions
+        img_rows, img_cols = 28, 28
         
-        # load dataset and preprocess it
-        self.X_train, self.X_val, self.X_test, \
-            self.y_train, self.y_val, self.y_test = \
-                    self.load_data_preprocess()
-                    
-        input_shape = (self.X_train.shape[1], 1)
 
+        # the data, split between train and test sets
+        (X_train, y_train), (X_test, y_test) = \
+            mnist.load_data()
+        
+        if K.image_data_format() == 'channels_first':
+            X_train = X_train.reshape(X_train.shape[0], 1, img_rows*img_cols)
+            X_test = X_test.reshape(X_test.shape[0], 1, img_rows*img_cols)
+        else:
+            X_train = X_train.reshape(X_train.shape[0], img_rows*img_cols, 1)
+            X_test = X_test.reshape(X_test.shape[0], img_rows*img_cols, 1)
+
+        X_train = X_train.astype('float32')
+        X_test = X_test.astype('float32')
+        X_train/= 255
+        X_test /= 255
+        
+# =============================================================================
+#         # Take only some classes
+#         train_filter = np.where((y_train == 0 ) | (y_train == 1))
+#         test_filter = np.where((y_test == 0) | (y_test == 1))
+#         X_train, y_train = X_train[train_filter], y_train[train_filter]
+#         X_test, y_test = X_test[test_filter], y_test[test_filter]
+# =============================================================================
+
+        # convert class vectors to binary class matrices
+        y_train = to_categorical(y_train, self.num_classes)
+        y_test = to_categorical(y_test, self.num_classes)
+        
+        X_train, y_train = shuffle(X_train, y_train) 
+        X_test, y_test = shuffle(X_test, y_test) 
+        
+        X_train = X_train[:1000, :, :]
+        X_test = X_test[:4000, :, :]
+        y_train = y_train[:1000, :]
+        y_test = y_test[:4000, :]
+        
+        self.X_train = X_train
+        self.X_test = X_test
+        self.y_train = y_train
+        self.y_test = y_test
+        
+        print('\n')
+        print("Data was loaded!")
+        print('No. of training samples: ' + str(len(self.X_train)))
+        print('No. of test samples: ' + str(len(self.X_test)))
+        print('Shape of each sample : '
+              + str(self.X_train[0].shape[0]) + ' features (X)' 
+              + ' + ' + str(self.y_train[0].shape[0])
+              + ' labels (y)')
+                    
+        no_of_points = self.X_train.shape[1]
+        
+        input_shape = (no_of_points, 1)
+        
         if model_type == 'CNN_simple':
             self.architecture = ArchitectureSimpleCNN(input_shape,
                                                       self.num_classes)
@@ -88,77 +123,16 @@ class Classifier():
         self.architecture.save_and_print_architecture(self.model_name,
                                                       self.time)
         
-    
-    def load_data_preprocess(self):
-        input_datafolder = r'C:\Users\pielsticker\Simulations\\'                    
-        filename_load = input_datafolder + self.input_file
-
-        with h5py.File(filename_load, 'r') as hf:   
-            X = hf['X'][:self.no_of_examples, :, :]
-            y = hf['y'][:self.no_of_examples, :]
         
-        self.X, self.y = shuffle(X, y)
-# =============================================================================
-#         # Use only specific data
-#         a = np.array([[1,0,0,0],[0,0,0,1]], dtype=np.float32)
-#         data_filter = np.where(
-#             (np.all(self.y==a[0],axis=1)) | (np.all(self.y==a[1],axis=1)))
-#         self.X, self.y = self.X[data_filter],self.y[data_filter]
-# =============================================================================
-
-        # Split into train, val and test sets
-        X_train, X_val, X_test, y_train, y_val, y_test = \
-            self._split_test_val_train(self.X, self.y)
-   
-        return X_train, X_val, X_test, y_train, y_val, y_test
-    
-    
-    def _split_test_val_train(self, X, y):         
-        # First split into train+val and test sets
-        no_of_train_val = int((1-self.train_test_split_percentage) *\
-                              X.shape[0])
-        
-        X_train_val = X[:no_of_train_val,:,:]
-        X_test = X[no_of_train_val:,:,:]
-        y_train_val = y[:no_of_train_val,:]
-        y_test = y[no_of_train_val:,:]
-        
-        # Then create val subset from train set
-        no_of_train = int((1-self.train_val_split_percentage) *\
-                          X_train_val.shape[0])
-                    
-        X_train = X_train_val[:no_of_train,:,:]
-        X_val = X_train_val[no_of_train:,:,:]
-        y_train = y_train_val[:no_of_train,:]
-        y_val = y_train_val[no_of_train:,:]
-        
-        print('\n')
-        print("Data was loaded!")
-        print('Total no. of samples: ' + str(self.X.shape[0]))
-        print('No. of training samples: ' + str(X_train.shape[0]))
-        print('No. of validation samples: ' + str(X_val.shape[0]))
-        print('No. of test samples: ' + str(X_test.shape[0]))
-        print('Shape of each sample : '
-              + str(X_train.shape[1]) + ' features (X)' 
-              + ' + ' + str(y_train.shape[1])
-              + ' labels (y)\n')
-        
-        return X_train, X_val, X_test, y_train, y_val, y_test
-    
-    
     def check_class_distribution(self):
-        class_distribution = {'all data': {},
-                              'training data': {},
-                              'validation data': {},
+        class_distribution = {'training data': {},
                               'test data': {}}
         
         for i in range(self.num_classes):
-            class_distribution['all data'][str(i)] = 0
             class_distribution['training data'][str(i)] = 0
-            class_distribution['validation data'][str(i)] = 0
             class_distribution['test data'][str(i)] = 0
              
-        data_list = [self.y, self.y_train, self.y_val,self.y_test]
+        data_list = [self.y_train, self.y_test]
        
         for i, dataset in enumerate(data_list):
             key = list(class_distribution.keys())[i]
@@ -189,8 +163,8 @@ class Classifier():
         # fit and run model  
         self.training = self.model.fit(self.X_train,
                                        self.y_train,
-                                       validation_data = \
-                                           (self.X_val, self.y_val),
+                                       validation_split = \
+                                           self.train_val_split_percentage,
                                        nb_epoch = self.epochs,
                                        batch_size = self.batch_size,
                                        verbose = True,
@@ -490,32 +464,23 @@ class SpectrumFigure:
 
 #%% 
 if __name__ == "__main__":
-    np.random.seed(5002)
-    classifier = Classifier(model_type = 'CNN',
-                            model_name = 'Fe_single_x_shift_4_classes_CNN')
+    np.random.seed(100)
+    classifier = Classifier(model_type = 'CNN_simple',
+                            model_name = 'MNIST_CNN_simple')
     
     class_distribution = classifier.check_class_distribution()
-   
-    X = classifier.X
+
     X_train = classifier.X_train
-    X_val = classifier.X_val
     X_test = classifier.X_test
-    y = classifier.y
     y_train = classifier.y_train
-    y_val = classifier.y_val
     y_test = classifier.y_test
-    
-    #classifier.plot_random(no_of_spectra = 5)
-    
-        
+                   
     hist = classifier.train(tb_log = True)
     score = classifier.evaluate()
     test_loss, test_accuracy = score[0], score[1]
-
     pred_train, pred_test = classifier.predict()
-    pred_train_classes, pred_test_classes = classifier.predict_classes()
+    pred_train_classes = classifier.model.predict_classes(X_train)
+    pred_test_classes = classifier.model.predict_classes(X_test)
     
     classifier.save_model()
     graphs = TrainingGraphs(hist,classifier.model_name, classifier.time)
-    #classifier.load_model()
-

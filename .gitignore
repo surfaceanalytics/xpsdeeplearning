@@ -112,4 +112,7 @@ venv.bak/
 
 # credentials
 augmentation/credentials.py
-network/CNN_model.png
+network/Model.png
+logs
+figures
+saved_models

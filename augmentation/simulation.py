@@ -6,10 +6,8 @@ Created on Thu May  7 11:25:02 2020
 """
 
 import numpy as np
-import matplotlib.pyplot as plt
 import os
-from base_model import Spectrum, MeasuredSpectrum, SimulatedSpectrum, \
-    SyntheticSpectrum, Gauss, Lorentz, Figure
+from base_model import MeasuredSpectrum, SimulatedSpectrum, Figure
 
 
 class Simulation():
@@ -185,10 +183,7 @@ class Simulation():
         -------
         None.
 
-        """
-        xlabel = 'Binding energy (eV)'
-        ylabel = 'Intensity (arb. units)' 
-        
+        """        
         if plot_inputs:
             figs_input = []
             for spectrum in self.input_spectra:
@@ -198,9 +193,9 @@ class Simulation():
                 fig_input = Figure(x, y, title = title)
                 figs_input.append(fig_input)
         
-        fig_out = Figure(self.output_spectrum.x,
-                         self.output_spectrum.lineshape,
-                         title = self.output_spectrum.type)
+        Figure(self.output_spectrum.x,
+               self.output_spectrum.lineshape,
+               title = self.output_spectrum.type)
 
             
 

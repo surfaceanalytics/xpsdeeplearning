@@ -6,13 +6,12 @@ Created on Wed May 20 10:56:18 2020
 """
 
 import numpy as np
-import os
 import json
 from time import time
 import pymongo
+import h5py
 
 import credentials
-
 
 #%%
 
@@ -33,33 +32,43 @@ def upload_to_DB_from_json(filename, collection_name):
     None.
 
     """
-    client = pymongo.MongoClient(credentials.connectionstring)
+    client, db = connect_to_db()           
 
-    db = client[credentials.db_name]
+    #Upload data to DB 
+    with open(filename) as json_file:
+        data_list = json.load(json_file)
+        filenumber = int(filename.split('_')[3].split('.')[0])
+        for data in data_list:
+            index = data_list.index(data)
+            spectrum_number = filenumber*len(data_list) + index
+            print('filenumber: ' + str(filenumber),
+                  'spectrum_number: ' + str(spectrum_number))  
+            collection_name_upload = collection_name + str(spectrum_number)
+            db[collection_name_upload].delete_many({})
+            db[collection_name_upload].insert_one(data)
+    
+    client.close()
+               
+
+def upload_to_DB_from_hdf5(filename, collection_name):
+    client, db = connect_to_db()
+
+    with h5py.File(filename, 'r') as hf:
+        X_h5 = hf['X'][:]
+        y_h5 = hf['y'][:]  
         
+    for i in X_h5.shape[0]:
+        data =  {'X' : X_h5[i,:,:],
+                 'y' : y_h5[i, :]}
+        collection_name_upload = collection_name + str(i)
+        db[collection_name_upload].delete_many({})
+        db[collection_name_upload].insert_one(data)
+    
+    client.close()
 
-    # Check for overwriting.
-    write = True
-    collections = [collection for collection \
-                   in db.list_collection_names()]
-        
 
-# =============================================================================
-#     #Upload data to DB 
-#     with open(filename) as json_file:
-#         data_list = json.load(json_file)
-#         filenumber = int(filename.split('_')[3].split('.')[0])
-#         for data in data_list:
-#             index = data_list.index(data)
-#             spectrum_number = filenumber*len(data_list) + index
-#             print('filenumber: ' + str(filenumber),
-#                   'spectrum_number: ' + str(spectrum_number))  
-#             collection_name_upload = collection_name + str(spectrum_number)
-#             db[collection_name_upload].delete_many({})
-#             db[collection_name_upload].insert_one(data)
-#                
-# 
-# =============================================================================
+
+
 def check_db(collection_name):  
     """
     Check which data was uploaded. 
@@ -77,13 +86,10 @@ def check_db(collection_name):
         All data in the collection with the name 'collection_name'
 
     """
-    client = pymongo.MongoClient(credentials.connectionstring)
-
-    db = client[credentials.db_name]
+    client, db = connect_to_db()
+    
     collection = db[collection_name]
     
-
-
     all_data = []
     for doc in collection.find():
         data_single = doc
@@ -115,12 +121,18 @@ def drop_db_collection(collection_name):
     None.
 
     """
-    client = pymongo.MongoClient(credentials.connectionstring)
-
-    db = client[credentials.db_name]
+    db = connect_to_db()
+    
     collection = db[collection_name]
     collection.drop()
     
+
+def connect_to_db():
+    client = pymongo.MongoClient(credentials.connectionstring)
+    db = client[credentials.db_name]
+    
+    return client, db
+
     
 def calculate_runtime(start, end):
     """
@@ -156,7 +168,7 @@ collection_name_basic = 'Fe_single_'
              
 # Determine no. of simulations files
  #no_of_files = len(next(os.walk(input_datafolder))[2])
-no_of_files = 1
+no_of_files = 2
                 
 for i in range(no_of_files): 
     filename_load = filename_basic + str(i) + '.json'
@@ -168,6 +180,6 @@ runtime = calculate_runtime(t0,t1)
 print(f'Runtime: {runtime}.')
 del(t0,t1,runtime,filename_basic,no_of_files)
 
-#c, all_data = check_db(collection_name_basic + str(3999999))#
+c, all_data = check_db(collection_name_basic + str(3999999))#
 
     
