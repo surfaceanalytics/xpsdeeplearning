@@ -125,8 +125,6 @@ class Simulation():
                 resulting spectrum.
             shift_x: int
                 To shift the spectrum by some eV.
-            scale_y: float
-                To scale the intensity by a factor.
             
         Returns
         -------
@@ -156,9 +154,6 @@ class Simulation():
         if 'shift_x' in kwargs.keys():
             self.output_spectrum.shift_x = kwargs['shift_x']
             self.output_spectrum.shift_horizontal(kwargs['shift_x'])
-        if 'scale_y' in kwargs.keys():
-            self.output_spectrum.scale_y = kwargs['scale_y']
-            self.output_spectrum.scale_intensity(kwargs['scale_y'])
             
         if 'signal_to_noise' in kwargs.keys():
             self.output_spectrum.signal_to_noise = kwargs['signal_to_noise'] 

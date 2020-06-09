@@ -160,26 +160,27 @@ def calculate_runtime(start, end):
     return runtime
 
 #%%
-t0 = time()
-input_datafolder = r'C:\Users\pielsticker\simulations'
+if __name__ == "__main__":
+    t0 = time()
+    input_datafolder = r'C:\Users\pielsticker\simulations'
 
-filename_basic = input_datafolder + '\\' + '20200519_iron_single_'
-collection_name_basic = 'Fe_single_'
+    filename_basic = input_datafolder + '\\' + '20200519_iron_single_'
+    collection_name_basic = 'Fe_single_'
              
-# Determine no. of simulations files
- #no_of_files = len(next(os.walk(input_datafolder))[2])
-no_of_files = 2
+    # Determine no. of simulations files
+    #no_of_files = len(next(os.walk(input_datafolder))[2])
+    no_of_files = 2
                 
-for i in range(no_of_files): 
-    filename_load = filename_basic + str(i) + '.json'
-    upload_to_DB_from_json(filename_load, collection_name_basic)        
-    #print('Upload: ' + str(i+1) + '/' + str(no_of_files))
-t1 = time()
+    for i in range(no_of_files): 
+        filename_load = filename_basic + str(i) + '.json'
+        upload_to_DB_from_json(filename_load, collection_name_basic)        
+        #print('Upload: ' + str(i+1) + '/' + str(no_of_files))
+    t1 = time()
 
-runtime = calculate_runtime(t0,t1)
-print(f'Runtime: {runtime}.')
-del(t0,t1,runtime,filename_basic,no_of_files)
+    runtime = calculate_runtime(t0,t1)
+    print(f'Runtime: {runtime}.')
+    del(t0,t1,runtime,filename_basic,no_of_files)
 
-c, all_data = check_db(collection_name_basic + str(3999999))#
+    c, all_data = check_db(collection_name_basic + str(3999999))#
 
     

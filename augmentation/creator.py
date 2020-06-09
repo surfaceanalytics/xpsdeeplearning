@@ -8,7 +8,11 @@ import numpy as np
 import os
 import pandas as pd
 from time import time
+import matplotlib.pyplot as plt
+plt.ion()
+
 import pymongo # MongoDB upload
+
 
 from base_model import MeasuredSpectrum, Figure
 from simulation import Simulation
@@ -54,14 +58,10 @@ class Creator():
         for label in input_labels:
             filename = input_datapath + '\\' + label + '.txt'
             self.input_spectra += [MeasuredSpectrum(filename)]
-        
-        linear_params = []
-        for i in range(len(input_labels)):
-            linear_params.append(1.0)
-        
+                
         # No. of parameter = no. of linear parameter + 3
         # (one parameter each for resolution, shift_x, signal_to noise
-        self.no_of_linear_params = len(linear_params) 
+        self.no_of_linear_params = len(input_labels) 
         no_of_params = self.no_of_linear_params + 3
         
         self.augmentation_matrix = np.zeros((self.no_of_simulations,
@@ -115,12 +115,15 @@ class Creator():
                 self.augmentation_matrix[i,:q] = 0
                 self.augmentation_matrix[i,q+1:] = 0
             
-
+            
             # FWHM
             self.augmentation_matrix[i,-3] = np.random.randint(145,722)
+            
             # shift_x
-            self.augmentation_matrix[i,-2] = np.random.randint(-5,4)
-            #self.augmentation_matrix[i,-2] = np.random.randint(-8,9)
+            test = np.arange(-5,5,0.05)
+            r = np.round(np.random.randint(0,len(test)), decimals = 2)
+            self.augmentation_matrix[i,-2] = test[r]
+            
             # Signal-to-noise
             self.augmentation_matrix[i,-1] = np.random.randint(15,120)
   
@@ -145,22 +148,41 @@ class Creator():
 
         dict_list = []
         for i in range(self.no_of_simulations):
-            sim = Simulation(self.input_spectra)
+            self.sim = Simulation(self.input_spectra)
             scaling_params = \
                 self.augmentation_matrix[i][0:self.no_of_linear_params]
-            sim.combine_linear(scaling_params = scaling_params)  
+            self.sim.combine_linear(scaling_params = scaling_params)  
 
             fwhm = self.augmentation_matrix[i][-3] 
             shift_x = self.augmentation_matrix[i][-2] 
             signal_to_noise = self.augmentation_matrix[i][-1] 
             
-            sim.change_spectrum(fwhm = fwhm,
+            self.sim.change_spectrum(fwhm = fwhm,
                                 shift_x = shift_x,
                                 signal_to_noise = signal_to_noise)
             
-            d = self.dict_from_one_simulation(sim)
+            d = self.dict_from_one_simulation(self.sim)
             dict_list.append(d)   
             print('Simulation: ' + str(i+1) + '/' + str(self.no_of_simulations))
+# =============================================================================
+#         for i in range(self.no_of_simulations):
+#             sim = Simulation(self.input_spectra)
+#             scaling_params = \
+#                 self.augmentation_matrix[i][0:self.no_of_linear_params]
+#             sim.combine_linear(scaling_params = scaling_params)  
+# 
+#             fwhm = self.augmentation_matrix[i][-3] 
+#             shift_x = self.augmentation_matrix[i][-2] 
+#             signal_to_noise = self.augmentation_matrix[i][-1] 
+#             
+#             sim.change_spectrum(fwhm = fwhm,
+#                                 shift_x = shift_x,
+#                                 signal_to_noise = signal_to_noise)
+#             
+#             d = self.dict_from_one_simulation(sim)
+#             dict_list.append(d)   
+#             print('Simulation: ' + str(i+1) + '/' + str(self.no_of_simulations))
+# =============================================================================
             
         self.df = pd.DataFrame(dict_list)
         self.reduced_df = self.df[['x', 'y','label']]
@@ -188,7 +210,6 @@ class Creator():
         
         d = {'label': spectrum.label,
              'shift_x': spectrum.shift_x,
-             'scale_y': spectrum.scale_y,
              'noise': spectrum.signal_to_noise,
              'FWHM': spectrum.fwhm,
              'x': spectrum.x,
@@ -230,8 +251,9 @@ class Creator():
             else:
                 fig_text += 'FHWM: not changed' + '\n'
                 
-            if (row['shift_x'] != None and row['shift_x'] != 0):
-                fig_text += 'X shift: ' + str(int(row['shift_x'])) + '\n'
+            if (row['shift_x'] != None and row['shift_x'] != 0):            
+                fig_text += 'X shift: ' + \
+                    '{:.3f}'.format(row['shift_x']) + '\n'
             else:
                 fig_text += 'X shift: none' + '\n'
                 
@@ -245,9 +267,11 @@ class Creator():
                         verticalalignment='top',
                         transform = fig.ax.transAxes,
                         fontsize = 9)
+            plt.show()
+        
 
 
-    def to_file(self, name, filetype, how = 'full', single = False):
+    def to_file(self, filepath, filetype, how = 'full', single = False):
         """
         Create file from the dataframe of simulated spectra
 
@@ -275,10 +299,7 @@ class Creator():
         None.
 
         """
-        filetypes = ['excel', 'json', 'pickle']
-        datafolder = r'U:\Simulations'
-        
-        filepath = datafolder + '\\' + name + '\\' + name
+        filetypes = ['excel', 'json', 'pickle']        
         
         if filetype not in filetypes:
             print('Saving was not successful. Choose a valid filetype!')
@@ -491,20 +512,20 @@ if __name__ == "__main__":
     input_labels =  ['Fe_metal','FeO','Fe3O4','Fe2O3']
     creator = Creator(no_of_simulations, input_labels, single = True)
     creator.run(broaden = True, x_shift = True, noise = True)
-    creator.plot_random(5)
-    filename = 'Single_species_100000_reduced_20200518'
-    creator.upload_to_DB(filename, reduced = True)
+    creator.plot_random(12)
+    datafolder = r'C:\Users\pielsticker\Simulations\\'
+    filepath = datafolder + 'Single_species_100000_reduced_20200518'
+    #creator.upload_to_DB(filename, reduced = True)
     #collections = check_db(filename)
     #drop_db_collection(filename)
 
-    creator.to_file(name = filename,
+    creator.to_file(filepath = filepath,
                     filetype = 'json',
                     how = 'full',
-                    single = True)
+                    single = False)
     t1 = time()
     runtime = calculate_runtime(t0,t1)
     print(f'Runtime: {runtime}.')
-    del(t0,t1,runtime,filename)
+    del(t0,t1,runtime,filepath)
     
     #collections = check_db(filename)
-  

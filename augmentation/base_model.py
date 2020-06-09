@@ -129,7 +129,6 @@ class SimulatedSpectrum(Spectrum):
         Spectrum.__init__(self,start,stop,step,label)
         self.type = 'simulated'
         self.shift_x = None
-        self.scale_y = None
         self.signal_to_noise = None
         self.resolution = None
     
@@ -149,11 +148,12 @@ class SimulatedSpectrum(Spectrum):
         """
         b = np.nansum(self.lineshape) 
         
-        acceptable_values = list(range(-9, 9))
+        acceptable_values = [-9, 9]
         
         if shift_x == None:
             pass
-        elif shift_x in acceptable_values:
+        elif (shift_x >= acceptable_values[0] \
+              and shift_x <= acceptable_values[1]):
             # scale the shift by the step size
             shift = int(np.round(shift_x/self.step, 1))
             
@@ -184,22 +184,6 @@ class SimulatedSpectrum(Spectrum):
             print('Shift value too big.')
             print("Simulated spectrum was not changed!") 
     
-    def scale_intensity(self, scale_y):    
-        """
-        Scales the intensity by a factor.
-        Parameters
-        ----------
-        shift_x : int
-            shift_x is in eV.
-            shift_x has to be between -8 and 8 to be valid.
-
-        Returns
-        -------
-        None.
-        """
-        self.lineshape -= np.min(self.lineshape)
-        self.lineshape = self.lineshape*scale_y
-        self.normalize()
 
 
     def add_noise(self, signal_to_noise):

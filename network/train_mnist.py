@@ -9,6 +9,7 @@ Created on Fri Apr 17 09:16:51 2020
 import os
 import numpy as np
 import datetime
+import json
 from matplotlib import pyplot as plt
 
 from sklearn.utils import shuffle
@@ -40,11 +41,57 @@ class Classifier():
         self.model_name = model_name
         self.time = datetime.datetime.now().strftime("%Y%m%d_%Hh%Mm")
         
-        self.epochs = 20
+        self.epochs = 2#0
         self.batch_size = 16
         self.train_val_split_percentage = 0.2
         self.num_classes = 10
         
+        X_train, X_test, y_train, y_test = self.load_data_preprocess()
+        
+        X_train = X_train[:1000, :, :]
+        X_test = X_test[:4000, :, :]
+        y_train = y_train[:1000, :]
+        y_test = y_test[:4000, :]
+        
+        self.X_train = X_train
+        self.X_test = X_test
+        self.y_train = y_train
+        self.y_test = y_test
+        
+        print('\n')
+        print("Data was loaded!")
+        print('No. of training samples: ' + str(len(self.X_train)))
+        print('No. of test samples: ' + str(len(self.X_test)))
+        print('Shape of each sample : '
+              + str(self.X_train[0].shape[0]) + ' features (X)' 
+              + ' + ' + str(self.y_train[0].shape[0])
+              + ' labels (y)')
+                    
+        no_of_points = self.X_train.shape[1]
+        
+        input_shape = (no_of_points, 1)
+        
+        if model_type == 'CNN_simple':
+            self.model = CustomModelSimpleCNN(input_shape,
+                                              self.num_classes,
+                                              name = self.model_name)
+            
+        elif model_type == 'CNN':
+            self.model = CustomModelCNN(input_shape,
+                                        self.num_classes,
+                                        name = self.model_name)
+            
+        elif model_type == 'MLP':
+            self.model = CustomModelMLP(input_shape,
+                                        self.num_classes,
+                                        name = self.model_name)
+            
+
+        self.summary()
+        self.save_and_print_model()
+        
+    
+    def load_data_preprocess(self):
         # input image dimensions
         img_rows, img_cols = 28, 28
         
@@ -79,49 +126,8 @@ class Classifier():
         
         X_train, y_train = shuffle(X_train, y_train) 
         X_test, y_test = shuffle(X_test, y_test) 
-        
-        X_train = X_train[:1000, :, :]
-        X_test = X_test[:4000, :, :]
-        y_train = y_train[:1000, :]
-        y_test = y_test[:4000, :]
-        
-        self.X_train = X_train
-        self.X_test = X_test
-        self.y_train = y_train
-        self.y_test = y_test
-        
-        print('\n')
-        print("Data was loaded!")
-        print('No. of training samples: ' + str(len(self.X_train)))
-        print('No. of test samples: ' + str(len(self.X_test)))
-        print('Shape of each sample : '
-              + str(self.X_train[0].shape[0]) + ' features (X)' 
-              + ' + ' + str(self.y_train[0].shape[0])
-              + ' labels (y)')
-                    
-        no_of_points = self.X_train.shape[1]
-        
-        input_shape = (no_of_points, 1)
-        
-        if model_type == 'CNN_simple':
-            self.architecture = ArchitectureSimpleCNN(input_shape,
-                                                      self.num_classes)
-            self.model = self.architecture.model
-            
-        elif model_type == 'CNN':
-            self.architecture = ArchitectureCNN(input_shape,
-                                                self.num_classes)
-            self.model = self.architecture.model
-            
-        elif model_type == 'MLP':
-            self.architecture = ArchitectureMLP(input_shape,
-                                                self.num_classes)
-            self.model = self.architecture.model
-            
-
-        self.architecture.summary()
-        self.architecture.save_and_print_architecture(self.model_name,
-                                                      self.time)
+   
+        return X_train, X_test, y_train, y_test
         
         
     def check_class_distribution(self):
@@ -169,6 +175,7 @@ class Classifier():
                                        batch_size = self.batch_size,
                                        verbose = True,
                                        callbacks = callbacks)
+            
         print("Training done!")
         
         return self.training.history
@@ -180,12 +187,16 @@ class Classifier():
                                    batch_size = self.batch_size,
                                    verbose=True)
         
+        print("Evaluation done!")
+        
         return loss
      
      
     def predict(self):
         prediction_training = self.model.predict(self.X_train, verbose = True)
         prediction_test = self.model.predict(self.X_test, verbose = True)
+        
+        print("Prediction done!")
         
         return prediction_training, prediction_test
     
@@ -204,6 +215,9 @@ class Classifier():
             argmax_class = np.argmax(pred_test[i,:], axis = 0)
             pred_test_classes.append(self.label_values[argmax_class])
         
+        print("Class prediction done!")
+
+        
         return pred_training_classes, pred_test_classes
             
     
@@ -213,25 +227,36 @@ class Classifier():
                         'network')[0] + 'saved_models\\'
         
         t = self.time
-        file_name = model_dir + t + '_' + self.model_name + '_model.json'
-        weights_name = model_dir + t + '_' + self.model_name + "_weights.h5"
-        param_name = model_dir + t + self.model_name + '_hyperparams.json'
+        file_path = model_dir + t + '_' + self.model_name 
+        os.makedirs(file_path)
+        model_file_name = file_path + '\\model.json'
+        hyperparam_file_name = file_path + '\\hyperparameter.json'
+        weights_file_name = file_path + "\\weights.h5"
+        
+        model_json = self.model.to_json()
+        with open(model_file_name, 'w', encoding='utf-8') as json_file:
+            json_file.write(model_json)
+        
+        # serialize weights to HDF5
+        self.model.save_weights(weights_file_name)
         
         params_dict = {
+            'model_name' : self.model_name,
+            'datetime' : self.time,
+            'num_of_classes' : self.num_classes,
             'train_val_split_percentage' : self.train_val_split_percentage,
-            'epochs_trained' :self.epochs,
+            'epochs_trained' : len(self.training.history['loss']),
             'batch_size' : self.batch_size,
-            'optimizer' : {'name' : 'adam',
-                           'learning_rate' : 0.001,
-                           'beta_1' : 0.9,
-                           'beta_2' : 0.999,
-                           'amsgrad' : False}}
-             
-        model_json = self.model.to_json()
-        with open(file_name, 'w') as json_file:
-            json_file.write(model_json)
-        # serialize weights to HDF5
-        self.model.save_weights(weights_name)
+            'loss' : 'categorical_crossentropy',
+            'No. of training samples' : str(self.X_train.shape[0]),
+            'No. of test samples' : str(self.X_test.shape[0]),
+            'Shape of each sample' : str(self.X_train.shape[1]) + \
+                ' features (X)' + ' + ' + str(self.y_train.shape[1])
+                + ' labels (y)'}
+            
+        with open(hyperparam_file_name, 'w', encoding='utf-8') as json_file:
+            json.dump(params_dict, json_file, ensure_ascii=False, indent=4)
+
         print("Saved model and hyperparameters.")
             
             
@@ -241,8 +266,9 @@ class Classifier():
                         'network')[0] + 'saved_models\\'
         t = self.time
         
-        file_name = model_dir + t + '_' + self.model_name + '_model.json'
-        weights_name = model_dir + t + '_' + self.model_name + "_weights.h5"
+        file_path = model_dir + '\\' + t + '_' + self.model_name
+        file_name =  file_path + '\\model.json'
+        weights_name = file_path + "\\weights.h5"
         
         # load json and create model
         with open(file_name, 'r') as json_file:
@@ -251,6 +277,9 @@ class Classifier():
         loaded_model.load_weights(weights_name)
         
         self.model = loaded_model
+        self.model.compile(loss = 'categorical_crossentropy',
+                     optimizer = self.model.adam_opt, 
+                     metrics = ['accuracy'])
         print("Loaded model from disk.")
         
         
@@ -259,26 +288,19 @@ class Classifier():
             r = np.random.randint(0,X_train.shape[0])
             y = self.X_train[r]
             label = str(self.y_train[r])
-            fig = SpectrumFigure(y, label)
+            SpectrumFigure(y, label)
             plt.show()
-        
-        
-    
-class Architecture():
-    def __init__(self, input_shape, num_classes):
-        self.model = Sequential() 
-        self.input_shape = input_shape
-        self.num_classes = num_classes
     
     def summary(self):
         print(self.model.summary())
         print("Model created!")
     
-    def save_and_print_architecture(self, model_name, time):
+    
+    def save_and_print_model(self):
         fig_folder = os.path.dirname(
             os.path.abspath(__file__)).partition(
-                'xpsdeeplearning')[0] + 'figures\\'
-        fig_file_path = fig_folder + time + '_' + model_name  
+                'network')[0] + 'figures\\'
+        fig_file_path = fig_folder + self.time + '_' + self.model_name  
         os.makedirs(fig_file_path)
         fig_file_name = fig_file_path+ '\\model.png'
         plot_model(self.model, to_file = fig_file_name,
@@ -287,118 +309,115 @@ class Architecture():
         plt.imshow(model_plot)
         plt.show()
         
+        
+    
+class CustomModel(Sequential):
+    def __init__(self, input_shape, num_classes, name = None):
+        super(CustomModel, self).__init__(name = name)
+        self.opt = Adam(learning_rate = 0.0001,
+                        beta_1 = 0.9,
+                        beta_2 = 0.999,
+                        epsilon = 1e-07,
+                        amsgrad = False)
+        
     def name_layers(self):
-        for i, layer in enumerate(self.model.layers):
+        for i, layer in enumerate(self.layers):
             layer.name = 'Layer' + str(i)
         
         # Name activation layer
-        self.model.layers[-1].name += ': Activation'
+        self.layers[-1].name += ': Activation'
         
     def print_shapes(self):
-        for i, layer in enumerate(self.model.layers):
+        for i, layer in enumerate(self.layers):
             print('Layer' + str(i) + ': ' + str(layer.input_shape))            
             print('Layer' + str(i) + ': ' + str(layer.output_shape))
         
 
         
-class ArchitectureSimpleCNN(Architecture):
-     def __init__(self, input_shape, num_classes):
-        Architecture.__init__(self, input_shape, num_classes)
-        self.model.add(Convolution1D(32, 9,
-                              activation='relu',
-                              input_shape=input_shape))
-        self.model.add(Convolution1D(64, 9, activation='relu'))
-        self.model.add(MaxPooling1D())
-        self.model.add(Dropout(0.25))
-        self.model.add(Flatten())
-        self.model.add(Dense(128, activation='relu'))
-        self.model.add(Dropout(0.5))
-        self.model.add(Dense(self.num_classes, activation='softmax')) 
+class CustomModelSimpleCNN(CustomModel):
+    def __init__(self, input_shape, num_classes, name):
+        super(CustomModelSimpleCNN, self).__init__(input_shape,
+                                                   num_classes, name)
+         
+        self.add(Convolution1D(32, 9,
+                              activation = 'relu',
+                              input_shape = input_shape))
+        self.add(Convolution1D(64, 9, activation='relu'))
+        self.add(MaxPooling1D())
+        self.add(Dropout(0.25))
+        self.add(Flatten())
+        self.add(Dense(128, activation='relu'))
+        self.add(Dropout(0.5))
+        self.add(Dense(num_classes, activation='softmax')) 
         
         self.name_layers()
         # Define adam parameters
-        self.adam_opt = Adam(learning_rate = 0.0001,
-                             beta_1 = 0.9,
-                             beta_2 = 0.999,
-                             amsgrad = False)
-        
-        self.model.compile(loss = 'categorical_crossentropy',
-                           optimizer = self.adam_opt, 
-                           metrics = ['accuracy'])
+
+        self.compile(loss = 'categorical_crossentropy',
+                     optimizer = self.opt, 
+                     metrics = ['accuracy'])
     
         
-class ArchitectureCNN(Architecture):
-    def __init__(self, input_shape, num_classes):
-        Architecture.__init__(self, input_shape, num_classes)
+class CustomModelCNN(CustomModel):
+    def __init__(self, input_shape, num_classes, name):
+        super(CustomModelCNN, self).__init__(input_shape, num_classes, name)
         
         # Convolutional layers - feature extraction
-        self.model.add(Convolution1D(2, 9,
-                                     input_shape = self.input_shape))   
-        self.model.add(AveragePooling1D())
-        self.model.add(BatchNormalization())
+        self.add(Convolution1D(2, 9,
+                                     input_shape = input_shape))   
+        self.add(AveragePooling1D())
+        self.add(BatchNormalization())
 
-        self.model.add(Convolution1D(2, 7, activation='relu'))
-        self.model.add(AveragePooling1D())
-        self.model.add(BatchNormalization())
+        self.add(Convolution1D(2, 7, activation='relu'))
+        self.add(AveragePooling1D())
+        self.add(BatchNormalization())
 
-        self.model.add(Convolution1D(4, 7, activation='relu'))
-        self.model.add(AveragePooling1D())
-        self.model.add(BatchNormalization())
+        self.add(Convolution1D(4, 7, activation='relu'))
+        self.add(AveragePooling1D())
+        self.add(BatchNormalization())
 
-        self.model.add(Convolution1D(4, 5, activation='relu'))
-        self.model.add(MaxPooling1D())
-        self.model.add(BatchNormalization())
+        self.add(Convolution1D(4, 5, activation='relu'))
+        self.add(MaxPooling1D())
+        self.add(BatchNormalization())
 
         # Fully-connected layer
-        self.model.add(Flatten())
-        self.model.add(Dense(10, activation='relu'))
-        self.model.add(Dense(5, activation='relu'))
+        self.add(Flatten())
+        self.add(Dense(10, activation='relu'))
+        self.add(Dense(5, activation='relu'))
 
         # Output layer with softmax activation
-        self.model.add(Dense(self.num_classes, activation='softmax'))
+        self.add(Dense(num_classes, activation='softmax'))
         
         
         self.name_layers()        
-
-        # Define adam parameters
-        self.adam_opt = Adam(learning_rate = 0.001,
-                             beta_1 = 0.9,
-                             beta_2 = 0.999,
-                             amsgrad = False)
         
-        self.model.compile(loss = 'categorical_crossentropy',
-                           optimizer = self.adam_opt, 
-                           metrics = ['accuracy'])
+        self.compile(loss = 'categorical_crossentropy',
+                     optimizer = self.opt, 
+                     metrics = ['accuracy'])
 
 
-class ArchitectureMLP(Architecture):
-    def __init__(self, input_shape, num_classes):
-        Architecture.__init__(self, input_shape, num_classes)
+class CustomModelMLP(CustomModel):
+    def __init__(self, input_shape, num_classes, name):
+        super(CustomModelMLP, self).__init__(input_shape, num_classes, name)
 
-        self.model.add(Flatten(input_shape=self.input_shape))
+        self.add(Flatten(input_shape = input_shape))
 
-        self.model.add(Dropout(0.5))
-        self.model.add(Dense(64, activation='relu'))
-        self.model.add(BatchNormalization())
+        self.add(Dropout(0.5))
+        self.add(Dense(64, activation='relu'))
+        self.add(BatchNormalization())
 
-        self.model.add(Dropout(0.5))
-        self.model.add(Dense(64, activation='relu'))
-        self.model.add(BatchNormalization())
+        self.add(Dropout(0.5))
+        self.add(Dense(64, activation='relu'))
+        self.add(BatchNormalization())
                     
         # Output layer
-        self.model.add(Dense(self.num_classes, activation='softmax'))
+        self.add(Dense(num_classes, activation='softmax'))
         
         self.name_layers()
-
-        # Define adam parameters
-        self.adam_opt = Adam(learning_rate = 0.001,
-                             beta_1 = 0.9,
-                             beta_2 = 0.999,
-                             amsgrad = False)
-        
-        self.model.compile(loss = 'categorical_crossentropy',
-                           optimizer = self.adam_opt, 
-                           metrics = ['accuracy'])
+   
+        self.compile(loss = 'categorical_crossentropy',
+                     optimizer = self.opt, 
+                     metrics = ['accuracy'])
     
 
 class TrainingGraphs():
@@ -408,9 +427,7 @@ class TrainingGraphs():
         fig_folder = os.path.dirname(
             os.path.abspath(__file__)).partition(
                 'network')[0] + 'figures\\'
-        self.fig_file_name = fig_folder + time + '_' + model_name 
-        os.makedirs(self.fig_file_name)
-        
+        self.fig_file_name = fig_folder + time + '_' + model_name         
         self.plot_loss()
         self.plot_accuracy()
         
@@ -420,6 +437,7 @@ class TrainingGraphs():
         plt.plot(self.history['loss'], linewidth = 3)
         plt.plot(self.history['val_loss'], linewidth = 3)
         plt.title('Loss')
+        plt.xticks(range(len(self.history['loss'])))
         plt.ylabel('Cross Entropy Loss')
         plt.xlabel('Epoch')
         plt.legend(['Train', 'Validation'], loc='lower right')
@@ -433,14 +451,13 @@ class TrainingGraphs():
         plt.plot(self.history['accuracy'], linewidth = 3)
         plt.plot(self.history['val_accuracy'], linewidth = 3)
         plt.title('Accuracy')
+        plt.xticks(range(len(self.history['accuracy'])))
         plt.ylabel('Classification Accuracy')
         plt.xlabel('Epoch')
         plt.legend(['Train', 'Validation'], loc='lower right')
         fig_name = self.fig_file_name + '\\accuracy.png' 
         plt.savefig(fig_name)
         plt.show()
-        
-        
         
         
 class SpectrumFigure:
@@ -464,17 +481,20 @@ class SpectrumFigure:
 
 #%% 
 if __name__ == "__main__":
-    np.random.seed(100)
+    np.random.seed(5002)
     classifier = Classifier(model_type = 'CNN_simple',
                             model_name = 'MNIST_CNN_simple')
     
     class_distribution = classifier.check_class_distribution()
-
+   
     X_train = classifier.X_train
     X_test = classifier.X_test
     y_train = classifier.y_train
     y_test = classifier.y_test
-                   
+    
+    #classifier.plot_random(no_of_spectra = 5)
+    
+        
     hist = classifier.train(tb_log = True)
     score = classifier.evaluate()
     test_loss, test_accuracy = score[0], score[1]
@@ -484,3 +504,10 @@ if __name__ == "__main__":
     
     classifier.save_model()
     graphs = TrainingGraphs(hist,classifier.model_name, classifier.time)
+    #classifier.load_model()
+    
+# =============================================================================
+#     acc = float(K.mean(K.equal(K.argmax(y_train, axis=-1),
+#                          K.argmax(pred_train, axis=-1))))
+# =============================================================================
+

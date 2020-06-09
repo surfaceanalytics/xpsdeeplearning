@@ -90,10 +90,10 @@ def to_hdf5(output_file, simulation_name, no_of_files_per_load):
 
 #%%               
 if __name__ == "__main__":
-    input_datafolder = r'C:\Users\pielsticker\Simulations\20200519_iron_single\\'
-    output_datafolder = r'U:\Simulations\\'
-    output_file = output_datafolder + '20200519_iron_single.h5'
-    simulation_name = '20200519_iron_single'
+    input_datafolder = r'C:\Users\pielsticker\Simulations\20200605_iron_single'
+    output_datafolder = r'C:\Users\pielsticker\Simulations\\'
+    output_file = output_datafolder + '20200605_iron_single.h5'
+    simulation_name = '20200605_iron_single'
     no_of_files_per_load = 100
 
     runtimes = {}
@@ -101,16 +101,15 @@ if __name__ == "__main__":
     to_hdf5(output_file, simulation_name, no_of_files_per_load)
     t1 = time()
     runtimes['h5_save_iron_single'] = calculate_runtime(t0,t1)
+    print('finished saving')
     
     t0 = time()
     with h5py.File(output_file, 'r') as hf:
         X_h5_full = hf['X']
-        x_h5 = X_h5_full[:2000,:,:]
+        x_h5 = X_h5_full[:50000,:,:]
         y_h5_full = hf['y']
-        y_h5 = y_h5_full[:2000,:]
+        y_h5 = y_h5_full[:50000,:]
         t1 = time()
         runtimes['h5_load_iron_single'] = calculate_runtime(t0,t1)
-
-
 
     
