@@ -1,18 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-Created on Tue Jun  2 10:58:25 2020
+Created on Mon Jun 15 16:55:44 2020
 
 @author: pielsticker
 """
-
-
-# -*- coding: utf-8 -*-
-"""
-Created on Fri Apr 17 09:16:51 2020
-
-@author: pielsticker
-"""
-
 
 import os
 import shelve
@@ -36,14 +27,14 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 #deprecation._PRINT_DEPRECATION_WARNINGS = False
 
 import tensorflow as tf
-from tensorflow import load_model
-from tensorflow.keras.utils import plot_model
+from tensorflow.keras.models import load_model
+from tensorflow.keras.utils import plot_model, model_to_dot
 from tensorflow.keras.callbacks import EarlyStopping,\
     ModelCheckpoint, TensorBoard, CSVLogger
 
 from models import CustomModel, CustomModelSimpleCNN,\
     CustomModelCNN, CustomModelMLP
-from utils import TrainingGraphs, SpectrumFigure, shelve_all
+from utils import TrainingGraphs, SpectrumFigure, Report
 
 #%%
 class Classifier():
@@ -63,7 +54,6 @@ class Classifier():
                 os.makedirs(item)
         
         self.epochs = 2
-        
         self.batch_size = 32
         self.train_test_split_percentage = 0.2
         self.train_val_split_percentage = 0.2
@@ -91,18 +81,15 @@ class Classifier():
     def build_model(self):
         if self.model_type == 'CNN_simple':
             self.model = CustomModelSimpleCNN(self.input_shape,
-                                              self.num_classes,
-                                              name = self.model_name)
+                                              self.num_classes)
             
         elif self.model_type == 'CNN':
             self.model = CustomModelCNN(self.input_shape,
-                                        self.num_classes,
-                                        name = self.model_name)
+                                        self.num_classes)
             
         elif self.model_type == 'MLP':
             self.model = CustomModelMLP(self.input_shape,
-                                        self.num_classes,
-                                        name = self.model_name)
+                                        self.num_classes)
         
     
     def load_data_preprocess(self):
@@ -193,7 +180,7 @@ class Classifier():
         callbacks = []
         
         if checkpoint:
-            model_file_name = self.model_dir + 'model'
+            model_file_name = self.model_dir
             checkpoint_callback = ModelCheckpoint(filepath = model_file_name,
                                                   monitor = 'val_loss',
                                                   verbose = 0,
@@ -259,6 +246,7 @@ class Classifier():
                                    batch_size = self.batch_size,
                                    verbose=True)      
         print("Evaluation done!")
+        
         return loss
      
      
@@ -267,6 +255,7 @@ class Classifier():
         prediction_test = self.model.predict(self.X_test, verbose = True)
         
         print("Prediction done!")
+        
         return prediction_training, prediction_test
     
     
@@ -283,13 +272,18 @@ class Classifier():
         for i in range(pred_test.shape[0]): 
             argmax_class = np.argmax(pred_test[i,:], axis = 0)
             pred_test_classes.append(self.label_values[argmax_class])
+            
+        pred_training_classes = np.array(pred_training_classes).reshape(-1,1)
+        pred_test_classes = np.array(pred_test_classes).reshape(-1,1)
+        
         print("Class prediction done!")
+        
         return pred_training_classes, pred_test_classes
             
     
     def save_model(self):        
         model_file_name = self.model_dir + 'model.json'
-        hyperparam_file_name = self.model_dir + 'hyperparameter.json'
+        hyperparam_file_name = self.model_dir + 'hyperparameters.json'
         weights_file_name = self.model_dir + "weights.h5"
         
         model_json = self.model.to_json()
@@ -303,12 +297,17 @@ class Classifier():
         params_dict = {
             'model_name' : self.model_name,
             'datetime' : self.time,
+            'Input file' : self.input_file,
+            'model_summary' : self.model_summary,
             'num_of_classes' : self.num_classes,
             'train_test_split_percentage' : self.train_test_split_percentage,
             'train_val_split_percentage' : self.train_val_split_percentage,
             'epochs_trained' : self.count_epochs_trained(),
             'batch_size' : self.batch_size,
-            'loss' : 'categorical_crossentropy',
+            'class_distribution' : self.check_class_distribution(),
+            'loss' : 'Categorical Cross-Entropy',
+            'optimizer' : self.model.opt._name,
+            'learning rate' : 0.00001,
             'Labels': self.label_values,
             'Total no. of samples' : str(self.X.shape[0]),
             'No. of training samples' : str(self.X_train.shape[0]),
@@ -323,8 +322,8 @@ class Classifier():
         print("Saved model and hyperparameters.")
             
             
-    def load_model(self, **kwargs):
-        if 'model_path' in kwargs.keys():
+    def load_model(self, from_path = False, **kwargs):
+        if (from_path == True) and ('model_path' in kwargs.keys()):
             file_name = kwargs['model_path']
         else:
             file_name = self.model_dir + 'model'
@@ -338,14 +337,8 @@ class Classifier():
         
         elif self.model_type == 'MLP':
             custom_objects['CustomModelMLP'] = CustomModelMLP
-        print(custom_objects)
         
         self.model = load_model(file_name, custom_objects = custom_objects)
-# =============================================================================
-#         self.model.compile(loss = 'categorical_crossentropy',
-#                      optimizer = self.model.opt, 
-#                      metrics = ['accuracy'])
-# =============================================================================
         print("Loaded model from disk.")
 
         
@@ -360,13 +353,26 @@ class Classifier():
     
     def summary(self):
         print(self.model.summary())
+        
+        #Save model summary to a string
+        stringlist = []
+        self.model.summary(print_fn=lambda x: stringlist.append(x))
+        self.model_summary = "\n".join(stringlist)
+        
+        fig_file_name = self.fig_dir + 'model_summary.jpeg'
+        with open(fig_file_name, 'w') as f:
+            print(self.model_summary, file=f)
+
         print("Model created!")
     
     
     def save_and_print_model_image(self):        
         fig_file_name = self.fig_dir + 'model.png'
         plot_model(self.model, to_file = fig_file_name,
-                   rankdir = "LR", show_shapes = True)
+                   rankdir = "LR", show_shapes = True,
+                   show_layer_names = True,
+                   expand_nested = False,
+                   dpi = 150)
         model_plot = plt.imread(fig_file_name)
         plt.imshow(model_plot)
         plt.show()
@@ -406,6 +412,30 @@ class Classifier():
             pass
         
         return history
+    
+    
+    def shelve_results(self, full = False):
+        filename = self.model_dir + '\\vars'  
+        
+        with shelve.open(filename,'n') as shelf:
+            key_list = ['y_train', 'y_test', 'pred_train', 'pred_test',
+                    'pred_train_classes', 'pred_test_classes',
+                    'test_accuracy', 'test_loss']
+            if full == True:
+                key_list.extend(['X, X_train', 'X_val', 'X_test', 'y',
+                                 'y_val', 'class_distribution', 'hist'])
+            for key in key_list:
+                shelf[key] = globals()[key]
+# =============================================================================
+#             try:
+#                 shelf[key] = globals()[key]
+#             except:
+#                 # __builtins__, shelf, and imported modules can not
+#                 # be shelved.
+#                 print('ERROR shelving: {0}'.format(key))
+# =============================================================================
+    
+
 
 #%% 
 if __name__ == "__main__":
@@ -431,7 +461,7 @@ if __name__ == "__main__":
     
     #classifier.plot_random(no_of_spectra = 5)
 
-    hist = classifier.train(checkpoint = True, early_stopping = True,
+    hist = classifier.train(checkpoint = True, early_stopping = False,
                             tb_log = True, csv_log = True)
     epochs_trained = len(hist['loss'])
     score = classifier.evaluate()
@@ -445,9 +475,52 @@ if __name__ == "__main__":
     graphs = TrainingGraphs(classifier.history,
                             classifier.model_name,
                             classifier.time)
-    shelved_data = shelve_all(classifier.time, classifier.model_name)
+    
+    classifier.shelve_results(full = False)
+    
+    dir_name = classifier.time + '_' + classifier.model_name
+    rep = Report(dir_name)  
+    rep.write()      
  
-#%%     
+
+#%% Resume training with the same classifier, on the same model
+# =============================================================================
+# classifier.load_model(from_path = False)
+# 
+# #classifier2.load_model()
+# hist = classifier.train(checkpoint = False,
+#                         tb_log = True,
+#                         early_stopping = True)
+# score = classifier.evaluate()
+# test_loss, test_accuracy = score[0], score[1]
+# 
+# pred_train, pred_test = classifier.predict()
+# pred_train_classes, pred_test_classes = classifier.predict_classes()
+# 
+# graphs = TrainingGraphs(hist,classifier.model_name, classifier.time)
+# classifier.save_model()
+# =============================================================================
+
+#%% Resume training with the same classifier, on the same model
+# =============================================================================
+# model_path = r'C:\Users\pielsticker\Lukas\MPI-CEC\Projects\xpsdeeplearning\saved_models\20200608_17h51m_Fe_single_4_classes_CNN_simple' 
+# classifier.load_model(from_path = True, model_path = model_path)
+# 
+# #classifier2.load_model()
+# hist = classifier.train(checkpoint = False,
+#                         tb_log = True,
+#                         early_stopping = True)
+# score = classifier.evaluate()
+# test_loss, test_accuracy = score[0], score[1]
+# 
+# pred_train, pred_test = classifier.predict()
+# pred_train_classes, pred_test_classes = classifier.predict_classes()
+# 
+# graphs = TrainingGraphs(hist,classifier.model_name, classifier.time)
+# classifier.save_model()
+# =============================================================================
+
+#%% Resume training with a new classifier instance
 # =============================================================================
 # time =  '20200609_14h04m'
 # model_type = 'CNN_simple'
@@ -469,34 +542,3 @@ if __name__ == "__main__":
 # graphs2 = TrainingGraphs(hist2,classifier2.model_name, classifier2.time)
 # classifier2.save_model()
 # =============================================================================
-
-#%% 
-# =============================================================================
-# #model_path = r'C:\Users\pielsticker\Lukas\MPI-CEC\Projects\xpsdeeplearning\saved_models\20200608_17h51m_Fe_single_4_classes_CNN_simple' 
-# classifier.load_model()
-# 
-# 
-# #classifier2.load_model()
-# hist = classifier.train(checkpoint = False,
-#                         tb_log = True,
-#                         early_stopping = True)
-# score = classifier.evaluate()
-# test_loss, test_accuracy = score[0], score[1]
-# 
-# pred_train, pred_test = classifier.predict()
-# pred_train_classes, pred_test_classes = classifier.predict_classes()
-# 
-# graphs = TrainingGraphs(hist2,classifier.model_name, classifier.time)
-# classifier.save_model()
-# =============================================================================
-
-
-
-
-
-
-
-
-
-
-    

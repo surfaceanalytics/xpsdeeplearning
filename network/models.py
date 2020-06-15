@@ -51,8 +51,8 @@ class CustomModel(Sequential):
                     
 
 class CustomModelSimpleCNN(CustomModel):
-    def __init__(self, inputshape, num_classes, name):
-        super(CustomModelSimpleCNN, self).__init__(name = name)
+    def __init__(self, inputshape, num_classes):
+        super(CustomModelSimpleCNN, self).__init__(name = 'Custom_CNN_simple')
         self.inputshape = inputshape
         self.num_classes = num_classes
          
@@ -68,7 +68,6 @@ class CustomModelSimpleCNN(CustomModel):
         self.add(Dense(num_classes, activation='softmax')) 
         
         #self.name_layers()
-        # Define adam parameters
 
         self.compile(loss = 'categorical_crossentropy',
                      optimizer = self.opt, 
@@ -85,8 +84,8 @@ class CustomModelSimpleCNN(CustomModel):
     
         
 class CustomModelCNN(CustomModel):
-    def __init__(self, input_shape, num_classes, name):
-        super(CustomModelCNN, self).__init__(name = name)
+    def __init__(self, input_shape, num_classes):
+        super(CustomModelCNN, self).__init__(name = 'Custom_CNN')
         
         # Convolutional layers - feature extraction
         self.add(Convolution1D(2, 9, input_shape = input_shape))   
@@ -113,8 +112,7 @@ class CustomModelCNN(CustomModel):
         # Output layer with softmax activation
         self.add(Dense(num_classes, activation='softmax'))
         
-        
-        self.name_layers()        
+        #self.name_layers()       
         
         self.compile(loss = 'categorical_crossentropy',
                      optimizer = self.opt, 
@@ -131,8 +129,8 @@ class CustomModelCNN(CustomModel):
 
 
 class CustomModelMLP(CustomModel):
-    def __init__(self, input_shape, num_classes, name):
-        super(CustomModelMLP, self).__init__(name = name)
+    def __init__(self, input_shape, num_classes):
+        super(CustomModelMLP, self).__init__(name = 'Custom_MLP')
 
         self.add(Flatten(input_shape = input_shape))
 
@@ -147,7 +145,7 @@ class CustomModelMLP(CustomModel):
         # Output layer
         self.add(Dense(num_classes, activation='softmax'))
         
-        self.name_layers()
+        #self.name_layers()
    
         self.compile(loss = 'categorical_crossentropy',
                      optimizer = self.opt, 
@@ -160,3 +158,16 @@ class CustomModelMLP(CustomModel):
         config['num_classes'] = self.num_classes
         
         return config
+    
+#%% 
+if __name__ == "__main__":
+    input_shape = (100,1)
+    num_classes = 4
+    model = CustomModelCNN(input_shape,num_classes)
+    model.summary()
+# =============================================================================
+#     stringlist = []
+#     model.summary(print_fn=lambda x: stringlist.append(x))
+#     model_summary = "\n".join(stringlist)
+# =============================================================================
+
