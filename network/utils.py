@@ -73,6 +73,7 @@ class Report:
         font.size = Pt(10)
            
         # Get the data
+        root_dir = os.getcwd()
         self.model_dir = os.path.join(*[root_dir, 'saved_models', dir_name])
         self.log_dir = os.path.join(*[root_dir, 'logs', dir_name])
         self.fig_dir = os.path.join(*[root_dir, 'figures', dir_name])
