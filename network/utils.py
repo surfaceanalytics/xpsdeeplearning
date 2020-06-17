@@ -63,25 +63,6 @@ class TrainingGraphs():
         plt.show()
         
         
-        
-class SpectrumFigure:
-    def __init__(self, y, fig_text):
-        self.x = np.arange(694,750.05,0.05)
-        self.y = y
-        self.fig, self.ax = plt.subplots(figsize=(5,4), dpi=100)
-        self.fig.patch.set_facecolor('0.9411')
-        self.ax.plot(np.flip(self.x),self.y)
-        self.ax.invert_xaxis()
-        self.ax.set_xlabel('Binding energy (eV)')
-        self.ax.set_ylabel('Intensity (arb. units)')
-        self.fig.tight_layout()
-        self.fig_text = fig_text
-        self.ax.text(0.1, 0.45,fig_text,
-                     horizontalalignment='left',
-                     verticalalignment='top',
-                     transform = self.ax.transAxes,
-                     fontsize = 9)
-
 
 class Report:
     def __init__(self, dir_name = ''):

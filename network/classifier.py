@@ -32,9 +32,8 @@ from tensorflow.keras.utils import plot_model, model_to_dot
 from tensorflow.keras.callbacks import EarlyStopping,\
     ModelCheckpoint, TensorBoard, CSVLogger
 
-from models import CustomModel, CustomModelSimpleCNN,\
+from .models import CustomModel, CustomModelSimpleCNN,\
     CustomModelCNN, CustomModelMLP
-from utils import TrainingGraphs, SpectrumFigure, Report
 
 #%%
 class Classifier():
@@ -47,7 +46,7 @@ class Classifier():
         
         self.num_classes = len(self.label_values)
         
-        root_dir = os.getcwd().partition('network')[0]
+        root_dir = os.getcwd()
         dir_name = self.time + '_' + self.model_name 
         self.model_dir = root_dir + '\\saved_models\\' + dir_name + '\\'
         self.log_dir = root_dir + '\\logs\\' + dir_name + '\\'
@@ -56,7 +55,7 @@ class Classifier():
         for item in [self.model_dir, self.log_dir, self.fig_dir]:
             if os.path.isdir(item) == False:
                 os.makedirs(item)
-                
+                    
     
     def load_data_preprocess(self, input_filepath, no_of_examples,
                              train_test_split, train_val_split):
@@ -464,119 +463,37 @@ class Classifier():
         
         return history
     
-
-
-#%% 
-if __name__ == "__main__":
-    np.random.seed(502)
-    time =  datetime.datetime.now().strftime("%Y%m%d_%Hh%Mm")
-    model_type = 'CNN_simple'
-    model_name = 'Fe_single_4_classes_CNN_simple'
     
-    input_filepath = r'C:\Users\pielsticker\Simulations\20200605_iron_single.h5'                    
-    label_values = ['Fe metal', 'FeO', 'Fe3O4', 'Fe2O3']
-
-    classifier = Classifier(time = time,
-                            model_type = model_type,
-                            model_name = model_name,
-                            labels = label_values)
     
-    #Load the data
-    train_test_split = 0.2
-    train_val_split = 0.2
-    no_of_examples = 10000
-
-    X_train, X_val, X_test, y_train, y_val, y_test = \
-        classifier.load_data_preprocess(input_filepath = input_filepath,
-                                        no_of_examples = no_of_examples,
-                                        train_test_split = train_test_split,
-                                        
-                                        train_val_split = train_val_split)
     
-    # Inspect the data
-    class_distribution = classifier.check_class_distribution()
-    classifier.plot_class_distribution()
-    #classifier.plot_random(no_of_spectra = 9)           
-    
-    # Build the model
-    classifier.build_model()
-    classifier.summary()
-    classifier.save_and_print_model_image()
-    
-    # Train the model
-    epochs = 200
-    batch_size = 32
-    hist = classifier.train(checkpoint = True,
-                            early_stopping = False,
-                            tb_log = True, 
-                            csv_log = True,
-                            epochs = epochs, 
-                            batch_size = batch_size)
-    
-    # Evaluation
-    score = classifier.evaluate()
-    test_loss, test_accuracy = score[0], score[1]
-
-    # Prediction
-    pred_train, pred_test = classifier.predict()
-    pred_train_classes, pred_test_classes = classifier.predict_classes()
-    
-    # Save model and data
-    classifier.save_model()
-    classifier.shelve_results(full = False)
-    
-    # Plot
-    graphs = TrainingGraphs(classifier.history,
-                            classifier.model_name,
-                            classifier.time)
-    
-    # Create a report
-    dir_name = classifier.time + '_' + classifier.model_name
-    rep = Report(dir_name)  
-    rep.write()      
- 
-
-#%% Resume training with the same classifier, on the same model
 # =============================================================================
-# classifier.load_model(from_path = False)
-# 
-# epochs = 2
-# batch_size = 32
-# hist = classifier.train(checkpoint = True,
-#                         early_stopping = False,
-#                         tb_log = True, 
-#                         csv_log = True,
-#                         epochs = epochs, 
-#                         batch_size = batch_size)
-# score = classifier.evaluate()
-# test_loss, test_accuracy = score[0], score[1]
-# 
-# pred_train, pred_test = classifier.predict()
-# pred_train_classes, pred_test_classes = classifier.predict_classes()
-# 
-# graphs = TrainingGraphs(hist,classifier.model_name, classifier.time)
-# classifier.save_model()
-# 
+# class ClassifierLocal(Classifier):
+#     def __init__(self, time, model_type ='CNN', model_name = 'Classifier', 
+#                  labels = []):
+#         super(ClassifierLocal, self).__init__(time,
+#                                             model_type ='CNN',
+#                                             model_name = 'Classifier', 
+#                                             labels = [])        
+#         
+#         root_dir = os.getcwd().partition('xpsdeeplearning')[0]
+#         dir_name = self.time + '_' + self.model_name 
+#         self.model_dir = root_dir + '\\saved_models\\' + dir_name + '\\'
+#         self.log_dir = root_dir + '\\logs\\' + dir_name + '\\'
+#         self.fig_dir = root_dir + '\\figures\\' + dir_name + '\\'
+#         
+#         for item in [self.model_dir, self.log_dir, self.fig_dir]:
+#             if os.path.isdir(item) == False:
+#                 os.makedirs(item)
+#                     
+#                 
+#                 
+#                 
+# class ClassifierColab(Classifier):
+#     def __init__(self, time, model_type ='CNN', model_name = 'Classifier', 
+#                  labels = []):
+#         super(ClassifierColab, self).__init__(time,
+#                                             model_type ='CNN',
+#                                             model_name = 'Classifier', 
+#                                             labels = [])        
 # =============================================================================
-#%% Resume training with the same classifier, on the same model
-# =============================================================================
-# model_path = r'C:\Users\pielsticker\Lukas\MPI-CEC\Projects\xpsdeeplearning\saved_models\20200608_17h51m_Fe_single_4_classes_CNN_simple' 
-# classifier.load_model(from_path = True, model_path = model_path)
-# 
-# epochs = 20
-# batch_size = 32
-# hist = classifier.train(checkpoint = True,
-#                         early_stopping = False,
-#                         tb_log = True, 
-#                         csv_log = True,
-#                         epochs = epochs, 
-#                         batch_size = batch_size)
-# score = classifier.evaluate()
-# test_loss, test_accuracy = score[0], score[1]
-# 
-# pred_train, pred_test = classifier.predict()
-# pred_train_classes, pred_test_classes = classifier.predict_classes()
-# 
-# graphs = TrainingGraphs(hist,classifier.model_name, classifier.time)
-# classifier.save_model()
-# =============================================================================
+        
