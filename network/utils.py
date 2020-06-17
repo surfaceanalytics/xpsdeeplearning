@@ -73,10 +73,9 @@ class Report:
         font.size = Pt(10)
            
         # Get the data
-        root_dir = os.getcwd().partition('network')[0]
-        self.model_dir = root_dir + '\\saved_models\\' + dir_name + '\\'
-        self.log_dir = root_dir + '\\logs\\' + dir_name + '\\'
-        self.fig_dir = root_dir + '\\figures\\' + dir_name + '\\'
+        self.model_dir = os.path.join(*[root_dir, 'saved_models', dir_name])
+        self.log_dir = os.path.join(*[root_dir, 'logs', dir_name])
+        self.fig_dir = os.path.join(*[root_dir, 'figures', dir_name])
         
         self.name_data, self.class_dist, self.train_data, self.model_summary =\
             self.get_hyperparams()
@@ -241,7 +240,8 @@ class Report:
 
                     
     def get_hyperparams(self):
-        hyperparam_file_name = self.model_dir + 'hyperparameters.json'
+        hyperparam_file_name = os.join(self.model_dir,
+                                       'hyperparameters.json')
         with open(hyperparam_file_name) as json_file:
             data_dict = json.load(json_file)
             
@@ -276,7 +276,7 @@ class Report:
             
     def get_results(self):
         data = {}
-        file_name = self.model_dir + 'vars'
+        file_name = os.join(self.model_dir,'vars')
         with shelve.open(file_name) as shelf:
             for key in shelf:
                 data[key] = shelf[key]
