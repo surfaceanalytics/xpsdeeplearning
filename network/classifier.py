@@ -10,7 +10,6 @@ import shelve
 import numpy as np
 import json
 import csv
-import datetime
 import h5py
 from matplotlib import pyplot as plt
 from sklearn.utils import shuffle
@@ -19,16 +18,12 @@ from sklearn.utils import shuffle
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 os.environ['TF_CPP_MIN_VLOG_LEVEL'] = '0'
 
-# Run tensorflow on local CPU
-os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
-
-#import tensorflow.python.util.deprecation as deprecation
-#deprecation._PRINT_DEPRECATION_WARNINGS = False
+import tensorflow.python.util.deprecation as deprecation
+deprecation._PRINT_DEPRECATION_WARNINGS = False
 
 import tensorflow as tf
 from tensorflow.keras.models import load_model
-from tensorflow.keras.utils import plot_model, model_to_dot
+from tensorflow.keras.utils import plot_model
 from tensorflow.keras.callbacks import EarlyStopping,\
     ModelCheckpoint, TensorBoard, CSVLogger
 
@@ -48,9 +43,10 @@ class Classifier():
         
         root_dir = os.getcwd()
         dir_name = self.time + '_' + self.model_name 
-        self.model_dir = root_dir + '\\saved_models\\' + dir_name + '\\'
-        self.log_dir = root_dir + '\\logs\\' + dir_name + '\\'
-        self.fig_dir = root_dir + '\\figures\\' + dir_name + '\\'
+        
+        self.model_dir = os.path.join(*[root_dir, 'saved_models', dir_name])
+        self.log_dir = os.path.join(*[root_dir, 'logs', dir_name])
+        self.fig_dir = os.path.join(*[root_dir, 'figures', dir_name])
         
         for item in [self.model_dir, self.log_dir, self.fig_dir]:
             if os.path.isdir(item) == False:
@@ -289,7 +285,7 @@ class Classifier():
                                       self.y_train,
                                       validation_data = \
                                           (self.X_val, self.y_val),
-                                          nb_epoch = self.epochs +\
+                                          epochs = self.epochs +\
                                               epochs_trained,
                                       batch_size = self.batch_size,
                                       initial_epoch = epochs_trained,
