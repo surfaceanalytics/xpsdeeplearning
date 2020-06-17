@@ -9,6 +9,8 @@ import shelve
 import numpy as np
 import json
 from matplotlib import pyplot as plt
+from matplotlib.ticker import MaxNLocator
+
 
 from docx import Document
 from docx.shared import Cm
@@ -32,28 +34,32 @@ class TrainingGraphs():
         
     def plot_loss(self):
         # summarize history for loss
-        plt.figure(figsize=(9, 5))
-        plt.plot(self.history['loss'], linewidth = 3)
-        plt.plot(self.history['val_loss'], linewidth = 3)
-        plt.title('Loss')
-        plt.ylabel('Cross Entropy Loss')
-        plt.xlabel('Epoch')
-        plt.legend(['Train', 'Validation'], loc='lower right')
+        fig, ax = plt.subplots(figsize=(9,5))
+        ax.plot(self.history['loss'], linewidth = 3)
+        ax.plot(self.history['val_loss'], linewidth = 3)
+        ax.set_title('Loss')
+        ax.set_ylabel('Cross Entropy Loss')
+        ax.set_xlabel('Epoch')
+        ax.set_xticks(range(0, len(self.history['loss']), 1))
+        ax.set_xticklabels(range(1, len(self.history['accuracy'])+1, 1))
+        ax.legend(['Train', 'Validation'], loc='lower right')
         fig_name = self.fig_file_name + 'loss.png' 
-        plt.savefig(fig_name)
+        fig.savefig(fig_name)
         plt.show()
-
+        
     def plot_accuracy(self):
-        #summarize history for accuracy
-        plt.figure(figsize=(9, 5))
-        plt.plot(self.history['accuracy'], linewidth = 3)
-        plt.plot(self.history['val_accuracy'], linewidth = 3)
-        plt.title('Accuracy')
-        plt.ylabel('Classification Accuracy')
-        plt.xlabel('Epoch')
-        plt.legend(['Train', 'Validation'], loc='lower right')
+        # summarize history for loss
+        fig, ax = plt.subplots(figsize=(9,5))
+        ax.plot(self.history['accuracy'], linewidth = 3)
+        ax.plot(self.history['val_accuracy'], linewidth = 3)
+        ax.set_title('Accuracy')
+        ax.set_ylabel('Classification Accuracy')
+        ax.set_xlabel('Epoch')
+        ax.set_xticks(range(0, len(self.history['accuracy']), 1))
+        ax.set_xticklabels(range(1, len(self.history['accuracy'])+1, 1))
+        ax.legend(['Train', 'Validation'], loc='lower right')
         fig_name = self.fig_file_name + 'accuracy.png' 
-        plt.savefig(fig_name)
+        fig.savefig(fig_name)
         plt.show()
         
         

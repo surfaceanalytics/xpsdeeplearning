@@ -1,18 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-Created on Tue Jun  2 10:58:25 2020
+Created on Mon Jun 15 16:55:44 2020
 
 @author: pielsticker
 """
-
-
-# -*- coding: utf-8 -*-
-"""
-Created on Fri Apr 17 09:16:51 2020
-
-@author: pielsticker
-"""
-
 
 import os
 import shelve
@@ -47,10 +38,14 @@ from utils import TrainingGraphs, SpectrumFigure, Report
 
 #%%
 class Classifier():
-    def __init__(self, time, model_type ='CNN', model_name = 'Classifier'):
+    def __init__(self, time, model_type ='CNN', model_name = 'Classifier', 
+                 labels = []):
         self.time = time
         self.model_name = model_name
         self.model_type = model_type
+        self.label_values = labels
+        
+        self.num_classes = len(self.label_values)
         
         root_dir = os.getcwd().partition('network')[0]
         dir_name = self.time + '_' + self.model_name 
@@ -61,50 +56,16 @@ class Classifier():
         for item in [self.model_dir, self.log_dir, self.fig_dir]:
             if os.path.isdir(item) == False:
                 os.makedirs(item)
-        
-        self.epochs = 2
-        self.batch_size = 32
-        self.train_test_split_percentage = 0.2
-        self.train_val_split_percentage = 0.2
-        self.no_of_examples = 100#000
-        
-        # Determine which dataset t shall be used
-        self.input_datafolder = r'C:\Users\pielsticker\Simulations\\'                    
-        self.input_file = '20200605_iron_single.h5'
-        self.label_values = ['Fe metal', 'FeO', 'Fe3O4', 'Fe2O3']
-        self.num_classes = len(self.label_values)
-        
-        # load dataset and preprocess it
-        self.X_train, self.X_val, self.X_test, \
-            self.y_train, self.y_val, self.y_test = \
-                    self.load_data_preprocess()
-                    
-        self.input_shape = (self.X_train.shape[1], 1)
-        
-        self.build_model()
-        
-        self.summary()
-        self.save_and_print_model_image()
-        
-        
-    def build_model(self):
-        if self.model_type == 'CNN_simple':
-            self.model = CustomModelSimpleCNN(self.input_shape,
-                                              self.num_classes)
-            
-        elif self.model_type == 'CNN':
-            self.model = CustomModelCNN(self.input_shape,
-                                        self.num_classes)
-            
-        elif self.model_type == 'MLP':
-            self.model = CustomModelMLP(self.input_shape,
-                                        self.num_classes)
-        
+                
     
-    def load_data_preprocess(self):
-        filename_load = self.input_datafolder + self.input_file
+    def load_data_preprocess(self, input_filepath, no_of_examples,
+                             train_test_split, train_val_split):
+        self.input_filepath = input_filepath
+        self.train_test_split = train_test_split
+        self.train_val_split = train_val_split
+        self.no_of_examples = no_of_examples
 
-        with h5py.File(filename_load, 'r') as hf:
+        with h5py.File(input_filepath, 'r') as hf:
             dataset_size = hf['X'].shape[0]
             r = np.random.randint(0, dataset_size-self.no_of_examples)
             X = hf['X'][r:r+self.no_of_examples, :, :]
@@ -120,15 +81,19 @@ class Classifier():
 # =============================================================================
 
         # Split into train, val and test sets
-        X_train, X_val, X_test, y_train, y_val, y_test = \
-            self._split_test_val_train(self.X, self.y)
+        self.X_train, self.X_val, self.X_test, \
+            self.y_train, self.y_val, self.y_test = \
+                self._split_test_val_train(self.X, self.y)
+                
+        self.input_shape = (self.X_train.shape[1], 1)
    
-        return X_train, X_val, X_test, y_train, y_val, y_test
+        return self.X_train, self.X_val, self.X_test, \
+            self.y_train, self.y_val, self.y_test
     
     
     def _split_test_val_train(self, X, y):         
         # First split into train+val and test sets
-        no_of_train_val = int((1-self.train_test_split_percentage) *\
+        no_of_train_val = int((1-self.train_test_split) *\
                               X.shape[0])
         
         X_train_val = X[:no_of_train_val,:,:]
@@ -137,7 +102,7 @@ class Classifier():
         y_test = y[no_of_train_val:,:]
         
         # Then create val subset from train set
-        no_of_train = int((1-self.train_val_split_percentage) *\
+        no_of_train = int((1-self.train_val_split) *\
                           X_train_val.shape[0])
                     
         X_train = X_train_val[:no_of_train,:,:]
@@ -145,7 +110,6 @@ class Classifier():
         y_train = y_train_val[:no_of_train,:]
         y_val = y_train_val[no_of_train:,:]
         
-        print('\n')
         print("Data was loaded!")
         print('Total no. of samples: ' + str(self.X.shape[0]))
         print('No. of training samples: ' + str(X_train.shape[0]))
@@ -154,7 +118,7 @@ class Classifier():
         print('Shape of each sample : '
               + str(X_train.shape[1]) + ' features (X)' 
               + ' + ' + str(y_train.shape[1])
-              + ' labels (y)\n')
+              + ' labels (y)')
         
         return X_train, X_val, X_test, y_train, y_val, y_test
     
@@ -180,12 +144,108 @@ class Classifier():
                 argmax_class = np.argmax(dataset[j,:], axis = 0)
                 class_distribution[key][str(argmax_class)] +=1
                 
-        return class_distribution
+        self.class_distribution = class_distribution
+                
+        return self.class_distribution
+        
+    
+    def plot_class_distribution(self):               
+        data = []
+        for k, v in self.class_distribution.items():
+            data_list = []
+            for key, value in v.items():
+                data_list.append(value)
+            data.append(data_list)
+        data = np.transpose(np.array(data))
+            
+        fig = plt.figure()
+        ax = fig.add_axes([0,0,1,1])
+        x = np.arange(len(self.class_distribution.keys()))*1.5
+ 
+        for i in range(data.shape[0]):
+            ax.bar(x + i*0.25, data[i], align='edge', width = 0.2)
+        plt.legend(self.label_values)   
+        plt.xticks(ticks=x+.5, labels=list(self.class_distribution.keys()))
+        plt.show()
+        
+        
+    def plot_random(self, no_of_spectra): 
+        no_of_rows = int(no_of_spectra/3)
+        no_of_cols = 3
+        if (no_of_spectra % no_of_cols) != 0:
+            no_of_rows += 1
+            
+        fig, axs = plt.subplots(nrows = no_of_rows, ncols = no_of_cols)
+        plt.subplots_adjust(left=0.125, bottom=0.5, right=2.7,
+                            top=no_of_rows, wspace=0.2, hspace=0.2)
+    
+        for i in range(no_of_spectra):
+            r = np.random.randint(0, self.X_train.shape[0])
+            x = np.arange(694,750.05,0.05)
+            y = self.X_train[r]
+            labels = self.y_train[r]
+            for j, value in enumerate(labels):
+                if value == 1:
+                    label = self.label_values[j]
+
+            row, col = int(i/no_of_cols), i % no_of_cols
+            axs[row, col].plot(np.flip(x),y)
+            axs[row, col].invert_xaxis()
+            axs[row, col].set_xlim(750.05,694)
+            axs[row, col].set_xlabel('Binding energy (eV)')
+            axs[row, col].set_ylabel('Intensity (arb. units)')                          
+            axs[row, col].text(0.1, 0.9,label,
+                               horizontalalignment='left',
+                               verticalalignment='top',
+                               transform = axs[row, col].transAxes,
+                               fontsize = 12)   
+            
+    
+    def build_model(self):        
+        if self.model_type == 'CNN_simple':
+            self.model = CustomModelSimpleCNN(self.input_shape,
+                                              self.num_classes)
+            
+        elif self.model_type == 'CNN':
+            self.model = CustomModelCNN(self.input_shape,
+                                        self.num_classes)
+            
+        elif self.model_type == 'MLP':
+            self.model = CustomModelMLP(self.input_shape,
+                                        self.num_classes)
+            
+    
+    def summary(self):
+        print(self.model.summary())
+        
+        #Save model summary to a string
+        stringlist = []
+        self.model.summary(print_fn=lambda x: stringlist.append(x))
+        self.model_summary = "\n".join(stringlist)
+        
+        print("Model created!")
+    
+    
+    def save_and_print_model_image(self):        
+        fig_file_name = self.fig_dir + 'model.png'
+        plot_model(self.model, to_file = fig_file_name,
+                   rankdir = "LR", show_shapes = True,
+                   show_layer_names = True,
+                   expand_nested = False,
+                   dpi = 150)
+        model_plot = plt.imread(fig_file_name)
+        fig, ax = plt.subplots(figsize=(18, 2))
+        ax.imshow(model_plot, interpolation='nearest')
+        plt.tight_layout()
+        plt.show()
         
 
     def train(self, checkpoint = True, early_stopping = False,
-              tb_log = False, csv_log = True):
-        epochs_trained = self.count_epochs_trained()
+              tb_log = False, csv_log = True, epochs = 200, batch_size = 32):
+        self.epochs = epochs
+        self.batch_size = batch_size
+        epochs_trained = self._count_epochs_trained()
+        
         callbacks = []
         
         if checkpoint:
@@ -238,56 +298,60 @@ class Classifier():
                                       callbacks = callbacks) 
             
             self.last_training = training.history
-            self.history = self.get_total_history()
+            self.history = self._get_total_history()
             print("Training done!")
            
         except KeyboardInterrupt:
             self.save_model()
-            self.history = self.get_total_history()
+            self.history = self._get_total_history()
             print('Training interrupted!')
         
         return self.history
         
     
     def evaluate(self):
-        loss = self.model.evaluate(self.X_test,
+        self.score = self.model.evaluate(self.X_test,
                                    self.y_test,
                                    batch_size = self.batch_size,
                                    verbose=True)      
         print("Evaluation done!")
         
-        return loss
+        self.test_loss, self.test_accuracy = self.score[0], self.score[1]
+        
+        return self.score
      
      
-    def predict(self):
-        prediction_training = self.model.predict(self.X_train, verbose = True)
-        prediction_test = self.model.predict(self.X_test, verbose = True)
+    def predict(self, verbose = True):
+        self.pred_train = self.model.predict(
+            self.X_train, verbose = verbose)
+        self.pred_test = self.model.predict(
+            self.X_test, verbose = verbose)
         
         print("Prediction done!")
         
-        return prediction_training, prediction_test
+        return self.pred_train, self.pred_test
     
     
     def predict_classes(self):
-        pred_training, pred_test = self.predict()
+        pred_train, pred_test = self.predict(verbose = False)
         
-        pred_training_classes = []
+        pred_train_classes = []
         pred_test_classes = []
         
-        for i in range(pred_training.shape[0]): 
-            argmax_class = np.argmax(pred_training[i,:], axis = 0)
-            pred_training_classes.append(self.label_values[argmax_class])
+        for i in range(pred_train.shape[0]): 
+            argmax_class = np.argmax(pred_train[i,:], axis = 0)
+            pred_train_classes.append(self.label_values[argmax_class])
             
         for i in range(pred_test.shape[0]): 
             argmax_class = np.argmax(pred_test[i,:], axis = 0)
             pred_test_classes.append(self.label_values[argmax_class])
             
-        pred_training_classes = np.array(pred_training_classes).reshape(-1,1)
-        pred_test_classes = np.array(pred_test_classes).reshape(-1,1)
+        self.pred_train_classes = np.array(pred_train_classes).reshape(-1,1)
+        self.pred_test_classes = np.array(pred_test_classes).reshape(-1,1)
         
         print("Class prediction done!")
         
-        return pred_training_classes, pred_test_classes
+        return self.pred_train_classes, self.pred_test_classes
             
     
     def save_model(self):        
@@ -306,12 +370,12 @@ class Classifier():
         params_dict = {
             'model_name' : self.model_name,
             'datetime' : self.time,
-            'Input file' : self.input_file,
+            'Input file' : self.input_filepath,
             'model_summary' : self.model_summary,
             'num_of_classes' : self.num_classes,
-            'train_test_split_percentage' : self.train_test_split_percentage,
-            'train_val_split_percentage' : self.train_val_split_percentage,
-            'epochs_trained' : self.count_epochs_trained(),
+            'train_test_split_percentage' : self.train_test_split,
+            'train_val_split_percentage' : self.train_val_split,
+            'epochs_trained' : self._count_epochs_trained(),
             'batch_size' : self.batch_size,
             'class_distribution' : self.check_class_distribution(),
             'loss' : 'Categorical Cross-Entropy',
@@ -329,13 +393,27 @@ class Classifier():
         with open(hyperparam_file_name, 'w', encoding='utf-8') as json_file:
             json.dump(params_dict, json_file, ensure_ascii=False, indent=4)
         print("Saved model and hyperparameters.")
+        
+    
+    def shelve_results(self, full = False):
+        filename = self.model_dir + '\\vars'  
+        
+        with shelve.open(filename,'n') as shelf:
+            key_list = ['y_train', 'y_test', 'pred_train', 'pred_test',
+                    'pred_train_classes', 'pred_test_classes',
+                    'test_accuracy', 'test_loss']
+            if full == True:
+                key_list.extend(['X, X_train', 'X_val', 'X_test', 'y',
+                                 'y_val', 'class_distribution', 'hist'])
+            for key in key_list:
+                shelf[key] = vars(self)[key]
             
             
     def load_model(self, from_path = False, **kwargs):
         if (from_path == True) and ('model_path' in kwargs.keys()):
             file_name = kwargs['model_path']
         else:
-            file_name = self.model_dir + 'model'
+            file_name = self.model_dir
  
         custom_objects = {'CustomModel': CustomModel}
         if self.model_type == 'CNN_simple':
@@ -349,45 +427,9 @@ class Classifier():
         
         self.model = load_model(file_name, custom_objects = custom_objects)
         print("Loaded model from disk.")
-
-        
-    def plot_random(self, no_of_spectra):        
-        for i in range(no_of_spectra):
-            r = np.random.randint(0, self.X_train.shape[0])
-            y = self.X_train[r]
-            label = str(self.y_train[r])
-            SpectrumFigure(y, label)
-            plt.show()
-            
-    
-    def summary(self):
-        print(self.model.summary())
-        
-        #Save model summary to a string
-        stringlist = []
-        self.model.summary(print_fn=lambda x: stringlist.append(x))
-        self.model_summary = "\n".join(stringlist)
-        
-        fig_file_name = self.fig_dir + 'model_summary.jpeg'
-        with open(fig_file_name, 'w') as f:
-            print(self.model_summary, file=f)
-
-        print("Model created!")
-    
-    
-    def save_and_print_model_image(self):        
-        fig_file_name = self.fig_dir + 'model.png'
-        plot_model(self.model, to_file = fig_file_name,
-                   rankdir = "LR", show_shapes = True,
-                   show_layer_names = True,
-                   expand_nested = False,
-                   dpi = 150)
-        model_plot = plt.imread(fig_file_name)
-        plt.imshow(model_plot)
-        plt.show()
         
         
-    def count_epochs_trained(self):
+    def _count_epochs_trained(self):
         csv_file = self.log_dir + 'log.csv'
         epochs = 0
         
@@ -402,7 +444,7 @@ class Classifier():
         return epochs
         
     
-    def get_total_history(self):
+    def _get_total_history(self):
         csv_file = self.log_dir + 'log.csv'
         history = {'accuracy' : [],
                    'loss' : [],
@@ -422,28 +464,6 @@ class Classifier():
         
         return history
     
-    
-    def shelve_results(self, full = False):
-        filename = self.model_dir + '\\vars'  
-        
-        with shelve.open(filename,'n') as shelf:
-            key_list = ['y_train', 'y_test', 'pred_train', 'pred_test',
-                    'pred_train_classes', 'pred_test_classes',
-                    'test_accuracy', 'test_loss']
-            if full == True:
-                key_list.extend(['X, X_train', 'X_val', 'X_test', 'y',
-                                 'y_val', 'class_distribution', 'hist'])
-            for key in key_list:
-                shelf[key] = globals()[key]
-# =============================================================================
-#             try:
-#                 shelf[key] = globals()[key]
-#             except:
-#                 # __builtins__, shelf, and imported modules can not
-#                 # be shelved.
-#                 print('ERROR shelving: {0}'.format(key))
-# =============================================================================
-    
 
 
 #%% 
@@ -453,40 +473,64 @@ if __name__ == "__main__":
     model_type = 'CNN_simple'
     model_name = 'Fe_single_4_classes_CNN_simple'
     
+    input_filepath = r'C:\Users\pielsticker\Simulations\20200605_iron_single.h5'                    
+    label_values = ['Fe metal', 'FeO', 'Fe3O4', 'Fe2O3']
+
     classifier = Classifier(time = time,
                             model_type = model_type,
-                            model_name = model_name)
+                            model_name = model_name,
+                            labels = label_values)
     
-    class_distribution = classifier.check_class_distribution()
-   
-    X = classifier.X
-    X_train = classifier.X_train
-    X_val = classifier.X_val
-    X_test = classifier.X_test
-    y = classifier.y
-    y_train = classifier.y_train
-    y_val = classifier.y_val
-    y_test = classifier.y_test
-    
-    #classifier.plot_random(no_of_spectra = 5)
+    #Load the data
+    train_test_split = 0.2
+    train_val_split = 0.2
+    no_of_examples = 10000
 
-    hist = classifier.train(checkpoint = True, early_stopping = False,
-                            tb_log = True, csv_log = True)
-    epochs_trained = len(hist['loss'])
+    X_train, X_val, X_test, y_train, y_val, y_test = \
+        classifier.load_data_preprocess(input_filepath = input_filepath,
+                                        no_of_examples = no_of_examples,
+                                        train_test_split = train_test_split,
+                                        
+                                        train_val_split = train_val_split)
+    
+    # Inspect the data
+    class_distribution = classifier.check_class_distribution()
+    classifier.plot_class_distribution()
+    #classifier.plot_random(no_of_spectra = 9)           
+    
+    # Build the model
+    classifier.build_model()
+    classifier.summary()
+    classifier.save_and_print_model_image()
+    
+    # Train the model
+    epochs = 200
+    batch_size = 32
+    hist = classifier.train(checkpoint = True,
+                            early_stopping = False,
+                            tb_log = True, 
+                            csv_log = True,
+                            epochs = epochs, 
+                            batch_size = batch_size)
+    
+    # Evaluation
     score = classifier.evaluate()
     test_loss, test_accuracy = score[0], score[1]
 
+    # Prediction
     pred_train, pred_test = classifier.predict()
     pred_train_classes, pred_test_classes = classifier.predict_classes()
     
+    # Save model and data
     classifier.save_model()
+    classifier.shelve_results(full = False)
     
+    # Plot
     graphs = TrainingGraphs(classifier.history,
                             classifier.model_name,
                             classifier.time)
     
-    classifier.shelve_results(full = False)
-    
+    # Create a report
     dir_name = classifier.time + '_' + classifier.model_name
     rep = Report(dir_name)  
     rep.write()      
@@ -496,10 +540,14 @@ if __name__ == "__main__":
 # =============================================================================
 # classifier.load_model(from_path = False)
 # 
-# #classifier2.load_model()
-# hist = classifier.train(checkpoint = False,
-#                         tb_log = True,
-#                         early_stopping = True)
+# epochs = 2
+# batch_size = 32
+# hist = classifier.train(checkpoint = True,
+#                         early_stopping = False,
+#                         tb_log = True, 
+#                         csv_log = True,
+#                         epochs = epochs, 
+#                         batch_size = batch_size)
 # score = classifier.evaluate()
 # test_loss, test_accuracy = score[0], score[1]
 # 
@@ -508,17 +556,21 @@ if __name__ == "__main__":
 # 
 # graphs = TrainingGraphs(hist,classifier.model_name, classifier.time)
 # classifier.save_model()
+# 
 # =============================================================================
-
 #%% Resume training with the same classifier, on the same model
 # =============================================================================
 # model_path = r'C:\Users\pielsticker\Lukas\MPI-CEC\Projects\xpsdeeplearning\saved_models\20200608_17h51m_Fe_single_4_classes_CNN_simple' 
 # classifier.load_model(from_path = True, model_path = model_path)
 # 
-# #classifier2.load_model()
-# hist = classifier.train(checkpoint = False,
-#                         tb_log = True,
-#                         early_stopping = True)
+# epochs = 20
+# batch_size = 32
+# hist = classifier.train(checkpoint = True,
+#                         early_stopping = False,
+#                         tb_log = True, 
+#                         csv_log = True,
+#                         epochs = epochs, 
+#                         batch_size = batch_size)
 # score = classifier.evaluate()
 # test_loss, test_accuracy = score[0], score[1]
 # 
@@ -527,27 +579,4 @@ if __name__ == "__main__":
 # 
 # graphs = TrainingGraphs(hist,classifier.model_name, classifier.time)
 # classifier.save_model()
-# =============================================================================
-
-#%% Resume training with a new classifier instance
-# =============================================================================
-# time =  '20200609_14h04m'
-# model_type = 'CNN_simple'
-# model_name = 'Fe_single_4_classes_CNN_simple'
-#     
-# classifier2 = Classifier(time = time,
-#                         model_type = model_type,
-#                         model_name = model_name)
-# 
-# hist2 = classifier2.train(checkpoint = False,
-#                          tb_log = True,
-#                          early_stopping = True)
-# score2 = classifier2.evaluate()
-# test_loss2, test_accuracy2 = score[0], score[1]
-# 
-# pred_train2, pred_test2 = classifier.predict()
-# pred_train_classes2, pred_test_classes2 = classifier.predict_classes()
-# 
-# graphs2 = TrainingGraphs(hist2,classifier2.model_name, classifier2.time)
-# classifier2.save_model()
 # =============================================================================
