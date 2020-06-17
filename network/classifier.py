@@ -47,6 +47,7 @@ class Classifier():
         self.model_dir = os.path.join(*[root_dir, 'saved_models', dir_name])
         self.log_dir = os.path.join(*[root_dir, 'logs', dir_name])
         self.fig_dir = os.path.join(*[root_dir, 'figures', dir_name])
+        print(self.model_dir)
         
         for item in [self.model_dir, self.log_dir, self.fig_dir]:
             if os.path.isdir(item) == False:
