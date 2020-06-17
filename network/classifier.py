@@ -285,7 +285,7 @@ class Classifier():
                                       self.y_train,
                                       validation_data = \
                                           (self.X_val, self.y_val),
-                                          nb_epoch = self.epochs +\
+                                          epochs = self.epochs +\
                                               epochs_trained,
                                       batch_size = self.batch_size,
                                       initial_epoch = epochs_trained,
