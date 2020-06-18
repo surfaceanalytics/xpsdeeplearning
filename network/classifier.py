@@ -17,8 +17,8 @@ from sklearn.utils import shuffle
 # Disable tf warnings
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
-import tensorflow.python.util.deprecation as deprecation
-deprecation._PRINT_DEPRECATION_WARNINGS = False
+#import tensorflow.python.util.deprecation as deprecation
+#deprecation._PRINT_DEPRECATION_WARNINGS = False
 
 import tensorflow as tf
 from tensorflow.keras.models import load_model
@@ -28,7 +28,7 @@ from tensorflow.keras.callbacks import EarlyStopping,\
 
 from .models import CustomModel, CustomModelSimpleCNN,\
     CustomModelCNN, CustomModelMLP
-
+    
 #%%
 class Classifier():
     def __init__(self, time, model_type ='CNN', model_name = 'Classifier', 
