@@ -16,7 +16,6 @@ from sklearn.utils import shuffle
 
 # Disable tf warnings
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-os.environ['TF_CPP_MIN_VLOG_LEVEL'] = '0'
 
 import tensorflow.python.util.deprecation as deprecation
 deprecation._PRINT_DEPRECATION_WARNINGS = False
@@ -295,7 +294,8 @@ class Classifier():
         
 
     def train(self, checkpoint = True, early_stopping = False,
-              tb_log = False, csv_log = True, epochs = 200, batch_size = 32):
+              tb_log = False, csv_log = True, epochs = 200, batch_size = 32,
+              verbose = 1):
         self.epochs = epochs
         self.batch_size = batch_size
         epochs_trained = self._count_epochs_trained()
@@ -348,7 +348,7 @@ class Classifier():
                                               epochs_trained,
                                       batch_size = self.batch_size,
                                       initial_epoch = epochs_trained,
-                                      verbose = True,
+                                      verbose = verbose,
                                       callbacks = callbacks) 
             
             self.last_training = training.history
