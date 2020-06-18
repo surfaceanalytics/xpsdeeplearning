@@ -28,7 +28,7 @@ from tensorflow.keras.callbacks import EarlyStopping,\
 
 from .models import CustomModel, CustomModelSimpleCNN,\
     CustomModelCNN, CustomModelMLP
-
+    
 #%%
 class Classifier():
     def __init__(self, time, model_type ='CNN', model_name = 'Classifier', 
