@@ -24,11 +24,11 @@ from docx.shared import Pt
 class TrainingGraphs():
     def __init__(self, history, model_name, time):
         self.history = history
-        root_dir = os.getcwd().partition('network')[0]
         
-        self.fig_file_name = root_dir + '\\figures\\' +\
-            time + '_' + model_name + '\\'
-        
+        root_dir = os.getcwd()
+        dir_name = time + '_' + model_name 
+        self.fig_dir = os.path.join(*[root_dir, 'figures', dir_name])
+
         self.plot_loss()
         self.plot_accuracy()
         
@@ -43,7 +43,7 @@ class TrainingGraphs():
         ax.set_xticks(range(0, len(self.history['loss']), 1))
         ax.set_xticklabels(range(1, len(self.history['accuracy'])+1, 1))
         ax.legend(['Train', 'Validation'], loc='lower right')
-        fig_name = self.fig_file_name + 'loss.png' 
+        fig_name = os.path.join(self.fig_dir,'loss.png')
         fig.savefig(fig_name)
         plt.show()
         
@@ -58,7 +58,7 @@ class TrainingGraphs():
         ax.set_xticks(range(0, len(self.history['accuracy']), 1))
         ax.set_xticklabels(range(1, len(self.history['accuracy'])+1, 1))
         ax.legend(['Train', 'Validation'], loc='lower right')
-        fig_name = self.fig_file_name + 'accuracy.png' 
+        fig_name = os.path.join(self.fig_dir,'accuracy.png')
         fig.savefig(fig_name)
         plt.show()
         
@@ -82,8 +82,9 @@ class Report:
             self.get_hyperparams()
         self.results = self.get_results()
         
-        self.filename = self.log_dir + 'results.docx'     
+        self.filename = os.path.join(self.log_dir,'results.docx')
         self.create_document()
+        
         
     def create_document(self):
         self.document.add_heading('Training report', 0)
@@ -138,8 +139,8 @@ class Report:
         self.document.add_page_break()
         self.document.add_heading('Loss & accuracy', 1)
         
-        loss_file = self.fig_dir + 'loss.png'
-        acc_file = self.fig_dir + 'accuracy.png'
+        loss_file = os.path.join(self.fig_dir,'loss.png')
+        acc_file = os.path.join(self.fig_dir,'accuracy.png')
         self.document.add_picture(loss_file, width=Cm(12))
         last_paragraph = self.document.paragraphs[-1] 
         last_paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
@@ -239,10 +240,9 @@ class Report:
                     WD_ALIGN_PARAGRAPH.CENTER
         
 
-                    
     def get_hyperparams(self):
-        hyperparam_file_name = os.join(self.model_dir,
-                                       'hyperparameters.json')
+        hyperparam_file_name = os.path.join(self.model_dir,
+                                            'hyperparameters.json')
         with open(hyperparam_file_name) as json_file:
             data_dict = json.load(json_file)
             
@@ -277,7 +277,7 @@ class Report:
             
     def get_results(self):
         data = {}
-        file_name = os.join(self.model_dir,'vars')
+        file_name = os.path.join(self.model_dir,'vars')
         with shelve.open(file_name) as shelf:
             for key in shelf:
                 data[key] = shelf[key]

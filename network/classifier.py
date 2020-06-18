@@ -51,8 +51,18 @@ class Classifier():
         for item in [self.model_dir, self.log_dir, self.fig_dir]:
             if os.path.isdir(item) == False:
                 os.makedirs(item)
-                    
-    
+        
+        if os.path.isdir(self.model_dir) == True:
+            print('Model folder created at ' +\
+                  str(self.model_dir.split(root_dir)[1]))
+        if os.path.isdir(self.log_dir) == True:
+            print('Log folder created at ' +\
+                  str(self.log_dir.split(root_dir)[1]))
+        if os.path.isdir(self.fig_dir) == True:
+            print('Figure folder created at ' +\
+                  str(self.fig_dir.split(root_dir)[1]))
+                
+                
     def load_data_preprocess(self, input_filepath, no_of_examples,
                              train_test_split, train_val_split):
         self.input_filepath = input_filepath
@@ -159,12 +169,14 @@ class Classifier():
  
         for i in range(data.shape[0]):
             ax.bar(x + i*0.25, data[i], align='edge', width = 0.2)
+        plt.title('Class distribution')
         plt.legend(self.label_values)   
         plt.xticks(ticks=x+.5, labels=list(self.class_distribution.keys()))
         plt.show()
         
         
-    def plot_random(self, no_of_spectra): 
+    def plot_random(self, no_of_spectra, dataset = 'train',
+                    with_prediction = False): 
         no_of_rows = int(no_of_spectra/3)
         no_of_cols = 3
         if (no_of_spectra % no_of_cols) != 0:
@@ -175,26 +187,73 @@ class Classifier():
                             top=no_of_rows, wspace=0.2, hspace=0.2)
     
         for i in range(no_of_spectra):
-            r = np.random.randint(0, self.X_train.shape[0])
-            x = np.arange(694,750.05,0.05)
-            y = self.X_train[r]
-            labels = self.y_train[r]
+            x = np.arange(694, 750.05, 0.05)
+
+            if dataset == 'train':
+                r = np.random.randint(0, self.X_train.shape[0])
+                y = self.X_train[r]
+                labels = self.y_train[r]
+                if with_prediction == True:
+                    real_y = ('Real: ' + \
+                              str(self.y_train[r]) + '\n')
+                    # Round prediction and sum to 1
+                    tmp_array = np.around(self.pred_train[r], decimals = 4)
+                    row_sums = tmp_array.sum()
+                    tmp_array = tmp_array / row_sums
+                    tmp_array = np.around(tmp_array, decimals = 3)    
+                    pred_y = ('Prediction: ' +\
+                              str(tmp_array) + '\n')
+                    pred_label = ('Predicted label: ' +\
+                                  str(self.pred_train_classes[r,0]))
+                    pred = real_y + pred_y + pred_label
+
+            elif dataset == 'val':
+                r = np.random.randint(0, self.X_val.shape[0])
+                y = self.X_val[r]
+                labels = self.y_val[r]
+                
+            elif dataset == 'test':
+                r = np.random.randint(0, self.X_test.shape[0])
+                y = self.X_test[r]
+                labels = self.y_test[r]
+                if with_prediction == True:
+                    real_y = ('Real: ' + \
+                              str(self.y_test[r]) + '\n')
+                    # Round prediction and sum to 1
+                    tmp_array = np.around(self.pred_test[r], decimals = 4)
+                    row_sums = tmp_array.sum()
+                    tmp_array = tmp_array / row_sums
+                    tmp_array = np.around(tmp_array, decimals = 3)    
+                    pred_y = ('Prediction: ' +\
+                              str(tmp_array) + '\n')
+                    pred_label = ('Predicted label: ' +\
+                                  str(self.pred_test_classes[r,0]))
+                    pred = real_y + pred_y + pred_label
+            
             for j, value in enumerate(labels):
                 if value == 1:
-                    label = self.label_values[j]
-
+                    label = str(self.label_values[j])
+                    if with_prediction == True:
+                        label =  ('Real label: ' + label)
+                    
             row, col = int(i/no_of_cols), i % no_of_cols
             axs[row, col].plot(np.flip(x),y)
             axs[row, col].invert_xaxis()
             axs[row, col].set_xlim(750.05,694)
             axs[row, col].set_xlabel('Binding energy (eV)')
             axs[row, col].set_ylabel('Intensity (arb. units)')                          
-            axs[row, col].text(0.1, 0.9,label,
+            axs[row, col].text(0.025, 0.9, label,
                                horizontalalignment='left',
                                verticalalignment='top',
                                transform = axs[row, col].transAxes,
-                               fontsize = 12)   
-            
+                               fontsize = 12) 
+            if with_prediction == True:
+                axs[row, col].text(0.025, 0.3, pred,
+                                   horizontalalignment='left',
+                                   verticalalignment='top',
+                                   transform = axs[row, col].transAxes,
+                                   fontsize = 12) 
+
     
     def build_model(self):        
         if self.model_type == 'CNN_simple':
@@ -222,7 +281,7 @@ class Classifier():
     
     
     def save_and_print_model_image(self):        
-        fig_file_name = self.fig_dir + 'model.png'
+        fig_file_name = os.path.join(self.fig_dir,'model.png')
         plot_model(self.model, to_file = fig_file_name,
                    rankdir = "LR", show_shapes = True,
                    show_layer_names = True,
@@ -273,7 +332,7 @@ class Classifier():
             callbacks.append(tb_callback)
             
         if csv_log:            
-            csv_file = self.log_dir + 'log.csv'
+            csv_file = os.path.join(self.log_dir,'log.csv')
             
             csv_callback = CSVLogger(filename = csv_file,
                                       separator=',',
@@ -294,7 +353,7 @@ class Classifier():
             
             self.last_training = training.history
             self.history = self._get_total_history()
-            print("Training done!")
+            print('Training done!')
            
         except KeyboardInterrupt:
             self.save_model()
@@ -309,7 +368,7 @@ class Classifier():
                                    self.y_test,
                                    batch_size = self.batch_size,
                                    verbose=True)      
-        print("Evaluation done!")
+        print('Evaluation done! \n')
         
         self.test_loss, self.test_accuracy = self.score[0], self.score[1]
         
@@ -322,7 +381,8 @@ class Classifier():
         self.pred_test = self.model.predict(
             self.X_test, verbose = verbose)
         
-        print("Prediction done!")
+        if verbose == True:
+            print('Prediction done!')
         
         return self.pred_train, self.pred_test
     
@@ -344,15 +404,18 @@ class Classifier():
         self.pred_train_classes = np.array(pred_train_classes).reshape(-1,1)
         self.pred_test_classes = np.array(pred_test_classes).reshape(-1,1)
         
-        print("Class prediction done!")
+        print('Class prediction done!')
         
         return self.pred_train_classes, self.pred_test_classes
             
     
     def save_model(self):        
-        model_file_name = self.model_dir + 'model.json'
-        hyperparam_file_name = self.model_dir + 'hyperparameters.json'
-        weights_file_name = self.model_dir + "weights.h5"
+        model_file_name = os.path.join(self.model_dir,
+                                       'model.json')
+        hyperparam_file_name = os.path.join(self.model_dir,
+                                            'hyperparameters.json')
+        weights_file_name = os.path.join(self.model_dir,
+                                         'weights.h5')
         
         model_json = self.model.to_json()
         with open(model_file_name, 'w', encoding='utf-8') as json_file:
@@ -360,7 +423,6 @@ class Classifier():
         # serialize weights to HDF5
         self.model.save_weights(weights_file_name)
         self.model.save(self.model_dir)
-        #del self.model
 
         params_dict = {
             'model_name' : self.model_name,
@@ -391,7 +453,7 @@ class Classifier():
         
     
     def shelve_results(self, full = False):
-        filename = self.model_dir + '\\vars'  
+        filename = os.path.join(self.model_dir,'vars')
         
         with shelve.open(filename,'n') as shelf:
             key_list = ['y_train', 'y_test', 'pred_train', 'pred_test',
@@ -425,7 +487,7 @@ class Classifier():
         
         
     def _count_epochs_trained(self):
-        csv_file = self.log_dir + 'log.csv'
+        csv_file = os.path.join(self.log_dir,'log.csv')
         epochs = 0
         
         try:
@@ -440,7 +502,7 @@ class Classifier():
         
     
     def _get_total_history(self):
-        csv_file = self.log_dir + 'log.csv'
+        csv_file = os.path.join(self.log_dir,'log.csv')
         history = {'accuracy' : [],
                    'loss' : [],
                    'val_accuracy': [],
@@ -458,38 +520,3 @@ class Classifier():
             pass
         
         return history
-    
-    
-    
-    
-# =============================================================================
-# class ClassifierLocal(Classifier):
-#     def __init__(self, time, model_type ='CNN', model_name = 'Classifier', 
-#                  labels = []):
-#         super(ClassifierLocal, self).__init__(time,
-#                                             model_type ='CNN',
-#                                             model_name = 'Classifier', 
-#                                             labels = [])        
-#         
-#         root_dir = os.getcwd().partition('xpsdeeplearning')[0]
-#         dir_name = self.time + '_' + self.model_name 
-#         self.model_dir = root_dir + '\\saved_models\\' + dir_name + '\\'
-#         self.log_dir = root_dir + '\\logs\\' + dir_name + '\\'
-#         self.fig_dir = root_dir + '\\figures\\' + dir_name + '\\'
-#         
-#         for item in [self.model_dir, self.log_dir, self.fig_dir]:
-#             if os.path.isdir(item) == False:
-#                 os.makedirs(item)
-#                     
-#                 
-#                 
-#                 
-# class ClassifierColab(Classifier):
-#     def __init__(self, time, model_type ='CNN', model_name = 'Classifier', 
-#                  labels = []):
-#         super(ClassifierColab, self).__init__(time,
-#                                             model_type ='CNN',
-#                                             model_name = 'Classifier', 
-#                                             labels = [])        
-# =============================================================================
-        
