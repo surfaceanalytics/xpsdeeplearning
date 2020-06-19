@@ -5,22 +5,7 @@ Created on Tue Jun  9 14:10:25 2020
 @author: pielsticker
 """
 
-import os 
-
-# Disable tf warnings
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-os.environ['TF_CPP_MIN_VLOG_LEVEL'] = '0'
-
- 
-#import tensorflow.python.util.deprecation as deprecation
-#deprecation._PRINT_DEPRECATION_WARNINGS = False
-
-# Run tensorflow on local CPU
-os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
-
 import tensorflow as tf
-
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Flatten
 from tensorflow.keras.layers import Conv1D as Convolution1D
@@ -165,9 +150,4 @@ if __name__ == "__main__":
     num_classes = 4
     model = CustomModelCNN(input_shape,num_classes)
     model.summary()
-# =============================================================================
-#     stringlist = []
-#     model.summary(print_fn=lambda x: stringlist.append(x))
-#     model_summary = "\n".join(stringlist)
-# =============================================================================
 

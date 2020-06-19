@@ -75,14 +75,8 @@ class Classifier():
             X = hf['X'][r:r+self.no_of_examples, :, :]
             y = hf['y'][r:r+self.no_of_examples, :]
         
+        # Shuffle X and y together
         self.X, self.y = shuffle(X, y)
-# =============================================================================
-#         # Use only specific data
-#         a = np.array([[1,0,0,0],[0,0,0,1]], dtype=np.float32)
-#         data_filter = np.where(
-#             (np.all(self.y==a[0],axis=1)) | (np.all(self.y==a[1],axis=1)))
-#         self.X, self.y = self.X[data_filter],self.y[data_filter]
-# =============================================================================
 
         # Split into train, val and test sets
         self.X_train, self.X_val, self.X_test, \
@@ -407,6 +401,64 @@ class Classifier():
         print('Class prediction done!')
         
         return self.pred_train_classes, self.pred_test_classes
+    
+    def plot_wrong_classification(self):
+        binding_energy = np.arange(694, 750.05, 0.05)
+        
+        no_of_wrong_pred = -1
+        wrong_pred_args = []
+        
+        for i in range(self.pred_test.shape[0]): 
+            argmax_class_true = np.argmax(self.y_test[i,:], axis = 0)
+            argmax_class_pred = np.argmax(self.pred_test[i,:], axis = 0)
+            
+        if argmax_class_true != argmax_class_pred:
+            no_of_wrong_pred += 1
+            wrong_pred_args.append(i)
+
+        no_of_rows = int(no_of_wrong_pred/3)
+        no_of_cols = 3
+        if (no_of_wrong_pred % no_of_cols) != 0:
+            no_of_rows += 1
+
+        fig, axs = plt.subplots(nrows = no_of_rows, ncols = no_of_cols)
+        plt.subplots_adjust(left=0.125, bottom=0.5, right=2.7,
+                        top=no_of_rows, wspace=0.2, hspace=0.2)
+        
+        for n in range(no_of_wrong_pred):
+            arg = wrong_pred_args[n]
+            intensity = self.X_test[arg]
+            
+            real_y = ('Real: ' + \
+                str(self.y_test[arg]) + '\n')
+            # Round prediction and sum to 1
+            tmp_array = np.around(self.pred_test[arg], decimals = 4)
+            row_sums = tmp_array.sum()
+            tmp_array = tmp_array / row_sums
+            tmp_array = np.around(tmp_array, decimals = 2)
+            pred_y = ('Prediction: ' +\
+                      str(tmp_array) + '\n')
+            pred_label = ('Predicted label: ' +\
+                          str(self.pred_test_classes[n,0]))
+            labels = self.y_test[arg]
+            for j, value in enumerate(labels):
+                if value == 1:
+                    label = str(self.label_values[j])
+                    label =  ('Real label: ' + label + '\n')
+                
+            text = real_y + pred_y + label + pred_label
+            
+            row, col = int(n/no_of_cols), n % no_of_cols
+            axs[row, col].plot(np.flip(binding_energy),intensity)
+            axs[row, col].invert_xaxis()
+            axs[row, col].set_xlim(750.05,694)
+            axs[row, col].set_xlabel('Binding energy (eV)')
+            axs[row, col].set_ylabel('Intensity (arb. units)')  
+            axs[row, col].text(0.025, 0.35, text,
+                               horizontalalignment='left',
+                               verticalalignment='top',
+                               transform = axs[row, col].transAxes,
+                               fontsize = 12)
             
     
     def save_model(self):        

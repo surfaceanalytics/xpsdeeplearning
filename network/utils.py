@@ -9,15 +9,12 @@ import shelve
 import numpy as np
 import json
 from matplotlib import pyplot as plt
-from matplotlib.ticker import MaxNLocator
-
 
 from docx import Document
 from docx.shared import Cm
 from docx.enum.table import WD_TABLE_ALIGNMENT, WD_ROW_HEIGHT_RULE
-from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_UNDERLINE
+from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.shared import Pt
-
 
 #%%                
                 
@@ -33,32 +30,26 @@ class TrainingGraphs():
         self.plot_accuracy()
         
     def plot_loss(self):
-        # summarize history for loss
         fig, ax = plt.subplots(figsize=(9,5))
         ax.plot(self.history['loss'], linewidth = 3)
         ax.plot(self.history['val_loss'], linewidth = 3)
         ax.set_title('Loss')
         ax.set_ylabel('Cross Entropy Loss')
         ax.set_xlabel('Epoch')
-        ax.set_xticks(range(0, len(self.history['loss']), 1))
-        ax.set_xticklabels(range(1, len(self.history['accuracy'])+1, 1))
         ax.legend(['Train', 'Validation'], loc='lower right')
-        fig_name = os.path.join(self.fig_dir,'loss.png')
+        fig_name = os.path.join(self.fig_dir, 'loss.png')
         fig.savefig(fig_name)
         plt.show()
         
     def plot_accuracy(self):
-        # summarize history for loss
         fig, ax = plt.subplots(figsize=(9,5))
         ax.plot(self.history['accuracy'], linewidth = 3)
         ax.plot(self.history['val_accuracy'], linewidth = 3)
         ax.set_title('Accuracy')
         ax.set_ylabel('Classification Accuracy')
         ax.set_xlabel('Epoch')
-        ax.set_xticks(range(0, len(self.history['accuracy']), 1))
-        ax.set_xticklabels(range(1, len(self.history['accuracy'])+1, 1))
         ax.legend(['Train', 'Validation'], loc='lower right')
-        fig_name = os.path.join(self.fig_dir,'accuracy.png')
+        fig_name = os.path.join(self.fig_dir, 'accuracy.png')
         fig.savefig(fig_name)
         plt.show()
         
@@ -203,7 +194,7 @@ class Report:
         run = p.add_run()
         run.text = 'Predictions:'
         run.font.underline = True
-        pred_test_table = self.add_result_table(pred_train_5)
+        pred_test_table = self.add_result_table(pred_test_5)
 
         
         p = self.document.add_paragraph()
@@ -212,7 +203,7 @@ class Report:
         run = p.add_run()
         run.text = 'Correct labels:'
         run.font.underline = True
-        y_test_table = self.add_result_table(y_train_5)
+        y_test_table = self.add_result_table(y_test_5)
         
         
     def add_result_table(self, data_array):
@@ -271,7 +262,6 @@ class Report:
         
         model_summary = data_dict['model_summary']
 
-        
         return name_data, class_distribution, train_data, model_summary
         
             
