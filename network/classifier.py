@@ -405,7 +405,6 @@ class Classifier():
     def plot_wrong_classification(self):
         binding_energy = np.arange(694, 750.05, 0.05)
         
-        no_of_wrong_pred = -1
         wrong_pred_args = []
         
         for i in range(self.pred_test.shape[0]): 
@@ -413,9 +412,9 @@ class Classifier():
             argmax_class_pred = np.argmax(self.pred_test[i,:], axis = 0)
             
         if argmax_class_true != argmax_class_pred:
-            no_of_wrong_pred += 1
             wrong_pred_args.append(i)
-
+        no_of_wrong_pred = len(wrong_pred_args)
+        
         no_of_rows = int(no_of_wrong_pred/3)
         no_of_cols = 3
         if (no_of_wrong_pred % no_of_cols) != 0:
@@ -439,7 +438,7 @@ class Classifier():
             pred_y = ('Prediction: ' +\
                       str(tmp_array) + '\n')
             pred_label = ('Predicted label: ' +\
-                          str(self.pred_test_classes[n,0]))
+                          str(self.pred_test_classes[arg,0]))
             labels = self.y_test[arg]
             for j, value in enumerate(labels):
                 if value == 1:
