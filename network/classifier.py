@@ -176,8 +176,9 @@ class Classifier():
             no_of_rows += 1
             
         fig, axs = plt.subplots(nrows = no_of_rows, ncols = no_of_cols)
-        plt.subplots_adjust(left=0.125, bottom=0.5, right=2.7,
-                            top=no_of_rows, wspace=0.2, hspace=0.2)
+        plt.subplots_adjust(left = 0.125, bottom = 0.5,
+                            right=2.7, top = no_of_rows,
+                            wspace = 0.2, hspace = 0.2)
     
         for i in range(no_of_spectra):
             x = np.arange(694, 750.05, 0.05)
@@ -414,50 +415,54 @@ class Classifier():
         if argmax_class_true != argmax_class_pred:
             wrong_pred_args.append(i)
         no_of_wrong_pred = len(wrong_pred_args)
+        print('No. of wrong predictions on the test data :' +\
+              str(no_of_wrong_pred))
         
-        no_of_rows = int(no_of_wrong_pred/3)
-        no_of_cols = 3
-        if (no_of_wrong_pred % no_of_cols) != 0:
-            no_of_rows += 1
+        if no_of_wrong_pred > 0:
+            no_of_rows = int(no_of_wrong_pred/3)
+            no_of_cols = 3
+            if (no_of_wrong_pred % no_of_cols) != 0:
+                no_of_rows += 1
 
-        fig, axs = plt.subplots(nrows = no_of_rows, ncols = no_of_cols)
-        plt.subplots_adjust(left=0.125, bottom=0.5, right=2.7,
-                        top=no_of_rows, wspace=0.2, hspace=0.2)
+            fig, axs = plt.subplots(nrows = no_of_rows, ncols = no_of_cols)
+            plt.subplots_adjust(left = 0.125, bottom = 0.5,
+                                right=2.7, top = no_of_rows,
+                                wspace = 0.2, hspace = 0.2)
         
-        for n in range(no_of_wrong_pred):
-            arg = wrong_pred_args[n]
-            intensity = self.X_test[arg]
+            for n in range(no_of_wrong_pred):
+                arg = wrong_pred_args[n]
+                intensity = self.X_test[arg]
             
-            real_y = ('Real: ' + \
-                str(self.y_test[arg]) + '\n')
-            # Round prediction and sum to 1
-            tmp_array = np.around(self.pred_test[arg], decimals = 4)
-            row_sums = tmp_array.sum()
-            tmp_array = tmp_array / row_sums
-            tmp_array = np.around(tmp_array, decimals = 2)
-            pred_y = ('Prediction: ' +\
-                      str(tmp_array) + '\n')
-            pred_label = ('Predicted label: ' +\
-                          str(self.pred_test_classes[arg,0]))
-            labels = self.y_test[arg]
-            for j, value in enumerate(labels):
-                if value == 1:
-                    label = str(self.label_values[j])
-                    label =  ('Real label: ' + label + '\n')
+                real_y = ('Real: ' + \
+                    str(self.y_test[arg]) + '\n')
+                # Round prediction and sum to 1
+                tmp_array = np.around(self.pred_test[arg], decimals = 4)
+                row_sums = tmp_array.sum()
+                tmp_array = tmp_array / row_sums
+                tmp_array = np.around(tmp_array, decimals = 2)
+                pred_y = ('Prediction: ' +\
+                          str(tmp_array) + '\n')
+                pred_label = ('Predicted label: ' +\
+                              str(self.pred_test_classes[arg,0]))
+                labels = self.y_test[arg]
+                for j, value in enumerate(labels):
+                    if value == 1:
+                        label = str(self.label_values[j])
+                        label =  ('Real label: ' + label + '\n')
                 
-            text = real_y + pred_y + label + pred_label
+                text = real_y + pred_y + label + pred_label
             
-            row, col = int(n/no_of_cols), n % no_of_cols
-            axs[row, col].plot(np.flip(binding_energy),intensity)
-            axs[row, col].invert_xaxis()
-            axs[row, col].set_xlim(750.05,694)
-            axs[row, col].set_xlabel('Binding energy (eV)')
-            axs[row, col].set_ylabel('Intensity (arb. units)')  
-            axs[row, col].text(0.025, 0.35, text,
-                               horizontalalignment='left',
-                               verticalalignment='top',
-                               transform = axs[row, col].transAxes,
-                               fontsize = 12)
+                row, col = int(n/no_of_cols), n % no_of_cols
+                axs[row, col].plot(np.flip(binding_energy),intensity)
+                axs[row, col].invert_xaxis()
+                axs[row, col].set_xlim(750.05,694)
+                axs[row, col].set_xlabel('Binding energy (eV)')
+                axs[row, col].set_ylabel('Intensity (arb. units)')  
+                axs[row, col].text(0.025, 0.35, text,
+                                   horizontalalignment='left',
+                                   verticalalignment='top',
+                                   transform = axs[row, col].transAxes,
+                                   fontsize = 12)
             
     
     def save_model(self):        
