@@ -69,8 +69,10 @@ class CustomModelSimpleCNN(CustomModel):
     
         
 class CustomModelCNN(CustomModel):
-    def __init__(self, input_shape, num_classes):
+    def __init__(self, inputshape, num_classes):
         super(CustomModelCNN, self).__init__(name = 'Custom_CNN')
+        self.inputshape = inputshape
+        self.num_classes = num_classes
         
         # Convolutional layers - feature extraction
         self.add(Convolution1D(2, 9, input_shape = input_shape))   
@@ -106,7 +108,7 @@ class CustomModelCNN(CustomModel):
     def get_config(self):
         # For serialization with 'custom_objects'
         config = super().get_config()
-        config['input_shape'] = self.input_shape
+        config['inputshape'] = self.inputshape
         config['num_classes'] = self.num_classes
         
         return config
@@ -114,8 +116,10 @@ class CustomModelCNN(CustomModel):
 
 
 class CustomModelMLP(CustomModel):
-    def __init__(self, input_shape, num_classes):
+    def __init__(self, inputshape, num_classes):
         super(CustomModelMLP, self).__init__(name = 'Custom_MLP')
+        self.inputshape = inputshape
+        self.num_classes = num_classes
 
         self.add(Flatten(input_shape = input_shape))
 
@@ -139,7 +143,7 @@ class CustomModelMLP(CustomModel):
     def get_config(self):
         # For serialization with 'custom_objects'
         config = super().get_config()
-        config['input_shape'] = self.input_shape
+        config['inputshape'] = self.inputshape
         config['num_classes'] = self.num_classes
         
         return config
