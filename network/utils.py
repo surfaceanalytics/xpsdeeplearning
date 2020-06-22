@@ -31,8 +31,8 @@ class TrainingGraphs():
         
     def plot_loss(self):
         fig, ax = plt.subplots()
-        ax.plot(self.history['loss'])
-        ax.plot(self.history['val_loss'])
+        ax.plot(self.history['loss'], linewidth = 3)
+        ax.plot(self.history['val_loss'], linewidth = 3)
         ax.set_title('Loss')
         ax.set_ylabel('Cross Entropy Loss')
         ax.set_xlabel('Epoch')
@@ -43,8 +43,8 @@ class TrainingGraphs():
         
     def plot_accuracy(self):
         fig, ax = plt.subplots()
-        ax.plot(self.history['accuracy'])
-        ax.plot(self.history['val_accuracy'])
+        ax.plot(self.history['accuracy'], linewidth = 3)
+        ax.plot(self.history['val_accuracy'], linewidth = 3)
         ax.set_title('Accuracy')
         ax.set_ylabel('Classification Accuracy')
         ax.set_xlabel('Epoch')

@@ -568,10 +568,10 @@ class Classifier():
                 reader = csv.DictReader(csvfile)
                 for row in reader:
                     d = dict(row)
-                    history['accuracy'].append(d['accuracy'])
-                    history['loss'].append(d['loss'])
-                    history['val_accuracy'].append(d['val_accuracy'])
-                    history['val_loss'].append(d['val_loss'])                
+                    history['accuracy'].append(float(d['accuracy']))
+                    history['loss'].append(float(d['loss']))
+                    history['val_accuracy'].append(float(d['val_accuracy']))
+                    history['val_loss'].append(float(d['val_loss']))                
         except:
             pass
         
