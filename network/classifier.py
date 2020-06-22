@@ -403,7 +403,7 @@ class Classifier():
         
         return self.pred_train_classes, self.pred_test_classes
     
-    def plot_wrong_classification(self):
+    def show_wrong_classification(self):
         binding_energy = np.arange(694, 750.05, 0.05)
         
         wrong_pred_args = []
@@ -415,7 +415,7 @@ class Classifier():
         if argmax_class_true != argmax_class_pred:
             wrong_pred_args.append(i)
         no_of_wrong_pred = len(wrong_pred_args)
-        print('No. of wrong predictions on the test data :' +\
+        print('No. of wrong predictions on the test data: ' +\
               str(no_of_wrong_pred))
         
         if no_of_wrong_pred > 0:
