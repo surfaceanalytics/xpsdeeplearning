@@ -9,17 +9,17 @@ import os
 import datetime
 from creator import Creator, calculate_runtime, check_db
 
-no_of_simulations = 1000
-no_of_files = 4000
+no_of_simulations = 2000
+no_of_files = 100
 input_labels =  ['Fe_metal','FeO','Fe3O4','Fe2O3']
 timestamp = datetime.datetime.now().strftime("%Y%m%d")
-run_name = 'iron_single'
+run_name = 'iron_linear_combination'
+time_and_run_name = timestamp + '_' + run_name
 
-datafolder = r'C:\Users\pielsticker\Simulations\\'
-filepath = datafolder + timestamp + '_' + run_name
-os.makedirs(filepath)
-
-filename_basic = filepath + '\\' + timestamp + '_' + run_name
+datafolder = r'C:\Users\pielsticker\Simulations'
+filepath = os.path.join(*[datafolder,time_and_run_name])
+#os.makedirs(filepath)
+filename_basic = os.path.join(*[filepath,time_and_run_name])
 
 #%% Create multiple sets of similar spectra with the same settings
 t0 = time()

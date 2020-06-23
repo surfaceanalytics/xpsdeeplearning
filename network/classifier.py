@@ -25,6 +25,7 @@ from tensorflow.keras.models import load_model
 from tensorflow.keras.utils import plot_model
 from tensorflow.keras.callbacks import EarlyStopping,\
     ModelCheckpoint, TensorBoard, CSVLogger
+from tensorflow.keras import backend as K
 
 from .models import CustomModel, CustomModelSimpleCNN,\
     CustomModelCNN, CustomModelMLP
@@ -249,18 +250,21 @@ class Classifier():
                                    fontsize = 12) 
 
     
-    def build_model(self):        
+    def build_model(self, learning_rate):        
         if self.model_type == 'CNN_simple':
             self.model = CustomModelSimpleCNN(self.input_shape,
-                                              self.num_classes)
+                                              self.num_classes, 
+                                              learning_rate)
             
         elif self.model_type == 'CNN':
             self.model = CustomModelCNN(self.input_shape,
-                                        self.num_classes)
+                                        self.num_classes,
+                                        learning_rate)
             
         elif self.model_type == 'MLP':
             self.model = CustomModelMLP(self.input_shape,
-                                        self.num_classes)
+                                        self.num_classes,
+                                        learning_rate)
             
     
     def summary(self):
@@ -275,7 +279,7 @@ class Classifier():
     
     
     def save_and_print_model_image(self):        
-        fig_file_name = os.path.join(self.fig_dir,'model.png')
+        fig_file_name = os.path.join(self.fig_dir, 'model.png')
         plot_model(self.model, to_file = fig_file_name,
                    rankdir = "LR", show_shapes = True,
                    show_layer_names = True,
@@ -290,11 +294,18 @@ class Classifier():
 
     def train(self, checkpoint = True, early_stopping = False,
               tb_log = False, csv_log = True, epochs = 200, batch_size = 32,
-              verbose = 1):
+              verbose = 1, new_learning_rate = None):
         self.epochs = epochs
         self.batch_size = batch_size
         epochs_trained = self._count_epochs_trained()
         
+        if new_learning_rate != None:
+            K.set_value(self.model.optimizer.learning_rate,
+                        new_learning_rate)
+            print('New learning rate: ' +\
+                  str(K.eval(self.model.optimizer.lr)))
+
+            
         callbacks = []
         
         if checkpoint:
@@ -307,7 +318,6 @@ class Classifier():
                                                   mode = 'auto',
                                                   save_freq = 'epoch')
             callbacks.append(checkpoint_callback)
-
 
         if early_stopping:
             es_callback = EarlyStopping(monitor = 'val_loss',
@@ -323,7 +333,8 @@ class Classifier():
             tb_callback = TensorBoard(log_dir = self.log_dir,
                                       histogram_freq = 1,
                                       write_graph = True,
-                                      write_images = False)
+                                      write_images = False,
+                                      profile_batch = 0)
             callbacks.append(tb_callback)
             
         if csv_log:            

@@ -510,7 +510,7 @@ if __name__ == "__main__":
     t0 = time()
     no_of_simulations = 20
     input_labels =  ['Fe_metal','FeO','Fe3O4','Fe2O3']
-    creator = Creator(no_of_simulations, input_labels, single = True)
+    creator = Creator(no_of_simulations, input_labels, single = False)
     creator.run(broaden = True, x_shift = True, noise = True)
     creator.plot_random(12)
     datafolder = r'C:\Users\pielsticker\Simulations\\'
@@ -518,7 +518,6 @@ if __name__ == "__main__":
     #creator.upload_to_DB(filename, reduced = True)
     #collections = check_db(filename)
     #drop_db_collection(filename)
-
     creator.to_file(filepath = filepath,
                     filetype = 'json',
                     how = 'full',

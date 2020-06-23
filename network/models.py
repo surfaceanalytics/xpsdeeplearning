@@ -17,9 +17,9 @@ from tensorflow.keras.optimizers import Adam
 
        
 class CustomModel(Sequential):
-    def __init__(self, name = None):
+    def __init__(self, name = None, learning_rate = 0.00001):
         super(CustomModel, self).__init__(name = name)
-        self.opt = Adam(learning_rate = 0.00001)
+        self.opt = Adam(learning_rate = learning_rate)
         
     def name_layers(self):
         for i, layer in enumerate(self.layers):
@@ -36,10 +36,14 @@ class CustomModel(Sequential):
                     
 
 class CustomModelSimpleCNN(CustomModel):
-    def __init__(self, inputshape, num_classes):
-        super(CustomModelSimpleCNN, self).__init__(name = 'Custom_CNN_simple')
+    def __init__(self, inputshape, num_classes, learning_rate = 0.00001):
+        super(CustomModelSimpleCNN, self).__init__(
+            name = 'Custom_CNN_simple',
+            learning_rate = learning_rate)
         self.inputshape = inputshape
         self.num_classes = num_classes
+        self.learning_rate = learning_rate
+
          
         self.add(Convolution1D(32, 9,
                               activation = 'relu',
@@ -48,9 +52,9 @@ class CustomModelSimpleCNN(CustomModel):
         self.add(MaxPooling1D())
         self.add(Dropout(0.25))
         self.add(Flatten())
-        self.add(Dense(128, activation='relu'))
+        self.add(Dense(128, activation = 'relu'))
         self.add(Dropout(0.5))
-        self.add(Dense(num_classes, activation='softmax')) 
+        self.add(Dense(num_classes, activation = 'softmax')) 
         
         #self.name_layers()
 
@@ -63,41 +67,45 @@ class CustomModelSimpleCNN(CustomModel):
         config = super(CustomModelSimpleCNN, self).get_config()
         config['inputshape'] = self.inputshape
         config['num_classes'] = self.num_classes
+        config['learning_rate'] = self.learning_rate
         
         return config
         
     
         
 class CustomModelCNN(CustomModel):
-    def __init__(self, inputshape, num_classes):
-        super(CustomModelCNN, self).__init__(name = 'Custom_CNN')
+    def __init__(self, inputshape, num_classes, learning_rate = 0.00001):
+        super(CustomModelCNN, self).__init__(
+            name = 'Custom_CNN',
+            learning_rate = learning_rate)
         self.inputshape = inputshape
         self.num_classes = num_classes
+        self.learning_rate = learning_rate
         
         # Convolutional layers - feature extraction
         self.add(Convolution1D(2, 9, input_shape = input_shape))   
         self.add(AveragePooling1D())
         self.add(BatchNormalization())
 
-        self.add(Convolution1D(2, 7, activation='relu'))
+        self.add(Convolution1D(2, 7, activation = 'relu'))
         self.add(AveragePooling1D())
         self.add(BatchNormalization())
 
-        self.add(Convolution1D(4, 7, activation='relu'))
+        self.add(Convolution1D(4, 7, activation = 'relu'))
         self.add(AveragePooling1D())
         self.add(BatchNormalization())
 
-        self.add(Convolution1D(4, 5, activation='relu'))
+        self.add(Convolution1D(4, 5, activation = 'relu'))
         self.add(MaxPooling1D())
         self.add(BatchNormalization())
 
         # Fully-connected layer
         self.add(Flatten())
-        self.add(Dense(10, activation='relu'))
-        self.add(Dense(5, activation='relu'))
+        self.add(Dense(10, activation = 'relu'))
+        self.add(Dense(5, activation = 'relu'))
 
         # Output layer with softmax activation
-        self.add(Dense(num_classes, activation='softmax'))
+        self.add(Dense(num_classes, activation = 'softmax'))
         
         #self.name_layers()       
         
@@ -110,29 +118,33 @@ class CustomModelCNN(CustomModel):
         config = super().get_config()
         config['inputshape'] = self.inputshape
         config['num_classes'] = self.num_classes
+        config['learning_rate'] = self.learning_rate
         
         return config
 
 
 
 class CustomModelMLP(CustomModel):
-    def __init__(self, inputshape, num_classes):
-        super(CustomModelMLP, self).__init__(name = 'Custom_MLP')
+    def __init__(self, inputshape, num_classes, learning_rate = 0.00001):
+        super(CustomModelMLP, self).__init__(
+            name = 'Custom_MLP',
+            learning_rate = learning_rate)
         self.inputshape = inputshape
         self.num_classes = num_classes
+        self.learning_rate = learning_rate
 
         self.add(Flatten(input_shape = input_shape))
 
         self.add(Dropout(0.5))
-        self.add(Dense(64, activation='relu'))
+        self.add(Dense(64, activation = 'relu'))
         self.add(BatchNormalization())
 
         self.add(Dropout(0.5))
-        self.add(Dense(64, activation='relu'))
+        self.add(Dense(64, activation = 'relu'))
         self.add(BatchNormalization())
                     
         # Output layer
-        self.add(Dense(num_classes, activation='softmax'))
+        self.add(Dense(num_classes, activation = 'softmax'))
         
         #self.name_layers()
    
@@ -145,6 +157,7 @@ class CustomModelMLP(CustomModel):
         config = super().get_config()
         config['inputshape'] = self.inputshape
         config['num_classes'] = self.num_classes
+        config['learning_rate'] = self.learning_rate
         
         return config
     
@@ -152,6 +165,5 @@ class CustomModelMLP(CustomModel):
 if __name__ == "__main__":
     input_shape = (100,1)
     num_classes = 4
-    model = CustomModelCNN(input_shape,num_classes)
+    model = CustomModelCNN(input_shape,num_classes, learning_rate = 0.00001)
     model.summary()
-

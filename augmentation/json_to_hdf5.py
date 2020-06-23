@@ -33,26 +33,22 @@ def load_data_preprocess(input_datafolder,start,end):
             y.append(y_one)
         print('Load: ' + str((filenames.index(file)-start)*len(test)+j+1) + '/' + \
                       str(len(filenames[start:end])*len(test)))
-                                       
-    y = _one_hot_encode(y, label_values)
-                
+                                                  
     X = np.array(X)
     X = np.reshape(X, (X.shape[0], X.shape[1], 1))
-    y = np.array(y)
-        
+    y = _one_hot_encode(y, label_values)
+
     return X, y
         
     
 def _one_hot_encode(y, label_values):
-    labels = [i for s in [d.keys() for d in y] for i in s]
-    new_labels = []
-        
-    for label in labels:  
-        number = [i for i,x in enumerate(label_values) if x == label][0]
-        label_list = [0,0,0,0]
-        label_list[number] = 1
-        new_labels.append(label_list)
-                        
+    new_labels = np.zeros((len(y), len(label_values)))    
+    
+    for i,d in enumerate(y):
+        for species, value in d.items():  
+            number = label_values.index(species)
+            new_labels[i, number] = value
+          
     return new_labels
 
 
@@ -62,7 +58,6 @@ def to_hdf5(output_file, simulation_name, no_of_files_per_load):
     filenames = next(os.walk(input_datafolder))[2]
     no_of_files = len(filenames)    
     no_of_loads = int(no_of_files/no_of_files_per_load) 
-    
     
     with h5py.File(output_file, 'w') as hf:
         start = 0
@@ -86,15 +81,13 @@ def to_hdf5(output_file, simulation_name, no_of_files_per_load):
     
             print('Saved: ' + str(load+1) + '/' + str(no_of_loads))
 
-
-
 #%%               
 if __name__ == "__main__":
-    input_datafolder = r'C:\Users\pielsticker\Simulations\20200605_iron_single'
+    #input_datafolder = r'C:\Users\pielsticker\Simulations\20200622_iron_linear_combination'
     output_datafolder = r'C:\Users\pielsticker\Simulations\\'
-    output_file = output_datafolder + '20200605_iron_single.h5'
-    simulation_name = '20200605_iron_single'
-    no_of_files_per_load = 100
+    output_file = output_datafolder + '20200622_iron_linear_combination.h5'
+    simulation_name = '20200622_iron_linear_combination'
+    no_of_files_per_load = 50
 
     runtimes = {}
     t0 = time()
@@ -105,11 +98,7 @@ if __name__ == "__main__":
     
     t0 = time()
     with h5py.File(output_file, 'r') as hf:
-        X_h5_full = hf['X']
-        x_h5 = X_h5_full[:50000,:,:]
-        y_h5_full = hf['y']
-        y_h5 = y_h5_full[:50000,:]
+        X_h5 = hf['X'][:4000,:,:]
+        y_h5 = hf['y'][:4000,:]
         t1 = time()
         runtimes['h5_load_iron_single'] = calculate_runtime(t0,t1)
-
-    
