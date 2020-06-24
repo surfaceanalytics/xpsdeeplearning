@@ -83,7 +83,9 @@ class CustomModelCNN(CustomModel):
         self.learning_rate = learning_rate
         
         # Convolutional layers - feature extraction
-        self.add(Convolution1D(2, 9, input_shape = input_shape))   
+        self.add(Convolution1D(2, 9, 
+                               activation = 'relu',
+                               input_shape = self.inputshape))   
         self.add(AveragePooling1D())
         self.add(BatchNormalization())
 
@@ -133,7 +135,7 @@ class CustomModelMLP(CustomModel):
         self.num_classes = num_classes
         self.learning_rate = learning_rate
 
-        self.add(Flatten(input_shape = input_shape))
+        self.add(Flatten(input_shape = self.inputshape))
 
         self.add(Dropout(0.5))
         self.add(Dense(64, activation = 'relu'))
@@ -165,5 +167,5 @@ class CustomModelMLP(CustomModel):
 if __name__ == "__main__":
     input_shape = (100,1)
     num_classes = 4
-    model = CustomModelCNN(input_shape,num_classes, learning_rate = 0.00001)
+    model = CustomModelMLP(input_shape,num_classes, learning_rate = 0.00001)
     model.summary()
