@@ -165,7 +165,7 @@ class CustomModelMLP(CustomModel):
     
 #%% 
 if __name__ == "__main__":
-    input_shape = (100,1)
+    input_shape = (1121,1)
     num_classes = 4
     model = CustomModelMLP(input_shape,num_classes, learning_rate = 0.00001)
     model.summary()
