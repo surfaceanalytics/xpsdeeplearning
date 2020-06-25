@@ -26,40 +26,49 @@ from tensorflow.keras.utils import plot_model
 from tensorflow.keras.callbacks import EarlyStopping,\
     ModelCheckpoint, TensorBoard, CSVLogger
 from tensorflow.keras import backend as K
+from .models import CustomSequential
 
-from .models import CustomModel, CustomModelSimpleCNN,\
-    CustomModelCNN, CustomModelMLP
-    
 #%%
 class Classifier():
-    def __init__(self, time, model_type ='CNN', model_name = 'Classifier', 
-                 labels = []):
+    def __init__(self, time, data_name = '', labels = []):
         self.time = time
-        self.model_name = model_name
-        self.model_type = model_type
+        self.data_name = data_name
         self.label_values = labels
         
         self.num_classes = len(self.label_values)
         
         root_dir = os.getcwd()
-        dir_name = self.time + '_' + self.model_name 
+        dir_name = self.time + '_' + self.data_name 
         
         self.model_dir = os.path.join(*[root_dir, 'saved_models', dir_name])
         self.log_dir = os.path.join(*[root_dir, 'logs', dir_name])
         self.fig_dir = os.path.join(*[root_dir, 'figures', dir_name])
         
-        for item in [self.model_dir, self.log_dir, self.fig_dir]:
-            if os.path.isdir(item) == False:
-                os.makedirs(item)
-        
-        if os.path.isdir(self.model_dir) == True:
-            print('Model folder created at ' +\
+        if os.path.isdir(self.model_dir) == False:
+            os.makedirs(self.model_dir)
+            if os.path.isdir(self.model_dir) == True:
+                print('Model folder created at ' +\
+                      str(self.model_dir.split(root_dir)[1]))
+        else:
+            print('Model folder was already at ' +\
                   str(self.model_dir.split(root_dir)[1]))
-        if os.path.isdir(self.log_dir) == True:
-            print('Log folder created at ' +\
+        
+        if os.path.isdir(self.log_dir) == False:
+            os.makedirs(self.log_dir)
+            if os.path.isdir(self.log_dir) == True:
+                print('Logs folder created at ' +\
+                      str(self.log_dir.split(root_dir)[1]))
+        else:
+            print('Logs folder was already at ' +\
                   str(self.log_dir.split(root_dir)[1]))
-        if os.path.isdir(self.fig_dir) == True:
-            print('Figure folder created at ' +\
+        
+        if os.path.isdir(self.fig_dir) == False:
+            os.makedirs(self.fig_dir)
+            if os.path.isdir(self.fig_dir) == True:
+                print('Figures folder created at ' +\
+                      str(self.fig_dir.split(root_dir)[1]))
+        else:
+            print('Figures folder was already at ' +\
                   str(self.fig_dir.split(root_dir)[1]))
                 
                 
@@ -248,23 +257,6 @@ class Classifier():
                                    verticalalignment='top',
                                    transform = axs[row, col].transAxes,
                                    fontsize = 12) 
-
-    
-    def build_model(self, learning_rate):        
-        if self.model_type == 'CNN_simple':
-            self.model = CustomModelSimpleCNN(self.input_shape,
-                                              self.num_classes, 
-                                              learning_rate)
-            
-        elif self.model_type == 'CNN':
-            self.model = CustomModelCNN(self.input_shape,
-                                        self.num_classes,
-                                        learning_rate)
-            
-        elif self.model_type == 'MLP':
-            self.model = CustomModelMLP(self.input_shape,
-                                        self.num_classes,
-                                        learning_rate)
             
     
     def summary(self):
@@ -274,9 +266,6 @@ class Classifier():
         stringlist = []
         self.model.summary(print_fn=lambda x: stringlist.append(x))
         self.model_summary = "\n".join(stringlist)
-        
-        print("Model created!")
-    
     
     def save_and_print_model_image(self):        
         fig_file_name = os.path.join(self.fig_dir, 'model.png')
@@ -344,12 +333,19 @@ class Classifier():
                                       separator=',',
                                       append = True)
             callbacks.append(csv_callback)
-            
+        
+        # In case of submodel inputs, allow multiple inputs.
+        X_train_data = []
+        X_val_data = []
+        for i in range(self.model.get_config()['no_of_inputs']):
+            X_train_data.append(self.X_train)
+            X_val_data.append(self.X_val) 
+
         try:
-            training = self.model.fit(self.X_train,
+            training = self.model.fit(X_train_data,
                                       self.y_train,
                                       validation_data = \
-                                          (self.X_val, self.y_val),
+                                          (X_val_data, self.y_val),
                                           epochs = self.epochs +\
                                               epochs_trained,
                                       batch_size = self.batch_size,
@@ -370,7 +366,13 @@ class Classifier():
         
     
     def evaluate(self):
-        self.score = self.model.evaluate(self.X_test,
+        # In case of submodel inputs, allow multiple inputs.
+        X_test_data = []
+        
+        for i in range(self.model.get_config()['no_of_inputs']):
+            X_test_data.append(self.X_test)
+
+        self.score = self.model.evaluate(X_test_data,
                                    self.y_test,
                                    batch_size = self.batch_size,
                                    verbose=True)      
@@ -382,10 +384,15 @@ class Classifier():
      
      
     def predict(self, verbose = True):
-        self.pred_train = self.model.predict(
-            self.X_train, verbose = verbose)
-        self.pred_test = self.model.predict(
-            self.X_test, verbose = verbose)
+        # In case of submodel inputs, allow multiple inputs.
+        X_train_data = []
+        X_test_data = []
+        for i in range(self.model.get_config()['no_of_inputs']):
+            X_train_data.append(self.X_train)
+            X_test_data.append(self.X_test) 
+        
+        self.pred_train = self.model.predict(X_train_data, verbose = verbose)
+        self.pred_test = self.model.predict(X_test_data, verbose = verbose)
         
         if verbose == True:
             print('Prediction done!')
@@ -413,6 +420,7 @@ class Classifier():
         print('Class prediction done!')
         
         return self.pred_train_classes, self.pred_test_classes
+    
     
     def show_wrong_classification(self):
         binding_energy = np.arange(694, 750.05, 0.05)
@@ -476,23 +484,26 @@ class Classifier():
                                    fontsize = 12)
             
     
-    def save_model(self):        
+    def save_model(self,  **kwargs): 
         model_file_name = os.path.join(self.model_dir,
                                        'model.json')
-        hyperparam_file_name = os.path.join(self.model_dir,
-                                            'hyperparameters.json')
         weights_file_name = os.path.join(self.model_dir,
                                          'weights.h5')
-        
+                        
         model_json = self.model.to_json()
         with open(model_file_name, 'w', encoding='utf-8') as json_file:
             json_file.write(model_json)
         # serialize weights to HDF5
         self.model.save_weights(weights_file_name)
         self.model.save(self.model_dir)
+        print("Saved model to disk.")
 
+    
+    def save_hyperparams(self):
+        hyperparam_file_name = os.path.join(self.model_dir,
+                                            'hyperparameters.json')
         params_dict = {
-            'model_name' : self.model_name,
+            'model_name' : self.data_name,
             'datetime' : self.time,
             'Input file' : self.input_filepath,
             'model_summary' : self.model_summary,
@@ -503,7 +514,7 @@ class Classifier():
             'batch_size' : self.batch_size,
             'class_distribution' : self.check_class_distribution(),
             'loss' : 'Categorical Cross-Entropy',
-            'optimizer' : self.model.opt._name,
+            'optimizer' : self.model.optimizer._name,
             'learning rate' : 0.00001,
             'Labels': self.label_values,
             'Total no. of samples' : str(self.X.shape[0]),
@@ -516,7 +527,7 @@ class Classifier():
             
         with open(hyperparam_file_name, 'w', encoding='utf-8') as json_file:
             json.dump(params_dict, json_file, ensure_ascii=False, indent=4)
-        print("Saved model and hyperparameters.")
+        print("Saved hyperparameters to file.")
         
     
     def shelve_results(self, full = False):
@@ -531,28 +542,45 @@ class Classifier():
                                  'y_val', 'class_distribution', 'hist'])
             for key in key_list:
                 shelf[key] = vars(self)[key]
+        
+        print("Saved results to file.")
             
             
-    def load_model(self, from_path = False, **kwargs):
-        if (from_path == True) and ('model_path' in kwargs.keys()):
+    def load_model(self, models = None, **kwargs):
+        if 'model_path' in kwargs.keys():
             file_name = kwargs['model_path']
         else:
             file_name = self.model_dir
- 
-        custom_objects = {'CustomModel': CustomModel}
-        if self.model_type == 'CNN_simple':
-            custom_objects['CustomModelSimpleCNN'] = CustomModelSimpleCNN
-        
-        elif self.model_type == 'CNN':
-            custom_objects['CustomModelCNN'] = CustomModelCNN
-        
-        elif self.model_type == 'MLP':
-            custom_objects['CustomModelMLP'] = CustomModelMLP
-        
+            
+        custom_objects = {'CustomSequential': CustomSequential}
+        custom_objects[str(type(self.model).__name__)] =\
+            type(self.model).__name__
+         
+        # Load from file.    
         self.model = load_model(file_name, custom_objects = custom_objects)
         print("Loaded model from disk.")
+      
+        if 'drop_last_layers' in kwargs.keys():
+            try:
+                no_of_drop_layers = kwargs['drop_last_layers']
+            
+                new_model = CustomSequential(self.input_shape,
+                                             self.num_classes)
+            
+                for layer in self.model.layers[:-no_of_drop_layers]:
+                    new_model.add(layer)
+                            
+                self.model = new_model
+                
+                print('The last {} layers were dropped.\n'.format(
+                str(no_of_drop_layers)))
+            
+            except ValueError:
+                print('Removal of layers is currently only supported for ' +
+                      'Sequential models. No layers were removed.\n')
         
-        
+                     
+
     def _count_epochs_trained(self):
         csv_file = os.path.join(self.log_dir,'log.csv')
         epochs = 0

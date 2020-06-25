@@ -6,98 +6,69 @@ Created on Tue Jun  9 14:10:25 2020
 """
 
 import tensorflow as tf
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, Flatten
-from tensorflow.keras.layers import Conv1D as Convolution1D
+from tensorflow.keras.models import Model, Sequential
+from tensorflow.keras.layers import Input, Dense, Flatten, concatenate
+from tensorflow.keras.layers import Conv1D
 from tensorflow.keras.layers import Dropout
-from tensorflow.keras.layers import AveragePooling1D
-from tensorflow.keras.layers import MaxPooling1D
+from tensorflow.keras.layers import AveragePooling1D, MaxPooling1D
 from tensorflow.keras.layers import BatchNormalization
-from tensorflow.keras.optimizers import Adam
 
-       
-class CustomModel(Sequential):
-    def __init__(self, name = None, learning_rate = 0.00001):
-        super(CustomModel, self).__init__(name = name)
-        self.opt = Adam(learning_rate = learning_rate)
-        
-    def name_layers(self):
-        for i, layer in enumerate(self.layers):
-            layer.name = 'Layer' + str(i)
-        
-        # Name activation layer
-        self.layers[-1].name += ': Activation'
-        
-    def print_shapes(self):
-        for i, layer in enumerate(self.layers):
-            print('Layer' + str(i) + ': ' + str(layer.input_shape))            
-            print('Layer' + str(i) + ': ' + str(layer.output_shape))
-            
-                    
-
-class CustomModelSimpleCNN(CustomModel):
-    def __init__(self, inputshape, num_classes, learning_rate = 0.00001):
-        super(CustomModelSimpleCNN, self).__init__(
-            name = 'Custom_CNN_simple',
-            learning_rate = learning_rate)
+#%%
+class CustomSequential(Sequential):
+    def __init__(self, inputshape, num_classes, name = None):
+        super(CustomSequential, self).__init__(name = name)
         self.inputshape = inputshape
         self.num_classes = num_classes
-        self.learning_rate = learning_rate
-
-         
-        self.add(Convolution1D(32, 9,
-                              activation = 'relu',
-                              input_shape = self.inputshape))
-        self.add(Convolution1D(64, 9, activation='relu'))
+        self.no_of_inputs = 1
+    
+    def get_config(self):
+        # For serialization with 'custom_objects'
+        config = super(CustomSequential, self).get_config()
+        config['inputshape'] = self.inputshape
+        config['num_classes'] = self.num_classes
+        
+        return config
+      
+    
+class CustomSimpleCNN(CustomSequential):
+    def __init__(self, inputshape, num_classes):
+        super(CustomSimpleCNN, self).__init__(inputshape,
+                                               num_classes,
+                                               name = 'Custom_CNN_Simple')
+        self.add(Conv1D(32, 9,
+                        activation = 'relu',
+                        input_shape = self.inputshape))
+        self.add(Conv1D(64, 9, activation='relu'))
         self.add(MaxPooling1D())
         self.add(Dropout(0.25))
         self.add(Flatten())
         self.add(Dense(128, activation = 'relu'))
         self.add(Dropout(0.5))
-        self.add(Dense(num_classes, activation = 'softmax')) 
+        self.add(Dense(self.num_classes, activation = 'softmax')) 
         
-        #self.name_layers()
+    
 
-        self.compile(loss = 'categorical_crossentropy',
-                     optimizer = self.opt, 
-                     metrics = ['accuracy'])
-    
-    def get_config(self):
-        # For serialization with 'custom_objects'
-        config = super(CustomModelSimpleCNN, self).get_config()
-        config['inputshape'] = self.inputshape
-        config['num_classes'] = self.num_classes
-        config['learning_rate'] = self.learning_rate
-        
-        return config
-        
-    
-        
-class CustomModelCNN(CustomModel):
-    def __init__(self, inputshape, num_classes, learning_rate = 0.00001):
-        super(CustomModelCNN, self).__init__(
-            name = 'Custom_CNN',
-            learning_rate = learning_rate)
-        self.inputshape = inputshape
-        self.num_classes = num_classes
-        self.learning_rate = learning_rate
-        
+class CustomCNN(CustomSequential):
+    def __init__(self, inputshape, num_classes):
+        super(CustomCNN, self).__init__(inputshape,
+                                        num_classes,
+                                        name = 'Custom_CNN')
         # Convolutional layers - feature extraction
-        self.add(Convolution1D(2, 9, 
-                               activation = 'relu',
-                               input_shape = self.inputshape))   
+        self.add(Conv1D(2, 9,
+                        activation = 'relu',
+                        input_shape = self.inputshape))   
+        self.add(AveragePooling1D())
+        self.add(BatchNormalization())
+ 
+        self.add(Conv1D(2, 7, activation = 'relu'))
         self.add(AveragePooling1D())
         self.add(BatchNormalization())
 
-        self.add(Convolution1D(2, 7, activation = 'relu'))
+        self.add(Conv1D(4, 7, activation = 'relu'))
         self.add(AveragePooling1D())
         self.add(BatchNormalization())
-
-        self.add(Convolution1D(4, 7, activation = 'relu'))
-        self.add(AveragePooling1D())
-        self.add(BatchNormalization())
-
-        self.add(Convolution1D(4, 5, activation = 'relu'))
+ 
+        self.add(Conv1D(4, 5, activation = 'relu'))
         self.add(MaxPooling1D())
         self.add(BatchNormalization())
 
@@ -107,65 +78,74 @@ class CustomModelCNN(CustomModel):
         self.add(Dense(5, activation = 'relu'))
 
         # Output layer with softmax activation
-        self.add(Dense(num_classes, activation = 'softmax'))
+        self.add(Dense(self.num_classes, activation = 'softmax'))
+
+
+
+class CustomCNNSub(Model):
+    def __init__(self, inputshape, num_classes, name = None):
+        self.inputshape = inputshape
+        self.num_classes = num_classes
         
-        #self.name_layers()       
+        input_layer = Input(shape = self.inputshape)
+                
+        conv_short = Conv1D(4, 5, padding = 'same',
+                            activation = 'relu')(input_layer)
+        conv_medium = Conv1D(4, 10, padding = 'same',
+                             activation = 'relu')(input_layer)
+        conv_long = Conv1D(4, 15, padding = 'same',
+                           activation = 'relu')(input_layer)
+
+        sublayers = [conv_short, conv_medium, conv_long]
+        merged_sublayers = concatenate(sublayers)
         
-        self.compile(loss = 'categorical_crossentropy',
-                     optimizer = self.opt, 
-                     metrics = ['accuracy'])
-    
+        conv_all = Conv1D(4, 5, activation='relu')(merged_sublayers)
+        pool_all = AveragePooling1D()(conv_all)
+        flatten = Flatten()(pool_all)
+        drop = Dropout(0.2)(flatten)
+        first_dense = Dense(2000, activation = 'relu')(drop)
+        output = Dense(self.num_classes, activation = 'softmax')(first_dense)
+
+        super(CustomCNNSub, self).__init__(
+            inputs = input_layer,
+            outputs = output,
+            name = 'Custom_CNN_Sub')
+        
+        self.no_of_inputs = len(sublayers)
+            
     def get_config(self):
         # For serialization with 'custom_objects'
-        config = super().get_config()
+        config = super(CustomCNNSub, self).get_config()
         config['inputshape'] = self.inputshape
         config['num_classes'] = self.num_classes
-        config['learning_rate'] = self.learning_rate
         
         return config
 
 
-
-class CustomModelMLP(CustomModel):
-    def __init__(self, inputshape, num_classes, learning_rate = 0.00001):
-        super(CustomModelMLP, self).__init__(
-            name = 'Custom_MLP',
-            learning_rate = learning_rate)
-        self.inputshape = inputshape
-        self.num_classes = num_classes
-        self.learning_rate = learning_rate
-
+        
+class CustomMLP(CustomSequential):
+    def __init__(self, inputshape, num_classes):
+        super(CustomMLP, self).__init__(inputshape,
+                                        num_classes,
+                                        name = 'Custom_MLP')
         self.add(Flatten(input_shape = self.inputshape))
 
         self.add(Dropout(0.5))
         self.add(Dense(64, activation = 'relu'))
         self.add(BatchNormalization())
-
+       
         self.add(Dropout(0.5))
         self.add(Dense(64, activation = 'relu'))
         self.add(BatchNormalization())
-                    
-        # Output layer
-        self.add(Dense(num_classes, activation = 'softmax'))
+       
+        self.add(Dense(self.num_classes, activation = 'softmax'))
         
         #self.name_layers()
-   
-        self.compile(loss = 'categorical_crossentropy',
-                     optimizer = self.opt, 
-                     metrics = ['accuracy'])
-    
-    def get_config(self):
-        # For serialization with 'custom_objects'
-        config = super().get_config()
-        config['inputshape'] = self.inputshape
-        config['num_classes'] = self.num_classes
-        config['learning_rate'] = self.learning_rate
+      
         
-        return config
-    
 #%% 
 if __name__ == "__main__":
     input_shape = (1121,1)
     num_classes = 4
-    model = CustomModelMLP(input_shape,num_classes, learning_rate = 0.00001)
+    model = CustomMLP(input_shape,num_classes)
     model.summary()

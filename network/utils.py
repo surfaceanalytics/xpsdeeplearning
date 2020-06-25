@@ -19,11 +19,10 @@ from docx.shared import Pt
 #%%                
                 
 class TrainingGraphs():
-    def __init__(self, history, model_name, time):
+    def __init__(self, history, dir_name):
         self.history = history
         
         root_dir = os.getcwd()
-        dir_name = time + '_' + model_name 
         self.fig_dir = os.path.join(*[root_dir, 'figures', dir_name])
 
         self.plot_loss()
@@ -36,7 +35,7 @@ class TrainingGraphs():
         ax.set_title('Loss')
         ax.set_ylabel('Cross Entropy Loss')
         ax.set_xlabel('Epoch')
-        ax.legend(['Train', 'Validation'], loc='lower right')
+        ax.legend(['Train', 'Validation'])
         fig_name = os.path.join(self.fig_dir, 'loss.png')
         fig.savefig(fig_name)
         plt.show()
@@ -48,7 +47,7 @@ class TrainingGraphs():
         ax.set_title('Accuracy')
         ax.set_ylabel('Classification Accuracy')
         ax.set_xlabel('Epoch')
-        ax.legend(['Train', 'Validation'], loc='lower right')
+        ax.legend(['Train', 'Validation'])
         fig_name = os.path.join(self.fig_dir, 'accuracy.png')
         fig.savefig(fig_name)
         plt.show()
