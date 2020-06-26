@@ -21,12 +21,13 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 #deprecation._PRINT_DEPRECATION_WARNINGS = False
 
 import tensorflow as tf
-from tensorflow.keras.models import load_model
+from tensorflow.keras.models import Model, load_model
 from tensorflow.keras.utils import plot_model
 from tensorflow.keras.callbacks import EarlyStopping,\
     ModelCheckpoint, TensorBoard, CSVLogger
 from tensorflow.keras import backend as K
-from .models import CustomSequential
+
+import network.models
 
 #%%
 class Classifier():
@@ -34,6 +35,8 @@ class Classifier():
         self.time = time
         self.data_name = data_name
         self.label_values = labels
+        
+        self.model = Model()
         
         self.num_classes = len(self.label_values)
         
@@ -422,6 +425,42 @@ class Classifier():
         return self.pred_train_classes, self.pred_test_classes
     
     
+    def _count_epochs_trained(self):
+        csv_file = os.path.join(self.log_dir,'log.csv')
+        epochs = 0
+        
+        try:
+            with open(csv_file, newline='') as csvfile:
+                reader = csv.DictReader(csvfile)
+                for row in reader:
+                    epochs += 1                    
+        except:
+            pass
+        
+        return epochs
+        
+    
+    def _get_total_history(self):
+        csv_file = os.path.join(self.log_dir,'log.csv')
+        history = {'accuracy' : [],
+                   'loss' : [],
+                   'val_accuracy': [],
+                   'val_loss': []}
+        try:
+            with open(csv_file, newline='') as csvfile:
+                reader = csv.DictReader(csvfile)
+                for row in reader:
+                    d = dict(row)
+                    history['accuracy'].append(float(d['accuracy']))
+                    history['loss'].append(float(d['loss']))
+                    history['val_accuracy'].append(float(d['val_accuracy']))
+                    history['val_loss'].append(float(d['val_loss']))                
+        except:
+            pass
+        
+        return history
+    
+    
     def show_wrong_classification(self):
         binding_energy = np.arange(694, 750.05, 0.05)
         
@@ -546,72 +585,37 @@ class Classifier():
         print("Saved results to file.")
             
             
-    def load_model(self, models = None, **kwargs):
-        if 'model_path' in kwargs.keys():
-            file_name = kwargs['model_path']
+    def load_model(self, model_path = None, drop_last_layers = None):
+        if model_path != None:
+            file_name = model_path
         else:
             file_name = self.model_dir
+        
+        # Add the current model to the custom_objects dict.
+        custom_objects = {str(type(self.model).__name__) :
+                          type(self.model).__name__}
+        custom_objects['CustomCNNSub'] = network.models.CustomCNNSub
             
-        custom_objects = {'CustomSequential': CustomSequential}
-        custom_objects[str(type(self.model).__name__)] =\
-            type(self.model).__name__
-         
         # Load from file.    
         self.model = load_model(file_name, custom_objects = custom_objects)
         print("Loaded model from disk.")
       
-        if 'drop_last_layers' in kwargs.keys():
-            try:
-                no_of_drop_layers = kwargs['drop_last_layers']
-            
-                new_model = CustomSequential(self.input_shape,
-                                             self.num_classes)
-            
-                for layer in self.model.layers[:-no_of_drop_layers]:
-                    new_model.add(layer)
-                            
-                self.model = new_model
+        if drop_last_layers != None:
+            no_of_drop_layers = drop_last_layers + 1
                 
-                print('The last {} layers were dropped.\n'.format(
-                str(no_of_drop_layers)))
+            new_model = Model(
+                inputs = self.model.input,
+                outputs = self.model.layers[-no_of_drop_layers].output,
+                name = 'Custom_CNN')
+                
+            self.model = new_model
             
-            except ValueError:
-                print('Removal of layers is currently only supported for ' +
-                      'Sequential models. No layers were removed.\n')
-        
-                     
-
-    def _count_epochs_trained(self):
-        csv_file = os.path.join(self.log_dir,'log.csv')
-        epochs = 0
-        
-        try:
-            with open(csv_file, newline='') as csvfile:
-                reader = csv.DictReader(csvfile)
-                for row in reader:
-                    epochs += 1                    
-        except:
-            pass
-        
-        return epochs
-        
-    
-    def _get_total_history(self):
-        csv_file = os.path.join(self.log_dir,'log.csv')
-        history = {'accuracy' : [],
-                   'loss' : [],
-                   'val_accuracy': [],
-                   'val_loss': []}
-        try:
-            with open(csv_file, newline='') as csvfile:
-                reader = csv.DictReader(csvfile)
-                for row in reader:
-                    d = dict(row)
-                    history['accuracy'].append(float(d['accuracy']))
-                    history['loss'].append(float(d['loss']))
-                    history['val_accuracy'].append(float(d['val_accuracy']))
-                    history['val_loss'].append(float(d['val_loss']))                
-        except:
-            pass
-        
-        return history
+            if no_of_drop_layers == 0:
+                print('No layers were dropped.\n')
+                
+            if no_of_drop_layers == 1:
+                print('The last layer was dropped.\n')
+                
+            else:
+                print('The last {} layers were dropped.\n'.format(
+                    str(no_of_drop_layers)))
