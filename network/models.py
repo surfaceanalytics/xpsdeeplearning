@@ -6,146 +6,168 @@ Created on Tue Jun  9 14:10:25 2020
 """
 
 import tensorflow as tf
-from tensorflow.keras.models import Model, Sequential
+from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input, Dense, Flatten, concatenate
 from tensorflow.keras.layers import Conv1D
 from tensorflow.keras.layers import Dropout
 from tensorflow.keras.layers import AveragePooling1D, MaxPooling1D
 from tensorflow.keras.layers import BatchNormalization
 
-#%%
-class CustomSequential(Sequential):
-    def __init__(self, inputshape, num_classes, name = None):
-        super(CustomSequential, self).__init__(name = name)
+#%%    
+class CustomSimpleCNN(Model):
+    def __init__(self, inputshape, num_classes):
         self.inputshape = inputshape
         self.num_classes = num_classes
         self.no_of_inputs = 1
-    
+        
+        input_1 = Input(shape = self.inputshape)
+        
+        # Convolutional layers       
+        conv_1 = Conv1D(32, 9, activation = 'relu')(input_1)
+        conv_2 = Conv1D(32, 9, activation = 'relu')(conv_1)
+        max_pool_1 = MaxPooling1D()(conv_2)
+        drop_1 = Dropout(0.2)(max_pool_1)
+        
+        # Fully-connected layer
+        flatten_1 = Flatten()(drop_1)
+        dense_1 = Dense(128, activation = 'relu')(flatten_1)
+        drop_2 = Dropout(0.5)(dense_1)
+        dense_2 = Dense(self.num_classes, activation = 'softmax')(drop_2) 
+        
+        super(CustomSimpleCNN, self).__init__(inputs = input_1,
+                                              outputs = dense_2,
+                                              name = 'Custom_CNN_Simple')
+        
     def get_config(self):
         # For serialization with 'custom_objects'
-        config = super(CustomSequential, self).get_config()
+        config = super(CustomSimpleCNN, self).get_config()
         config['inputshape'] = self.inputshape
         config['num_classes'] = self.num_classes
+        config['no_of_inputs'] = self.no_of_inputs
         
         return config
-      
-    
-class CustomSimpleCNN(CustomSequential):
+
+
+
+class CustomCNN(Model):
     def __init__(self, inputshape, num_classes):
-        super(CustomSimpleCNN, self).__init__(inputshape,
-                                               num_classes,
-                                               name = 'Custom_CNN_Simple')
-        self.add(Conv1D(32, 9,
-                        activation = 'relu',
-                        input_shape = self.inputshape))
-        self.add(Conv1D(64, 9, activation='relu'))
-        self.add(MaxPooling1D())
-        self.add(Dropout(0.25))
-        self.add(Flatten())
-        self.add(Dense(128, activation = 'relu'))
-        self.add(Dropout(0.5))
-        self.add(Dense(self.num_classes, activation = 'softmax')) 
+        self.inputshape = inputshape
+        self.num_classes = num_classes
+        self.no_of_inputs = 1
         
-    
-
-class CustomCNN(CustomSequential):
-    def __init__(self, inputshape, num_classes):
-        super(CustomCNN, self).__init__(inputshape,
-                                        num_classes,
-                                        name = 'Custom_CNN')
-        # Convolutional layers - feature extraction
-        self.add(Conv1D(2, 9,
-                        activation = 'relu',
-                        input_shape = self.inputshape))   
-        self.add(AveragePooling1D())
-        self.add(BatchNormalization())
- 
-        self.add(Conv1D(2, 7, activation = 'relu'))
-        self.add(AveragePooling1D())
-        self.add(BatchNormalization())
-
-        self.add(Conv1D(4, 7, activation = 'relu'))
-        self.add(AveragePooling1D())
-        self.add(BatchNormalization())
- 
-        self.add(Conv1D(4, 5, activation = 'relu'))
-        self.add(MaxPooling1D())
-        self.add(BatchNormalization())
-
+        input_1 = Input(shape = self.inputshape)
+         
+        # Convolutional layers
+        conv_1 = Conv1D(2, 9, activation = 'relu')(input_1)
+        average_pool_1 = AveragePooling1D()(conv_1)
+        batch_norm_1 = BatchNormalization()(average_pool_1)
+        
+        conv_2 = Conv1D(2, 7, activation = 'relu')(batch_norm_1)
+        average_pool_2 = AveragePooling1D()(conv_2)
+        batch_norm_2 = BatchNormalization()(average_pool_2)
+        
+        conv_3 = Conv1D(4, 7, activation = 'relu')(batch_norm_2)
+        average_pool_3 = AveragePooling1D()(conv_3)
+        batch_norm_3 = BatchNormalization()(average_pool_3)
+        
+        conv_4 = Conv1D(4, 5, activation = 'relu')(batch_norm_3)
+        average_pool_4 = AveragePooling1D()(conv_4)
+        batch_norm_4 = BatchNormalization()(average_pool_4)
+        
         # Fully-connected layer
-        self.add(Flatten())
-        self.add(Dense(10, activation = 'relu'))
-        self.add(Dense(5, activation = 'relu'))
-
-        # Output layer with softmax activation
-        self.add(Dense(self.num_classes, activation = 'softmax'))
-
+        flatten_1 = Flatten()(batch_norm_4)
+        dense_1 = Dense(10, activation = 'relu')(flatten_1)
+        dense_2 = Dense(5, activation = 'relu')(dense_1) 
+        dense_3 = Dense(self.num_classes, activation = 'softmax')(dense_2)
+        
+        super(CustomCNN, self).__init__(inputs = input_1,
+                                        outputs = dense_3,
+                                        name = 'Custom_CNN')
+        
+    def get_config(self):
+        # For serialization with 'custom_objects'
+        config = super(CustomSimpleCNN, self).get_config()
+        config['inputshape'] = self.inputshape
+        config['num_classes'] = self.num_classes
+        config['no_of_inputs'] = self.no_of_inputs
+        
+        return config
 
 
 class CustomCNNSub(Model):
-    def __init__(self, inputshape, num_classes, name = None):
+    def __init__(self, inputshape, num_classes, name = None):      
         self.inputshape = inputshape
         self.num_classes = num_classes
-        
-        input_layer = Input(shape = self.inputshape)
-                
-        conv_short = Conv1D(4, 5, padding = 'same',
-                            activation = 'relu')(input_layer)
-        conv_medium = Conv1D(4, 10, padding = 'same',
-                             activation = 'relu')(input_layer)
-        conv_long = Conv1D(4, 15, padding = 'same',
-                           activation = 'relu')(input_layer)
 
-        sublayers = [conv_short, conv_medium, conv_long]
+        input_1 = Input(shape = self.inputshape)
+                
+        conv_1_short = Conv1D(4, 5, padding = 'same',
+                            activation = 'relu')(input_1)
+        conv_1_medium = Conv1D(4, 10, padding = 'same',
+                             activation = 'relu')(input_1)
+        conv_1_long = Conv1D(4, 15, padding = 'same',
+                           activation = 'relu')(input_1)
+        sublayers = [conv_1_short, conv_1_medium, conv_1_long]
         merged_sublayers = concatenate(sublayers)
         
-        conv_all = Conv1D(4, 5, activation='relu')(merged_sublayers)
-        pool_all = AveragePooling1D()(conv_all)
-        flatten = Flatten()(pool_all)
-        drop = Dropout(0.2)(flatten)
-        first_dense = Dense(2000, activation = 'relu')(drop)
-        output = Dense(self.num_classes, activation = 'softmax')(first_dense)
+        conv_2 = Conv1D(4, 5, activation='relu')(merged_sublayers)
+        average_pool_1 = AveragePooling1D()(conv_2)
+        
+        flatten_1 = Flatten()(average_pool_1)
+        drop_1 = Dropout(0.2)(flatten_1)
+        dense_1 = Dense(2000, activation = 'relu')(drop_1)
+        
+        dense_2 = Dense(self.num_classes, activation = 'softmax')(dense_1)
 
         super(CustomCNNSub, self).__init__(
-            inputs = input_layer,
-            outputs = output,
+            inputs = input_1,
+            outputs = dense_2,
             name = 'Custom_CNN_Sub')
         
         self.no_of_inputs = len(sublayers)
             
+        
     def get_config(self):
         # For serialization with 'custom_objects'
         config = super(CustomCNNSub, self).get_config()
         config['inputshape'] = self.inputshape
         config['num_classes'] = self.num_classes
-        
+        config['no_of_inputs'] = self.no_of_inputs
+
         return config
 
-
-        
-class CustomMLP(CustomSequential):
+   
+class CustomMLP(Model):
     def __init__(self, inputshape, num_classes):
-        super(CustomMLP, self).__init__(inputshape,
-                                        num_classes,
-                                        name = 'Custom_MLP')
-        self.add(Flatten(input_shape = self.inputshape))
-
-        self.add(Dropout(0.5))
-        self.add(Dense(64, activation = 'relu'))
-        self.add(BatchNormalization())
-       
-        self.add(Dropout(0.5))
-        self.add(Dense(64, activation = 'relu'))
-        self.add(BatchNormalization())
-       
-        self.add(Dense(self.num_classes, activation = 'softmax'))
+        self.inputshape = inputshape
+        self.num_classes = num_classes
+        self.no_of_inputs = 1
         
-        #self.name_layers()
+        input_1 = Input(shape = self.inputshape)
+        
+        flatten_1 = Flatten()(input_1)
+        drop_1 = Dropout(0.5)(flatten_1)
+        dense_1 = Dense(64, activation = 'relu')(drop_1)
+        batch_norm_1 = BatchNormalization()(dense_1)
+        dense_2 = Dense(self.num_classes, activation = 'softmax')(batch_norm_1)
+
+        super(CustomMLP, self).__init__(inputs = input_1,
+                                        outputs = dense_2,
+                                        name = 'Custom_MLP')
+    
+    def get_config(self):
+        # For serialization with 'custom_objects'
+        config = super(CustomCNNSub, self).get_config()
+        config['inputshape'] = self.inputshape
+        config['num_classes'] = self.num_classes
+        config['no_of_inputs'] = self.no_of_inputs
+
+        return config
       
         
 #%% 
 if __name__ == "__main__":
     input_shape = (1121,1)
     num_classes = 4
-    model = CustomMLP(input_shape,num_classes)
+    model = CustomCNNSub(input_shape,num_classes)
     model.summary()
