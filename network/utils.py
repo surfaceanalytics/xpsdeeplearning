@@ -24,10 +24,7 @@ class TrainingGraphs():
         
         root_dir = os.getcwd()
         self.fig_dir = os.path.join(*[root_dir, 'figures', dir_name])
-
-        self.plot_loss()
-        self.plot_accuracy()
-        
+       
     def plot_loss(self):
         fig, ax = plt.subplots()
         ax.plot(self.history['loss'], linewidth = 3)
@@ -68,8 +65,9 @@ class Report:
         self.log_dir = os.path.join(*[root_dir, 'logs', dir_name])
         self.fig_dir = os.path.join(*[root_dir, 'figures', dir_name])
         
-        self.name_data, self.class_dist, self.train_data, self.model_summary =\
-            self.get_hyperparams()
+        self.name_data, self.class_dist, \
+            self.train_data, self.model_summary =\
+                self.get_hyperparams()
         self.results = self.get_results()
         
         self.filename = os.path.join(self.log_dir,'results.docx')
@@ -89,23 +87,25 @@ class Report:
             name_table.cell(j, 0).text = key + ':'
             name_table.cell(j, 1).text = str(value)
             
-          
-        self.document.add_heading('Class distribution:', 1)  
+        try:
+            self.document.add_heading('Distribution:', 1)  
         
-        dist_table = self.document.add_table(
-            rows = len(self.class_dist.keys())+1,
-            cols = len(next(iter(self.class_dist.values())))+1)
+            dist_table = self.document.add_table(
+                rows = len(self.class_dist.keys())+1,
+                cols = len(next(iter(self.class_dist.values())))+1)
         
-        dist_table.alignment = WD_TABLE_ALIGNMENT.CENTER
-        for i, name in enumerate(self.name_data['Labels']):
-            dist_table.cell(0, i+1).text = name
-        for item, param in self.class_dist.items():
-            j = int(list(self.class_dist.keys()).index(item))+1
-            dist_table.cell(j, 0).text = item
+            dist_table.alignment = WD_TABLE_ALIGNMENT.CENTER
+            for i, name in enumerate(self.name_data['Labels']):
+                dist_table.cell(0, i+1).text = name
+            for item, param in self.class_dist.items():
+                j = int(list(self.class_dist.keys()).index(item))+1
+                dist_table.cell(j, 0).text = item
             
-            for key, value in self.class_dist[item].items():
-                k = int(key)+1
-                dist_table.cell(j, k).text = str(value)
+                for key, value in self.class_dist[item].items():
+                    k = int(key)+1
+                    dist_table.cell(j, k).text = str(value)
+        except:
+            pass
         
         self.document.add_page_break()
         self.document.add_heading('Training parameters:', 1)
@@ -130,13 +130,16 @@ class Report:
         self.document.add_heading('Loss & accuracy', 1)
         
         loss_file = os.path.join(self.fig_dir,'loss.png')
-        acc_file = os.path.join(self.fig_dir,'accuracy.png')
         self.document.add_picture(loss_file, width=Cm(12))
         last_paragraph = self.document.paragraphs[-1] 
         last_paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        self.document.add_picture(acc_file, width=Cm(12))  
-        last_paragraph = self.document.paragraphs[-1] 
-        last_paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        try:
+            acc_file = os.path.join(self.fig_dir,'accuracy.png')
+            self.document.add_picture(acc_file, width=Cm(12))  
+            last_paragraph = self.document.paragraphs[-1] 
+            last_paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        except:
+            pass
         
         
         self.document.add_heading('Results', 1)
@@ -146,14 +149,17 @@ class Report:
         result_table.cell(0, 0).text = 'Test loss:'
         result_table.cell(0, 1).text = str(np.round(
             self.results['test_loss'],decimals = 3))
-        result_table.cell(1, 0).text = 'Test accuracy:'
-        result_table.cell(1, 1).text = str(np.round(
-            self.results['test_accuracy'],decimals = 3))
+        try:
+            result_table.cell(1, 0).text = 'Test accuracy:'
+            result_table.cell(1, 1).text = str(np.round(
+                self.results['test_accuracy'],decimals = 3))
         
-        for row in result_table.rows:
-            for cell in row.cells:
-                cell.paragraphs[0].alignment = \
-                    WD_ALIGN_PARAGRAPH.CENTER
+            for row in result_table.rows:
+                for cell in row.cells:
+                    cell.paragraphs[0].alignment = \
+                        WD_ALIGN_PARAGRAPH.CENTER
+        except:
+            pass
                 
         self.document.add_page_break()
         self.document.add_heading('Predictions for 5 random examples', 1)

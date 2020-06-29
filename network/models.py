@@ -13,14 +13,34 @@ from tensorflow.keras.layers import Dropout
 from tensorflow.keras.layers import AveragePooling1D, MaxPooling1D
 from tensorflow.keras.layers import BatchNormalization
 
-#%%    
-class CustomSimpleCNN(Model):
-    def __init__(self, inputshape, num_classes):
+#%%
+class EmptyModel(Model):
+    def __init__(self, inputs, outputs, inputshape,
+                 num_classes, no_of_inputs = 1, name = 'New_Model'):
         self.inputshape = inputshape
         self.num_classes = num_classes
-        self.no_of_inputs = 1
+        self.no_of_inputs = no_of_inputs
+                
         
-        input_1 = Input(shape = self.inputshape)
+        super(EmptyModel, self).__init__(inputs = inputs,
+                                         outputs = outputs,
+                                         name = name)
+        
+    def get_config(self):
+        # For serialization with 'custom_objects'
+        config = super(EmptyModel, self).get_config()
+        config['inputshape'] = self.inputshape
+        config['num_classes'] = self.num_classes
+        config['no_of_inputs'] = self.no_of_inputs
+        
+        return config
+
+    
+class CustomSimpleCNN(EmptyModel):
+    def __init__(self, inputshape, num_classes):
+        no_of_inputs = 1
+
+        input_1 = Input(shape = inputshape)
         
         # Convolutional layers       
         conv_1 = Conv1D(32, 9, activation = 'relu')(input_1)
@@ -32,28 +52,19 @@ class CustomSimpleCNN(Model):
         flatten_1 = Flatten()(drop_1)
         dense_1 = Dense(128, activation = 'relu')(flatten_1)
         drop_2 = Dropout(0.5)(dense_1)
-        dense_2 = Dense(self.num_classes, activation = 'softmax')(drop_2) 
+        dense_2 = Dense(num_classes, activation = 'softmax')(drop_2) 
         
         super(CustomSimpleCNN, self).__init__(inputs = input_1,
                                               outputs = dense_2,
+                                              inputshape = inputshape,
+                                              num_classes = num_classes,
+                                              no_of_inputs = no_of_inputs, 
                                               name = 'Custom_CNN_Simple')
         
-    def get_config(self):
-        # For serialization with 'custom_objects'
-        config = super(CustomSimpleCNN, self).get_config()
-        config['inputshape'] = self.inputshape
-        config['num_classes'] = self.num_classes
-        config['no_of_inputs'] = self.no_of_inputs
-        
-        return config
 
-
-
-class CustomCNN(Model):
+class CustomCNN(EmptyModel):
     def __init__(self, inputshape, num_classes):
-        self.inputshape = inputshape
-        self.num_classes = num_classes
-        self.no_of_inputs = 1
+        no_of_inputs = 1
         
         input_1 = Input(shape = self.inputshape)
          
@@ -82,24 +93,15 @@ class CustomCNN(Model):
         
         super(CustomCNN, self).__init__(inputs = input_1,
                                         outputs = dense_3,
+                                        inputshape = inputshape,
+                                        num_classes = num_classes,
+                                        no_of_inputs = no_of_inputs, 
                                         name = 'Custom_CNN')
-        
-    def get_config(self):
-        # For serialization with 'custom_objects'
-        config = super(CustomSimpleCNN, self).get_config()
-        config['inputshape'] = self.inputshape
-        config['num_classes'] = self.num_classes
-        config['no_of_inputs'] = self.no_of_inputs
-        
-        return config
 
 
-class CustomCNNSub(Model):
+class CustomCNNSub(EmptyModel):
     def __init__(self, inputshape, num_classes, name = None):      
-        self.inputshape = inputshape
-        self.num_classes = num_classes
-
-        input_1 = Input(shape = self.inputshape)
+        input_1 = Input(shape = inputshape)
                 
         conv_1_short = Conv1D(4, 5, padding = 'same',
                             activation = 'relu')(input_1)
@@ -117,52 +119,36 @@ class CustomCNNSub(Model):
         drop_1 = Dropout(0.2)(flatten_1)
         dense_1 = Dense(2000, activation = 'relu')(drop_1)
         
-        dense_2 = Dense(self.num_classes, activation = 'softmax')(dense_1)
-
-        super(CustomCNNSub, self).__init__(
-            inputs = input_1,
-            outputs = dense_2,
-            name = 'Custom_CNN_Sub')
+        dense_2 = Dense(num_classes, activation = 'softmax')(dense_1)
         
-        self.no_of_inputs = len(sublayers)
+        no_of_inputs = len(sublayers)
+
+        super(CustomCNNSub, self).__init__(inputs = input_1,
+                                           outputs = dense_2,
+                                           inputshape = inputshape,
+                                           num_classes = num_classes,
+                                           no_of_inputs = no_of_inputs, 
+                                           name = 'Custom_CNN_Sub')       
             
-        
-    def get_config(self):
-        # For serialization with 'custom_objects'
-        config = super(CustomCNNSub, self).get_config()
-        config['inputshape'] = self.inputshape
-        config['num_classes'] = self.num_classes
-        config['no_of_inputs'] = self.no_of_inputs
-
-        return config
-
    
-class CustomMLP(Model):
+class CustomMLP(EmptyModel):
     def __init__(self, inputshape, num_classes):
-        self.inputshape = inputshape
-        self.num_classes = num_classes
-        self.no_of_inputs = 1
+        no_of_inputs = 1
         
-        input_1 = Input(shape = self.inputshape)
+        input_1 = Input(shape = inputshape)
         
         flatten_1 = Flatten()(input_1)
         drop_1 = Dropout(0.5)(flatten_1)
         dense_1 = Dense(64, activation = 'relu')(drop_1)
         batch_norm_1 = BatchNormalization()(dense_1)
-        dense_2 = Dense(self.num_classes, activation = 'softmax')(batch_norm_1)
-
-        super(CustomMLP, self).__init__(inputs = input_1,
-                                        outputs = dense_2,
-                                        name = 'Custom_MLP')
-    
-    def get_config(self):
-        # For serialization with 'custom_objects'
-        config = super(CustomCNNSub, self).get_config()
-        config['inputshape'] = self.inputshape
-        config['num_classes'] = self.num_classes
-        config['no_of_inputs'] = self.no_of_inputs
-
-        return config
+        dense_2 = Dense(num_classes, activation = 'softmax')(batch_norm_1)
+        
+        super(CustomCNNSub, self).__init__(inputs = input_1,
+                                           outputs = dense_2,
+                                           inputshape = inputshape,
+                                           num_classes = num_classes,
+                                           no_of_inputs = no_of_inputs, 
+                                           name = 'Custom_MLP')     
       
         
 #%% 
@@ -171,3 +157,38 @@ if __name__ == "__main__":
     num_classes = 4
     model = CustomCNNSub(input_shape,num_classes)
     model.summary()
+    
+# =============================================================================
+#     import os
+#     filepath = os.getcwd()
+#     model.save(filepath)
+#     inputs = {'model': model.no_of_inputs}
+#     inputs['model_config'] = model.get_config()['no_of_inputs']
+# 
+#     custom_objects = {'EmptyModel' : EmptyModel}
+#     custom_objects[str(type(model).__name__)] =\
+#         type(model).__name__
+#     print(custom_objects)
+#     
+#     from tensorflow.keras.models import load_model
+# 
+#     loaded_model = load_model(filepath, custom_objects = custom_objects)
+#     loaded_model.summary()
+#     #inputs['loaded_model'] = loaded_model.no_of_inputs
+#     inputs['loaded_model_config'] = loaded_model.get_config()['no_of_inputs']
+#     
+#     
+#     no_of_drop_layers = 2
+#     new_model = EmptyModel(
+#         inputs = loaded_model.input,
+#         outputs = loaded_model.layers[-no_of_drop_layers].output,
+#         inputshape = input_shape,
+#         num_classes = num_classes,
+#         no_of_inputs = loaded_model.get_config()['no_of_inputs'],
+#         name = 'Changed_Model')
+#     new_model.summary()
+#     inputs['new_model'] = new_model.no_of_inputs
+#     inputs['new_model_config'] = new_model.get_config()['no_of_inputs']
+#     
+# 
+# =============================================================================
