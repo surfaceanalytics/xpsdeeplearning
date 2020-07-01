@@ -352,8 +352,8 @@ class Classifier():
         # Add the current model to the custom_objects dict.
         custom_objects = {'EmptyModel' : models.EmptyModel}
         custom_objects[str(type(self.model).__name__)] =\
-            type(self.model).__name__
-            
+            self.model.__class__
+
         # Load from file.    
         self.model = load_model(file_name, custom_objects = custom_objects)
         print("Loaded model from disk.")
@@ -366,7 +366,7 @@ class Classifier():
                 outputs = self.model.layers[-no_of_drop_layers].output,
                 inputshape = self.input_shape,
                 num_classes = self.num_classes,
-                no_of_inputs = self.model.get_config()['no_of_inputs'],
+                no_of_inputs = 3,
                 name = 'Changed_Model')
                 
             self.model = new_model
