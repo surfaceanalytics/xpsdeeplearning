@@ -91,24 +91,49 @@ class Creator():
 
         """
         for i in range(self.no_of_simulations):
-            if single == False:          
-                # Linear parameters
+            if single == False:  
+# =============================================================================
+#                 # Linear parameters
+#                 r = [np.random.uniform(0.1,1.0) for j \
+#                      in range(self.no_of_linear_params)]
+#                 s = sum(r)
+#                 linear_params = [k/s for k in r]
+# 
+#                 while all(p >= 0.1 for p in linear_params) == False:
+#                     # sample again if one of the parameters is smaller than
+#                     # 0.1.
+#                     r = [np.random.uniform(0.1,1.0) for j in \
+#                          range(self.no_of_linear_params)]
+#                     s = sum(r)
+#                     linear_params = [k/s for k in r]
+# 
+#                 self.augmentation_matrix[i,0:self.no_of_linear_params] = \
+#                     linear_params
+# =============================================================================
+                # Randomly choose how many spectra shall be combined
+                no_of_spectra = np.random.randint(1,
+                                                  self.no_of_linear_params+1)
                 r = [np.random.uniform(0.1,1.0) for j \
-                     in range(self.no_of_linear_params)]
-                s = sum(r)
-                linear_params = [ k/s for k in r ]
+                     in range(no_of_spectra)]
+                linear_params = [k/sum(r) for k in r]
+                
+                # Don't allow parameters below 0.1.
+                for p in linear_params:
+                    if p <= 0.1:
+                        linear_params[linear_params.index(p)] = 0.0
+    
+                linear_params = [k/sum(linear_params) for k in linear_params]
 
-                while all(p >= 0.1 for p in linear_params) == False:
-                    # sample again if one of the parameters is smaller than
-                    # 0.1.
-                    r = [np.random.uniform(0.1,1.0) for j in \
-                         range(self.no_of_linear_params)]
-                    s = sum(r)
-                    linear_params = [ k/s for k in r ]
+                # Add zeros if no_of_spectra < no_of_linear_params.
+                for _ in range(self.no_of_linear_params - no_of_spectra):
+                    linear_params.append(0.0)
+                
+                # Randomly shuffle so that zeros are equally distributed.    
+                np.random.shuffle(linear_params)
 
                 self.augmentation_matrix[i,0:self.no_of_linear_params] = \
                     linear_params
-        
+                
             else:
                 q = np.random.choice(list(range(self.no_of_linear_params)))
                 self.augmentation_matrix[i,q] = 1.0
@@ -161,7 +186,7 @@ class Creator():
                                 shift_x = shift_x,
                                 signal_to_noise = signal_to_noise)
             
-            d = self.dict_from_one_simulation(self.sim)
+            d = self._dict_from_one_simulation(self.sim)
             dict_list.append(d)   
             print('Simulation: ' + str(i+1) + '/' + str(self.no_of_simulations))
 # =============================================================================
@@ -190,7 +215,7 @@ class Creator():
         print('Number of created spectra: ' + str(self.no_of_simulations))
             
                      
-    def dict_from_one_simulation(self, sim):
+    def _dict_from_one_simulation(self, sim):
         """
         Creates a dictionary containing all information from one
         simulation event.
@@ -271,14 +296,14 @@ class Creator():
         
 
 
-    def to_file(self, filepath, filetype, how = 'full', single = False):
+    def to_file(self, filepath, filetype, how = 'full'):
         """
         Create file from the dataframe of simulated spectra
 
         Parameters
         ----------
-        name : str
-            Filename of the output file.
+        filepath : str
+            Filepath of the output file.
         filetype : str
             Options: 'excel', 'json', 'txt', 'pickle'
         how : str, optional
@@ -287,13 +312,6 @@ class Creator():
             if how == 'reduced':
                 Only the  columns x, y, and label are saved.
             The default is 'full'.
-        single : bool, optional
-            if single:
-                For each spectrum, a single file is created.
-                The files are labeled by a sequential number.
-            else:
-                All spectra are put into one file.
-
         Returns
         -------
         None.
@@ -311,23 +329,14 @@ class Creator():
         elif how == 'reduced':
                 df = self.reduced_df
                 
-        if single == False:
-            self._save_to_file(df, filepath, filetype)
-        else:
-            filenumber = 0 
-            test_data = []
-            for i in range(self.no_of_simulations):
-                number = name + str(i) 
-                filepath = datafolder + '\\' + number
-                self._save_to_file(df.iloc[i], filepath, filetype)
-                filenumber +=1
+        self._save_to_file(df, filepath, filetype)
 
 
     def _save_to_file(self, df, filename, filetype):
         if filetype == 'excel': 
             file = filename + '.xlsx'
             with pd.ExcelWriter(file) as writer:
-                df.to_excel(writer,sheet_name=filename)
+                df.to_excel(writer, sheet_name = filename)
         
         if filetype == 'json':
             file = filename + ".json"
@@ -340,7 +349,7 @@ class Creator():
                 df.to_pickle(pickle_file)
 
                 
-    def upload_to_DB(self,collection_name, reduced = True):
+    def upload_to_DB(self, collection_name, reduced = True):
         """
         Upload the simulated data to a collection in the SIALab
         MongoDB. 
@@ -413,7 +422,7 @@ class Creator():
             #Upload data to DB 
             db[collection_name].delete_many({})
             for i in range(self.no_of_simulations):
-                row = self.df.iloc[i]
+                row = df.iloc[i]
                 data = row.to_dict()
                 data['X'] = list(np.round(data['x'],decimals = 2))
                 data['y'] = list(data['y'])
@@ -514,17 +523,20 @@ if __name__ == "__main__":
     creator.run(broaden = True, x_shift = True, noise = True)
     creator.plot_random(12)
     datafolder = r'C:\Users\pielsticker\Simulations\\'
-    filepath = datafolder + 'Single_species_100000_reduced_20200518'
+    filepath = datafolder + 'Multiple_species_reduced_20200707'
     #creator.upload_to_DB(filename, reduced = True)
     #collections = check_db(filename)
     #drop_db_collection(filename)
-    creator.to_file(filepath = filepath,
-                    filetype = 'json',
-                    how = 'full',
-                    single = False)
+# =============================================================================
+#     creator.to_file(filepath = filepath,
+#                     filetype = 'json',
+#                     how = 'full',
+#                     single = False)
+# =============================================================================
     t1 = time()
     runtime = calculate_runtime(t0,t1)
     print(f'Runtime: {runtime}.')
     del(t0,t1,runtime,filepath)
     
     #collections = check_db(filename)
+    

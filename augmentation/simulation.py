@@ -90,10 +90,7 @@ class Simulation():
                     
                     # For each species, the label gets a new key:value
                     # pair of the format species: concentration
-                    if concentration == 0:
-                        pass
-                    else:
-                        self.output_spectrum.label[species] = concentration
+                    self.output_spectrum.label[species] = concentration
            
                 # Linear combination
                 self.output_spectrum.lineshape = sum(output_list)
