@@ -153,19 +153,19 @@ class CustomCNNMultiple(EmptyModel):
         drop_1 = Dropout(0.2)(flatten_1)
         dense_1 = Dense(2000, activation = 'relu')(drop_1)
         
-        dense_2 = Dense(num_classes, activation = 'softmax')(dense_1)
+        dense_2 = Dense(num_classes, activation = 'sigmoid')(dense_1)
         
-        norm_1 = LayerNormalization(trainable = False,
-                                    name = 'output_norm')(dense_2)        
-    
+        #output = Lambda(lambda x: x/tf.reshape(K.sum(x, axis=-1),(-1,1)),
+        #                name = 'normalization')(dense_2)
+
         no_of_inputs = len(sublayers)
 
         super(CustomCNNMultiple, self).__init__(inputs = input_1,
-                                           outputs = norm_1,
-                                           inputshape = inputshape,
-                                           num_classes = num_classes,
-                                           no_of_inputs = no_of_inputs, 
-                                           name = 'Custom_CNN_multiple')       
+                                                outputs = dense_2,
+                                                inputshape = inputshape,
+                                                num_classes = num_classes,
+                                                no_of_inputs = no_of_inputs,
+                                                name = 'Custom_CNN_multiple')       
             
         
     
@@ -195,38 +195,3 @@ if __name__ == "__main__":
     num_classes = 4
     model = CustomCNNMultiple(input_shape,num_classes)
     model.summary()
-    
-# =============================================================================
-#     import os
-#     filepath = os.getcwd()
-#     model.save(filepath)
-#     inputs = {'model': model.no_of_inputs}
-#     inputs['model_config'] = model.get_config()['no_of_inputs']
-# 
-#     custom_objects = {'EmptyModel' : EmptyModel}
-#     custom_objects[str(type(model).__name__)] =\
-#         type(model).__name__
-#     print(custom_objects)
-#     
-#     from tensorflow.keras.models import load_model
-# 
-#     loaded_model = load_model(filepath, custom_objects = custom_objects)
-#     loaded_model.summary()
-#     #inputs['loaded_model'] = loaded_model.no_of_inputs
-#     inputs['loaded_model_config'] = loaded_model.get_config()['no_of_inputs']
-#     
-#     
-#     no_of_drop_layers = 2
-#     new_model = EmptyModel(
-#         inputs = loaded_model.input,
-#         outputs = loaded_model.layers[-no_of_drop_layers].output,
-#         inputshape = input_shape,
-#         num_classes = num_classes,
-#         no_of_inputs = loaded_model.get_config()['no_of_inputs'],
-#         name = 'Changed_Model')
-#     new_model.summary()
-#     inputs['new_model'] = new_model.no_of_inputs
-#     inputs['new_model_config'] = new_model.get_config()['no_of_inputs']
-#     
-# 
-# =============================================================================

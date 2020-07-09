@@ -2,7 +2,7 @@
 """
 Created on Mon Jun 15 16:55:44 2020
 
-@author: pielsticker
+@author: pielstickerf
 """
 
 import os
@@ -217,7 +217,7 @@ class Classifier():
         # In case of submodel inputs, allow multiple inputs.
         X_train_data = []
         X_val_data = []
-        for i in range(self.model.get_config()['no_of_inputs']):
+        for i in range(self.model.no_of_inputs):
             X_train_data.append(self.X_train)
             X_val_data.append(self.X_val) 
 
@@ -248,7 +248,7 @@ class Classifier():
         # In case of submodel inputs, allow multiple inputs.
         X_test_data = []
         
-        for i in range(self.model.get_config()['no_of_inputs']):
+        for i in range(self.model.no_of_inputs):
             X_test_data.append(self.X_test)
 
         self.score = self.model.evaluate(X_test_data,
@@ -269,7 +269,7 @@ class Classifier():
         # In case of submodel inputs, allow multiple inputs.
         X_train_data = []
         X_test_data = []
-        for i in range(self.model.get_config()['no_of_inputs']):
+        for i in range(self.model.no_of_inputs):
             X_train_data.append(self.X_train)
         
             X_test_data.append(self.X_test) 
@@ -350,12 +350,31 @@ class Classifier():
             file_name = self.model_dir
         
         # Add the current model to the custom_objects dict.
-        custom_objects = {'EmptyModel' : models.EmptyModel}
+        #custom_objects = {'EmptyModel' : models.EmptyModel}
+        #custom_objects[str(type(self.model).__name__)] =\
+        #    self.model.__class__
+        
+        import inspect
+        custom_objects = {}
         custom_objects[str(type(self.model).__name__)] =\
             self.model.__class__
+        for name, obj in inspect.getmembers(models):
+            if inspect.isclass(obj):
+                if obj.__module__.startswith('xpsdeeplearning.network.models'):
+                    custom_objects[obj.__module__ + '.' + obj.__name__] = obj
 
         # Load from file.    
-        self.model = load_model(file_name, custom_objects = custom_objects)
+        loaded_model = load_model(file_name, custom_objects = custom_objects)
+        
+        self.model = models.EmptyModel(
+            inputs = loaded_model.input,
+            outputs = loaded_model.layers[-1].output,
+            inputshape = self.input_shape,
+            num_classes = self.num_classes,
+            no_of_inputs = loaded_model._serialized_attributes['metadata']['config']['no_of_inputs'],
+            name = 'Loaded_Model')
+
+
         print("Loaded model from disk.")
       
         if drop_last_layers != None:
@@ -366,7 +385,7 @@ class Classifier():
                 outputs = self.model.layers[-no_of_drop_layers].output,
                 inputshape = self.input_shape,
                 num_classes = self.num_classes,
-                no_of_inputs = 3,
+                no_of_inputs = self.model.no_of_inputs,
                 name = 'Changed_Model')
                 
             self.model = new_model
@@ -755,35 +774,68 @@ class ClassifierMultiple(Classifier):
                                    transform = axs[row, col].transAxes,
                                    fontsize = 12) 
     
+    
     def _get_total_history(self):
         csv_file = os.path.join(self.log_dir,'log.csv')
         history = {'loss' : [],
                    'val_loss': []}
-        with open(csv_file, newline='') as csvfile:
-            reader = csv.DictReader(csvfile)
-            for row in reader:
-                d = dict(row)
-                history['loss'].append(float(d['loss']))
-                history['val_loss'].append(float(d['val_loss']))    
-# =============================================================================
-#         try:
-#             with open(csv_file, newline='') as csvfile:
-#                 reader = csv.DictReader(csvfile)
-#                 for row in reader:
-#                     d = dict(row)
-#                     history['loss'].append(float(d['loss']))
-#                     history['val_loss'].append(float(d['val_loss']))                
-#         except:
-#             pass
-# =============================================================================
+        try:
+            with open(csv_file, newline='') as csvfile:
+                reader = csv.DictReader(csvfile)
+                for row in reader:
+                    d = dict(row)
+                    history['loss'].append(float(d['loss']))
+                    history['val_loss'].append(float(d['val_loss']))
+        except:
+            pass
         
         return history
+        
                 
-    def show_worst_classification(self):
-        """
-        either delete or change to sth like show_worst_prediction
-        (highest loss maybe)
-        """
+    def show_worst_predictions(self, no_of_spectra):
+        loss = self.model.loss
+        losses = [loss(self.y_test[i], self.pred_test[i]).numpy() \
+                  for i in range(self.y_test.shape[0])]
+        
+        worst_indices = [j[1] for j in 
+                         sorted([(x,i) for (i,x) in enumerate(losses)],
+                                reverse=True )[:no_of_spectra]]
+
+        no_of_rows = int(no_of_spectra/3)
+        no_of_cols = 3
+ 
+        if (no_of_spectra % no_of_cols) != 0:
+            no_of_rows += 1
+        fig, axs = plt.subplots(nrows = no_of_rows, ncols = no_of_cols)
+        plt.subplots_adjust(left = 0.125, bottom = 0.5,
+                            right=2.7, top = no_of_rows,
+                            wspace = 0.2, hspace = 0.2)
+        for i in range(no_of_spectra):
+            index = worst_indices[i]
+            x = np.arange(694, 750.05, 0.05)
+            y = self.X_test[index]
+            label = str(np.around(self.y_test[index], decimals = 3))
+            real = ('Real: ' +  label + '\n')
+         
+            tmp_array = np.around(self.pred_test[index], decimals = 3) 
+            pred = ('Prediction: ' + str(list(tmp_array)) + '\n')
+         
+            row, col = int(i/no_of_cols), i % no_of_cols
+            axs[row, col].plot(np.flip(x),y)
+            axs[row, col].invert_xaxis()
+            axs[row, col].set_xlim(750.05,694)
+            axs[row, col].set_xlabel('Binding energy (eV)')
+            axs[row, col].set_ylabel('Intensity (arb. units)')                          
+            axs[row, col].text(0.025, 0.3, real,
+                               horizontalalignment='left',
+                               verticalalignment='top',
+                               transform = axs[row, col].transAxes,
+                               fontsize = 12) 
+            axs[row, col].text(0.025, 0.2, pred,
+                               horizontalalignment='left',
+                               verticalalignment='top',
+                               transform = axs[row, col].transAxes,
+                               fontsize = 12)
 
 
     def shelve_results(self, full = False):
