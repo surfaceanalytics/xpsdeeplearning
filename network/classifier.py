@@ -458,14 +458,14 @@ class ClassifierSingle(Classifier):
         
     def plot_random(self, no_of_spectra, dataset = 'train',
                     with_prediction = False): 
-        no_of_rows = int(no_of_spectra/3)
-        no_of_cols = 3
+        no_of_cols = 5
+        no_of_rows = int(no_of_spectra/no_of_cols)
         if (no_of_spectra % no_of_cols) != 0:
             no_of_rows += 1
             
         fig, axs = plt.subplots(nrows = no_of_rows, ncols = no_of_cols)
         plt.subplots_adjust(left = 0.125, bottom = 0.5,
-                            right=2.7, top = no_of_rows,
+                            right=4.8, top = no_of_rows,
                             wspace = 0.2, hspace = 0.2)
     
         for i in range(no_of_spectra):
@@ -575,16 +575,16 @@ class ClassifierSingle(Classifier):
               str(no_of_wrong_pred))
         
         if no_of_wrong_pred > 0:
-            no_of_rows = int(no_of_wrong_pred/3)
-            no_of_cols = 3
-            if (no_of_wrong_pred % no_of_cols) != 0:
+            no_of_cols = 5
+            no_of_rows = int(no_of_spectra/no_of_cols)
+            if (no_of_spectra % no_of_cols) != 0:
                 no_of_rows += 1
 
             fig, axs = plt.subplots(nrows = no_of_rows, ncols = no_of_cols)
             plt.subplots_adjust(left = 0.125, bottom = 0.5,
-                                right=2.7, top = no_of_rows,
+                                right=4.8, top = no_of_rows,
                                 wspace = 0.2, hspace = 0.2)
-        
+
             for n in range(no_of_wrong_pred):
                 arg = wrong_pred_args[n]
                 intensity = self.X_test[arg]
@@ -709,14 +709,14 @@ class ClassifierMultiple(Classifier):
         
     def plot_random(self, no_of_spectra, dataset = 'train',
                     with_prediction = False): 
-        no_of_rows = int(no_of_spectra/3)
-        no_of_cols = 3
+        no_of_cols = 5
+        no_of_rows = int(no_of_spectra/no_of_cols)
         if (no_of_spectra % no_of_cols) != 0:
             no_of_rows += 1
             
         fig, axs = plt.subplots(nrows = no_of_rows, ncols = no_of_cols)
         plt.subplots_adjust(left = 0.125, bottom = 0.5,
-                            right=2.7, top = no_of_rows,
+                            right=4.8, top = no_of_rows,
                             wspace = 0.2, hspace = 0.2)
     
         for i in range(no_of_spectra):
@@ -801,15 +801,16 @@ class ClassifierMultiple(Classifier):
                          sorted([(x,i) for (i,x) in enumerate(losses)],
                                 reverse=True )[:no_of_spectra]]
 
-        no_of_rows = int(no_of_spectra/3)
-        no_of_cols = 3
- 
+        no_of_cols = 5
+        no_of_rows = int(no_of_spectra/no_of_cols)
         if (no_of_spectra % no_of_cols) != 0:
             no_of_rows += 1
+
         fig, axs = plt.subplots(nrows = no_of_rows, ncols = no_of_cols)
         plt.subplots_adjust(left = 0.125, bottom = 0.5,
-                            right=2.7, top = no_of_rows,
-                            wspace = 0.2, hspace = 0.2)
+                            right=4.8, top = no_of_rows,
+                            wspace = 0.2, hspace = 0.2)                    
+    
         for i in range(no_of_spectra):
             index = worst_indices[i]
             x = np.arange(694, 750.05, 0.05)
