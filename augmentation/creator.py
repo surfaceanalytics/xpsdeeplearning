@@ -25,7 +25,7 @@ class Creator():
     Class for simulating large amounts of XPS spectra based on a 
     number of input_spectra
     """
-    def __init__(self, no_of_simulations, input_labels, single = False):
+    def __init__(self, no_of_simulations, input_filenames, single = False):
         """
         Loading the input spectra and creating the empty augmentation
         matrix based on the number of input spectra.
@@ -34,8 +34,8 @@ class Creator():
         ----------
         no_of_simulations : int
             The number of spectra that will be simulated.
-        input_labels : list
-            List of strings that defines the seed spectra for the 
+        input_filenames : list
+            List of strings that defines the seed files for the 
             simulations.
         single : bool, optional
             If single, then only one of the input spectra will be used
@@ -52,16 +52,16 @@ class Creator():
         
         input_datapath = os.path.dirname(
             os.path.abspath(__file__)).partition(
-                        'augmentation')[0] + '\\data' + '\\measured'
+                        'augmentation')[0] + '\\data\\references'
 
         self.input_spectra = []
-        for label in input_labels:
+        for label in input_filenames:
             filename = input_datapath + '\\' + label + '.txt'
             self.input_spectra += [MeasuredSpectrum(filename)]
                 
         # No. of parameter = no. of linear parameter + 3
         # (one parameter each for resolution, shift_x, signal_to noise
-        self.no_of_linear_params = len(input_labels) 
+        self.no_of_linear_params = len(input_filenames) 
         no_of_params = self.no_of_linear_params + 3
         
         self.augmentation_matrix = np.zeros((self.no_of_simulations,
@@ -339,12 +339,12 @@ class Creator():
                 df.to_excel(writer, sheet_name = filename)
         
         if filetype == 'json':
-            file = filename + ".json"
+            file = filename + '.json'
             with open(file, 'w') as json_file:
                 df.to_json(json_file, orient = 'records')
             
         if filetype == 'pickle':
-            file = filename + ".pkl"
+            file = filename + '.pkl'
             with open(file, 'wb') as pickle_file:
                 df.to_pickle(pickle_file)
 
@@ -518,8 +518,8 @@ def drop_db_collection(collection_name):
 if __name__ == "__main__":
     t0 = time()
     no_of_simulations = 20
-    input_labels =  ['Fe_metal','FeO','Fe3O4','Fe2O3']
-    creator = Creator(no_of_simulations, input_labels, single = False)
+    input_filenames =  ['Fe_metal_Mark','FeO_Mark','Fe3O4_Mark','Fe2O3_Mark']
+    creator = Creator(no_of_simulations, input_filenames, single = False)
     creator.run(broaden = True, x_shift = True, noise = True)
     creator.plot_random(12)
     datafolder = r'C:\Users\pielsticker\Simulations\\'
@@ -530,8 +530,7 @@ if __name__ == "__main__":
 # =============================================================================
 #     creator.to_file(filepath = filepath,
 #                     filetype = 'json',
-#                     how = 'full',
-#                     single = False)
+#                     how = 'full')
 # =============================================================================
     t1 = time()
     runtime = calculate_runtime(t0,t1)

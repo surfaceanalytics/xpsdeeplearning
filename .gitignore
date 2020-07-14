@@ -110,9 +110,8 @@ venv.bak/
 # mypy
 .mypy_cache/
 
-# credentials
 augmentation/credentials.py
-network/Model.png
 logs
 figures
 saved_models
+data/measured

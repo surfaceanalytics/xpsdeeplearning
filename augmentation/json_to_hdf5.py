@@ -121,10 +121,9 @@ def to_hdf5(output_file, simulation_name, no_of_files_per_load):
 
 #%%               
 if __name__ == "__main__":
-    #input_datafolder = r'C:\Users\pielsticker\Simulations\20200622_iron_linear_combination'
     output_datafolder = r'C:\Users\pielsticker\Simulations\\'
-    output_file = output_datafolder + '20200708_iron_variable_linear_combination_500000_full.h5'
-    simulation_name = '20200708_iron_variable_linear_combination'
+    output_file = output_datafolder + '20200519_iron_single.h5'
+    simulation_name = '20200519_iron_single'
     no_of_files_per_load = 50
 
     runtimes = {}

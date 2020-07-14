@@ -11,9 +11,9 @@ from creator import Creator, calculate_runtime, check_db
 
 no_of_simulations = 500
 no_of_files = 1000
-input_labels =  ['Fe_metal','FeO','Fe3O4','Fe2O3']
+input_filenames =  ['Fe_metal_Mark','FeO_Mark','Fe3O4_Mark','Fe2O3_Mark']
 timestamp = datetime.datetime.now().strftime("%Y%m%d")
-run_name = 'iron_variable_linear_combination'
+run_name = 'iron_Mark_variable_linear_combination'
 time_and_run_name = timestamp + '_' + run_name
 
 datafolder = r'C:\Users\pielsticker\Simulations'
@@ -24,7 +24,7 @@ filename_basic = os.path.join(*[filepath,time_and_run_name])
 #%% Create multiple sets of similar spectra with the same settings
 t0 = time()
 for i in range(no_of_files):
-    creator = Creator(no_of_simulations, input_labels, single = False)
+    creator = Creator(no_of_simulations, input_filenames, single = False)
     creator.run(broaden = True, x_shift = True, noise = True)
     creator.plot_random(1)
     filename = filename_basic + str(i)   
@@ -33,8 +33,7 @@ for i in range(no_of_files):
     #drop_db_collection(filename)
     creator.to_file(filepath = filename,
                     filetype = 'json',
-                    how = 'full',
-                    single = False)
+                    how = 'full')
     print('Finished set ' + str(i+1) + ' of ' + str(no_of_files))
 
 t1 = time()
