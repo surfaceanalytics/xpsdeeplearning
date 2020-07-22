@@ -147,6 +147,10 @@ class Creator():
             # shift_x
             test = np.arange(-5,5,0.05)
             r = np.round(np.random.randint(0,len(test)), decimals = 2)
+            
+            if -0.05 < test[r] < 0.05:
+                test[r] = 0
+            
             self.augmentation_matrix[i,-2] = test[r]
             
             # Signal-to-noise
@@ -181,7 +185,6 @@ class Creator():
             fwhm = self.augmentation_matrix[i][-3] 
             shift_x = self.augmentation_matrix[i][-2] 
             signal_to_noise = self.augmentation_matrix[i][-1] 
-            
             self.sim.change_spectrum(fwhm = fwhm,
                                 shift_x = shift_x,
                                 signal_to_noise = signal_to_noise)

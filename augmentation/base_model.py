@@ -160,14 +160,15 @@ class SimulatedSpectrum(Spectrum):
             begin_value = self.lineshape[0]
             end_value = self.lineshape[-1]
 
-            if shift_x > 0:
+            if shift_x < 0:
                 self.lineshape = np.concatenate(
-                    (np.full(shift, begin_value),
-                     self.lineshape[:-shift]))
-            elif shift_x < 0:
+                    (np.full(-shift, begin_value),
+                     self.lineshape[:shift]))
+                
+            elif shift_x > 0:
                 self.lineshape = np.concatenate(
-                    (self.lineshape[-shift:],
-                     np.full(-shift, end_value)))      
+                    (self.lineshape[shift:],
+                     np.full(shift, end_value)))      
             else:
                 pass
         
@@ -299,10 +300,11 @@ if __name__ == '__main__':
     label = 'Fe2O3'
     datapath = os.path.dirname(
                 os.path.abspath(__file__)).partition(
-                        'augmentation')[0] + '\\data' + '\\measured'
+                        'augmentation')[0] + 'data\\references'
                     
     filename = datapath + '\\' + label + '.txt'
         
     spec = MeasuredSpectrum(filename)
     
     fig = Figure(spec.x, spec.lineshape, title = label)
+    begin_value = spec.lineshape[0]

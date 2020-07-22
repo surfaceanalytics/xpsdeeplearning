@@ -8,7 +8,7 @@ import os
 import numpy as np
 import json
 import h5py
-from time import time
+from time import time, sleep
 
 from creator import calculate_runtime
 
@@ -122,8 +122,8 @@ def to_hdf5(output_file, simulation_name, no_of_files_per_load):
 #%%               
 if __name__ == "__main__":
     output_datafolder = r'C:\Users\pielsticker\Simulations\\'
-    output_file = output_datafolder + '20200519_iron_single.h5'
-    simulation_name = '20200519_iron_single'
+    output_file = output_datafolder + '20200714_iron_Mark_variable_linear_combination.h5'
+    simulation_name = '20200714_iron_Mark_variable_linear_combination'
     no_of_files_per_load = 50
 
     runtimes = {}

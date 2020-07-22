@@ -70,8 +70,9 @@ class MeasuredSpectrum(Spectrum):
         return label, data
 
 #%%
-datafolder = r'C:\Users\pielsticker\Lukas\MPI-CEC\Projects\xpsdeeplearning\data\measured'
-filenames = ['Fe_metal_Mark.txt', 'FeO_Mark.txt', 'Fe3O4_Mark.txt', 'Fe2O3_Mark.txt']
+datafolder = r'C:\Users\pielsticker\Lukas\MPI-CEC\Projects\xpsdeeplearning\data\references'
+filenames = ['Fe_metal_Mark_shifted.txt','FeO_Mark_shifted.txt',
+             'Fe3O4_Mark_shifted.txt','Fe2O3_Mark_shifted.txt']
 
 legend_list = []
 for filename in filenames:
@@ -114,16 +115,25 @@ for filename in filenames:
 plt.legend(legend_list)
                 
 #%% 
-datafolder = r'C:\Users\pielsticker\Lukas\MPI-CEC\Projects\xpsdeeplearning\data\measured'
-filenames = ['Fe_metal_Mark_new.txt', 'FeO_Mark_new.txt', 'Fe3O4_Mark_new.txt', 'Fe2O3_Mark_new.txt']
-
+datafolder = r'C:\Users\pielsticker\Lukas\MPI-CEC\Projects\xpsdeeplearning\data\references'
+filenames = ['Fe_metal_Mark_shifted_new.txt', 'FeO_Mark_shifted_new.txt',
+             'Fe3O4_Mark_shifted_new.txt', 'Fe2O3_Mark_shifted_new.txt']
 legend_list = []
+spectra = []
 for filename in filenames:
     filepath = os.path.join(datafolder, filename)
     spectrum = MeasuredSpectrum(filepath)
-    plt.plot(np.flip(spectrum.x),spectrum.lineshape)
+    plt.plot(spectrum.x,spectrum.lineshape)
     label = spectrum.label
     legend_list.append(label)
+    spectra.append(spectrum)
 plt.legend(legend_list) 
 
+#%% 
+energies = []
+for i in range(4):
+    spectrum = spectra[i]
+    arg_max = np.argmax(spectrum.lineshape, axis = 0)
+    energies.append(spectrum.x[arg_max])
+    print(arg_max, spectrum.label, energies[i])
 

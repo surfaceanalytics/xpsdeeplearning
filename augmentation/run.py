@@ -11,7 +11,8 @@ from creator import Creator, calculate_runtime, check_db
 
 no_of_simulations = 500
 no_of_files = 1000
-input_filenames =  ['Fe_metal_Mark','FeO_Mark','Fe3O4_Mark','Fe2O3_Mark']
+input_filenames =  ['Fe_metal_Mark_shifted','FeO_Mark_shifted',
+                    'Fe3O4_Mark_shifted','Fe2O3_Mark_shifted']
 timestamp = datetime.datetime.now().strftime("%Y%m%d")
 run_name = 'iron_Mark_variable_linear_combination'
 time_and_run_name = timestamp + '_' + run_name

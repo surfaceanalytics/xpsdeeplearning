@@ -107,7 +107,7 @@ class Simulation():
         ----------
         spectrum : Spectrum, optional
             A Spectrum object can be supplied if one wants to change a
-            single inout spectrum and not change a spectrum that was 
+            single input spectrum and not change a spectrum that was 
             already created using a linear combination. 
             If spectrum == None,then the current output spectrum is
             changed. The default is None.
@@ -133,10 +133,10 @@ class Simulation():
             # The output spectrum needs to have its step widths 
             # redefined.
             self.output_spectrum.lineshape = spectrum.lineshape
-            start = self.spectrum.start 
-            stop = self.spectrum.stop    
-            step = self.spectrum.step 
-            self.label = self.spectrum.label
+            start = spectrum.start 
+            stop = spectrum.stop    
+            step = spectrum.step 
+            self.label = spectrum.label
             self.output_spectrum.x = np.flip(np.arange(
                                                  start,
                                                  stop+step,
@@ -195,7 +195,7 @@ class Simulation():
 if __name__ == '__main__':
     datapath = os.path.dirname(
                 os.path.abspath(__file__)).partition(
-                        'augmentation')[0] + '\\data' + '\\measured'
+                        'augmentation')[0] + 'data\\references'
        
     labels = ['Fe_metal','FeO','Fe3O4','Fe2O3']
     
@@ -209,7 +209,7 @@ if __name__ == '__main__':
     sim = Simulation(input_spectra)
     sim.combine_linear(scaling_params = [0.4,0.4,0.1,0.1])                
 
-    sim.change_spectrum(shift_x = 2,
+    sim.change_spectrum(shift_x = 0,
                         signal_to_noise = 150,
                         fwhm = 1050)
     
