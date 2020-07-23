@@ -81,7 +81,8 @@ class Classifier():
                 
     def load_data_preprocess(self, input_filepath, no_of_examples,
                              train_test_split, train_val_split,
-                             augmentation_values = True):
+                             augmentation_values = False,
+                             names = False):
         self.input_filepath = input_filepath
         self.train_test_split = train_test_split
         self.train_val_split = train_val_split
@@ -92,7 +93,6 @@ class Classifier():
             r = np.random.randint(0, dataset_size-self.no_of_examples)
             X = hf['X'][r:r+self.no_of_examples, :, :]
             y = hf['y'][r:r+self.no_of_examples, :]
-            
         
         if augmentation_values:
             with h5py.File(input_filepath, 'r') as hf:
@@ -114,7 +114,7 @@ class Classifier():
                     self.aug_values_train, self.aug_values_val, \
                         self.aug_values_test = \
                             self._split_test_val_train(
-                                self.X, self.y, self.aug_values)
+                                self.X, self.y, aug_values = self.aug_values)
                 
             self.input_shape = (self.X_train.shape[1], 1)
             
@@ -123,6 +123,28 @@ class Classifier():
                    self.aug_values_train, self.aug_values_val, \
                    self.aug_values_test
         
+        elif names:
+            with h5py.File(input_filepath, 'r') as hf:
+                names_load_list = [name[0].decode("utf-8") for name
+                                   in hf['names'][r:r+self.no_of_examples, :]]
+                names = np.reshape(np.array(names_load_list),(-1,1))
+                
+            self.X, self.y, self.names = X, y, names
+
+            # Split into train, val and test sets
+            self.X_train, self.X_val, self.X_test, \
+                self.y_train, self.y_val, self.y_test, \
+                  self.names_train, self.names_val, \
+                      self.names_test = \
+                          self._split_test_val_train(
+                              self.X, self.y, names = self.names)
+
+            self.input_shape = (self.X_train.shape[1], 1)
+                                    
+            return self.X_train, self.X_val, self.X_test, \
+                   self.y_train, self.y_val, self.y_test, \
+                   self.names_train, self.names_val, self.names_test
+            
         else:
             # Shuffle X and y together
             self.X, self.y = shuffle(X, y)
@@ -134,10 +156,10 @@ class Classifier():
             self.input_shape = (self.X_train.shape[1], 1)
             
             return self.X_train, self.X_val, self.X_test, \
-                self.y_train, self.y_val, self.y_test
+                   self.y_train, self.y_val, self.y_test
     
     
-    def _split_test_val_train(self, X, y, aug_values = None):         
+    def _split_test_val_train(self, X, y, **kwargs):         
         # First split into train+val and test sets
         no_of_train_val = int((1-self.train_test_split) *\
                               X.shape[0])
@@ -166,7 +188,8 @@ class Classifier():
               + ' + ' + str(y_train.shape[1])
               + ' labels (y)')
         
-        if aug_values != None:
+        if 'aug_values' in kwargs.keys():
+            aug_values = kwargs['aug_values']
             shift_x = aug_values['shift_x']
             noise = aug_values['noise']
             fwhm = aug_values['fwhm']
@@ -198,7 +221,17 @@ class Classifier():
             return X_train, X_val, X_test, y_train, y_val, y_test,\
                    aug_values_train, aug_values_val, \
                    aug_values_test
-                    
+        
+        elif 'names' in kwargs.keys():
+            names = kwargs['names']
+            names_train_val = names[:no_of_train_val,:]
+            names_test = names[no_of_train_val:,:]
+            
+            names_train = names_train_val[:no_of_train,:]
+            names_val = names_train_val[no_of_train:,:]
+            
+            return X_train, X_val, X_test, y_train, y_val, y_test,\
+                   names_train, names_val, names_test
         else:
             return X_train, X_val, X_test, y_train, y_val, y_test
     
@@ -492,18 +525,33 @@ class Classifier():
             shift_text = 'Shift: ' + \
                     '{:.2f}'.format(float(shift_x)) + ', '
         else:
-            shift_text = 'Shift: none' + ','
+            shift_text = 'Shift: none' + ', '
                 
         if (noise != None and noise != 0):
             noise_text = 'S/N: ' + str(int(noise))   
         else:
             noise_text = 'S/N: not changed'
                 
-        aug_text = fwhm_text + shift_text + noise_text
+        aug_text = fwhm_text + shift_text + noise_text + '\n'
     
         return aug_text
     
+    def _write_measured_text(self, dataset, index):
+        if dataset == 'train':
+            name = self.names_train[index][0]
+            
+        elif dataset == 'val':
+            name = self.names_val[index][0]
+            
+        elif dataset == 'test':
+            name = self.names_test[index][0]
+        
+        number = 0
+
+        text = 'Spectrum no. ' + str(index) + '\n' +\
+                str(name) + '\n'
     
+        return text    
         
         
 class ClassifierSingle(Classifier):
@@ -842,7 +890,9 @@ class ClassifierMultiple(Classifier):
                 y = self.X_train[r]
                 label = str(np.around(self.y_train[r], decimals = 3))
                 real = ('Real: ' + label + '\n')
-                aug = self._write_aug_text(dataset = dataset, index = r)
+                full_text = real
+                full_text_pred = real
+                
                 if with_prediction == True:
                     # Round prediction and sum to 1
                     tmp_array = np.around(self.pred_train[r], decimals = 4)
@@ -851,20 +901,47 @@ class ClassifierMultiple(Classifier):
                     tmp_array = np.around(tmp_array, decimals = 3)    
                     pred = ('Prediction: ' +\
                             str(list(tmp_array)) + '\n')
-
+                    full_text_pred += pred
+                            
+                try:
+                    aug = self._write_aug_text(dataset = dataset, index = r)
+                    full_text += aug
+                    full_text_pred += aug
+                except AttributeError:
+                    pass
+                try:
+                    name = self._write_measured_text(dataset = dataset, index = r)
+                    full_text += name
+                    full_text_pred += name
+                except AttributeError:
+                    pass
+            
             elif dataset == 'val':
                 r = np.random.randint(0, self.X_val.shape[0])
                 y = self.X_val[r]
                 label  = self.y_val[r]
                 real = ('Real: ' + label + '\n')
-                aug = self._write_aug_text(dataset = dataset, index = r)
+                full_text = real
+                
+                try:
+                    aug = self._write_aug_text(dataset = dataset, index = r)
+                    full_text += aug
+                except AttributeError:
+                    pass
+                try:
+                    name = self._write_measured_text(dataset = dataset, index = r)
+                    full_text += name
+                except AttributeError:
+                    pass
                 
             elif dataset == 'test':
                 r = np.random.randint(0, self.X_test.shape[0])
                 y = self.X_test[r]
                 label = str(np.around(self.y_test[r], decimals = 3))
                 real = ('Real: ' +  label + '\n')
-                aug = self._write_aug_text(dataset = dataset, index = r)
+                full_text = real
+                full_text_pred = real
+                
                 if with_prediction == True:
                     # Round prediction and sum to 1
                     tmp_array = np.around(self.pred_test[r], decimals = 4)
@@ -873,22 +950,36 @@ class ClassifierMultiple(Classifier):
                     tmp_array = np.around(tmp_array, decimals = 3)    
                     pred = ('Prediction: ' +\
                             str(list(tmp_array)) + '\n')
-                                
+                    full_text_pred += pred
+
+                try:
+                    aug = self._write_aug_text(dataset = dataset, index = r)
+                    full_text += aug
+                    full_text_pred += aug
+                except AttributeError:
+                    pass
+                try:
+                    name = self._write_measured_text(dataset = dataset, index = r)
+                    full_text += name
+                    full_text_pred += name
+                except AttributeError:
+                    pass
+                
             row, col = int(i/no_of_cols), i % no_of_cols
             axs[row, col].plot(np.flip(x),y)
             axs[row, col].invert_xaxis()
             axs[row, col].set_xlim(750.05,694)
             axs[row, col].set_xlabel('Binding energy (eV)')
             axs[row, col].set_ylabel('Intensity (arb. units)')         
-            
+
             if with_prediction == False:
-                axs[row, col].text(0.025, 0.3, real + aug,
+                axs[row, col].text(0.025, 0.3, full_text,
                                    horizontalalignment='left',
                                    verticalalignment='top',
                                    transform = axs[row, col].transAxes,
                                    fontsize = 12) 
             else:
-                axs[row, col].text(0.025, 0.35, real + pred + aug,
+                axs[row, col].text(0.025, 0.35, full_text_pred,
                                    horizontalalignment='left',
                                    verticalalignment='top',
                                    transform = axs[row, col].transAxes,
@@ -937,18 +1028,30 @@ class ClassifierMultiple(Classifier):
             y = self.X_test[index]
             label = str(np.around(self.y_test[index], decimals = 3))
             real = ('Real: ' +  label + '\n')
-            aug = self._write_aug_text(dataset = 'test', index = index)
-         
+            full_text = real
+            
             tmp_array = np.around(self.pred_test[index], decimals = 3) 
             pred = ('Prediction: ' + str(list(tmp_array)) + '\n')
-         
+            full_text += pred
+            
+            try:
+                aug = self._write_aug_text(dataset = 'test', index = index)
+                full_text += aug
+            except AttributeError:
+                pass
+            try:
+                name = self._write_measured_text(dataset = 'test', index = index)
+                full_text += name
+            except AttributeError:
+                pass
+
             row, col = int(i/no_of_cols), i % no_of_cols
             axs[row, col].plot(np.flip(x),y)
             axs[row, col].invert_xaxis()
             axs[row, col].set_xlim(750.05,694)
             axs[row, col].set_xlabel('Binding energy (eV)')
             axs[row, col].set_ylabel('Intensity (arb. units)')                          
-            axs[row, col].text(0.025, 0.35, real + pred + aug,
+            axs[row, col].text(0.025, 0.35, full_text,
                                horizontalalignment='left',
                                verticalalignment='top',
                                transform = axs[row, col].transAxes,
@@ -960,7 +1063,18 @@ class ClassifierMultiple(Classifier):
         
         with shelve.open(filename,'n') as shelf:
             key_list = ['y_train', 'y_test', 'pred_train', 'pred_test',
-                        'test_loss', 'aug_values']
+                        'test_loss']
+            try:
+                aug_values = clf.aug_values
+                key_list.append('aug_values')
+            except:
+              pass
+            try:
+                names = clf.names
+                key_list.append('names')
+            except:
+              pass
+              
             if full == True:
                 key_list.extend(['X, X_train', 'X_val', 'X_test', 'y',
                                  'y_val', 'average_distribution', 'hist'])
