@@ -8,11 +8,15 @@ from time import time
 import os
 import datetime
 import h5py
-from creator import Creator, calculate_runtime, check_db
-t0 = time()
+from creator import Creator, calculate_runtime
+
+runtimes = {}
+t0_full = time()
 #%%
 no_of_simulations = 500
 no_of_files = 1000
+
+t0 = time()
 input_filenames =  ['Fe_metal_Mark_shifted','FeO_Mark_shifted',
                     'Fe3O4_Mark_shifted','Fe2O3_Mark_shifted']
 timestamp = datetime.datetime.now().strftime("%Y%m%d")
@@ -38,9 +42,13 @@ for i in range(no_of_files):
                     how = 'full')
     print('Finished set ' + str(i+1) + ' of ' + str(no_of_files))
 
+t1 = time()
+runtimes['JSON Mark'] = calculate_runtime(t0,t1)
 #%%
 no_of_simulations = 500
 no_of_files = 1000
+
+t0 = time()
 input_filenames =  ['Fe_metal','FeO','Fe3O4','Fe2O3']
 timestamp = datetime.datetime.now().strftime("%Y%m%d")
 run_name = 'iron_variable_linear_combination_no_broadening'
@@ -65,9 +73,12 @@ for i in range(no_of_files):
                     how = 'full')
     print('Finished set ' + str(i+1) + ' of ' + str(no_of_files))
 
+t1 = time()
+runtimes['JSON Lukas'] = calculate_runtime(t0,t1)
 #%% Write to HDF5 files
 from json_to_hdf5 import to_hdf5
 
+t0 = time()
 output_datafolder = r'C:\Users\pielsticker\Simulations\\'
 output_file = output_datafolder + '20200723_iron_Mark_variable_linear_combination_no_broadening.h5'
 simulation_name = '20200723_iron_Mark_variable_linear_combination_no_broadening'
@@ -84,7 +95,10 @@ with h5py.File(output_file, 'r') as hf:
     noise_h5 = hf['noise'][:4000,:]
     fwhm_h5 = hf['FWHM'][:4000,:]
 
+t1 = time()
+runtimes['HDF5 Mark'] = calculate_runtime(t0,t1)
 
+t0 = time()
 output_datafolder = r'C:\Users\pielsticker\Simulations\\'
 output_file = output_datafolder + '20200723_iron_variable_linear_combination_no_broadening.h5'
 simulation_name = '20200723_iron_variable_linear_combination_no_broadening'
@@ -100,7 +114,9 @@ with h5py.File(output_file, 'r') as hf:
     shiftx_h5 = hf['shiftx'][:4000,:]
     noise_h5 = hf['noise'][:4000,:]
     fwhm_h5 = hf['FWHM'][:4000,:]
-    
+
+t1 = time()
+runtimes['HDF5 Lukas'] = calculate_runtime(t0,t1)    
 #%%  Combine the datasets    
 import numpy as np
 from sklearn.utils import shuffle
@@ -142,6 +158,7 @@ def load_data(filenames):
 filenames = ['20200723_iron_Mark_variable_linear_combination_no_broadening.h5',
              '20200723_iron_variable_linear_combination_no_broadening.h5']
 
+t0 = time()
 X, y, shiftx, noise, fwhm, y_one, y_two = load_data(filenames)
 X_shuff, y_shuff, shiftx_shuff, noise_shuff, fwhm_shuff = \
     shuffle(X, y, shiftx, noise, fwhm)
@@ -177,9 +194,11 @@ with h5py.File(output_file, 'r') as hf:
     shiftx_h5_one = hf['shiftx'][:100]
     noise_h5_one = hf['noise'][:100]
     fwhm_h5_one = hf['FWHM'][:100]
-
 print(size)    
 
 t1 = time()
-runtime = calculate_runtime(t0,t1)
-print(f'Runtime: {runtime}.')
+runtimes['Combination of HDF5 files'] = calculate_runtime(t0,t1)    
+
+
+t1_full = time()
+runtimes['full script'] = calculate_runtime(t0_full,t1_full)
