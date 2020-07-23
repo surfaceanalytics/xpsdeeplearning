@@ -9,6 +9,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 import h5py
+import pandas as pd
 
 class Spectrum:
     def __init__(self,start,stop,step,label):
@@ -37,13 +38,14 @@ class Spectrum:
 class MeasuredSpectrum(Spectrum):
     def __init__(self, filename):
         filename = filename
-        self.label, self.data = self.convert(filename)
+        self.label, self.data, self.number = self.convert(filename)
         x = self.data[:,0]
         
         # Determine the step size
         x1 = np.roll(x,-1)
+        x2 = np.roll(x,-2)
         diff = np.abs(np.subtract(x,x1))
-        self.step = round(np.min(diff[diff!=0]),2)
+        self.step = round(np.min(diff[diff!=0]),3)
         x = x[diff !=0]
         self.start = np.min(x)
         self.stop = np.max(x)
@@ -57,89 +59,138 @@ class MeasuredSpectrum(Spectrum):
         for line in file.readlines():
             lines += [line]
         # This takes the species given in the first line
-        label = str(lines[0]).split('\n')[0] 
-        lines = lines[1:]
+        label = str(lines[0]).split(' ', maxsplit = 2)[2].split(':')[0]
+        number = int(str(lines[0]).split(' ', maxsplit = 2)[1].split(':')[1])
+        lines = lines[8:]
         lines = [[float(i) for i in line.split()] for line in lines]
-        data = np.array(lines)
+        data = np.array(lines)[:,2:]
         
-        return label, data
+        return label, data, number
 
 #%%
+def get_labels():
+    filepath = r'C:\Users\pielsticker\Desktop\Mixed iron spectra\peak fits.xlsx'
+    df = pd.read_excel(filepath)
+    
+    y = np.transpose(np.array([df['Fe metal'],df['FeO'],df['Fe3O4'],df['Fe2O3']]))
+    names = np.reshape(np.array(list(df['name'])),(-1,1))
+                        
+    return y, names
 
-def convert_spectra(filenames, plot_all = True):
-    datafolder = r'C:\Users\pielsticker\Lukas\MPI-CEC\Projects\xpsdeeplearning\data\measured'
+def convert_spectra(plot_all = True):
+    input_datafolder = r'C:\Users\pielsticker\Desktop\Mixed iron spectra\exported'
+    
+    filenames = next(os.walk(input_datafolder))[2]
+    
     X = np.zeros((len(filenames),1121,1))
-    y = np.zeros((len(filenames),4))
-
+    y, names = get_labels()
+    
+    spectra = []
+    
     for name in filenames:
-        filepath = os.path.join(datafolder, name)
+        filepath = os.path.join(input_datafolder, name)
         spectrum = MeasuredSpectrum(filepath)
         spectrum.start = 694
         spectrum.stop = 750
         spectrum.step = 0.05
-        spectrum.update_range()
-    
-        if spectrum.lineshape.shape[0] != 1121:
-            old_lineshape = spectrum.lineshape
-            new_lineshape = np.zeros((1121,))  
         
-            for point in old_lineshape:
-                index = np.where(old_lineshape == point)[0]
-                try:
-                    new = old_lineshape[index+1][0]
-                except:
-                    new = old_lineshape[index][0]
-                mean = np.mean(np.array([point,new]))
-                new_lineshape[index*2] = point
-                try:
-                    new_lineshape[index*2+1] = mean
-                except:
-                    pass
-    
-                diff_len = new_lineshape.shape[0] - old_lineshape.shape[0]*2
-                end_value = old_lineshape[-1]
-                new_lineshape[new_lineshape.shape[0]-diff_len:] = end_value
+        x = list(spectrum.x)
+        try:  
+            start = x.index(np.float64(750))
+            end = x.index(np.float64(694))+1
+            
+            spectrum.data = spectrum.data[start:end,:]
+            spectrum.lineshape = spectrum.lineshape[start:end]  
+        except:
+            print(spectrum.number)
+        
+        if spectrum.lineshape.shape[0] < 1121:
+            try:
+                old_lineshape = spectrum.lineshape
+            
+            
+                new_lineshape = np.zeros((1121,))  
+         
+                for point in old_lineshape:
+                    index = np.where(old_lineshape == point)[0]
+                    try:
+                        new = old_lineshape[index+1][0]
+                    except:
+                        new = old_lineshape[index][0]
+                    mean = np.mean(np.array([point,new]))
+                    new_lineshape[index*2] = point
+                    try:
+                        new_lineshape[index*2+1] = mean
+                    except:
+                        pass
+     
+                    diff_len = new_lineshape.shape[0] - old_lineshape.shape[0]*2
+                    end_value = old_lineshape[-1]
+                    new_lineshape[new_lineshape.shape[0]-diff_len:] = end_value
     
                 spectrum.lineshape = new_lineshape
-    
+            except:
+                no_of_missing_values = 1121 - spectrum.lineshape.shape[0]
+                
+                no_values_begin = int((no_of_missing_values)/2)
+                no_values_end = int((no_of_missing_values)/2)
+                if no_of_missing_values %2 == 1:
+                    no_values_end += 1
+                
+                begin_value = spectrum.lineshape[0]
+                end_value = spectrum.lineshape[-1]
+
+                spectrum.lineshape = np.concatenate(
+                    (np.full(no_values_begin, begin_value),
+                     spectrum.lineshape))
+                
+                spectrum.lineshape = np.concatenate(
+                    (spectrum.lineshape,
+                     np.full(no_values_end, end_value)))    
+                        
+        spectrum.update_range()
         spectrum.normalize()
+        spectra.append(spectrum)
         index = filenames.index(name)
         X[index] = np.reshape(spectrum.lineshape, (-1,1))
-        label = [float(i) for i in spectrum.label.split()]
-        y[index] = np.reshape(np.array(label), (1,-1))
         
         if plot_all:
             plt.plot(spectrum.x,spectrum.lineshape)
             plt.xlim(left=np.max(spectrum.x), right=np.min(spectrum.x))
-            plt.legend([label])
+            text = 'Spectrum no. ' + str(spectrum.number) + '\n' +\
+                str(spectrum.label)
+            plt.legend([text])
             plt.tight_layout()
             plt.show()
-    
-    return X, y
+        
+    return X, y, names
 
 #%%
-filenames = ['Fe_metal_Mark.txt',
-             'FeO_Mark.txt',
-             'Fe3O4_Mark.txt',
-             'Fe2O3_Mark.txt',
-             'test.txt']
+X,y, names = convert_spectra(plot_all = True)
+
 
 output_file= r'C:\Users\pielsticker\Simulations\measured.h5py'
-    
+  
 with h5py.File(output_file, 'w') as hf:
-    X, y = convert_spectra(filenames, plot_all = True)
     hf.create_dataset('X', data = X,
                       compression="gzip", chunks=True,
                       maxshape=(None,X.shape[1],X.shape[2]))        
     hf.create_dataset('y', data = y,
                       compression="gzip", chunks=True,
                       maxshape=(None, y.shape[1]))
+    hf.create_dataset('names', data=np.array(names, dtype='S'),
+                      compression="gzip", chunks=True,
+                      maxshape=(None, names.shape[1]))
+
     
 #%% Check   
 with h5py.File(output_file, 'r') as hf:
     dataset_size = hf['X'].shape[0]
     X_load = hf['X'][:,:,:]
     y_load = hf['y'][:,:]
+    names_load = np.reshape(np.zeros(dataset_size),(-1,1))
+    names_load_list = [name[0].decode("utf-8") for name in hf['names'][:,:]]
+    names_load = np.reshape(np.array(names_load_list),(-1,1))
     print(np.allclose(X,X_load))
     print(np.allclose(y,y_load))
-
+    #print(np.allclose(names,names_load))
