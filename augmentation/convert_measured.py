@@ -169,7 +169,7 @@ def convert_spectra(plot_all = True):
 X,y, names = convert_spectra(plot_all = True)
 
 
-output_file= r'C:\Users\pielsticker\Simulations\measured.h5py'
+output_file= r'C:\Users\pielsticker\Simulations\measured.h5'
   
 with h5py.File(output_file, 'w') as hf:
     hf.create_dataset('X', data = X,
@@ -188,7 +188,6 @@ with h5py.File(output_file, 'r') as hf:
     dataset_size = hf['X'].shape[0]
     X_load = hf['X'][:,:,:]
     y_load = hf['y'][:,:]
-    names_load = np.reshape(np.zeros(dataset_size),(-1,1))
     names_load_list = [name[0].decode("utf-8") for name in hf['names'][:,:]]
     names_load = np.reshape(np.array(names_load_list),(-1,1))
     print(np.allclose(X,X_load))

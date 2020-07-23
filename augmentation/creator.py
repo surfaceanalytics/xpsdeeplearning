@@ -154,7 +154,7 @@ class Creator():
             self.augmentation_matrix[i,-2] = test[r]
             
             # Signal-to-noise
-            self.augmentation_matrix[i,-1] = np.random.randint(15,120)
+            self.augmentation_matrix[i,-1] = np.random.randint(5,120)
   
                 
     def run(self, broaden = True, x_shift = True, noise = True):
@@ -523,7 +523,7 @@ if __name__ == "__main__":
     no_of_simulations = 20
     input_filenames =  ['Fe_metal_Mark','FeO_Mark','Fe3O4_Mark','Fe2O3_Mark']
     creator = Creator(no_of_simulations, input_filenames, single = False)
-    creator.run(broaden = True, x_shift = True, noise = True)
+    creator.run(broaden = False, x_shift = True, noise = True)
     creator.plot_random(12)
     datafolder = r'C:\Users\pielsticker\Simulations\\'
     filepath = datafolder + 'Multiple_species_reduced_20200707'
