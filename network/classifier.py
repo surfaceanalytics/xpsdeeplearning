@@ -477,7 +477,7 @@ class Classifier():
             'epochs_trained' : self._count_epochs_trained(),
             'batch_size' : self.batch_size,
             'class_distribution' : self.check_class_distribution(),
-            'loss' : 'Categorical Cross-Entropy',
+            'loss' : type(model.loss).__name__,
             'optimizer' : self.model.optimizer._name,
             'learning rate' : str(K.eval(self.model.optimizer.lr)),
             'Labels': self.label_values,
@@ -566,13 +566,13 @@ class Classifier():
             fwhm_text = 'FHWM: ' + \
                     str(np.round(float(fwhm), decimals = 2)) + ', '
         else:
-            fwhm_text = 'FHWM: not changed' + ','
+            fwhm_text = 'FHWM: not changed' + ', '
                 
         if (shift_x != None and shift_x != 0):            
-            shift_text = 'Shift: ' + \
+            shift_text = ' Shift: ' + \
                     '{:.2f}'.format(float(shift_x)) + ', '
         else:
-            shift_text = 'Shift: none' + ', '
+            shift_text = ' Shift: none' + ', '
                 
         if (noise != None and noise != 0):
             noise_text = 'S/N: ' + str(int(noise))   
@@ -582,9 +582,9 @@ class Classifier():
         aug_text = fwhm_text + shift_text + noise_text + '\n'
         
         if 'scatterer' in self.aug_values.keys():
-            aug_text += '\n' + self._write_scatter_text(dataset, index)
+            aug_text += self._write_scatter_text(dataset, index)
         else:
-            aug_text += '\n' + 'Spectrum not scattered.'
+            aug_text += 'Spectrum not scattered.'
             
     
         return aug_text
@@ -610,16 +610,16 @@ class Classifier():
                       '1' : 'H2', 
                       '2' : 'N2',
                       '3' : 'O2'}       
-        scatterer_name =  scatterers[str(scatterer)]
+        scatterer_name =  scatterers[str(scatterer[0])]
+
+        name_text = 'Scatterer: ' + scatterer_name + ', '
         
-        name_text = 'Scatterer : ' + scatterer_name + ', '
+        pressure_text = '{:.1f}'.format(float(pressure)) + ' mbar, '  
         
-        distance_text = 'Distance: ' + \
-                    '{:.2f}'.format(float(distance)) + 'mm, '
+        distance_text = 'd = ' + \
+                    '{:.1f}'.format(float(distance)) + ' mm'
                 
-        pressure_text = 'Pressure: ' + str(int(pressure)) + 'mbar'    
-                
-        scatter_text = name_text + distance_text + pressure_text + '\n'
+        scatter_text = name_text + pressure_text + distance_text + '\n'
     
         return scatter_text
 
