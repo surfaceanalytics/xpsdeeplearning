@@ -80,83 +80,102 @@ class Classifier():
                 
                 
     def load_data_preprocess(self, input_filepath, no_of_examples,
-                             train_test_split, train_val_split,
-                             augmentation_values = False,
-                             names = False):
+                             train_test_split, train_val_split):
         self.input_filepath = input_filepath
         self.train_test_split = train_test_split
         self.train_val_split = train_val_split
         self.no_of_examples = no_of_examples
-
+        
+        
         with h5py.File(input_filepath, 'r') as hf:
             dataset_size = hf['X'].shape[0]
             r = np.random.randint(0, dataset_size-self.no_of_examples)
             X = hf['X'][r:r+self.no_of_examples, :, :]
             y = hf['y'][r:r+self.no_of_examples, :]
+            
         
-        if augmentation_values:
-            with h5py.File(input_filepath, 'r') as hf:
+            if 'shiftx' in hf.keys():
                 shift_x = hf['shiftx'][r:r+self.no_of_examples, :]
                 noise = hf['noise'][r:r+self.no_of_examples, :]
-                fwhm = hf['FWHM'][r:r+self.no_of_examples, :]
+                fwhm = hf['FWHM'][r:r+self.no_of_examples, :] 
                 
-            # Shuffle all arrays together
-            self.X, self.y, shift_x, noise, fwhm = \
-                shuffle(X, y, shift_x, noise, fwhm)
-                
-            self.aug_values = {'shift_x' : shift_x,
-                               'noise' : noise,
-                               'fwhm' : fwhm}
-                
+                if 'scatterer' in hf.keys():
+                    scatterer = hf['scatterer'][r:r+self.no_of_examples, :]
+                    distance = hf['distance'][r:r+self.no_of_examples, :]
+                    pressure = hf['pressure'][r:r+self.no_of_examples, :]
+                    
+                    self.X, self.y, shift_x, noise, fwhm, \
+                        scatterer, distance, pressure = \
+                            shuffle(X, y, shift_x, noise, fwhm,
+                                    scatterer, distance, pressure) 
+                            
+                    aug_values = {'shift_x' : shift_x,
+                                  'noise' : noise,
+                                  'fwhm' : fwhm,
+                                  'scatterer' : scatterer,
+                                  'distance' : distance,
+                                  'pressure' : pressure}
+                    self.aug_values = aug_values 
+                    
+                else:
+                    # Shuffle all arrays together
+                    self.X, self.y, shift_x, noise, fwhm = \
+                        shuffle(X, y, shift_x, noise, fwhm)
+                    aug_values = {'shift_x' : shift_x,
+                                  'noise' : noise,
+                                  'fwhm' : fwhm}
+                    self.aug_values = aug_values 
+                    
             # Split into train, val and test sets
-            self.X_train, self.X_val, self.X_test, \
-                self.y_train, self.y_val, self.y_test, \
-                    self.aug_values_train, self.aug_values_val, \
-                        self.aug_values_test = \
-                            self._split_test_val_train(
-                                self.X, self.y, aug_values = self.aug_values)
+                self.X_train, self.X_val, self.X_test, \
+                    self.y_train, self.y_val, self.y_test, \
+                        self.aug_values_train, self.aug_values_val, \
+                            self.aug_values_test = \
+                                self._split_test_val_train(
+                                    self.X, self.y,
+                                    aug_values = self.aug_values)
                 
-            self.input_shape = (self.X_train.shape[1], 1)
+                self.input_shape = (self.X_train.shape[1], 1)
             
-            return self.X_train, self.X_val, self.X_test, \
-                   self.y_train, self.y_val, self.y_test, \
-                   self.aug_values_train, self.aug_values_val, \
-                   self.aug_values_test
-        
-        elif names:
-            with h5py.File(input_filepath, 'r') as hf:
+                return self.X_train, self.X_val, self.X_test, \
+                       self.y_train, self.y_val, self.y_test, \
+                       self.aug_values_train, self.aug_values_val, \
+                       self.aug_values_test
+                
+            elif 'names' in hf.keys():
                 names_load_list = [name[0].decode("utf-8") for name
                                    in hf['names'][r:r+self.no_of_examples, :]]
                 names = np.reshape(np.array(names_load_list),(-1,1))
                 
-            self.X, self.y, self.names = X, y, names
+                self.X, self.y, self.names = \
+                        shuffle(X,y , names)
 
-            # Split into train, val and test sets
-            self.X_train, self.X_val, self.X_test, \
-                self.y_train, self.y_val, self.y_test, \
-                  self.names_train, self.names_val, \
-                      self.names_test = \
-                          self._split_test_val_train(
-                              self.X, self.y, names = self.names)
+                # Split into train, val and test sets
+                self.X_train, self.X_val, self.X_test, \
+                    self.y_train, self.y_val, self.y_test, \
+                      self.names_train, self.names_val, \
+                          self.names_test = \
+                              self._split_test_val_train(
+                                  self.X, self.y, names = self.names)
 
-            self.input_shape = (self.X_train.shape[1], 1)
+                self.input_shape = (self.X_train.shape[1], 1)
                                     
-            return self.X_train, self.X_val, self.X_test, \
-                   self.y_train, self.y_val, self.y_test, \
-                   self.names_train, self.names_val, self.names_test
+                return self.X_train, self.X_val, self.X_test, \
+                       self.y_train, self.y_val, self.y_test, \
+                       self.names_train, self.names_val, self.names_test
             
-        else:
-            # Shuffle X and y together
-            self.X, self.y = shuffle(X, y)
-            # Split into train, val and test sets
-            self.X_train, self.X_val, self.X_test, \
+            else:
+                # Shuffle X and y together
+                self.X, self.y = shuffle(X, y)
+                # Split into train, val and test sets
+                self.X_train, self.X_val, self.X_test, \
                 self.y_train, self.y_val, self.y_test = \
                     self._split_test_val_train(self.X, self.y)
                 
-            self.input_shape = (self.X_train.shape[1], 1)
+                self.input_shape = (self.X_train.shape[1], 1)
             
-            return self.X_train, self.X_val, self.X_test, \
-                   self.y_train, self.y_val, self.y_test
+                return self.X_train, self.X_val, self.X_test, \
+                       self.y_train, self.y_val, self.y_test
     
     
     def _split_test_val_train(self, X, y, **kwargs):         
@@ -218,6 +237,38 @@ class Classifier():
                               'noise' : noise_test,
                               'fwhm' : fwhm_test}
             
+            if 'scatterer' in aug_values.keys():
+                scatterer = aug_values['scatterer']
+                distance = aug_values['distance']
+                pressure = aug_values['pressure']
+                
+                scatterer_train_val = scatterer[:no_of_train_val,:]
+                scatterer_test = scatterer[no_of_train_val:,:]
+                distance_train_val = distance[:no_of_train_val,:]
+                distance_test = distance[no_of_train_val:,:]
+                pressure_train_val = pressure[:no_of_train_val,:]
+                pressure_test = pressure[no_of_train_val:,:]
+            
+                scatterer_train = scatterer_train_val[:no_of_train,:]
+                scatterer_val = scatterer_train_val[no_of_train:,:]
+                distance_train = distance_train_val[:no_of_train,:]
+                distance_val = distance_train_val[no_of_train:,:]
+                pressure_train = pressure_train_val[:no_of_train,:]
+                pressure_val =pressure_train_val[no_of_train:,:]
+                
+                aug_values_train['scatterer'] = scatterer_train
+                aug_values_train['distance'] = distance_train
+                aug_values_train['pressure'] = pressure_train
+                
+                aug_values_val['scatterer'] = scatterer_val
+                aug_values_val['distance'] = distance_val
+                aug_values_val['pressure'] = pressure_val
+                
+                aug_values_test['scatterer'] = scatterer_test
+                aug_values_test['distance'] = distance_test
+                aug_values_test['pressure'] = pressure_test
+
+                
             return X_train, X_val, X_test, y_train, y_val, y_test,\
                    aug_values_train, aug_values_val, \
                    aug_values_test
@@ -232,6 +283,7 @@ class Classifier():
             
             return X_train, X_val, X_test, y_train, y_val, y_test,\
                    names_train, names_val, names_test
+                   
         else:
             return X_train, X_val, X_test, y_train, y_val, y_test
     
@@ -448,11 +500,7 @@ class Classifier():
         else:
             file_name = self.model_dir
         
-        # Add the current model to the custom_objects dict.
-        #custom_objects = {'EmptyModel' : models.EmptyModel}
-        #custom_objects[str(type(self.model).__name__)] =\
-        #    self.model.__class__
-        
+        # Add the current model to the custom_objects dict.        
         import inspect
         custom_objects = {}
         custom_objects[str(type(self.model).__name__)] =\
@@ -472,7 +520,6 @@ class Classifier():
             num_classes = self.num_classes,
             no_of_inputs = loaded_model._serialized_attributes['metadata']['config']['no_of_inputs'],
             name = 'Loaded_Model')
-
 
         print("Loaded model from disk.")
       
@@ -533,9 +580,50 @@ class Classifier():
             noise_text = 'S/N: not changed'
                 
         aug_text = fwhm_text + shift_text + noise_text + '\n'
+        
+        if 'scatterer' in self.aug_values.keys():
+            aug_text += '\n' + self._write_scatter_text(dataset, index)
+        else:
+            aug_text += '\n' + 'Spectrum not scattered.'
+            
     
         return aug_text
     
+    
+    def _write_scatter_text(self, dataset, index):
+        if dataset == 'train':
+            scatterer = self.aug_values_train['scatterer'][index]
+            distance = self.aug_values_train['distance'][index]
+            pressure = self.aug_values_train['pressure'][index]
+            
+        elif dataset == 'val':
+            scatterer = self.aug_values_val['scatterer'][index]
+            distance = self.aug_values_val['distance'][index]
+            pressure = self.aug_values_val['pressure'][index]
+            
+        elif dataset == 'test':
+            scatterer = self.aug_values_test['scatterer'][index]
+            distance = self.aug_values_test['distance'][index]
+            pressure = self.aug_values_test['pressure'][index]
+       
+        scatterers = {'0' : 'He',
+                      '1' : 'H2', 
+                      '2' : 'N2',
+                      '3' : 'O2'}       
+        scatterer_name =  scatterers[str(scatterer)]
+        
+        name_text = 'Scatterer : ' + scatterer_name + ', '
+        
+        distance_text = 'Distance: ' + \
+                    '{:.2f}'.format(float(distance)) + 'mm, '
+                
+        pressure_text = 'Pressure: ' + str(int(pressure)) + 'mbar'    
+                
+        scatter_text = name_text + distance_text + pressure_text + '\n'
+    
+        return scatter_text
+
+
     def _write_measured_text(self, dataset, index):
         if dataset == 'train':
             name = self.names_train[index][0]
@@ -546,8 +634,6 @@ class Classifier():
         elif dataset == 'test':
             name = self.names_test[index][0]
         
-        number = 0
-
         text = 'Spectrum no. ' + str(index) + '\n' +\
                 str(name) + '\n'
     
@@ -1065,12 +1151,12 @@ class ClassifierMultiple(Classifier):
             key_list = ['y_train', 'y_test', 'pred_train', 'pred_test',
                         'test_loss']
             try:
-                aug_values = clf.aug_values
+                aug_values = self.aug_values
                 key_list.append('aug_values')
             except:
               pass
             try:
-                names = clf.names
+                names = self.names
                 key_list.append('names')
             except:
               pass

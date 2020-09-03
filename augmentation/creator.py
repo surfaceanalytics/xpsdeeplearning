@@ -62,7 +62,7 @@ class Creator():
         # No. of parameter = no. of linear parameter + 3
         # (one parameter each for resolution, shift_x, signal_to noise
         self.no_of_linear_params = len(input_filenames) 
-        no_of_params = self.no_of_linear_params + 3
+        no_of_params = self.no_of_linear_params + 6
         
         self.augmentation_matrix = np.zeros((self.no_of_simulations,
                                              no_of_params))
@@ -142,7 +142,7 @@ class Creator():
             
             
             # FWHM
-            self.augmentation_matrix[i,-3] = np.random.randint(145,722)
+            self.augmentation_matrix[i,-6] = np.random.randint(145,722)
             
             # shift_x
             test = np.arange(-5,5,0.05)
@@ -151,13 +151,21 @@ class Creator():
             if -0.05 < test[r] < 0.05:
                 test[r] = 0
             
-            self.augmentation_matrix[i,-2] = test[r]
+            self.augmentation_matrix[i,-5] = test[r]
             
             # Signal-to-noise
-            self.augmentation_matrix[i,-1] = np.random.randint(5,120)
+            self.augmentation_matrix[i,-4] = np.random.randint(5,120)
+            
+            # Scatterer ID
+            self.augmentation_matrix[i,-3] = np.random.randint(0,4)
+            # Distance
+            self.augmentation_matrix[i,-2] = np.random.randint(1,10)/10 
+            # Pressure
+            self.augmentation_matrix[i,-1] = np.random.randint(1,100)/10
   
                 
-    def run(self, broaden = True, x_shift = True, noise = True):
+    def run(self, broaden = True, x_shift = True,
+            noise = True, scatter = True):
         """
         The artificial spectra and stare createad using the simulation
         class and the augmentation matrix. All data is then stored in 
@@ -169,11 +177,18 @@ class Creator():
 
         """
         if broaden == False:
-            self.augmentation_matrix[:,-3] = 0
+            self.augmentation_matrix[:,-6] = 0
         if x_shift == False:
-            self.augmentation_matrix[:,-2] = 0
+            self.augmentation_matrix[:,-5] = 0
         if noise == False:
-            self.augmentation_matrix[:,-1] = 0
+            self.augmentation_matrix[:,-4] = 0
+        if scatter == False:
+            self.augmentation_matrix[:,-3] = None
+            # Distance
+            self.augmentation_matrix[:,-2] = None 
+            # Pressure
+            self.augmentation_matrix[:,-1] = None
+            
 
         dict_list = []
         for i in range(self.no_of_simulations):
@@ -182,12 +197,26 @@ class Creator():
                 self.augmentation_matrix[i][0:self.no_of_linear_params]
             self.sim.combine_linear(scaling_params = scaling_params)  
 
-            fwhm = self.augmentation_matrix[i][-3] 
-            shift_x = self.augmentation_matrix[i][-2] 
-            signal_to_noise = self.augmentation_matrix[i][-1] 
-            self.sim.change_spectrum(fwhm = fwhm,
-                                shift_x = shift_x,
-                                signal_to_noise = signal_to_noise)
+            fwhm = self.augmentation_matrix[i][-6] 
+            shift_x = self.augmentation_matrix[i][-5] 
+            signal_to_noise = self.augmentation_matrix[i][-4] 
+            scatterer_id = self.augmentation_matrix[i][-3]
+            scatterers = {'0' : 'He',
+                          '1' : 'H2', 
+                          '2' : 'N2', 
+                          '3' : 'O2'}
+            
+            distance = self.augmentation_matrix[i][-2]
+            pressure = self.augmentation_matrix[i][-1]
+                       
+            self.sim.change_spectrum(
+                fwhm = fwhm,
+                shift_x = shift_x,
+                signal_to_noise = signal_to_noise,
+                scatterer = {
+                    'label': scatterers[str(int(scatterer_id))],
+                    'distance' : distance,
+                    'pressure' : pressure})
             
             d = self._dict_from_one_simulation(self.sim)
             dict_list.append(d)   
@@ -240,6 +269,9 @@ class Creator():
              'shift_x': spectrum.shift_x,
              'noise': spectrum.signal_to_noise,
              'FWHM': spectrum.fwhm,
+             'scatterer' : spectrum.scatterer,
+             'distance' : spectrum.distance,
+             'pressure' : spectrum.pressure,
              'x': spectrum.x,
              'y': spectrum.lineshape}
         
@@ -268,33 +300,44 @@ class Creator():
             title = 'Simulated spectrum no. ' + str(r)
             fig = Figure(x, y, title)
             
-            fig_text = ""
+            linear_params_text = ''
             for key in row['label'].keys():
-                fig_text += str(key) + ": " + \
+                linear_params_text += str(key) + ": " + \
                     str(np.round(row['label'][key],decimals =2)) + '\n'
-            fig_text += '\n'
+            
+            params_text = '\n' 
             if (row['FWHM'] != None and row['FWHM'] != 0):
-                fig_text += 'FHWM: ' + \
+                params_text += 'FHWM: ' + \
                     str(np.round(row['FWHM'], decimals = 2)) + '\n'
             else:
-                fig_text += 'FHWM: not changed' + '\n'
+                params_text += 'FHWM: not changed' + '\n'
                 
             if (row['shift_x'] != None and row['shift_x'] != 0):            
-                fig_text += 'X shift: ' + \
+                params_text += 'X shift: ' + \
                     '{:.3f}'.format(row['shift_x']) + '\n'
             else:
-                fig_text += 'X shift: none' + '\n'
+                params_text += 'X shift: none' + '\n'
                 
             if (row['noise'] != None and row['noise'] != 0):
-                fig_text += 'S/N: ' + str(int(row['noise'])) + '\n'      
+                params_text += 'S/N: ' + str(int(row['noise'])) + '\n'      
             else:
-                fig_text += 'S/N: not changed' + '\n'
+                params_text += 'S/N: not changed' + '\n'
  
-            fig.ax.text(0.1, 0.45,fig_text,
+
+            
+            scatter_text = '\n' 
+            if row['scatterer'] != None:
+                scatter_text += 'Scatterer: ' + str(row['scatterer']) + '\n'      
+                scatter_text += 'Distance: ' + str(row['distance']) + ' mm' + '\n'   
+                scatter_text += 'Pressure: ' + str(row['pressure']) + ' mbar' + '\n'   
+            else:
+                scatter_text += 'Scattering: none' + '\n'
+            
+            fig.ax.text(0.1, 0.5, linear_params_text + params_text + scatter_text,
                         horizontalalignment='left',
                         verticalalignment='top',
                         transform = fig.ax.transAxes,
-                        fontsize = 9)
+                        fontsize = 7)
             plt.show()
         
 
@@ -523,10 +566,10 @@ if __name__ == "__main__":
     no_of_simulations = 20
     input_filenames =  ['Fe_metal_Mark','FeO_Mark','Fe3O4_Mark','Fe2O3_Mark']
     creator = Creator(no_of_simulations, input_filenames, single = False)
-    creator.run(broaden = False, x_shift = True, noise = True)
+    creator.run(broaden = False, x_shift = True, noise = True, scatter = True)
     creator.plot_random(12)
     datafolder = r'C:\Users\pielsticker\Simulations\\'
-    filepath = datafolder + 'Multiple_species_reduced_20200707'
+    filepath = datafolder + 'Multiple_species_gas_phase_20200902'
     #creator.upload_to_DB(filename, reduced = True)
     #collections = check_db(filename)
     #drop_db_collection(filename)
