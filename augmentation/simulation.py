@@ -156,6 +156,17 @@ class Simulation():
             self.output_spectrum.signal_to_noise = kwargs['signal_to_noise'] 
             self.output_spectrum.add_noise(kwargs['signal_to_noise'])
             
+        if 'scatterer' in kwargs.keys():
+            scatter_dict = kwargs['scatterer']
+            self.output_spectrum.scatterer = scatter_dict['label']
+            self.output_spectrum.distance = scatter_dict['distance']
+            self.output_spectrum.pressure = scatter_dict['pressure']
+            
+            self.output_spectrum.scatter_in_gas('json',
+                                                scatter_dict['label'],
+                                                scatter_dict['distance'],
+                                                scatter_dict['pressure'])
+            
         self.output_spectrum.normalize()
 
 
@@ -198,7 +209,6 @@ if __name__ == '__main__':
                         'augmentation')[0] + 'data\\references'
        
     labels = ['Fe_metal','FeO','Fe3O4','Fe2O3']
-    
     input_spectra = []
     for label in labels:
         filename = datapath + '\\' + label + '.txt'
@@ -207,14 +217,19 @@ if __name__ == '__main__':
     del(datapath,label,labels,filename)
   
     sim = Simulation(input_spectra)
-    sim.combine_linear(scaling_params = [0.4,0.4,0.1,0.1])                
-
-    sim.change_spectrum(shift_x = 0,
+    
+    #sim.combine_linear(scaling_params = [0.4,0.4,0.1,0.1])    
+    sim.combine_linear(scaling_params = [0.8,0.2,0.0,0.0]) 
+    sim.change_spectrum(shift_x = 5,
                         signal_to_noise = 150,
-                        fwhm = 1050)
+                        fwhm = 1050,
+                        scatterer = {'label': 'He',
+                                     'distance' : 0.2,
+                                     'pressure' : 12.0})
     
     print('Linear combination parameters: ' + str(sim.output_spectrum.label))
-    sim.plot_simulation(plot_inputs = True)
+    sim.plot_simulation(plot_inputs = False)
+    
 
 
 

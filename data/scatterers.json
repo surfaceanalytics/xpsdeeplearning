@@ -1,0 +1,559 @@
+{
+    "default": {
+        "inelastic_xsect": 0.08,
+        "norm_factor": 1,
+        "inelastic_prob": 0.2,
+        "loss_function": [
+            {
+                "id": 0,
+                "type": "VacuumExcitation",
+                "params": {
+                    "edge": 10.0,
+                    "fermi_width": 4.0,
+                    "intensity": 0.3,
+                    "exponent": 0.04
+                }
+            },
+            {
+                "id": 1,
+                "type": "Gauss",
+                "params": {
+                    "position": 5.0,
+                    "width": 0.5,
+                    "intensity": 5.0
+                }
+            }
+        ]
+    },
+    "He": {
+        "inelastic_xsect": 0.0045,
+        "norm_factor": 0.99,
+        "inelastic_prob": 0.2,
+        "loss_function": [
+            {
+                "id": 0,
+                "type": "Gauss",
+                "params": {
+                    "position": 21.09,
+                    "width": 0.09,
+                    "intensity": 0.0
+                }
+            },
+            {
+                "id": 1,
+                "type": "Gauss",
+                "params": {
+                    "position": 23.05,
+                    "width": 0.2,
+                    "intensity": 50.0
+                }
+            },
+            {
+                "id": 2,
+                "type": "Gauss",
+                "params": {
+                    "position": 24.8,
+                    "width": 0.5,
+                    "intensity": 30.0
+                }
+            },
+            {
+                "id": 3,
+                "type": "Gauss",
+                "params": {
+                    "position": 24.1,
+                    "width": 0.3,
+                    "intensity": 35.0
+                }
+            },
+            {
+                "id": 4,
+                "type": "Tougaard",
+                "params": {
+                    "B": 1500000.0,
+                    "C": 200.00001489443233,
+                    "D": 9970.0,
+                    "Eg": 25.4
+                }
+            },
+            {
+                "id": 5,
+                "type": "Tougaard",
+                "params": {
+                    "B": 339999.99999987095,
+                    "C": 39.999676393065926,
+                    "D": 500.0000639707224,
+                    "Eg": 25.0
+                }
+            },
+            {
+                "id": 6,
+                "type": "Tougaard",
+                "params": {
+                    "B": 0.0,
+                    "C": 52000.0,
+                    "D": 1000000.0,
+                    "Eg": 25.0
+                }
+            },
+            {
+                "id": 7,
+                "type": "Gauss",
+                "params": {
+                    "position": 26.3,
+                    "width": 0.7,
+                    "intensity": 25.0
+                }
+            },
+            {
+                "id": 8,
+                "type": "Lorentz",
+                "params": {
+                    "position": 21.1,
+                    "width": 0.09,
+                    "intensity": 1200.0
+                }
+            }
+        ]
+    },
+    "H2": {
+        "inelastic_xsect": 0.012,
+        "norm_factor": 0.65,
+        "inelastic_prob": 0.2,
+        "loss_function": [
+            {
+                "id": 0,
+                "type": "VacuumExcitation",
+                "params": {
+                    "edge": 15.0,
+                    "fermi_width": 10.0,
+                    "intensity": 1.0,
+                    "exponent": 0.05
+                }
+            },
+            {
+                "id": 1,
+                "type": "Gauss",
+                "params": {
+                    "position": 12.5,
+                    "width": 0.45,
+                    "intensity": 5.4
+                }
+            },
+            {
+                "id": 2,
+                "type": "Gauss",
+                "params": {
+                    "position": 14.6,
+                    "width": 2.0,
+                    "intensity": 6.0
+                }
+            },
+            {
+                "id": 3,
+                "type": "Gauss",
+                "params": {
+                    "position": 13.5,
+                    "width": 0.4,
+                    "intensity": 1.0
+                }
+            },
+            {
+                "id": 4,
+                "type": "Gauss",
+                "params": {
+                    "position": 19.5,
+                    "width": 3.5,
+                    "intensity": 3.0
+                }
+            },
+            {
+                "id": 5,
+                "type": "Gauss",
+                "params": {
+                    "position": 26.0,
+                    "width": 5.0,
+                    "intensity": 0.9
+                }
+            },
+            {
+                "id": 6,
+                "type": "Gauss",
+                "params": {
+                    "position": 18.0,
+                    "width": 2.0,
+                    "intensity": 0.5
+                }
+            }
+        ]
+    },
+    "N2": {
+        "inelastic_xsect": 0.0315,
+        "norm_factor": 0.55,
+        "inelastic_prob": 0.2,
+        "loss_function": [
+            {
+                "id": 0,
+                "type": "Gauss",
+                "params": {
+                    "position": 9.1,
+                    "width": 1.0,
+                    "intensity": 0.7
+                }
+            },
+            {
+                "id": 1,
+                "type": "Gauss",
+                "params": {
+                    "position": 12.83,
+                    "width": 0.2,
+                    "intensity": 8.05
+                }
+            },
+            {
+                "id": 2,
+                "type": "Gauss",
+                "params": {
+                    "position": 14.0,
+                    "width": 0.2,
+                    "intensity": 4.5
+                }
+            },
+            {
+                "id": 3,
+                "type": "Gauss",
+                "params": {
+                    "position": 15.9,
+                    "width": 0.2,
+                    "intensity": 1.9
+                }
+            },
+            {
+                "id": 4,
+                "type": "Gauss",
+                "params": {
+                    "position": 16.3,
+                    "width": 0.15,
+                    "intensity": 0.8
+                }
+            },
+            {
+                "id": 5,
+                "type": "Tougaard",
+                "params": {
+                    "B": 350000.0,
+                    "C": 50.0,
+                    "D": 21000.0,
+                    "Eg": 19.0
+                }
+            },
+            {
+                "id": 6,
+                "type": "Gauss",
+                "params": {
+                    "position": 13.4,
+                    "width": 0.2,
+                    "intensity": 1.5
+                }
+            },
+            {
+                "id": 7,
+                "type": "Gauss",
+                "params": {
+                    "position": 15.2,
+                    "width": 0.2,
+                    "intensity": 1.1
+                }
+            },
+            {
+                "id": 8,
+                "type": "Gauss",
+                "params": {
+                    "position": 17.3,
+                    "width": 0.8,
+                    "intensity": 2.3
+                }
+            },
+            {
+                "id": 9,
+                "type": "Gauss",
+                "params": {
+                    "position": 17.8,
+                    "width": 0.7,
+                    "intensity": 0.8
+                }
+            },
+            {
+                "id": 10,
+                "type": "Gauss",
+                "params": {
+                    "position": 22.0,
+                    "width": 2.0,
+                    "intensity": 3.0
+                }
+            },
+            {
+                "id": 11,
+                "type": "Gauss",
+                "params": {
+                    "position": 14.9,
+                    "width": 1.0,
+                    "intensity": 3.2
+                }
+            },
+            {
+                "id": 12,
+                "type": "Gauss",
+                "params": {
+                    "position": 18.5,
+                    "width": 1.5,
+                    "intensity": 4.0
+                }
+            },
+            {
+                "id": 13,
+                "type": "Tougaard",
+                "params": {
+                    "B": 6500.0,
+                    "C": 40.0,
+                    "D": 300.0,
+                    "Eg": 20.0
+                }
+            }
+        ]
+    },
+    "O2": {
+        "inelastic_xsect": 0.022,
+        "norm_factor": 0.53,
+        "inelastic_prob": 0.7,
+        "loss_function": [
+            {
+                "id": 0,
+                "type": "Gauss",
+                "params": {
+                    "position": 8.35,
+                    "width": 0.55,
+                    "intensity": 95.0
+                }
+            },
+            {
+                "id": 1,
+                "type": "Tougaard",
+                "params": {
+                    "B": 6000000.0,
+                    "C": 300.0,
+                    "D": 80000.0,
+                    "Eg": 16.0
+                }
+            },
+            {
+                "id": 2,
+                "type": "Gauss",
+                "params": {
+                    "position": 16.2,
+                    "width": 0.3,
+                    "intensity": 8.0
+                }
+            },
+            {
+                "id": 3,
+                "type": "Tougaard",
+                "params": {
+                    "B": 100000.0,
+                    "C": 23.0,
+                    "D": 300.0,
+                    "Eg": 16.0
+                }
+            },
+            {
+                "id": 4,
+                "type": "Tougaard",
+                "params": {
+                    "B": 90000.0,
+                    "C": 60.0,
+                    "D": 300.0,
+                    "Eg": 0.0
+                }
+            },
+            {
+                "id": 5,
+                "type": "Gauss",
+                "params": {
+                    "position": 12.9,
+                    "width": 0.4,
+                    "intensity": 25.0
+                }
+            },
+            {
+                "id": 6,
+                "type": "Gauss",
+                "params": {
+                    "position": 14.1,
+                    "width": 0.55,
+                    "intensity": 25.0
+                }
+            },
+            {
+                "id": 7,
+                "type": "Gauss",
+                "params": {
+                    "position": 14.65,
+                    "width": 0.4,
+                    "intensity": 10.0
+                }
+            },
+            {
+                "id": 8,
+                "type": "Gauss",
+                "params": {
+                    "position": 15.4,
+                    "width": 0.4,
+                    "intensity": 45.0
+                }
+            },
+            {
+                "id": 9,
+                "type": "Gauss",
+                "params": {
+                    "position": 17.0,
+                    "width": 0.4,
+                    "intensity": 30.0
+                }
+            },
+            {
+                "id": 10,
+                "type": "Gauss",
+                "params": {
+                    "position": 19.0,
+                    "width": 0.5,
+                    "intensity": 15.0
+                }
+            },
+            {
+                "id": 11,
+                "type": "Gauss",
+                "params": {
+                    "position": 7.0,
+                    "width": 0.5,
+                    "intensity": 6.0
+                }
+            },
+            {
+                "id": 12,
+                "type": "Gauss",
+                "params": {
+                    "position": 10.0,
+                    "width": 0.2,
+                    "intensity": 4.0
+                }
+            },
+            {
+                "id": 13,
+                "type": "Gauss",
+                "params": {
+                    "position": 11.0,
+                    "width": 0.5,
+                    "intensity": 2.0
+                }
+            },
+            {
+                "id": 14,
+                "type": "Gauss",
+                "params": {
+                    "position": 17.8,
+                    "width": 0.3,
+                    "intensity": 10.0
+                }
+            },
+            {
+                "id": 15,
+                "type": "Gauss",
+                "params": {
+                    "position": 20.1,
+                    "width": 0.5,
+                    "intensity": 13.0
+                }
+            },
+            {
+                "id": 16,
+                "type": "Gauss",
+                "params": {
+                    "position": 22.0,
+                    "width": 0.7,
+                    "intensity": 17.0
+                }
+            },
+            {
+                "id": 17,
+                "type": "Gauss",
+                "params": {
+                    "position": 25.0,
+                    "width": 2.5,
+                    "intensity": 40.0
+                }
+            }
+        ]
+    },
+    "Ag": {
+        "inelastic_xsect": 0.15,
+        "norm_factor": 1,
+        "inelastic_prob": 0.2,
+        "loss_function": [
+            {
+                "id": 0,
+                "type": "Gauss",
+                "params": {
+                    "position": 3.8,
+                    "width": 0.3,
+                    "intensity": 15.0
+                }
+            },
+            {
+                "id": 1,
+                "type": "Gauss",
+                "params": {
+                    "position": 7.8,
+                    "width": 0.8,
+                    "intensity": 20.0
+                }
+            },
+            {
+                "id": 2,
+                "type": "Gauss",
+                "params": {
+                    "position": 19.0,
+                    "width": 2.5,
+                    "intensity": 30.0
+                }
+            },
+            {
+                "id": 3,
+                "type": "Gauss",
+                "params": {
+                    "position": 25.0,
+                    "width": 2.0,
+                    "intensity": 15.0
+                }
+            },
+            {
+                "id": 4,
+                "type": "VacuumExcitation",
+                "params": {
+                    "edge": 0.0,
+                    "fermi_width": 4.0,
+                    "intensity": 30.0,
+                    "exponent": 0.04
+                }
+            },
+            {
+                "id": 5,
+                "type": "Gauss",
+                "params": {
+                    "position": 4.7,
+                    "width": 1.0,
+                    "intensity": 0.0
+                }
+            }
+        ]
+    }
+}

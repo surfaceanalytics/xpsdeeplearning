@@ -7,9 +7,14 @@ Created on Thu Feb 27 10:39:34 2020
 import numpy as np
 import matplotlib.pyplot as plt
 import os
+import json
+import csv
+import warnings
+
 from scipy.signal import fftconvolve
 
-
+ 
+        
 class Spectrum:
     def __init__(self,start,stop,step,label):
         self.start = start
@@ -57,6 +62,60 @@ class Lorentz(Peak):
             l = self.intensity * \
                 1 / (1 + ((self.position-x)/(self.width/2))**2)
             return l
+
+class Voigt(Peak):
+    def __init__(self, position, width, intensity, fraction_gauss=0.5):
+        Peak.__init__(self, position, width, intensity)
+        self.fraction_gauss = fraction_gauss
+        
+    def function(self,x):
+        if self.width != 0:
+            v = ((self.fraction_gauss 
+                 * Gauss(self.position,self.width,self.intensity).function(x))
+                + ((1- self.fraction_gauss)
+                * Lorentz(self.position,self.width,self.intensity).function(x)))
+            return v
+        
+class VacuumExcitation():
+    def __init__(self, edge, fermi_width, intensity, exponent):
+        self.edge = edge
+        self.fermi_width = fermi_width
+        self.intensity = intensity
+        self.exponent = exponent
+        
+    def Fermi(self, x):
+        k = 0.1
+        f = 1/(np.exp((self.edge-x)/(k*self.fermi_width))+1)
+        return f
+    
+    def Power(self, x):
+        p = np.exp(-1 * (x+self.edge) * self.exponent)
+        return p
+    
+    def function(self,x):
+        if self.fermi_width !=0:
+            f = (self.Fermi(x)) * self.Power(x) * self.intensity
+            return f 
+    
+class Tougaard():
+    def __init__(self,B, C, D, Eg):
+        self.B = B
+        self.C = C
+        self.D = D
+        self.Eg = Eg
+        #self.t = 300 # Temperature in Kelvin
+        #self.kb = 0.000086 # Boltzman constant
+        
+    def function(self, x):
+        warnings.simplefilter("ignore")
+        kb = 0.000086
+        t = 300
+        C = self.C * 20
+        f = ((self.B * x) / ((C-x**2)**2 + self.D*x**2)
+        * 1/(np.exp((self.Eg - x)/(t * kb)) + 1))
+        
+        return f
+
     
 class MeasuredSpectrum(Spectrum):
     def __init__(self, filename):
@@ -106,9 +165,10 @@ class SyntheticSpectrum(Spectrum):
             y = np.array([component.function(x) for x in self.x])
             self.lineshape = np.add(self.lineshape,y)
             
-    def addComponent(self,component):
+    def addComponent(self,component, rebuild=True):
         self.components += [component]
-        self.rebuild()   
+        if rebuild == True:
+            self.rebuild()
         
     def remove_component(self, comp_idx):
         del self.components[comp_idx]
@@ -281,8 +341,190 @@ class SimulatedSpectrum(Spectrum):
             self.normalize()
         self.fwhm = fwhm    
         
-class Figure:
+        
+    def scatter_in_gas(self, filetype = 'json',
+                       label = 'He', distance = 0.8, pressure = 1.0):
+        """
+        This method is for the case of scattering though a gas phase/film.
+        First the convolved spectra are dotted with the factors vector to
+        scale all the inelastic scatterd spectra by the Poisson and angular
+        factors. Then the elastically scattered and non-scattered spectra
+        are scaled by their respective factors.
 
+        Parameters
+        ----------
+        label : str
+            DESCRIPTION. The default is 'He'.
+        distance : float
+            Distance in mm. The default is '0.8'.
+        pressure : float
+            Pressure in mbar. The default is 1.
+
+        Returns
+        -------
+        None.
+
+        """
+        if label in ['He', 'H2', 'N2', 'O2']:
+            medium = ScatteringMedium(label)
+            medium.scatterer.loss_function.step = self.step
+            medium.pressure = pressure
+            medium.distance = distance
+            medium.convert_distance()
+            medium.calcDensity()   
+            
+            if filetype == 'json':
+                medium.scatterer.build_loss_from_json()
+                loss_fn = medium.scatterer.loss_function
+                loss_x = loss_fn.x
+                loss_lineshape = loss_fn.lineshape                     
+                        
+            elif filetype == 'csv':
+                root_dir = r'C:\Users\pielsticker\Lukas\MPI-CEC\Projects\xpsdeeplearning\data'
+                #os.path.abspath(__file__)).partition(
+                #    'augmentation')[0] + '\\data'
+                data_dir = os.path.join(root_dir,
+                                          label + ' loss function.csv')
+                loss_x = []
+                loss_lineshape = []
+                
+                with open(data_dir, mode='r') as csv_file:
+                    reader = csv.DictReader(csv_file, fieldnames = ['x','y'])
+                    for row in reader:
+                        d = dict(row)
+                        loss_x.append(float(d['x']))
+                        loss_lineshape.append(float(d['y']))
+                        
+                loss_x = np.array(loss_x)
+                loss_lineshape = np.array(loss_lineshape)
+                
+                medium.scatterer.inelastic_xsect = 0.08
+                medium.scatterer.norm_factor = 1
+            
+            if np.sum(loss_lineshape) != 0:
+                loss_lineshape /= np.sum(loss_lineshape)  
+                               
+# =============================================================================
+#             figure = Figure(loss_x, loss_lineshape, 
+#                             title = 'Loss function for ' + label)
+#             figure.ax.set_xlim(left=np.min(loss_x), right=100)                    
+# =============================================================================
+                
+            y = self.lineshape
+    
+            min_value = np.min(y)
+            y -= min_value
+           
+            #loss = np.flip(loss_lineshape)
+            loss = loss_lineshape
+
+            ''' Pad the imput spectrum with zeros so that it has the same
+            dimensions as the loss function.
+            '''
+            input_spec_padded = np.pad(y, (loss.shape[0]-y.shape[0],0),
+                                       'constant', constant_values = 0)
+            
+            ''' Take Fourier transform of the input spectrum.
+            '''
+            fft_input_spec = np.fft.fft(input_spec_padded)
+            ''' 
+            Take the Fourier transform of the loss function.
+            '''
+            fft_loss = np.fft.fft(loss)
+            poisson_factor = medium.distance * medium.scatterer.inelastic_xsect * medium.density
+            norm_factor = medium.scatterer.norm_factor
+            total_factor = poisson_factor * norm_factor       
+            
+            exp_factor = np.exp(-1 * poisson_factor)
+            
+            fft_total = exp_factor * np.multiply(fft_input_spec, 
+                                         np.exp(total_factor*fft_loss))
+                   
+            ''' Take the inverse Fourier transform of the convolved spectrum.
+            '''
+            total = np.real(np.fft.ifft(fft_total)[-len(y):])
+            result = total + min_value  
+
+            self.lineshape = result
+            self.normalize()
+            self.scatterer = label
+            self.pressure = pressure
+            self.distance = distance
+
+        elif label == None:
+            pass
+        else:
+            print('Please enter a valid scatterer label!')
+ 
+        
+class Scatterer():
+    def __init__(self, label):
+        self.label = label    
+        self.loss_function = SyntheticSpectrum(0,600,0.1, label = 'loss_fn')
+        
+        self.gas_diameter = 0.2 #In nanometers
+        self.gas_cross_section = np.pi * (self.gas_diameter / 2)**2
+        self.inelastic_xsect = 0.01 # in units of nm^3
+        self.norm_factor = 1 
+        
+    def build_loss_from_json(self):
+        """ This function builds the spectrum of the loss function from the
+        components in a scatterrer loaded from JSON
+        """     
+        input_datapath = os.path.dirname(
+        os.path.abspath(__file__)).partition(
+            'augmentation')[0] + '\\data\\scatterers.json'
+                
+        #input_datapath = r'C:\Users\pielsticker\Lukas\MPI-CEC\Projects\xpsdeeplearning\data\scatterers.json'
+        
+        with open(input_datapath, 'r') as json_file:
+            test = json.load(json_file)
+        
+        scatterer_dict = test[self.label]
+        self.inelastic_xsect = scatterer_dict['inelastic_xsect']
+        self.norm_factor = scatterer_dict['norm_factor']  
+
+        for i in scatterer_dict['loss_function']:
+            if i['type'] == 'Gauss':
+                self.loss_function.addComponent(
+                        Gauss(i['params']['position'], i['params']['width'], 
+                        i['params']['intensity']), rebuild = False)
+            elif i['type'] == 'Lorentz':
+                self.loss_function.addComponent(
+                        Lorentz(i['params']['position'], i['params']['width'], 
+                        i['params']['intensity']), rebuild = False)
+            elif i['type'] == 'VacuumExcitation':
+                self.loss_function.addComponent(
+                        VacuumExcitation(
+                        i['params']['edge'], i['params']['fermi_width'], 
+                        i['params']['intensity'], i['params']['exponent']), 
+                        rebuild = False)
+            elif i['type'] == 'Tougaard':
+                self.loss_function.addComponent(
+                        Tougaard(
+                        i['params']['B'], i['params']['C'], 
+                        i['params']['D'], i['params']['Eg']), rebuild = False)
+        self.loss_function.rebuild()                          
+        
+class ScatteringMedium():
+    def __init__(self, label):
+        self.scatterer = Scatterer(label)
+        self.R = 8.314463E+25 # gas constant in units of nm^3.mbar.K^-1.mol^-1
+        self.avagadro = 6.022141E+23 # Avagadro's contant
+        self.T = 300 # temperature in Kelvin
+        self.pressure = 1 # In mbar
+        self.distance = 0.80 # In millimeters
+        self.calcDensity()
+
+        
+    def calcDensity(self):
+         # molecular density in units of particles per nm^3
+        self.density = self.pressure / (self.R * self.T) * self.avagadro 
+        
+    def convert_distance(self):
+        self.distance *= 1000000
+        
+class Figure:
     def __init__(self, x, y, title):
         self.x = x
         self.y = y
@@ -308,3 +550,22 @@ if __name__ == '__main__':
     
     fig = Figure(spec.x, spec.lineshape, title = label)
     begin_value = spec.lineshape[0]
+
+
+    label = 'He'
+    distance  = 1
+    pressure = 2
+    medium = ScatteringMedium(label)
+    medium.scatterer.step = 0.1
+    medium.calcDensity()
+    
+    medium.scatterer.build_loss_from_json()
+    loss_fn = medium.scatterer.loss_function
+    loss_x = loss_fn.x
+    loss_lineshape = loss_fn.lineshape
+    
+    loss_fn = medium.scatterer.loss_function
+    loss_lineshape = loss_fn.lineshape
+    
+    figure = Figure(loss_fn.x, loss_lineshape, title = 'loss function')
+    figure.ax.set_xlim(left=np.min(loss_fn.x),right=200)

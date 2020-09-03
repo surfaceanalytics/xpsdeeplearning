@@ -31,7 +31,7 @@ filename_basic = os.path.join(*[filepath,time_and_run_name])
 # Create multiple sets of similar spectra with the same settings
 for i in range(no_of_files):
     creator = Creator(no_of_simulations, input_filenames, single = False)
-    creator.run(broaden = True, x_shift = True, noise = True)
+    creator.run(broaden = False, x_shift = True, noise = True)
     creator.plot_random(1)
     filename = filename_basic + str(i)   
     #creator.upload_to_DB(filename, reduced = False)
@@ -62,7 +62,7 @@ filename_basic = os.path.join(*[filepath,time_and_run_name])
 # Create multiple sets of similar spectra with the same settings
 for i in range(no_of_files):
     creator = Creator(no_of_simulations, input_filenames, single = False)
-    creator.run(broaden = True, x_shift = True, noise = True)
+    creator.run(broaden = False, x_shift = True, noise = True)
     creator.plot_random(1)
     filename = filename_basic + str(i)   
     #creator.upload_to_DB(filename, reduced = False)
@@ -80,40 +80,40 @@ from json_to_hdf5 import to_hdf5
 
 t0 = time()
 output_datafolder = r'C:\Users\pielsticker\Simulations\\'
-output_file = output_datafolder + '20200723_iron_Mark_variable_linear_combination_no_broadening.h5'
-simulation_name = '20200723_iron_Mark_variable_linear_combination_no_broadening'
+output_file = output_datafolder + '20200727_iron_Mark_variable_linear_combination_no_broadening.h5'
+simulation_name = '20200727_iron_Mark_variable_linear_combination_no_broadening'
 no_of_files_per_load = 50
 
 to_hdf5(output_file, simulation_name, no_of_files_per_load)
 print('finished saving')
 
 with h5py.File(output_file, 'r') as hf:
-    size = hf['X'].shape
-    X_h5 = hf['X'][:4000,:,:]
-    y_h5 = hf['y'][:4000,:]
-    shiftx_h5 = hf['shiftx'][:4000,:]
-    noise_h5 = hf['noise'][:4000,:]
-    fwhm_h5 = hf['FWHM'][:4000,:]
+    size_mark = hf['X'].shape
+    X_h5_mark = hf['X'][:4000,:,:]
+    y_h5_mark = hf['y'][:4000,:]
+    shiftx_h5_mark = hf['shiftx'][:4000,:]
+    noise_h5_mark = hf['noise'][:4000,:]
+    fwhm_h5_mark = hf['FWHM'][:4000,:]
 
 t1 = time()
 runtimes['HDF5 Mark'] = calculate_runtime(t0,t1)
 
 t0 = time()
 output_datafolder = r'C:\Users\pielsticker\Simulations\\'
-output_file = output_datafolder + '20200723_iron_variable_linear_combination_no_broadening.h5'
-simulation_name = '20200723_iron_variable_linear_combination_no_broadening'
+output_file = output_datafolder + '20200727_iron_variable_linear_combination_no_broadening.h5'
+simulation_name = '20200727_iron_variable_linear_combination_no_broadening'
 no_of_files_per_load = 50
 
 to_hdf5(output_file, simulation_name, no_of_files_per_load)
 print('finished saving')
 
 with h5py.File(output_file, 'r') as hf:
-    size = hf['X'].shape
-    X_h5 = hf['X'][:4000,:,:]
-    y_h5 = hf['y'][:4000,:]
-    shiftx_h5 = hf['shiftx'][:4000,:]
-    noise_h5 = hf['noise'][:4000,:]
-    fwhm_h5 = hf['FWHM'][:4000,:]
+    size_lukas = hf['X'].shape
+    X_h5_lukas = hf['X'][:4000,:,:]
+    y_h5_lukas = hf['y'][:4000,:]
+    shiftx_h5_lukas = hf['shiftx'][:4000,:]
+    noise_h5_lukas = hf['noise'][:4000,:]
+    fwhm_h5_lukas = hf['FWHM'][:4000,:]
 
 t1 = time()
 runtimes['HDF5 Lukas'] = calculate_runtime(t0,t1)    
@@ -123,7 +123,6 @@ from sklearn.utils import shuffle
 
 def load_data(filenames):
     input_datafolder = r'C:\Users\pielsticker\Simulations'
-    no_of_examples = 0
     for filename in filenames[:1]:
         input_filepath = os.path.join(input_datafolder,filename)
         with h5py.File(input_filepath, 'r') as hf:
@@ -155,15 +154,15 @@ def load_data(filenames):
     return X, y, shiftx, noise, fwhm, y_one, y_two
 
 
-filenames = ['20200723_iron_Mark_variable_linear_combination_no_broadening.h5',
-             '20200723_iron_variable_linear_combination_no_broadening.h5']
+filenames = ['20200727_iron_Mark_variable_linear_combination_no_broadening.h5',
+             '20200727_iron_variable_linear_combination_no_broadening.h5']
 
 t0 = time()
 X, y, shiftx, noise, fwhm, y_one, y_two = load_data(filenames)
 X_shuff, y_shuff, shiftx_shuff, noise_shuff, fwhm_shuff = \
     shuffle(X, y, shiftx, noise, fwhm)
 
-output_file = r'C:\Users\pielsticker\Simulations\20200723_iron_Mark_variable_linear_combination_no_broadening_combined_data.h5'   
+output_file = r'C:\Users\pielsticker\Simulations\20200727_iron_variable_linear_combination_no_broadening_combined_data.h5'   
 
 with h5py.File(output_file, 'w') as hf:
     hf.create_dataset('X', data = X_shuff,
@@ -188,13 +187,13 @@ with h5py.File(output_file, 'w') as hf:
     print('fwhm written')
     
 with h5py.File(output_file, 'r') as hf:
-    size = hf['X'].shape
-    X_h5_one = hf['X'][:100,:,:]
-    y_h5_one = hf['y'][:100,:]
-    shiftx_h5_one = hf['shiftx'][:100]
-    noise_h5_one = hf['noise'][:100]
-    fwhm_h5_one = hf['FWHM'][:100]
-print(size)    
+    size_out = hf['X'].shape
+    X_h5_out = hf['X'][:100,:,:]
+    y_h5_out= hf['y'][:100,:]
+    shiftx_h5_out = hf['shiftx'][:100]
+    noise_h5_out = hf['noise'][:100]
+    fwhm_h5_out = hf['FWHM'][:100]
+print(size_out)    
 
 t1 = time()
 runtimes['Combination of HDF5 files'] = calculate_runtime(t0,t1)    
