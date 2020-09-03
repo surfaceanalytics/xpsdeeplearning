@@ -2,7 +2,7 @@
 """
 Created on Mon Jun 15 16:55:44 2020
 
-@author: pielstickerf
+@author: pielsticker
 """
 
 import os
@@ -864,7 +864,7 @@ class ClassifierMultiple(Classifier):
  
         for i in range(data.shape[0]):
             ax.bar(x + i*0.25, data[i], align='edge', width = 0.2)
-        plt.title('Class distribution')
+        plt.title('Average distribution')
         plt.legend(self.label_values)   
         plt.xticks(ticks=x+.5, labels=list(self.class_distribution.keys()))
         plt.show()
