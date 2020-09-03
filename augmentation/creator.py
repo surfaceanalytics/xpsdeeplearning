@@ -185,9 +185,9 @@ class Creator():
         if scatter == False:
             self.augmentation_matrix[:,-3] = None
             # Distance
-            self.augmentation_matrix[:,-2] = None 
+            self.augmentation_matrix[:,-2] = 0 
             # Pressure
-            self.augmentation_matrix[:,-1] = None
+            self.augmentation_matrix[:,-1] = 0
             
 
         dict_list = []
@@ -208,38 +208,24 @@ class Creator():
             
             distance = self.augmentation_matrix[i][-2]
             pressure = self.augmentation_matrix[i][-1]
+            
+            try:
+                scatterer_label = scatterers[str(int(scatterer_id))]
+            except ValueError:
+                scatterer_label = None
                        
             self.sim.change_spectrum(
                 fwhm = fwhm,
                 shift_x = shift_x,
                 signal_to_noise = signal_to_noise,
                 scatterer = {
-                    'label': scatterers[str(int(scatterer_id))],
+                    'label': scatterer_label,
                     'distance' : distance,
                     'pressure' : pressure})
             
             d = self._dict_from_one_simulation(self.sim)
             dict_list.append(d)   
             print('Simulation: ' + str(i+1) + '/' + str(self.no_of_simulations))
-# =============================================================================
-#         for i in range(self.no_of_simulations):
-#             sim = Simulation(self.input_spectra)
-#             scaling_params = \
-#                 self.augmentation_matrix[i][0:self.no_of_linear_params]
-#             sim.combine_linear(scaling_params = scaling_params)  
-# 
-#             fwhm = self.augmentation_matrix[i][-3] 
-#             shift_x = self.augmentation_matrix[i][-2] 
-#             signal_to_noise = self.augmentation_matrix[i][-1] 
-#             
-#             sim.change_spectrum(fwhm = fwhm,
-#                                 shift_x = shift_x,
-#                                 signal_to_noise = signal_to_noise)
-#             
-#             d = self.dict_from_one_simulation(sim)
-#             dict_list.append(d)   
-#             print('Simulation: ' + str(i+1) + '/' + str(self.no_of_simulations))
-# =============================================================================
             
         self.df = pd.DataFrame(dict_list)
         self.reduced_df = self.df[['x', 'y','label']]
@@ -328,8 +314,9 @@ class Creator():
             scatter_text = '\n' 
             if row['scatterer'] != None:
                 scatter_text += 'Scatterer: ' + str(row['scatterer']) + '\n'      
+                scatter_text += 'Pressure: ' + str(row['pressure']) + ' mbar' + '\n'  
                 scatter_text += 'Distance: ' + str(row['distance']) + ' mm' + '\n'   
-                scatter_text += 'Pressure: ' + str(row['pressure']) + ' mbar' + '\n'   
+                 
             else:
                 scatter_text += 'Scattering: none' + '\n'
             
@@ -566,8 +553,8 @@ if __name__ == "__main__":
     no_of_simulations = 20
     input_filenames =  ['Fe_metal_Mark','FeO_Mark','Fe3O4_Mark','Fe2O3_Mark']
     creator = Creator(no_of_simulations, input_filenames, single = False)
-    creator.run(broaden = False, x_shift = True, noise = True, scatter = True)
-    creator.plot_random(12)
+    creator.run(broaden = False, x_shift = True, noise = True, scatter = False)
+    creator.plot_random(1)
     datafolder = r'C:\Users\pielsticker\Simulations\\'
     filepath = datafolder + 'Multiple_species_gas_phase_20200902'
     #creator.upload_to_DB(filename, reduced = True)
