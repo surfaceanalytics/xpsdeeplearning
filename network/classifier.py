@@ -477,7 +477,7 @@ class Classifier():
             'epochs_trained' : self._count_epochs_trained(),
             'batch_size' : self.batch_size,
             'class_distribution' : self.check_class_distribution(),
-            'loss' : type(model.loss).__name__,
+            'loss' : type(self.model.loss).__name__,
             'optimizer' : self.model.optimizer._name,
             'learning rate' : str(K.eval(self.model.optimizer.lr)),
             'Labels': self.label_values,
