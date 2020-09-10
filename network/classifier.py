@@ -773,6 +773,7 @@ class ClassifierSingle(Classifier):
                                    transform = axs[row, col].transAxes,
                                    fontsize = 12) 
             else:
+                full_text += loss_text
                 axs[row, col].text(0.025, 0.95, label + real_y + aug ,
                                    horizontalalignment='left',
                                    verticalalignment='top',
@@ -969,108 +970,83 @@ class ClassifierMultiple(Classifier):
                             wspace = 0.2, hspace = 0.2)
     
         for i in range(no_of_spectra):
-            x = np.arange(694, 750.05, 0.05)
+            energies = np.arange(694, 750.05, 0.05)
 
             if dataset == 'train':
-                r = np.random.randint(0, self.X_train.shape[0])
-                y = self.X_train[r]
-                label = str(np.around(self.y_train[r], decimals = 3))
-                real = ('Real: ' + label + '\n')
-                full_text = real
-                full_text_pred = real
-                
-                if with_prediction == True:
-                    # Round prediction and sum to 1
-                    tmp_array = np.around(self.pred_train[r], decimals = 4)
-                    row_sums = tmp_array.sum()
-                    tmp_array = tmp_array / row_sums
-                    tmp_array = np.around(tmp_array, decimals = 3)    
-                    pred = ('Prediction: ' +\
-                            str(list(tmp_array)) + '\n')
-                    full_text_pred += pred
-                            
-                try:
-                    aug = self._write_aug_text(dataset = dataset, index = r)
-                    full_text += aug
-                    full_text_pred += aug
-                except AttributeError:
-                    pass
-                try:
-                    name = self._write_measured_text(dataset = dataset, index = r)
-                    full_text += name
-                    full_text_pred += name
-                except AttributeError:
-                    pass
-            
-            elif dataset == 'val':
-                r = np.random.randint(0, self.X_val.shape[0])
-                y = self.X_val[r]
-                label  = self.y_val[r]
-                real = ('Real: ' + label + '\n')
-                full_text = real
-                
-                try:
-                    aug = self._write_aug_text(dataset = dataset, index = r)
-                    full_text += aug
-                except AttributeError:
-                    pass
-                try:
-                    name = self._write_measured_text(dataset = dataset, index = r)
-                    full_text += name
-                except AttributeError:
-                    pass
-                
-            elif dataset == 'test':
-                r = np.random.randint(0, self.X_test.shape[0])
-                y = self.X_test[r]
-                label = str(np.around(self.y_test[r], decimals = 3))
-                real = ('Real: ' +  label + '\n')
-                full_text = real
-                full_text_pred = real
-                
-                if with_prediction == True:
-                    # Round prediction and sum to 1
-                    tmp_array = np.around(self.pred_test[r], decimals = 4)
-                    row_sums = tmp_array.sum()
-                    tmp_array = tmp_array / row_sums
-                    tmp_array = np.around(tmp_array, decimals = 3)    
-                    pred = ('Prediction: ' +\
-                            str(list(tmp_array)) + '\n')
-                    full_text_pred += pred
+                X = self.X_train
+                y = self.y_train
+                if with_prediction:
+                    pred = self.pred_train
 
-                try:
-                    aug = self._write_aug_text(dataset = dataset, index = r)
-                    full_text += aug
-                    full_text_pred += aug
-                except AttributeError:
-                    pass
-                try:
-                    name = self._write_measured_text(dataset = dataset, index = r)
-                    full_text += name
-                    full_text_pred += name
-                except AttributeError:
-                    pass
+            elif dataset == 'val':
+                X = self.X_val
+                y = self.y_val
+
+            elif dataset == 'test':
+                X = self.X_test
+                y = self.y_test
+                if with_prediction:
+                    pred = self.pred_test
                 
+            r = np.random.randint(0, X.shape[0])
+            intensity = X[r]
+            label = str(np.around(y[r], decimals = 3))
+ 
+            full_text = ('Real: ' + label + '\n')
+            full_text_pred = full_text
+                
+            if with_prediction:
+                # Round prediction and sum to 1
+                tmp_array = np.around(pred[r], decimals = 4)
+                row_sums = tmp_array.sum()
+                tmp_array = tmp_array / row_sums
+                tmp_array = np.around(tmp_array, decimals = 3)    
+                pred_text = ('Prediction: ' +\
+                             str(list(tmp_array)) + '\n')
+                full_text_pred = full_text + pred_text
+                loss = self.model.loss
+                losses = [loss(y[i], pred[i]).numpy() \
+                          for i in range(y.shape[0])]
+                               
+                loss_text = ('Loss: ' + str(np.around(losses[r], decimals = 3)))
+                                               
+            try:
+                aug_text = self._write_aug_text(dataset = dataset, index = r)
+                full_text += aug_text
+                full_text_pred += aug_text
+            except AttributeError:
+                pass
+            try:
+                name_text = self._write_measured_text(dataset = dataset,
+                                                      index = r)
+                full_text += name_text
+                full_text_pred += name_text
+            except AttributeError:
+                pass
+                
+            if with_prediction:
+                full_text_pred += loss_text
+                            
             row, col = int(i/no_of_cols), i % no_of_cols
-            axs[row, col].plot(np.flip(x),y)
+            axs[row, col].plot(np.flip(energies),intensity)
             axs[row, col].invert_xaxis()
             axs[row, col].set_xlim(750.05,694)
             axs[row, col].set_xlabel('Binding energy (eV)')
             axs[row, col].set_ylabel('Intensity (arb. units)')         
 
             if with_prediction == False:
-                axs[row, col].text(0.025, 0.3, full_text,
+                axs[row, col].text(0.025, 0.4, full_text,
                                    horizontalalignment='left',
                                    verticalalignment='top',
                                    transform = axs[row, col].transAxes,
                                    fontsize = 12) 
             else:
-                axs[row, col].text(0.025, 0.35, full_text_pred,
+                axs[row, col].text(0.025, 0.4, full_text_pred,
                                    horizontalalignment='left',
                                    verticalalignment='top',
                                    transform = axs[row, col].transAxes,
-                                   fontsize = 12) 
-    
+                                   fontsize = 12)
+
     
     def _get_total_history(self):
         csv_file = os.path.join(self.log_dir,'log.csv')
@@ -1130,6 +1106,8 @@ class ClassifierMultiple(Classifier):
                 full_text += name
             except AttributeError:
                 pass
+            loss_text = ('Loss: ' + str(np.around(losses[index], decimals = 3)))
+            full_text += loss_text
 
             row, col = int(i/no_of_cols), i % no_of_cols
             axs[row, col].plot(np.flip(x),y)
@@ -1137,7 +1115,7 @@ class ClassifierMultiple(Classifier):
             axs[row, col].set_xlim(750.05,694)
             axs[row, col].set_xlabel('Binding energy (eV)')
             axs[row, col].set_ylabel('Intensity (arb. units)')                          
-            axs[row, col].text(0.025, 0.35, full_text,
+            axs[row, col].text(0.025, 0.4, full_text,
                                horizontalalignment='left',
                                verticalalignment='top',
                                transform = axs[row, col].transAxes,
