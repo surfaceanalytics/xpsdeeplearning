@@ -553,8 +553,8 @@ if __name__ == "__main__":
     no_of_simulations = 20
     input_filenames =  ['Fe_metal_Mark','FeO_Mark','Fe3O4_Mark','Fe2O3_Mark']
     creator = Creator(no_of_simulations, input_filenames, single = False)
-    creator.run(broaden = False, x_shift = True, noise = True, scatter = False)
-    creator.plot_random(1)
+    creator.run(broaden = False, x_shift = True, noise = True, scatter = True)
+    creator.plot_random(5)
     datafolder = r'C:\Users\pielsticker\Simulations\\'
     filepath = datafolder + 'Multiple_species_gas_phase_20200902'
     #creator.upload_to_DB(filename, reduced = True)
@@ -569,6 +569,5 @@ if __name__ == "__main__":
     runtime = calculate_runtime(t0,t1)
     print(f'Runtime: {runtime}.')
     del(t0,t1,runtime,filepath)
-    
     #collections = check_db(filename)
     

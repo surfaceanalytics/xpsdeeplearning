@@ -460,7 +460,7 @@ class SimulatedSpectrum(Spectrum):
 class Scatterer():
     def __init__(self, label):
         self.label = label    
-        self.loss_function = SyntheticSpectrum(0,600,0.1, label = 'loss_fn')
+        self.loss_function = SyntheticSpectrum(0,200,0.1, label = 'loss_fn')
         
         self.gas_diameter = 0.2 #In nanometers
         self.gas_cross_section = np.pi * (self.gas_diameter / 2)**2

@@ -10,7 +10,7 @@ import datetime
 from creator import Creator, calculate_runtime, check_db
 
 no_of_simulations = 500
-no_of_files = 200#1000
+no_of_files = 500
 input_filenames =  ['Fe_metal','FeO',
                     'Fe3O4','Fe2O3']
 timestamp = datetime.datetime.now().strftime("%Y%m%d")
@@ -27,7 +27,7 @@ t0 = time()
 for i in range(no_of_files):
     creator = Creator(no_of_simulations, input_filenames, single = False )
     creator.run(broaden = False, x_shift = True, noise = True, scatter = True)
-    creator.plot_random(1)
+    creator.plot_random(5)
     filename = filename_basic + str(i)   
     #creator.upload_to_DB(filename, reduced = False)
     #collections = check_db(filename)
