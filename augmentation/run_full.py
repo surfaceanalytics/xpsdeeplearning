@@ -3,7 +3,23 @@
 Created on Mon May 18 14:30:00 2020
 
 @author: pielsticker
-"""
+
+This script is go trough all steps of simulating a training data set
+from a number of reference spectra.
+1) The spectra are simulated and stored in JSON files.
+   The no_of_simulations parameter is used to control the number of
+   spectra stored in each JSON file and the no_of_files parameter 
+   determines how many JSON files are created.
+   Total no. of spectra = no_of_simulations*no_of_files 
+   
+   In this case, two distinct data sets are created using different
+   references.
+2) Write to individual HDF5 files.
+3) Combine the datasets into one big, shuffled dataset.
+
+The time for each step is stored in the runtimes dictionary.    
+""" 
+
 from time import time
 import os
 import datetime
@@ -12,7 +28,7 @@ from creator import Creator, calculate_runtime
 
 runtimes = {}
 t0_full = time()
-#%%
+#%% Simulation of data using reference spectra
 no_of_simulations = 500
 no_of_files = 500
 
@@ -44,7 +60,7 @@ for i in range(no_of_files):
 
 t1 = time()
 runtimes['JSON Mark'] = calculate_runtime(t0,t1)
-#%%
+#%% Simulation of data using reference spectra
 no_of_simulations = 500
 no_of_files = 500
 
@@ -80,8 +96,8 @@ from json_to_hdf5 import to_hdf5
 
 t0 = time()
 output_datafolder = r'C:\Users\pielsticker\Simulations\\'
-output_file = output_datafolder + '20200905_iron_Mark_variable_linear_combination_gas_phase.h5'
-simulation_name = '20200905_iron_Mark_variable_linear_combination_gas_phase'
+output_file = output_datafolder + '20200909_iron_Mark_variable_linear_combination_gas_phase.h5'
+simulation_name = '20200909_iron_Mark_variable_linear_combination_gas_phase'
 no_of_files_per_load = 50
 
 to_hdf5(output_file, simulation_name, no_of_files_per_load)
@@ -100,8 +116,8 @@ runtimes['HDF5 Mark'] = calculate_runtime(t0,t1)
 
 t0 = time()
 output_datafolder = r'C:\Users\pielsticker\Simulations\\'
-output_file = output_datafolder + '20200903_iron_variable_linear_combination_gas_phase.h5'
-simulation_name = '20200903_iron_variable_linear_combination_gas_phase'
+output_file = output_datafolder + '20200910_iron_variable_linear_combination_gas_phase.h5'
+simulation_name = '20200910_iron_variable_linear_combination_gas_phase'
 no_of_files_per_load = 50
 
 to_hdf5(output_file, simulation_name, no_of_files_per_load)
@@ -157,21 +173,21 @@ def load_data(filenames):
             distance = np.concatenate((distance, distance_new), axis = 0)
             pressure = np.concatenate((pressure, pressure_new), axis = 0)
             
-            print('File {0} loaded'.format(filenames.index(filename)))
+            print('File {0} loaded'.format(filenames.index(filename)+1))
          
     return X, y, shiftx, noise, fwhm, scatterer, distance, pressure
 
 
-filenames = ['20200903_iron_variable_linear_combination_gas_phase.h5',
-             '20200905_iron_Mark_variable_linear_combination_gas_phase.h5']
+filenames = ['20200909_iron_Mark_variable_linear_combination_gas_phase.h5',
+             '20200909_iron_Mark_variable_linear_combination_gas_phase.h5']
 
 t0 = time()
 X, y, shiftx, noise, fwhm, scatterer, distance, pressure = load_data(filenames)
 X_shuff, y_shuff, shiftx_shuff, noise_shuff, fwhm_shuff,\
     scatterer_shuff, distance_shuff, pressure_shuff = \
-        shuffle(X, y, shiftx, noise, fwhm)
+        shuffle(X, y, shiftx, noise, fwhm, scatterer, distance, pressure)
 
-output_file = r'C:\Users\pielsticker\Simulations\20200905_iron_variable_linear_combination_gas_phase_combined_data.h5'   
+output_file = r'C:\Users\pielsticker\Simulations\20200910_iron_variable_linear_combination_gas_phase_combined_data.h5'   
 
 with h5py.File(output_file, 'w') as hf:
     hf.create_dataset('X', data = X_shuff,

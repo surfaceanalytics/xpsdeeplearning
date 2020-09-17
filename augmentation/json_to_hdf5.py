@@ -3,7 +3,11 @@
 Created on Thu May 28 12:03:47 2020
 
 @author: pielsticker
-"""
+
+This script is used to combine data that was simulated and subsequently
+stored in many JSON files and store it in one HDF5 file.
+""" 
+
 import os
 import numpy as np
 import json
@@ -15,6 +19,42 @@ from creator import calculate_runtime
 #%%
 
 def load_data_preprocess(input_datafolder,start,end):
+    """
+    This function loads data from JSON files in the input_datafolder.
+    Data from the files that start and end with the respective numbers
+    is loaded.
+
+    Parameters
+    ----------
+    input_datafolder : str
+        Folderpath for the JSON files.
+    start : int
+        First file to load.
+    end : int
+        Last file to load.
+
+    Returns
+    -------
+    X : arr
+        3D numpy array in the format (no_of_spectra, len of 1 spectrum, 1).
+    y : arr
+        One-hot encoded labels. Label values need to be given/changed
+        in the first line of this method.        
+    shiftx : arr
+        Array of float values of the shiftx values.
+    noise : arr
+        Array of float values of the noise values.
+    FWHM : arr
+        Array of float values of the fwhm values.
+    scatterer : arr
+        Array of float values describing each scatterer. Translation
+        has to be available.
+    distance : arr
+        Array of float values of the distance values.
+    pressure : pressure
+        Array of float values of the pressure values.
+
+    """
     label_values = ['Fe metal','FeO','Fe3O4','Fe2O3']
     
     filenames = next(os.walk(input_datafolder))[2]
@@ -70,6 +110,24 @@ def load_data_preprocess(input_datafolder,start,end):
         
     
 def _one_hot_encode(y, label_values):
+    """
+    One-hot encode the labels.
+    As an example, if the label of a spectrum is Fe metal = 1 and all 
+    oxides = 0, then the output will be np.array([1,0,0,0],1).
+
+    Parameters
+    ----------
+    y : list
+        List of label strings.
+    label_values : list
+        List of label values to encode.
+
+    Returns
+    -------
+    new_labels : arr
+        One-hot encoded labels.
+
+    """
     new_labels = np.zeros((len(y), len(label_values)))    
     
     for i,d in enumerate(y):
@@ -81,6 +139,25 @@ def _one_hot_encode(y, label_values):
 
 
 def to_hdf5(output_file, simulation_name, no_of_files_per_load):
+    """
+    Function to store all data in an input datafolder in an HDF5
+    file.
+
+    Parameters
+    ----------
+    output_file : str
+        Output file name.
+    simulation_name : str
+        Name of the simulation for which the HDF5 shall be created.
+    no_of_files_per_load : int
+        Number of files to load before the HDF5 file is updated.
+        Typically around 50.
+
+    Returns
+    -------
+    None.
+
+    """
     input_datafolder = r'C:\Users\pielsticker\Simulations\\' + \
         simulation_name + '\\'
     filenames = next(os.walk(input_datafolder))[2]
@@ -169,6 +246,7 @@ if __name__ == "__main__":
     runtimes['h5_save'] = calculate_runtime(t0,t1)
     print('finished saving')
     
+    # Test new file.
     t0 = time()    
     with h5py.File(output_file, 'r') as hf:
         size = hf['X'].shape
@@ -179,15 +257,3 @@ if __name__ == "__main__":
         fwhm_h5 = hf['FWHM'][:4000,:]
         t1 = time()
         runtimes['h5_load'] = calculate_runtime(t0,t1)
-        
-
-with h5py.File(output_file, 'r') as hf:
-    size = hf['X'].shape
-    X_h5 = hf['X'][:4000,:,:]
-    y_h5 = hf['y'][:4000,:]
-    shiftx_h5 = hf['shiftx'][:4000,:]
-    noise_h5 = hf['noise'][:4000,:]
-    fwhm_h5 = hf['FWHM'][:4000,:]
-    scatterer_h5 = hf['scatterer'][:4000,:]
-    distance_h5 = hf['distance'][:4000,:]
-    pressure_h5 = hf['pressure'][:4000,:]

@@ -9,17 +9,16 @@ import os
 import pandas as pd
 from time import time
 import matplotlib.pyplot as plt
-plt.ion()
-
 import pymongo # MongoDB upload
 
 
-from base_model import MeasuredSpectrum, Figure
+from base_model.spectra import MeasuredSpectrum
+from base_model.figures import Figure
 from simulation import Simulation
 import credentials
 from upload_to_db import connect_to_db
 
-
+#%%
 class Creator():
     """
     Class for simulating large amounts of XPS spectra based on a 

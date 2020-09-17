@@ -3,12 +3,21 @@
 Created on Mon May 18 14:30:00 2020
 
 @author: pielsticker
-"""
+
+This script is used to simulate many spectra using the Creator class
+and save the data to JSON files. The no_of_simulations parameter is 
+used to control the number of spectra stored in each JSON file and the
+no_of_files parameter determines how many JSON files are created.
+
+Total no. of spectra = no_of_simulations*no_of_files 
+""" 
+
 from time import time
 import os
 import datetime
 from creator import Creator, calculate_runtime, check_db
 
+#%% Parameters
 no_of_simulations = 500
 no_of_files = 500
 input_filenames =  ['Fe_metal','FeO',
@@ -19,7 +28,10 @@ time_and_run_name = timestamp + '_' + run_name
 
 datafolder = r'C:\Users\pielsticker\Simulations'
 filepath = os.path.join(*[datafolder,time_and_run_name])
-os.makedirs(filepath)
+try:
+    os.makedirs(filepath)
+except:
+    pass
 filename_basic = os.path.join(*[filepath,time_and_run_name])
 
 #%% Create multiple sets of similar spectra with the same settings

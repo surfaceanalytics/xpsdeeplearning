@@ -7,18 +7,23 @@ Created on Thu May  7 11:25:02 2020
 
 import numpy as np
 import os
-from base_model import MeasuredSpectrum, SimulatedSpectrum, Figure
+from base_model.spectra import (MeasuredSpectrum, SimulatedSpectrum, 
+                                SyntheticSpectrum)
+from base_model.figures import Figure
 
-
+#%%
 class Simulation():
     """
     Basic class for simulating a spectrum from input spectra.
-    The main methods are linear combination of the input spectra and
-    changes to the resolution, S/N ratio and x-axis of a spectrum.
+    The main methods are:
+        - Linear combination of the input spectra
+        - changes to the resolution, S/N ratio and x-axis of a spectrum
+          as well as simulation of gas phase scattering
+        - Plotting of the input and the simulated spectrum
     """
     def __init__(self, input_spectra):  
         """
-        Initialize the input spectra (a list) and and empty 
+        Initialize the input spectra (a list) and an empty 
         SimulatedSpectrum for the output. The x-range for the output
         spectrum is originally the same as the first input spectrum.
 
@@ -101,7 +106,7 @@ class Simulation():
                print('Simulated spectrum was not changed!') 
 
 
-    def change_spectrum(self, spectrum = None, **kwargs, ):
+    def change_spectrum(self, spectrum = None, **kwargs): 
         """
         Parameters
         ----------
@@ -111,10 +116,10 @@ class Simulation():
             already created using a linear combination. 
             If spectrum == None,then the current output spectrum is
             changed. The default is None.
-        **kwargs : str
+        **kwargs :
             resolution: int
                 To perform a convolution of the spectrum with a
-                gaussian with FWHM = resolution/mean(x) where x is the 
+                Gaussian with FWHM = resolution/mean(x) where x is the 
                 x-axis of the spectrum.
             signal_to_noise: int
                 To add poisson-distributed noise at to the spectrum. 
@@ -122,6 +127,12 @@ class Simulation():
                 resulting spectrum.
             shift_x: int
                 To shift the spectrum by some eV.
+            scatterer: dict
+                To simulate scattering in a scattering medium defined 
+                in the dictionary of the format {'label' : str,
+                                                 'distance' : float,
+                                                 'pressure' : float}.
+                'label' is the name of the scatterer, i.e. 'H2' or 'N2.'
             
         Returns
         -------
@@ -172,13 +183,13 @@ class Simulation():
 
     def plot_simulation(self, plot_inputs = False):   
         """
-        Creates Figure objects for the output pectrum and (optionally)
+        Creates Figure objects for the output spectrum and (optionally)
         for the input spectra.
 
         Parameters
         ----------
         plot_inputs : bool, optional
-            If plot_inputs == True, the input spectra are also plotted.
+            If plot_inputs, the input spectra are also plotted.
             Otherwise, only the output spectrum is plotted.
             The default is False.
 
@@ -213,25 +224,16 @@ if __name__ == '__main__':
     for label in labels:
         filename = datapath + '\\' + label + '.txt'
         input_spectra += [MeasuredSpectrum(filename)]
-        
-    del(datapath,label,labels,filename)
-  
+         
     sim = Simulation(input_spectra)
     
-    #sim.combine_linear(scaling_params = [0.4,0.4,0.1,0.1])    
-    sim.combine_linear(scaling_params = [0.8,0.2,0.0,0.0]) 
+    sim.combine_linear(scaling_params = [0.4,0.4,0.1,0.1])    
     sim.change_spectrum(shift_x = 5,
                         signal_to_noise = 150,
                         fwhm = 1050,
-                        scatterer = {'label': 'He',
+                        scatterer = {'label': 'O2',
                                      'distance' : 0.2,
                                      'pressure' : 12.0})
-    
     print('Linear combination parameters: ' + str(sim.output_spectrum.label))
     sim.plot_simulation(plot_inputs = False)
-    
-
-
-
-
 

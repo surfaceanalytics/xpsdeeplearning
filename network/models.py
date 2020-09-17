@@ -15,8 +15,41 @@ from tensorflow.keras.layers import BatchNormalization, LayerNormalization
 
 #%%
 class EmptyModel(Model):
+    """
+    Base Model class to be used in the Classifier class of the 
+    classifier module.
+    """
     def __init__(self, inputs, outputs, inputshape,
                  num_classes, no_of_inputs = 1, name = 'New_Model'):
+        """
+        Aside from the inputs and outputs for the instantion of the 
+        Model class from Keras, the EmptyModel class also gets as 
+        paramters the input shape of the data, the no. of classes
+        of the labels as well as how many times the input shall be 
+        used.
+
+        Parameters
+        ----------
+        inputs : keras.Input object or list of keras.Input objects.
+            Inputs for the instantion of the Model class from Keras.
+        outputs : Outputs of the last layer.
+            Outputs for the instantion of the Model class from Keras.
+        inputshape : arr
+            Shape of the features of the training data set.
+        num_classes : arr
+            Shape of the labels of the training data set.
+        no_of_inputs : int, optional
+            Number of times the input shall be used in the Model.
+            The default is 1.
+        name : str, optional
+            Name of the model.
+            The default is 'New_Model'.
+
+        Returns
+        -------
+        None.
+
+        """
         self.inputshape = inputshape
         self.num_classes = num_classes
         self.no_of_inputs = no_of_inputs
@@ -27,6 +60,16 @@ class EmptyModel(Model):
                                          name = name)
         
     def get_config(self):
+        """
+        For serialization, all input paramters of the model are added to
+        the get_config method from the keras.Model class.
+
+        Returns
+        -------
+        config : dict
+            Configuration of the model.
+
+        """
         # For serialization with 'custom_objects'
         config = super(EmptyModel, self).get_config()
         config['inputshape'] = self.inputshape
@@ -37,6 +80,10 @@ class EmptyModel(Model):
 
     
 class CustomSimpleCNN(EmptyModel):
+    """
+    A CNN with three convolutional layers, droput, and two
+    fully-connected layers at the end.
+    """
     def __init__(self, inputshape, num_classes):
         no_of_inputs = 1
 
@@ -102,6 +149,13 @@ class CustomSimpleCNN(EmptyModel):
 # =============================================================================
 
 class CustomCNN(EmptyModel):
+    """
+    A CNN with three convolutional layers of different kernel size at 
+    the beginning. Works well for learning across scales.
+    
+    This is to be used for classification -> softmax activation in the
+    last layer
+    """
     def __init__(self, inputshape, num_classes):      
         input_1 = Input(shape = inputshape)
                 
@@ -134,6 +188,13 @@ class CustomCNN(EmptyModel):
       
         
 class CustomCNNMultiple(EmptyModel):
+    """
+    A CNN with three convolutional layers of different kernel size at 
+    the beginning. Works well for learning across scales.
+    
+    This is to be used for regression on all labels. -> sigmoid 
+    activation in the last layer.
+    """
     def __init__(self, inputshape, num_classes):      
         input_1 = Input(shape = inputshape)
                 
@@ -170,6 +231,9 @@ class CustomCNNMultiple(EmptyModel):
         
     
 class CustomMLP(EmptyModel):
+    """
+    A vanilla neural net with some hidden layers, but no convolutions.
+    """
     def __init__(self, inputshape, num_classes):
         no_of_inputs = 1
         
