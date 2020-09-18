@@ -34,9 +34,9 @@ class EmptyModel(Model):
             Inputs for the instantion of the Model class from Keras.
         outputs : Outputs of the last layer.
             Outputs for the instantion of the Model class from Keras.
-        inputshape : arr
+        inputshape : ndarray
             Shape of the features of the training data set.
-        num_classes : arr
+        num_classes : ndarray
             Shape of the labels of the training data set.
         no_of_inputs : int, optional
             Number of times the input shall be used in the Model.

@@ -63,8 +63,22 @@ x = ref_spectrum.x
 
     
 #%% For multiple fitted XPS spectra
-def _get_labels(): 
-    filepath = r'C:\Users\pielsticker\Desktop\Mixed iron spectra\peak fits.xlsx'     
+def _get_labels(filepath):
+    """
+    Takes the labels and names from the excel file in the filepath.
+    Parameters
+    ----------
+    filepath : str
+        Filepath of the excel file, has to be .xlsx.
+
+    Returns
+    -------
+    y : ndarray
+        2D array of labels.
+    names : ndarray
+        Names of the spectra.
+
+    """
     df = pd.read_excel(filepath)
     y = np.transpose(np.array([df['Fe metal'],
                                df['FeO'],
@@ -75,13 +89,39 @@ def _get_labels():
     return y, names
 
 def convert_all_spectra(input_datafolder, plot_all = True):
+    """
+    Takes all xy files of measured spectra in the input_datafolder and
+    extracts the features, labels and names. Resizes the spectra if 
+    needed.
+
+    Parameters
+    ----------
+    input_datafolder : str
+        Folder of the exported XPS spectra.
+    plot_all : bool, optional
+        If plot_all, all loadded spectra are plotted. The default is True.
+
+    Returns
+    -------
+    X : TYPE
+        DESCRIPTION.
+    y : TYPE
+        DESCRIPTION.
+    names : TYPE
+        DESCRIPTION.
+    energies : TYPE
+        DESCRIPTION.
+
+    """
     import warnings
     warnings.filterwarnings("ignore")
     filenames = next(os.walk(input_datafolder))[2]
     
     X = np.zeros((len(filenames),1121,1))
     
-    y, names = _get_labels()
+    label_filepath = r'C:\Users\pielsticker\Desktop\Mixed iron spectra\peak fits.xlsx'     
+
+    y, names = _get_labels(label_filepath)
     spectra = []
     energies = np.zeros((len(filenames),2))
     
@@ -102,11 +142,11 @@ def convert_all_spectra(input_datafolder, plot_all = True):
                 str(spectrum.label)
             Figure(spectrum.x, spectrum.lineshape, title = text)
         
-    return X, y, names, energies
+    return X, y, names
 
 # Load the data into numpy arrays and save to hdf5 file.
 input_datafolder = r'C:\Users\pielsticker\Desktop\Mixed iron spectra\exported'
-X, y, names, energies = convert_all_spectra(input_datafolder, plot_all = True)
+X, y, names = convert_all_spectra(input_datafolder, plot_all = True)
 output_file= r'C:\Users\pielsticker\Simulations\measured.h5'
   
 with h5py.File(output_file, 'w') as hf:

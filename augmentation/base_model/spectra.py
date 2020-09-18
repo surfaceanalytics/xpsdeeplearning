@@ -6,6 +6,7 @@ Created on Thu Feb 27 10:39:34 2020
 
 Basic definition of classes and peak shapes for simulating spectra.
 """
+
 import numpy as np
 import os
 import csv
@@ -21,7 +22,27 @@ except ImportError as e:
    
 #%% Basic classes.
 def safe_arange_with_edges(start, stop, step):
+    """
+    In order to avoid float point errors in the division by step.
+
+    Parameters
+    ----------
+    start : float
+        Smallest value.
+    stop : float
+        Biggest value.
+    step : float
+        Step size between points.
+
+    Returns
+    -------
+    ndarray
+        1D array with values in the interval (start, stop), 
+        incremented by step.
+
+    """
     return step * np.arange(start / step, (stop+step) / step)
+
 
 class Spectrum:
     """
@@ -40,7 +61,7 @@ class Spectrum:
         stop : float
             Biggest x value.
         step : float
-            Step size of the x array.
+            Step size between points.
         label : str
             Species label of the spectrum.
 
@@ -103,7 +124,6 @@ class Spectrum:
                                                 self.step))
 
 
-    
 class MeasuredSpectrum(Spectrum):
     """
     Class for loading a measured spectrum from a txt file.
@@ -159,7 +179,7 @@ class MeasuredSpectrum(Spectrum):
         -------
         label : dict
             Dictionary of the form {species: concentration}.
-        data : arr
+        data : ndarray
             2D numpy array with the x and y values from the file.
 
         """
@@ -167,7 +187,7 @@ class MeasuredSpectrum(Spectrum):
         with open(filepath,'r') as file:
             for line in file.readlines():
                 lines += [line]
-        # This takes the species given in the first line
+        # This takes the species given in the first line.
         species = str(lines[0]).split('\n')[0] 
         lines = lines[1:]
         lines = [[float(i) for i in line.split()] for line in lines]
@@ -200,11 +220,10 @@ class MeasuredSpectrum(Spectrum):
         None.
 
         """
-        
         self.start, self.stop, self.step = start, stop, step
         
         self._remove_outside_points(start, stop)
-        initial_shape = self.x.shape#self.lineshape.shape
+        initial_shape = self.x.shape
         self.update_range()
         factor = self.x.shape[0]/initial_shape[0]
 
@@ -258,14 +277,18 @@ class MeasuredSpectrum(Spectrum):
             
     def _extrapolate(self, no_of_points, side):
         """
-        Extrapolate the line shape using a new axis.
+        Extrapolate the lineshape on the given side by concatenating the 
+        lineshape with an array of 
 
         Parameters
         ----------
-        new_x : TYPE
-            DESCRIPTION.
-        side : TYPE
-            DESCRIPTION.
+        no_of_points : int
+            No of points by which to extend the lineshape.
+        side : str
+            If side == 'high', the lineshape is extended on its
+            high energy side.
+            If side == 'low', the lineshape is extended on its
+            low energy side.
 
         Returns
         -------
@@ -286,10 +309,17 @@ class MeasuredSpectrum(Spectrum):
         Interpolate the lineshape if the original lineshape has more points
         than the desired lineshape.
 
+        Parameters
+        ----------
+        factor : int
+            Ratio between shapes of old and desired lineshape.
+
         Returns
         -------
         None.
+
         """
+
         new_lineshape = np.zeros(self.x.shape[0])
 
         for i in range(self.lineshape.shape[0]):
@@ -311,9 +341,15 @@ class MeasuredSpectrum(Spectrum):
         Downsample the lineshape if the original lineshape has more points
         than the desired lineshape.
 
+        Parameters
+        ----------
+        factor : int
+            Ratio between shapes of desired and old lineshape.
+
         Returns
         -------
         None.
+
         """
         new_lineshape = np.zeros(self.x.shape[0])
 
@@ -359,9 +395,11 @@ class ReferenceSpectrum(MeasuredSpectrum):
             species = list(self.label.keys())[0]
             lines = [species + '\n']
             for i in range(len(self.x)):
-                lines.append(str('{:e}'.format(self.x[i])) + 
-                             ' ' + str('{:e}'.format(self.lineshape[i]))+ '\n')
+                lines.append(
+                    str('{:e}'.format(self.x[i])) + 
+                    ' ' + str('{:e}'.format(self.lineshape[i]))+ '\n')
             file.writelines(lines)
+
 
 class FittedSpectrum(MeasuredSpectrum):
     """
@@ -387,8 +425,8 @@ class FittedSpectrum(MeasuredSpectrum):
         -------
         label : dict
             Name of the spectrum given in the first row of the xy file.
-        data : arr
-            2D numpy array with the x and y values from the file.
+        data : ndarray
+            2D array with the x and y values from the file.
 
         """
         lines = []
@@ -432,7 +470,7 @@ class SyntheticSpectrum(Spectrum):
         None.
 
         """
-        super(SyntheticSpectrum, self).__init__(start,stop,step,label)
+        super(SyntheticSpectrum, self).__init__(start, stop, step, label)
         self.type = 'synthetic'
         self.components = []
     
@@ -451,7 +489,7 @@ class SyntheticSpectrum(Spectrum):
             y = np.array([component.function(x) for x in self.x])
             self.lineshape = np.add(self.lineshape,y)
             
-    def addComponent(self, component, rebuild=True):
+    def addComponent(self, component, rebuild = True):
         """
         Adding a Peak component to the spectrum. 
 
@@ -510,7 +548,7 @@ class SimulatedSpectrum(Spectrum):
     gas phase scattering.
     
     """
-    def __init__(self,start,stop,step,label):
+    def __init__(self, start, stop, step, label):
         """
         Initialize an x array using the start, stop, and step values.
         Set all change parameters to None.
@@ -531,7 +569,7 @@ class SimulatedSpectrum(Spectrum):
         None.
 
         """
-        Spectrum.__init__(self,start,stop,step,label)
+        super(SimulatedSpectrum, self).__init__(start, stop, step, label)
         self.type = 'simulated'
         self.shift_x = None
         self.signal_to_noise = None
@@ -544,6 +582,7 @@ class SimulatedSpectrum(Spectrum):
     def shift_horizontal(self, shift_x):
         """
         Shifts the output lineshape by some eV.
+        
         Parameters
         ----------
         shift_x : int
@@ -557,7 +596,7 @@ class SimulatedSpectrum(Spectrum):
         """
         b = np.nansum(self.lineshape) 
         
-        # The shift should not be bigger than 9 eV.
+        # The shift should not be bigger than +-9 eV.
         acceptable_values = [-9, 9]
         
         if shift_x == None:
@@ -586,8 +625,9 @@ class SimulatedSpectrum(Spectrum):
         
             self.shift_x = shift_x
             
-            # For normalization, take the sum of the original lineshape.
-            if b !=0:
+            # For normalization, take the sum of the original
+            # lineshape.
+            if b != 0:
                 self.lineshape /= b
             else:
                 print("Simulation was not successful.")
@@ -599,7 +639,7 @@ class SimulatedSpectrum(Spectrum):
     
     def add_noise(self, signal_to_noise):
         """
-        Adds noise from a Poisson distribution.
+        Adds noise from a Poisson distribution to the lineshape.
         
         Parameters
         ----------
@@ -632,7 +672,7 @@ class SimulatedSpectrum(Spectrum):
         will determine the mean wavelength and set the Full Width at
         Half Maximum (FWHM) of the Gaussian to
         (mean wavelength)/resolution. 
-    
+
         Parameters
         ----------
         resolution : int
@@ -640,21 +680,18 @@ class SimulatedSpectrum(Spectrum):
 
         Returns
         -------
-        Broadened spectrum : array
-            The input spectrum convolved with a Gaussian
-            kernel.
-        FWHM : float, optional
-            The Full Width at Half Maximum (FWHM) of the
-            used Gaussian kernel.
-        """      
+        None.
+
+        """
         if (resolution == 0 or resolution == None):
             fwhm = resolution
         else:
             fwhm = np.mean(self.x)/ float(resolution) 
             sigma = fwhm / (2.0 * np.sqrt(2.0 * np.log(2.0)))
         
-            # To preserve the position of spectral lines, the broadening
-            # function must be centered at N//2 - (1-N%2) = N//2 + N%2 - 1.
+            # To preserve the position of spectral lines, the 
+            # broadening function must be centered at 
+            # N//2 - (1-N%2) = N//2 + N%2 - 1.
             len_x = len(self.x)
             step = self.step
             gauss_x = (np.arange(
@@ -676,8 +713,8 @@ class SimulatedSpectrum(Spectrum):
                                 self.lineshape,
                                 np.ones(len_y) * self.lineshape[-1]))
         
-            # This performs the convolution of the initial lineshape with
-            # the Gaussian kernel.
+            # This performs the convolution of the initial lineshape
+            # with the Gaussian kernel.
             # Note: The convolution is performed in the Fourier space.
             result = fftconvolve(y,
                                  broadening_spectrum.lineshape,
@@ -688,23 +725,32 @@ class SimulatedSpectrum(Spectrum):
             self.normalize()
         self.fwhm = fwhm    
         
-    def scatter_in_gas(self, filetype = 'json',
-                       label = 'He', distance = 0.8, pressure = 1.0):
+    def scatter_in_gas(self,
+                       filetype = 'json',
+                       label = 'He',
+                       distance = 0.8,
+                       pressure = 1.0):
         """
-        This method is for the case of scattering though a gas phase/film.
-        First the convolved spectra are dotted with the factors vector to
-        scale all the inelastic scatterd spectra by the Poisson and angular
-        factors. Then the elastically scattered and non-scattered spectra
-        are scaled by their respective factors.
+        This method is for the case of scattering though a gas
+        phase/film. First the convolved spectra are dotted with the
+        factors vector to scale all the inelastic scatterd spectra by
+        the Poisson and angular factors. Then the elastically 
+        scattered and non-scattered spectra are scaled by their 
+        respective factors.        
 
         Parameters
         ----------
-        label : str
-            DESCRIPTION. The default is 'He'.
-        distance : float
-            Distance in mm. The default is '0.8'.
-        pressure : float
-            Pressure in mbar. The default is 1.
+        filetype : str, optional
+            Can be 'json' or 'csv. The default is 'json'.
+        label : str, optional
+            Label of the scatterer. Can be 'He','H2','N2' or 'default'.
+            The default is 'He'.
+        distance : float, optional
+            Distance (in mm) the electrons travel in the gas.
+            The default is 0.8.
+        pressure : float, optional
+            Pressure of the scattering medium in mbar.
+            The default is 1.0.
 
         Returns
         -------
@@ -735,29 +781,28 @@ class SimulatedSpectrum(Spectrum):
                 loss_fn = medium.scatterer.loss_function
                 loss_lineshape = loss_fn.lineshape                     
                         
-# =============================================================================
-#             elif filetype == 'csv':
-#                 root_dir = r'C:\Users\pielsticker\Lukas\MPI-CEC\Projects\xpsdeeplearning\data'
-#                 #os.path.abspath(__file__)).partition(
-#                 #    'augmentation')[0] + '\\data'
-#                 data_dir = os.path.join(root_dir,
-#                                           label + ' loss function.csv')
-#                 loss_x = []
-#                 loss_lineshape = []
-#                 
-#                 with open(data_dir, mode='r') as csv_file:
-#                     reader = csv.DictReader(csv_file, fieldnames = ['x','y'])
-#                     for row in reader:
-#                         d = dict(row)
-#                         loss_x.append(float(d['x']))
-#                         loss_lineshape.append(float(d['y']))
-#                         
-#                 loss_x = np.array(loss_x)
-#                 loss_lineshape = np.array(loss_lineshape)
-#                 
-#                 medium.scatterer.inelastic_xsect = 0.08
-#                 medium.scatterer.norm_factor = 1
-# =============================================================================
+            elif filetype == 'csv':
+                # Build the loss function using xy values in a csv
+                # file.
+                root_dir = os.path.abspath(__file__).partition(
+                    'augmentation')[0] + '\\data'
+                data_dir = os.path.join(root_dir,
+                                        label + ' loss function.csv')
+                loss_x = []
+                loss_lineshape = []
+                
+                with open(data_dir, mode='r') as csv_file:
+                    reader = csv.DictReader(csv_file, fieldnames = ['x','y'])
+                    for row in reader:
+                        d = dict(row)
+                        loss_x.append(float(d['x']))
+                        loss_lineshape.append(float(d['y']))
+                        
+                loss_x = np.array(loss_x)
+                loss_lineshape = np.array(loss_lineshape)
+                
+                medium.scatterer.inelastic_xsect = 0.08
+                medium.scatterer.norm_factor = 1
             
             if np.sum(loss_lineshape) != 0:
                 # Normalize the lineshape of the loss function.

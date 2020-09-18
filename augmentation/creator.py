@@ -58,8 +58,9 @@ class Creator():
             filename = input_datapath + '\\' + label + '.txt'
             self.input_spectra += [MeasuredSpectrum(filename)]
                 
-        # No. of parameter = no. of linear parameter + 3
-        # (one parameter each for resolution, shift_x, signal_to noise
+        # No. of parameter = no. of linear parameter + 6
+        # (one parameter each for resolution, shift_x, signal_to noise,
+        # scatterer, distance, pressure)
         self.no_of_linear_params = len(input_filenames) 
         no_of_params = self.no_of_linear_params + 6
         
@@ -67,6 +68,7 @@ class Creator():
                                              no_of_params))
         
         if single:
+            # If single, only one input spectrum is taken.
             self.create_matrix(single = True)
         else:
             self.create_matrix(single = False)
@@ -84,11 +86,18 @@ class Creator():
         parameters, the random numbers are integers drawn from specific
         intervals that create reasonable spectra.
 
+        Parameters
+        ----------
+        single : bool, optional
+            If single, only one input spectrum is taken.
+            The default is False.
+
         Returns
         -------
         None.
 
         """
+
         for i in range(self.no_of_simulations):
             if single == False:  
 # =============================================================================
@@ -163,12 +172,30 @@ class Creator():
             self.augmentation_matrix[i,-1] = np.random.randint(1,100)/10
   
                 
-    def run(self, broaden = True, x_shift = True,
-            noise = True, scatter = True):
+    def run(self,
+            broaden = True, 
+            x_shift = True,
+            noise = True,
+            scatter = True):
         """
         The artificial spectra and stare createad using the simulation
         class and the augmentation matrix. All data is then stored in 
         a dataframe.
+
+        Parameters
+        ----------
+        broaden : bool, optional
+            If bool, the spectra are artificially broadened.
+            The default is True.
+        x_shift : bool, optional
+            If x_shift, the spectra are shifted horizontally.
+            The default is True.
+        noise : bool, optional
+            If noise, artificial noise is added to the spectra.
+            The default is True.
+        scatter : bool, optional
+            If scatter, scattering through a gas phase is simulated.
+            The default is True.
 
         Returns
         -------
@@ -188,7 +215,6 @@ class Creator():
             # Pressure
             self.augmentation_matrix[:,-1] = 0
             
-
         dict_list = []
         for i in range(self.no_of_simulations):
             self.sim = Simulation(self.input_spectra)
@@ -200,6 +226,8 @@ class Creator():
             shift_x = self.augmentation_matrix[i][-5] 
             signal_to_noise = self.augmentation_matrix[i][-4] 
             scatterer_id = self.augmentation_matrix[i][-3]
+            # In order to assign a label, the scatterers are encoded
+            # by numbers.
             scatterers = {'0' : 'He',
                           '1' : 'H2', 
                           '2' : 'N2', 
@@ -224,7 +252,8 @@ class Creator():
             
             d = self._dict_from_one_simulation(self.sim)
             dict_list.append(d)   
-            print('Simulation: ' + str(i+1) + '/' + str(self.no_of_simulations))
+            print('Simulation: ' + str(i+1) + '/' +
+                  str(self.no_of_simulations))
             
         self.df = pd.DataFrame(dict_list)
         self.reduced_df = self.df[['x', 'y','label']]
@@ -312,14 +341,18 @@ class Creator():
             
             scatter_text = '\n' 
             if row['scatterer'] != None:
-                scatter_text += 'Scatterer: ' + str(row['scatterer']) + '\n'      
-                scatter_text += 'Pressure: ' + str(row['pressure']) + ' mbar' + '\n'  
-                scatter_text += 'Distance: ' + str(row['distance']) + ' mm' + '\n'   
+                scatter_text += ('Scatterer: ' + 
+                                 str(row['scatterer']) + '\n')  
+                scatter_text += ('Pressure: ' + 
+                                 str(row['pressure']) + ' mbar' + '\n')
+                scatter_text += ('Distance: ' + 
+                                 str(row['distance']) + ' mm' + '\n')
                  
             else:
                 scatter_text += 'Scattering: none' + '\n'
             
-            fig.ax.text(0.1, 0.5, linear_params_text + params_text + scatter_text,
+            fig.ax.text(0.1, 0.5,
+                        linear_params_text + params_text + scatter_text,
                         horizontalalignment='left',
                         verticalalignment='top',
                         transform = fig.ax.transAxes,
@@ -330,7 +363,7 @@ class Creator():
 
     def to_file(self, filepath, filetype, how = 'full'):
         """
-        Create file from the dataframe of simulated spectra
+        Create file from the dataframe of simulated spectra.
 
         Parameters
         ----------
@@ -365,6 +398,25 @@ class Creator():
 
 
     def _save_to_file(self, df, filename, filetype):
+        """
+        Helper method for saving a dataframe to a file.
+
+        Parameters
+        ----------
+        df : pandas.DataFrame
+            Dataframe with the simulated data.
+        filename : str
+            Filename of the new file.
+        filetype : str
+            If 'excel', save the data to an Excel file.
+            If 'json', save the data to a JSON file.
+            If 'excel', pickle the data and save it.
+
+        Returns
+        -------
+        None.
+
+        """
         if filetype == 'excel': 
             file = filename + '.xlsx'
             with pd.ExcelWriter(file) as writer:
@@ -392,7 +444,8 @@ class Creator():
             The name of the new collections.
             The default is None.
         reduced : bool, optional
-            DESCRIPTION. The default is True.
+            If reduced, only the  columns x, y, and label are saved.
+            The default is True.
 
         Returns
         -------
@@ -459,7 +512,8 @@ class Creator():
                 data['X'] = list(np.round(data['x'],decimals = 2))
                 data['y'] = list(data['y'])
                 db[collection_name].insert_one(data)
-                print('Upload: ' + str(i+1) + '/' + str(self.no_of_simulations))
+                print('Upload: ' + str(i+1) + '/' +
+                      str(self.no_of_simulations))
         
 
         
@@ -470,21 +524,23 @@ def calculate_runtime(start, end):
 
     Parameters
     ----------
-    start : float32
+    start : float
         Start time, generated by start = time().
-    end : float32
+    end : float
         Start time, generated by end = time().
 
     Returns
     -------
-    return_string : str
+    runtime : str
         Returns a string of the format hh:mm:ss:ff.
 
     """
     time = end - start    
     hours, rem = divmod(time, 3600)
     minutes, seconds = divmod(rem, 60)
-    runtime = "{:0>2}:{:0>2}:{:05.2f}".format(int(hours),int(minutes),seconds)
+    runtime = "{:0>2}:{:0>2}:{:05.2f}".format(int(hours),
+                                              int(minutes),
+                                              seconds)
     
     return runtime
 

@@ -128,6 +128,18 @@ def drop_db_collection(collection_name):
     
 
 def connect_to_db():
+    """
+    Establish database connection
+
+    Returns
+    -------
+    client : pymongo.MongoClient
+        A MongoClient object.
+    db : pymongo.pymongo.db
+        The db instance corresponding to the db_name in the
+        credentials.
+
+    """
     client = pymongo.MongoClient(credentials.connectionstring)
     db = client[credentials.db_name]
     
@@ -148,7 +160,7 @@ def calculate_runtime(start, end):
 
     Returns
     -------
-    return_string : str
+    runtime : str
         Returns a string of the format hh:mm:ss:ff.
 
     """

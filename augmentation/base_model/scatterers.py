@@ -47,7 +47,7 @@ class Scatterer():
         self.inelastic_xsect = 0.01 # in units of nm^3
         self.norm_factor = 1 
         
-    def build_loss_from_json(self, input_datapath = None):
+    def build_loss_from_json(self, input_datapath):
         """
         This function builds the spectrum of the loss function from the
         components in a scatterrer loaded from a json file.             
@@ -55,7 +55,7 @@ class Scatterer():
         Parameters
         ----------
         input_datapath : str
-            Filepath of the json file. The default is None.
+            Filepath of the json file.
 
         Returns
         -------
@@ -106,7 +106,7 @@ class ScatteringMedium():
         ----------
         label : str
             String value for choosing the scatterer.
-            Allowed values: 'default', 'He', 'H2', 'O2', 'N2', 
+            Allowed values: 'default', 'He', 'H2', 'O2', 'N2'
 
         Returns
         -------
@@ -114,9 +114,9 @@ class ScatteringMedium():
 
         """
         self.scatterer = Scatterer(label)
-        self.R = 8.314463E+25 # gas constant in units of nm^3.mbar.K^-1.mol^-1
-        self.avagadro = 6.022141E+23 # Avagadro's contant
-        self.T = 300 # temperature in Kelvin
+        self.R = 8.314463E+25 # Gas constant in nm^3.mbar.K^-1.mol^-1
+        self.avagadro = 6.022141E+23 # Avagadro contant
+        self.T = 300 # Temperature in Kelvin
         self.pressure = 1 # In mbar
         self.distance = 0.80 # In millimeters
         self.calcDensity()

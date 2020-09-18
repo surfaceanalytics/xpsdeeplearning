@@ -19,13 +19,40 @@ from docx.shared import Pt
 #%%                
                 
 class TrainingGraphs():
+    """
+    Class for producing graphs with the result of the training in Keras.
+    """
     def __init__(self, history, dir_name):
+        """
+        Takes a dictionary containing the results from training.
+
+        Parameters
+        ----------
+        history : dict
+            # A dictionary containing the results from the training of a
+            neural network in Keras.
+        dir_name : str
+            The name of the directory where the figures shall be saved.
+
+        Returns
+        -------
+        None.
+
+        """
         self.history = history
         
         root_dir = os.getcwd()
         self.fig_dir = os.path.join(*[root_dir, 'figures', dir_name])
        
     def plot_loss(self):
+        """
+        Plots the training and validation loss against the epochs.
+
+        Returns
+        -------
+        None.
+
+        """
         fig, ax = plt.subplots()
         ax.plot(self.history['loss'], linewidth = 3)
         ax.plot(self.history['val_loss'], linewidth = 3)
@@ -38,6 +65,14 @@ class TrainingGraphs():
         plt.show()
         
     def plot_accuracy(self):
+        """
+        Plots the training and validation accuracy against the epochs.
+
+        Returns
+        -------
+        None.
+
+        """
         fig, ax = plt.subplots()
         ax.plot(self.history['accuracy'], linewidth = 3)
         ax.plot(self.history['val_accuracy'], linewidth = 3)
@@ -52,7 +87,25 @@ class TrainingGraphs():
         
 
 class Report:
+    """
+    Report on the results of the training of a neural network in keras.
+    """
     def __init__(self, dir_name = ''):
+        """
+        Initialize a docx document and load the data from the 
+        hyperparamters file.
+
+        Parameters
+        ----------
+        dir_name : str, optional
+            The name of the directory where the report shall be saved.
+            The default is ''.
+
+        Returns
+        -------
+        None.
+
+        """
         self.document = Document()
         style = self.document.styles['Normal']
         font = style.font
@@ -75,9 +128,17 @@ class Report:
         
         
     def create_document(self):
+        """
+        Add data from the results to the report.
+
+        Returns
+        -------
+        None.
+
+        """
         self.document.add_heading('Training report', 0)
         
-        
+        # Add the names and basic information.
         self.document.add_heading('Data:', 1)
         
         name_table = self.document.add_table(
@@ -88,6 +149,7 @@ class Report:
             name_table.cell(j, 1).text = str(value)
             
         try:
+            # Add information about the class distribution in tables.
             self.document.add_heading('Distribution:', 1)  
         
             dist_table = self.document.add_table(
@@ -108,6 +170,8 @@ class Report:
             pass
         
         self.document.add_page_break()
+        
+        # Add information about the training parameters
         self.document.add_heading('Training parameters:', 1)
         
         train_table = self.document.add_table(
@@ -119,14 +183,15 @@ class Report:
             train_table.cell(j, 0).text = key + ':'
             train_table.cell(j, 1).text = str(value)
             
-            
+        # Add the model architecture    
         self.document.add_heading('Model architecture', 1)
-        
         
         par = self.document.add_paragraph(self.model_summary)
         par.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
         
         self.document.add_page_break()
+        
+        # Add loss and accuracy values.
         self.document.add_heading('Loss & accuracy', 1)
         
         loss_file = os.path.join(self.fig_dir,'loss.png')
@@ -141,7 +206,7 @@ class Report:
         except:
             pass
         
-        
+        # Add results on the test data.
         self.document.add_heading('Results', 1)
         
         result_table = self.document.add_table(rows = 2, 
@@ -162,6 +227,8 @@ class Report:
             pass
                 
         self.document.add_page_break()
+        
+        # Add predictions on random data.
         self.document.add_heading('Predictions for 5 random examples', 1)
         
         self.document.add_heading('Training data', 2)
@@ -212,6 +279,19 @@ class Report:
         
         
     def add_result_table(self, data_array):
+        """
+        Helper mehthod to store and display the results from training.
+
+        Parameters
+        ----------
+        data_array : ndarray
+            Array with the results from training.
+
+        Returns
+        -------
+        None.
+
+        """
         new_table = self.document.add_table(rows = data_array.shape[0]+1, 
                                            cols = data_array.shape[1]) 
         for row in new_table.rows:
@@ -237,6 +317,21 @@ class Report:
         
 
     def get_hyperparams(self):
+        """
+        Load the hyperparameters of the training from the JSON file.
+
+        Returns
+        -------
+        name_data : dict
+            Basic information about the experiment.
+        class_distribution : dict
+            Distribution of the class in the data sets.
+        train_data : dict
+            Information about the training parameters..
+        model_summary : dict
+            Summary of the model in str format.
+
+        """
         hyperparam_file_name = os.path.join(self.model_dir,
                                             'hyperparameters.json')
         with open(hyperparam_file_name) as json_file:
@@ -271,8 +366,18 @@ class Report:
         
             
     def get_results(self):
+        """
+        Load the results (test data, predictions, ...) from the shelf
+        file.
+
+        Returns
+        -------
+        data : dict
+            Dictionary of numpy arrays with the results..
+
+        """
         data = {}
-        file_name = os.path.join(self.model_dir,'vars')
+        file_name = os.path.join(self.model_dir, 'vars')
         with shelve.open(file_name) as shelf:
             for key in shelf:
                 data[key] = shelf[key]
@@ -281,6 +386,14 @@ class Report:
         
     
     def write(self):
+        """
+        Store the document in the logs folder.
+
+        Returns
+        -------
+        None.
+
+        """
         self.document.save(self.filename)
         print('Report saved!')
     

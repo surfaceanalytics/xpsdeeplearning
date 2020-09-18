@@ -51,7 +51,6 @@ class Simulation():
                                                  stop,
                                                  step,
                                                  label)         
-       
         
     def combine_linear(self, scaling_params):
         """
@@ -132,7 +131,8 @@ class Simulation():
                 in the dictionary of the format {'label' : str,
                                                  'distance' : float,
                                                  'pressure' : float}.
-                'label' is the name of the scatterer, i.e. 'H2' or 'N2.'
+                'label' is the name of the scatterer. 
+                 Allowed values: 'default', 'H2', 'He', 'O2', 'N2.'
             
         Returns
         -------

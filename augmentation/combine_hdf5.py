@@ -19,6 +19,33 @@ from sklearn.utils import shuffle
 #%%
 
 def load_data(filenames):
+    """
+    Load data from all HDF5 file and combine them into combined arrays.
+
+    Parameters
+    ----------
+    filenames : list
+        List of names of the files that are to be combined.
+
+    Returns
+    -------
+    X : ndarray
+        Features of the spectra.
+    y : ndarray
+        Labels of the spectra.
+    shiftx : ndarray
+        Energies of the horizontal shift of the spectra.
+    noise : ndarray
+        Signal-to-noise ratio of the artificially added noise.
+    fwhm : ndarray
+        Width for the artifical broadening.
+    scatterer : ndarray
+        Names of the scatterer. Encoded by integers.
+    distance : ndarray
+        Distances (in mm) the electrons travel in the scattering medium.
+    pressure : ndarray
+        Pressure of the scattering medium in mbar.
+    """
     input_datafolder = r'C:\Users\pielsticker\Simulations'
     for filename in filenames[:1]:
         input_filepath = os.path.join(input_datafolder,filename)
@@ -57,7 +84,7 @@ def load_data(filenames):
          
     return X, y, shiftx, noise, fwhm, scatterer, distance, pressure
 
-
+#%%
 filenames = ['20200708_iron_variable_linear_combination_500000.h5',
              '20200714_iron_Mark_variable_linear_combination.h5']
 
@@ -70,7 +97,7 @@ X_shuff, y_shuff, shiftx_shuff, noise_shuff, fwhm_shuff,\
         shuffle(X, y, shiftx, noise, fwhm, scatterer, distance, pressure)
 
 
-#%%    
+#%% Write to new file.
 output_file = r'C:\Users\pielsticker\Simulations\20200720_iron_variable_linear_combination_combined_data.h5'   
 
 with h5py.File(output_file, 'w') as hf:
