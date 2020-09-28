@@ -301,9 +301,7 @@ class Classifier():
         fig_file_name = os.path.join(self.fig_dir, 'model.png')
         plot_model(self.model, to_file = fig_file_name,
                    rankdir = "LR", show_shapes = True,
-                   show_layer_names = True,
-                   expand_nested = False,
-                   dpi = 150)
+                   show_layer_names = True)
         model_plot = plt.imread(fig_file_name)
         fig, ax = plt.subplots(figsize=(18, 2))
         ax.imshow(model_plot, interpolation='nearest')
@@ -369,7 +367,7 @@ class Classifier():
         X_val_data = []
         for i in range(self.model.no_of_inputs):
             X_train_data.append(self.X_train)
-            X_val_data.append(self.X_val) 
+            X_val_data.append(self.X_val)
 
         try:
             training = self.model.fit(X_train_data,
@@ -459,7 +457,10 @@ class Classifier():
             json_file.write(model_json)
         # serialize weights to HDF5
         self.model.save_weights(weights_file_name)
-        self.model.save(self.model_dir)
+        try:
+            self.model.save(self.model_dir)
+        except:
+            pass
         print("Saved model to disk.")
 
     

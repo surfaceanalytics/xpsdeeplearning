@@ -57,7 +57,7 @@ class TrainingGraphs():
         ax.plot(self.history['loss'], linewidth = 3)
         ax.plot(self.history['val_loss'], linewidth = 3)
         ax.set_title('Loss')
-        ax.set_ylabel('Cross Entropy Loss')
+        ax.set_ylabel('Loss')
         ax.set_xlabel('Epoch')
         ax.legend(['Train', 'Validation'])
         fig_name = os.path.join(self.fig_dir, 'loss.png')
