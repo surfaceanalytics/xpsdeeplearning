@@ -35,7 +35,33 @@ except:
 
 #%%
 class Classifier():
+    """
+    Class for training and testing a Keras model. Handles logging,
+    saving, and loading automatically based on the time and the name
+    of the loaded  data set.
+    """
     def __init__(self, time, data_name = '', labels = []):
+        """
+        Initialize folder strucutre and an empty model.
+
+        Parameters
+        ----------
+        time : str
+            Time when the experiment is initiated.
+        data_name : str, optional
+            Name of the data set. Should include sufficient information
+            for distinguishing runs on different data on the same day.
+            The default is ''.
+        labels : list
+            List of strings of the labels of the XPS spectra.
+            Example: 
+                labels = ['Fe metal', 'FeO', 'Fe3O4', 'Fe2O3']
+
+        Returns
+        -------
+        None.
+
+        """
         self.time = time
         self.data_name = data_name
         self.label_values = labels
@@ -81,6 +107,56 @@ class Classifier():
                 
     def load_data_preprocess(self, input_filepath, no_of_examples,
                              train_test_split, train_val_split):
+        """
+        Load the data from an HDF5 file and preprocess it into three 
+        datasets:
+
+        Parameters
+        ----------
+        input_filepath : str
+            Filepath of the .
+        no_of_examples : int
+            Number of samples from the input file.
+        train_test_split : float
+            Split percentage between train+val and test set.
+            Typically ~ 0.2.
+        train_val_split : float
+            Split percentage between train and val set.
+            Typically ~ 0.2.
+
+        Returns
+        -------
+        self.X_train : ndarray
+            Training features. Shape: 3d Numpy array.
+        self.X_val : ndarray
+            Validation features.
+        self.X_test : ndarray
+            Test features.
+        self.y_train : ndarray. Shape: 2d Numpy array.
+            Training labels.
+        self.y_val : ndarray
+            Validation labels.
+        self.y_test : ndarray
+            Test labels.
+            
+        Optionally, the method can also return more information about
+        the data set:
+            self.aug_values_train,
+            self.aug_values_val,
+            self.aug_values_test : dicts
+                Dictionary containing information about the parameters
+                used during the artificical constructuon of the dataset.
+                Keys : 'shiftx', 'noise', 'FWHM',
+                       'scatterer', 'distance', 'pressure' 
+                Split in the same way as the features and labels.
+                
+             self.names_train,
+             self.names_val, 
+             self.names_test : ndarrays
+                 Arrays of the spectra names associated  with each X,y
+                 pairing in the data set. Typical for measured spectra.   
+                 Split in the same way as the features and labels.
+        """
         self.input_filepath = input_filepath
         self.train_test_split = train_test_split
         self.train_val_split = train_val_split
@@ -89,17 +165,20 @@ class Classifier():
         
         with h5py.File(input_filepath, 'r') as hf:
             dataset_size = hf['X'].shape[0]
+            # Randomly choose a subset of the whole data set.
             r = np.random.randint(0, dataset_size-self.no_of_examples)
             X = hf['X'][r:r+self.no_of_examples, :, :]
             y = hf['y'][r:r+self.no_of_examples, :]
             
-        
+            # Check if the data set was artificially created.
             if 'shiftx' in hf.keys():
                 shift_x = hf['shiftx'][r:r+self.no_of_examples, :]
                 noise = hf['noise'][r:r+self.no_of_examples, :]
                 fwhm = hf['FWHM'][r:r+self.no_of_examples, :] 
                 
                 if 'scatterer' in hf.keys():
+                    # If the data set was artificially created, check 
+                    # if scattering in a gas phase was simulated.
                     scatterer = hf['scatterer'][r:r+self.no_of_examples, :]
                     distance = hf['distance'][r:r+self.no_of_examples, :]
                     pressure = hf['pressure'][r:r+self.no_of_examples, :]
@@ -109,6 +188,7 @@ class Classifier():
                             shuffle(X, y, shift_x, noise, fwhm,
                                     scatterer, distance, pressure) 
                             
+                    # Store all parameters of the simulations in a dict
                     aug_values = {'shift_x' : shift_x,
                                   'noise' : noise,
                                   'fwhm' : fwhm,
@@ -135,6 +215,8 @@ class Classifier():
                                     self.X, self.y,
                                     aug_values = self.aug_values)
                 
+                # Determine the shape of the training features, 
+                # needed for model building in Keras. 
                 self.input_shape = (self.X_train.shape[1], 1)
             
                 return self.X_train, self.X_val, self.X_test, \
@@ -142,11 +224,14 @@ class Classifier():
                        self.aug_values_train, self.aug_values_val, \
                        self.aug_values_test
                 
+            # Check if the data have associated names. Typical for
+            # measured spectra.
             elif 'names' in hf.keys():
                 names_load_list = [name[0].decode("utf-8") for name
                                    in hf['names'][r:r+self.no_of_examples, :]]
                 names = np.reshape(np.array(names_load_list),(-1,1))
                 
+                # Shuffle all arrays together
                 self.X, self.y, self.names = \
                         shuffle(X,y , names)
 
@@ -158,12 +243,16 @@ class Classifier():
                               self._split_test_val_train(
                                   self.X, self.y, names = self.names)
 
+                # Determine the shape of the training features, 
+                # needed for model building in Keras. 
                 self.input_shape = (self.X_train.shape[1], 1)
                                     
                 return self.X_train, self.X_val, self.X_test, \
                        self.y_train, self.y_val, self.y_test, \
                        self.names_train, self.names_val, self.names_test
             
+            # If there are neither augmentation values nor names in 
+            # the dataset, just load the X and y arrays.
             else:
                 # Shuffle X and y together
                 self.X, self.y = shuffle(X, y)
@@ -172,13 +261,37 @@ class Classifier():
                 self.y_train, self.y_val, self.y_test = \
                     self._split_test_val_train(self.X, self.y)
                 
+                # Determine the shape of the training features, 
+                # needed for model building in Keras. 
                 self.input_shape = (self.X_train.shape[1], 1)
             
                 return self.X_train, self.X_val, self.X_test, \
                        self.y_train, self.y_val, self.y_test
     
     
-    def _split_test_val_train(self, X, y, **kwargs):         
+    def _split_test_val_train(self, X, y, **kwargs):
+        """
+        Helper method for splitting multiple numpy arrays two times:
+        First, the whole data is split into the train+val and test sets
+        according to the attribute self.train_test_split. Secondly.
+        the train+val sets are further split into train and val sets 
+        according to the attribute self.train_val_split.
+
+        Parameters
+        ----------
+        X : ndarray
+            Features used as inputs for a Keras model. 3d array.
+        y : TYPE
+            Labels to be learned. 2d array.
+        **kwargs : str
+            Possible keywords:
+                'aug_values', 'names'.
+
+        Returns
+        -------
+        For each input array, three output arras are returned.
+        E.g. for input X, the returns are X_train, X_val, X_test.
+        """
         # First split into train+val and test sets
         no_of_train_val = int((1-self.train_test_split) *\
                               X.shape[0])
@@ -208,6 +321,7 @@ class Classifier():
               + ' labels (y)')
         
         if 'aug_values' in kwargs.keys():
+            # Also split the arrays in the 'aug_values' dictionary.
             aug_values = kwargs['aug_values']
             shift_x = aug_values['shift_x']
             noise = aug_values['noise']
@@ -238,6 +352,9 @@ class Classifier():
                               'fwhm' : fwhm_test}
             
             if 'scatterer' in aug_values.keys():
+                # Also split the scatterer, distance, and pressure
+                # arrays if they are present in the in the 'aug_values'
+                # dictionary.
                 scatterer = aug_values['scatterer']
                 distance = aug_values['distance']
                 pressure = aug_values['pressure']
@@ -274,6 +391,7 @@ class Classifier():
                    aug_values_test
         
         elif 'names' in kwargs.keys():
+            # Also split the names array.
             names = kwargs['names']
             names_train_val = names[:no_of_train_val,:]
             names_test = names[no_of_train_val:,:]
@@ -289,6 +407,17 @@ class Classifier():
     
     
     def summary(self):
+        """
+        Print a summary of the keras Model in self.model.
+        Save the string value of the summary to the self.model_summary
+        attribute.
+
+        Returns
+        -------
+        None.
+
+        """
+        
         print(self.model.summary())
         
         #Save model summary to a string
@@ -297,7 +426,16 @@ class Classifier():
         self.model_summary = "\n".join(stringlist)
 
 
-    def save_and_print_model_image(self):        
+    def save_and_print_model_image(self): 
+        """
+        Plot the model using the plot_model method from keras.
+        Save the image to a file in the figure directory.
+
+        Returns
+        -------
+        None.
+
+        """
         fig_file_name = os.path.join(self.fig_dir, 'model.png')
         plot_model(self.model, to_file = fig_file_name,
                    rankdir = "LR", show_shapes = True,
@@ -312,11 +450,55 @@ class Classifier():
     def train(self, checkpoint = True, early_stopping = False,
               tb_log = False, csv_log = True, epochs = 200, batch_size = 32,
               verbose = 1, new_learning_rate = None):
+        """
+        Train the keras model. Implements various callbacks during
+        the training. Also checks the csv_log for previous training and
+        appends accordingly.
+
+        Parameters
+        ----------
+        checkpoint : bool, optional
+            Determines if the model is saved when the val_loss is lowest.
+            The default is True.
+        early_stopping : bool, optional
+            If early_stopping, the training is stopped when the val_loss
+            increases for three straight epochs.
+            The default is False.
+        tb_log : bool, optional
+            Controls the logging in Tensorboard.
+            The default is False.
+        csv_log : bool, optional
+            If True, the data for each epoch is logged in a CSV file.
+            Needs to be True if later retraining is planned.
+            The default is True.
+        epochs : int, optional
+            Number of epochs to be trained. The default is 200.
+        batch_size : int, optional
+            Batch size for stochastic optimization.
+            The default is 32.
+        verbose : int, optional
+            Controls the verbose parameter of the keras output.
+            If 1, a progress log bar is shown in the output. 
+            The default is 1.
+        new_learning_rate : float, optional
+            In case of retraining, the learning rate of the optimizer can
+            be overwritten.
+            The default is None.
+
+        Returns
+        -------
+        self.history: dict
+            Dictionary containing the training results for each epoch.
+
+        """
         self.epochs = epochs
         self.batch_size = batch_size
+        # In case of refitting, get the new epoch start point.
         epochs_trained = self._count_epochs_trained()
         
         if new_learning_rate != None:
+            # Overwrite the previus optimizer learning rate using the
+            # backend of keras.
             K.set_value(self.model.optimizer.learning_rate,
                         new_learning_rate)
             print('New learning rate: ' +\
@@ -326,6 +508,7 @@ class Classifier():
         callbacks = []
         
         if checkpoint:
+            # Save the model if a new best validation_loss is achieved.
             model_file_name = self.model_dir
             checkpoint_callback = ModelCheckpoint(filepath = model_file_name,
                                                   monitor = 'val_loss',
@@ -337,6 +520,8 @@ class Classifier():
             callbacks.append(checkpoint_callback)
 
         if early_stopping:
+            # Stop the training if the validation loss increases for 
+            # three epochs.
             es_callback = EarlyStopping(monitor = 'val_loss',
                                         min_delta = 0, 
                                         patience = 3,
@@ -346,7 +531,9 @@ class Classifier():
                                         restore_best_weights = True)
             callbacks.append(es_callback)
         
-        if tb_log:            
+        if tb_log:
+            # Log all training data in a format suitable
+            # for TensorBoard anaylsis.
             tb_callback = TensorBoard(log_dir = self.log_dir,
                                       histogram_freq = 1,
                                       write_graph = True,
@@ -354,7 +541,8 @@ class Classifier():
                                       profile_batch = 0)
             callbacks.append(tb_callback)
             
-        if csv_log:            
+        if csv_log:   
+            # Log the results of each epoch in a csv file.
             csv_file = os.path.join(self.log_dir,'log.csv')
             
             csv_callback = CSVLogger(filename = csv_file,
@@ -370,6 +558,8 @@ class Classifier():
             X_val_data.append(self.X_val)
 
         try:
+            # Train the model and store the previous and the new
+            # results in the history attribute.
             training = self.model.fit(X_train_data,
                                       self.y_train,
                                       validation_data = \
@@ -386,6 +576,7 @@ class Classifier():
             print('Training done!')
            
         except KeyboardInterrupt:
+            # Save the model and the history in case of interruption.
             self.save_model()
             self.history = self._get_total_history()
             print('Training interrupted!')
@@ -394,6 +585,16 @@ class Classifier():
 
 
     def evaluate(self):
+        """
+        Evaluate the Model on the test data.
+
+        Returns
+        -------
+        score: dict or float
+            If the accuracy is calculated, both the test loss and the
+            test accuracy are returned. If not, only the test loss 
+            is returned.
+        """
         # In case of submodel inputs, allow multiple inputs.
         X_test_data = []
         
@@ -403,7 +604,7 @@ class Classifier():
         self.score = self.model.evaluate(X_test_data,
                                          self.y_test,
                                          batch_size = self.batch_size,
-                                         verbose=True)      
+                                         verbose = True)      
         print('Evaluation done! \n')
 
         try:
@@ -415,6 +616,23 @@ class Classifier():
      
      
     def predict(self, verbose = True):
+        """
+        Predict the labels on both the train and tests sets.
+
+        Parameters
+        ----------
+        verbose : bool, optional
+            If True, show the progress bar during prediction.
+            The default is True.
+
+        Returns
+        -------
+        pred_train : ndarray
+            Array containing the predictions on the training set.
+        pred_test : ndarray
+            Array containing the predictions on the test set.
+
+        """
         # In case of submodel inputs, allow multiple inputs.
         X_train_data = []
         X_test_data = []
@@ -433,6 +651,16 @@ class Classifier():
     
     
     def _count_epochs_trained(self):
+        """
+        Count the numbers of previously trained epochs by searching the 
+        csv log file
+
+        Returns
+        -------
+        epochs : int
+            No. of epochs for which the model was trained.
+
+        """
         csv_file = os.path.join(self.log_dir,'log.csv')
         epochs = 0
         
@@ -447,6 +675,17 @@ class Classifier():
         return epochs
         
     def save_model(self,  **kwargs): 
+        """
+        Saves the model to the model directory. The model is saved both
+        as a SavedModel object from Keras as well as a JSON file 
+        containing the model parameters and the weights serialized to 
+        HDF5.
+
+        Returns
+        -------
+        None.
+
+        """
         model_file_name = os.path.join(self.model_dir,
                                        'model.json')
         weights_file_name = os.path.join(self.model_dir,
@@ -465,6 +704,16 @@ class Classifier():
 
     
     def save_hyperparams(self):
+        """
+        Save parameters of the training process to a JSON file. Used 
+        for introspection and report writing. Only works after 
+        training.
+
+        Returns
+        -------
+        None.
+
+        """
         hyperparam_file_name = os.path.join(self.model_dir,
                                             'hyperparameters.json')
         params_dict = {
@@ -496,12 +745,34 @@ class Classifier():
         
         
     def load_model(self, model_path = None, drop_last_layers = None):
+        """
+        Reload the model from file.
+
+        Parameters
+        ----------
+        model_path : str, optional
+            If model_path != None, then the model is loaded from a
+            filepath.
+            If None, the model is loaded from the self.model_dir.
+            The default is None.
+        drop_last_layers : int, optional
+            No. of layers to be dropped during the loading. Helpful for
+            transfer learning.
+            The default is None.
+
+        Returns
+        -------
+        None.
+
+        """
         if model_path != None:
             file_name = model_path
         else:
             file_name = self.model_dir
         
-        # Add the current model to the custom_objects dict.        
+        # Add the current model to the custom_objects dict. This is 
+        # done to ensure the load_model method from Keras works 
+        # properly.
         import inspect
         custom_objects = {}
         custom_objects[str(type(self.model).__name__)] =\
@@ -514,17 +785,23 @@ class Classifier():
         # Load from file.    
         loaded_model = load_model(file_name, custom_objects = custom_objects)
         
+        # Instantiate a new EmptyModel and implement it with the loaded
+        # parameters. Needed for dropping the layers while keeping all
+        # parameters.
         self.model = models.EmptyModel(
             inputs = loaded_model.input,
             outputs = loaded_model.layers[-1].output,
             inputshape = self.input_shape,
             num_classes = self.num_classes,
-            no_of_inputs = loaded_model._serialized_attributes['metadata']['config']['no_of_inputs'],
+            no_of_inputs = loaded_model._serialized_attributes[
+                'metadata']['config']['no_of_inputs'],
             name = 'Loaded_Model')
 
         print("Loaded model from disk.")
       
         if drop_last_layers != None:
+            # Remove the last layers and stored the other layers in a
+            # new EmptyModel object.
             no_of_drop_layers = drop_last_layers + 1
                 
             new_model = models.EmptyModel(
@@ -548,6 +825,24 @@ class Classifier():
                     str(drop_last_layers)))
                 
     def _write_aug_text(self, dataset, index):
+        """
+        Helper method for writing information about the parameters used 
+        for data set creation into a figure. 
+
+        Parameters
+        ----------
+        dataset : str
+            Either 'train', 'val', or 'test.
+            Needed for taking the correct aug_values.
+        index : int
+            Index of the example for which the text shall be created.
+
+        Returns
+        -------
+        aug_text : str
+            Output text in a figure.
+
+        """
         if dataset == 'train':
             shift_x = self.aug_values_train['shift_x'][index]
             noise = self.aug_values_train['noise'][index]
@@ -592,6 +887,24 @@ class Classifier():
     
     
     def _write_scatter_text(self, dataset, index):
+        """
+        Helper method for writing information about the parameters used 
+        for simulation of scattering in a gas phase. 
+
+        Parameters
+        ----------
+        dataset : str
+            Either 'train', 'val', or 'test.
+            Needed for taking the correct aug_values.
+        index : int
+            Index of the example for which the text shall be created.
+
+        Returns
+        -------
+        scatter_text : str
+            Output text in a figure.
+
+        """
         if dataset == 'train':
             scatterer = self.aug_values_train['scatterer'][index]
             distance = self.aug_values_train['distance'][index]
@@ -626,6 +939,24 @@ class Classifier():
 
 
     def _write_measured_text(self, dataset, index):
+        """
+        Helper method for writing information about the measured 
+        spectra in a data set into a figure. 
+
+        Parameters
+        ----------
+        dataset : str
+            Either 'train', 'val', or 'test.
+            Needed for taking the correct names.
+        index : int
+            Index of the example for which the text shall be created.
+
+        Returns
+        -------
+        measured_text : str
+            Output text in a figure.
+
+        """
         if dataset == 'train':
             name = self.names_train[index][0]
             
@@ -635,20 +966,61 @@ class Classifier():
         elif dataset == 'test':
             name = self.names_test[index][0]
         
-        text = 'Spectrum no. ' + str(index) + '\n' +\
+        measured_text = 'Spectrum no. ' + str(index) + '\n' +\
                 str(name) + '\n'
     
-        return text    
+        return measured_text    
         
         
 class ClassifierSingle(Classifier):
+    """
+    Classifier subclass for one-class classification.
+    Implements accuracy calculations and class predictions.
+    """
     def __init__(self, time, data_name = '', labels = []):
+        """
+        Initialize a normal Classifier object to create folders.
+
+        Parameters
+        ----------
+        time : str
+            Time when the experiment is initiated.
+        data_name : str, optional
+            Name of the data set. Should include sufficient information
+            for distinguishing runs on different data on the same day.
+            The default is ''.
+        labels : list, optional
+            List of string of the labels of the XPS spectra.
+            Very important for class predictions.
+            Example: 
+                labels = ['Fe metal', 'FeO', 'Fe3O4', 'Fe2O3']
+
+        Returns
+        -------
+        None.
+
+        """
         super(ClassifierSingle, self).__init__(time = time,
                                                data_name = data_name,
                                                labels = labels)
     
     
     def check_class_distribution(self):
+        """
+        Calculate how many examples of each class are in the different
+        data sets.
+
+        Returns
+        -------
+        class_distribution : dict
+            Nested Dictionary of the format {'all data': dict,
+                                      'training data': dict,
+                                      'validation data': dict,
+                                      'test data': dict}.
+            Each of the sub-dicts contains the number of examples for 
+            each label.
+            
+        """
         class_distribution = {'all data': {},
                               'training data': {},
                               'validation data': {},
@@ -674,7 +1046,16 @@ class ClassifierSingle(Classifier):
         return self.class_distribution
         
     
-    def plot_class_distribution(self):               
+    def plot_class_distribution(self):  
+        """
+        Plot of the class_distribution in the different data sets.
+        Has to be called after check_class_distribution.
+
+        Returns
+        -------
+        None
+        
+        """             
         data = []
         for k, v in self.class_distribution.items():
             data_list = []
@@ -697,6 +1078,28 @@ class ClassifierSingle(Classifier):
         
     def plot_random(self, no_of_spectra, dataset = 'train',
                     with_prediction = False): 
+        """
+        Plots random XPS spectra out of one of the data set.
+        The labels and additional information are shown as texts on the
+        plots.
+
+        Parameters
+        ----------
+        no_of_spectra : int
+            No. of plots to create.
+        dataset : str, optional
+            Either 'train', 'val', or 'test'.
+            The default is 'train'.
+        with_prediction : bool, optional
+            If True, information about the predicted value is also 
+            shown in the plot. 
+            The default is False.
+
+        Returns
+        -------
+        None.
+
+        """
         no_of_cols = 5
         no_of_rows = int(no_of_spectra/no_of_cols)
         if (no_of_spectra % no_of_cols) != 0:
@@ -774,8 +1177,8 @@ class ClassifierSingle(Classifier):
                                    transform = axs[row, col].transAxes,
                                    fontsize = 12) 
             else:
-                full_text += loss_text
-                axs[row, col].text(0.025, 0.95, label + real_y + aug ,
+                axs[row, col].text(0.025, 0.95,
+                                   label + real_y + aug,
                                    horizontalalignment='left',
                                    verticalalignment='top',
                                    transform = axs[row, col].transAxes,
@@ -788,6 +1191,19 @@ class ClassifierSingle(Classifier):
             
                 
     def predict_classes(self):
+        """
+        Predicts the labels of all spectra in the training and test sets
+        by checking which class has the maximum associated prediction
+        value.
+
+        Returns
+        -------
+        pred_train_classes : ndarray
+            Array with the predicted classes on the training set.
+        pred_test_classes : ndarray
+            Array with the predicted classes on the test set.
+
+        """
         pred_train, pred_test = self.predict(verbose = False)
         
         pred_train_classes = []
@@ -810,6 +1226,15 @@ class ClassifierSingle(Classifier):
     
 
     def show_wrong_classification(self):
+        """
+        Plots all spectra in the test data set for which a wrong class
+        prediction was produced during training.
+
+        Returns
+        -------
+        None.
+
+        """
         binding_energy = np.arange(694, 750.05, 0.05)
         
         wrong_pred_args = []
@@ -872,6 +1297,17 @@ class ClassifierSingle(Classifier):
                                    fontsize = 12)
                 
     def _get_total_history(self):
+        """
+        Loads the previous training history from the CSV log file.
+        Useful for retraining.
+
+        Returns
+        -------
+        history : dict
+            Dictionary containing all previous training results from 
+            this classifier instance.
+
+        """
         csv_file = os.path.join(self.log_dir,'log.csv')
         history = {'accuracy' : [],
                    'loss' : [],
@@ -893,6 +1329,20 @@ class ClassifierSingle(Classifier):
             
             
     def shelve_results(self, full = False):
+        """
+        Store all inputs and outputs into a shelve object.
+        
+        Parameters
+        ----------
+        full : bool, optional
+            If full, the spectral features, the class distribution and
+            the training history are also stored. The default is False.
+
+        Returns
+        -------
+        None.
+
+        """
         filename = os.path.join(self.model_dir,'vars')
         
         with shelve.open(filename,'n') as shelf:
@@ -910,13 +1360,54 @@ class ClassifierSingle(Classifier):
             
 
 class ClassifierMultiple(Classifier):
+    """
+    Classifier subclass for mult-class regression.
+    """
     def __init__(self, time, data_name = '', labels = []):
+        """
+        Initialize a normal Classifier object to create folders.
+
+        Parameters
+        ----------
+        time : str
+            Time when the experiment is initiated.
+        data_name : str, optional
+            Name of the data set. Should include sufficient information
+            for distinguishing runs on different data on the same day.
+            The default is ''.
+        labels : list, optional
+            List of string of the labels of the XPS spectra.
+            Very important for class predictions.
+            Example: 
+                labels = ['Fe metal', 'FeO', 'Fe3O4', 'Fe2O3']
+
+        Returns
+        -------
+        None.
+
+        """
         super(ClassifierMultiple, self).__init__(time = time,
                                                  data_name = data_name,
                                                  labels = labels)
         
 
     def check_class_distribution(self):
+        """
+        Calculate the average distibutions of the labels in the 
+        different
+        data sets.
+
+        Returns
+        -------
+        class_distribution : dict
+             Dictionary of the format {'all data': dict,
+                                       'training data': dict,
+                                       'validation data': dict,
+                                       'test data': dict}.
+            Each of the sub-dicts contains the average distribution of 
+            the labels in the data sub-set.
+            
+        """
         class_distribution = {'all data': {},
                                 'training data': {},
                                 'validation data': {},
@@ -940,7 +1431,16 @@ class ClassifierMultiple(Classifier):
         return self.class_distribution
 
     
-    def plot_class_distribution(self):               
+    def plot_class_distribution(self):      
+        """
+        Plot of the average label distribution in the different data sets.
+        Has to be called after check_class_distribution.
+
+        Returns
+        -------
+        None
+        
+        """             
         data = []
         for k, v in self.class_distribution.items():
             data.append(v)
@@ -960,6 +1460,28 @@ class ClassifierMultiple(Classifier):
         
     def plot_random(self, no_of_spectra, dataset = 'train',
                     with_prediction = False): 
+        """
+        Plots random XPS spectra out of one of the data set.
+        The labels and additional information are shown as texts on the
+        plots.
+
+        Parameters
+        ----------
+        no_of_spectra : int
+            No. of plots to create.
+        dataset : str, optional
+            Either 'train', 'val', or 'test'.
+            The default is 'train'.
+        with_prediction : bool, optional
+            If True, information about the predicted values are also 
+            shown in the plot. 
+            The default is False.
+
+        Returns
+        -------
+        None.
+
+        """         
         no_of_cols = 5
         no_of_rows = int(no_of_spectra/no_of_cols)
         if (no_of_spectra % no_of_cols) != 0:
@@ -1009,7 +1531,8 @@ class ClassifierMultiple(Classifier):
                 losses = [loss(y[i], pred[i]).numpy() \
                           for i in range(y.shape[0])]
                                
-                loss_text = ('Loss: ' + str(np.around(losses[r], decimals = 3)))
+                loss_text = ('Loss: ' + str(np.around(losses[r],
+                                                      decimals = 3)))
                                                
             try:
                 aug_text = self._write_aug_text(dataset = dataset, index = r)
@@ -1050,6 +1573,17 @@ class ClassifierMultiple(Classifier):
 
     
     def _get_total_history(self):
+        """
+        Loads the previous training history from the CSV log file.
+        Useful for retraining.
+
+        Returns
+        -------
+        history : dict
+            Dictionary containing all previous training results from 
+            this classifier instance.
+
+        """
         csv_file = os.path.join(self.log_dir,'log.csv')
         history = {'loss' : [],
                    'val_loss': []}
@@ -1067,6 +1601,19 @@ class ClassifierMultiple(Classifier):
         
                 
     def show_worst_predictions(self, no_of_spectra):
+        """
+        Plots the highest associated loss in the test data set.
+
+        Parameters
+        ----------
+        no_of_spectra : int
+            No. of spectra to plot.
+
+        Returns
+        -------
+        None.
+
+        """        
         loss = self.model.loss
         losses = [loss(self.y_test[i], self.pred_test[i]).numpy() \
                   for i in range(self.y_test.shape[0])]
@@ -1124,25 +1671,40 @@ class ClassifierMultiple(Classifier):
 
 
     def shelve_results(self, full = False):
+        """
+        Store all inputs and outputs into a shelve object.
+        
+        Parameters
+        ----------
+        full : bool, optional
+            If full, the spectral features, the class distribution and
+            the training history are also stored. The default is False.
+
+        Returns
+        -------
+        None.
+
+        """
         filename = os.path.join(self.model_dir,'vars')
         
         with shelve.open(filename,'n') as shelf:
             key_list = ['y_train', 'y_test', 'pred_train', 'pred_test',
                         'test_loss']
             try:
-                aug_values = self.aug_values
-                key_list.append('aug_values')
+                key_list.append('aug_values_train')
+                key_list.append('aug_values_test')
             except:
               pass
             try:
-                names = self.names
-                key_list.append('names')
+                key_list.append('names_train')
+                key_list.append('names_test')
+
             except:
               pass
               
             if full == True:
                 key_list.extend(['X, X_train', 'X_val', 'X_test', 'y',
-                                 'y_val', 'average_distribution', 'hist'])
+                                 'y_val', 'class_distribution', 'history'])
             for key in key_list:
                 shelf[key] = vars(self)[key]
         

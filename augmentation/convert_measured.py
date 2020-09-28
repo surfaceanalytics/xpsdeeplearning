@@ -147,7 +147,7 @@ def convert_all_spectra(input_datafolder, plot_all = True):
 # Load the data into numpy arrays and save to hdf5 file.
 input_datafolder = r'C:\Users\pielsticker\Desktop\Mixed iron spectra\exported'
 X, y, names = convert_all_spectra(input_datafolder, plot_all = True)
-output_file= r'C:\Users\pielsticker\Simulations\measured.h5'
+output_file= r'C:\Users\pielsticker\Simulations\20200922_measured.h5'
   
 with h5py.File(output_file, 'w') as hf:
     hf.create_dataset('X', data = X,
