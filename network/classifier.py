@@ -1694,13 +1694,13 @@ class ClassifierMultiple(Classifier):
                 key_list.append('aug_values_train')
                 key_list.append('aug_values_test')
             except:
-              pass
+                pass
             try:
                 key_list.append('names_train')
                 key_list.append('names_test')
 
             except:
-              pass
+                pass
               
             if full == True:
                 key_list.extend(['X, X_train', 'X_val', 'X_test', 'y',

@@ -185,10 +185,12 @@ class Hyperoptimization():
 
         except KeyboardInterrupt:
             # In case of interruption, still deploy the scan.
+            scan.interrupt()
+            scan.deploy(self.test_dir)
             print(('\n Scan was interrupted! ' +
                    'Training log was saved until round {0}.').format(
-                       self.scan.data.shape[0]))
-            scan.deploy(self.test_dir)
+                       scan._data_len))
+            
             
         # Combine the new data with the previous results.
         self.full_data = self.combine_results()
@@ -197,6 +199,88 @@ class Hyperoptimization():
         # Store the saved_weights from all scans.
         self.all_weights = self._get_all_weights()
 
+
+    def scan_parameter_space2(self, params, **kwargs):
+        """
+        Scan the parameter space provided in the params dictionary.
+        Keywords can be used to limit the search space.
+
+        Parameters
+        ----------
+        params : dict
+            Parameter space to be scanned.
+        **kwargs : str
+            Limiter arguments in Talos (see Talos doc), e.g.
+            'fraction_limit', 'round_limit', 'time_limit' 
+
+        Returns
+        -------
+        None.
+
+        """
+        # Restore all previous scans to the scan list.
+        self.scans = self.restore_previous_scans()
+        
+        # Allow for multiple inputs.
+        X_train_data = []
+        X_val_data = []
+        for i in range(self.clf.model.no_of_inputs):
+            X_train_data.append(self.clf.X_train)
+            X_val_data.append(self.clf.X_val)
+            
+        # Calculate the number of the scan according to the files
+        # already in the test directory.
+        filenames = next(os.walk(self.test_dir))[2]
+        number = 0
+        for filename in filenames:
+            if (filename.startswith('test_log') and 
+                filename.endswith('.pkl')):
+                number += 1
+        
+        # Initialize Scan object (based on talos.Scan)
+        # start runtime
+        
+        scan = Scan(x = X_train_data,
+                    y = self.clf.y_train,
+                    params = params,
+                    model = self.hyper_opt,
+                    experiment_name = self.dir_name,
+                    x_val = X_val_data,
+                    y_val = self.clf.y_val,
+                    val_split = 0,
+                    reduction_metric = 'val_loss',
+                    minimize_loss = True,
+                    number = number,
+                    **kwargs)
+        self.scans.append(scan)
+        try:
+            from talos.scan.scan_run import scan_run
+            scan_run(scan)
+            print(('\n Parameter space was scanned. ' +
+                   'Training log was saved.'))
+        
+        # Prepare the scan: folder creation,
+        # parameter space calculation, ...
+        #scan.prepare(self.test_dir)
+        ## Run the TalosScan. Deploy all data to the scan folder.
+        #scan.run(save_folder = self.test_dir)        
+        
+        except KeyboardInterrupt: 
+            # In case of interruption, still deploy the scan.
+            scan.interrupt() 
+            print(('\n Scan was interrupted! ' +
+                   'Training log was saved until round {0}.').format(
+                       scan.data.shape[0]))
+            
+        scan.deploy()            
+            
+        # Combine the new data with the previous results.
+        self.full_data = self.combine_results()
+        # Save the full data to pickle and csv files.
+        self.save_full_data()
+        # Store the saved_weights from all scans.
+        self.all_weights = self._get_all_weights()
+        
     def restore_previous_scans(self):
         """
         Creates a list of RestoredScan objects containing information
@@ -241,7 +325,6 @@ class Hyperoptimization():
         for filename in filenames:
           if (filename.startswith('test_log') and filename.endswith('pkl')):
               results_file = os.path.join(self.test_dir, filename) 
-              results_file = os.path.join(self.test_dir, filename)  
               new_df = pd.read_pickle(results_file)
               full_data = pd.concat([full_data, new_df],
                                     ignore_index = True)
@@ -290,9 +373,12 @@ class Hyperoptimization():
         None.
 
         """
-        df = self.full_data.drop(['start', 'end', 'duration'],
-                                 axis = 1,
-                                 inplace = False)
+        try:
+            df = self.full_data.drop(['start', 'end', 'duration'],
+                                      axis = 1,
+                                      inplace = False)
+        except KeyError:
+            df = self.full_data
 
         self.analyzer = Analysis(df)
         
@@ -356,8 +442,7 @@ class Hyperoptimization():
         self.clf.model._name = 'Model_{0}'.format(model_id)
         self.clf.model.set_weights(self.all_weights[model_id])
         
- 
-class Scan():
+class Scan(talos.Scan):
     """
     Class for performing a scan of the parameter space. Very similar to
     talos.Scan, but with added saving possibilities.
@@ -383,7 +468,7 @@ class Scan():
                  reduction_window = 20,
                  reduction_threshold = 0.2,
                  reduction_metric = 'val_loss',
-                 minimize_loss = False,
+                 minimize_loss = True,
                  disable_progress_bar = False,
                  print_params = True,
                  clear_session = True,
@@ -393,149 +478,34 @@ class Scan():
         __init__ method taken from talos.Scan (see talos docs),
         but without scan_round implemented.
         """
+        super(Scan, self).__init__(x = x,
+                                   y = y,
+                                   params  = params,
+                                   model = model,
+                                   experiment_name = experiment_name,
+                                   x_val = x_val,
+                                   y_val = y_val,
+                                   val_split = val_split,
+                                   random_method = random_method,
+                                   seed = seed,
+                                   performance_target = performance_target,
+                                   fraction_limit = fraction_limit,
+                                   round_limit = round_limit,
+                                   time_limit = time_limit,
+                                   boolean_limit = boolean_limit,
+                                   reduction_method = reduction_method,
+                                   reduction_interval = reduction_interval,
+                                   reduction_window = reduction_window,
+                                   reduction_threshold = reduction_threshold,
+                                   reduction_metric = reduction_metric,
+                                   minimize_loss = minimize_loss,
+                                   disable_progress_bar = disable_progress_bar,
+                                   print_params = print_params,
+                                   clear_session = clear_session,
+                                   save_weights = save_weights,
+                                   number = number)
         
-        self.x = x
-        self.y = y
-        self.params = params
-        self.model = model
-        self.experiment_name = experiment_name
-        self.x_val = x_val
-        self.y_val = y_val
-        self.val_split = val_split
-
-        # randomness
-        self.random_method = random_method
-        self.seed = seed
-
-        # limiters
-        self.performance_target = performance_target
-        self.fraction_limit = fraction_limit
-        self.round_limit = round_limit
-        self.time_limit = time_limit
-        self.boolean_limit = boolean_limit
-
-        # optimization
-        self.reduction_method = reduction_method
-        self.reduction_interval = reduction_interval
-        self.reduction_window = reduction_window
-        self.reduction_threshold = reduction_threshold
-        self.reduction_metric = reduction_metric
-        self.minimize_loss = minimize_loss
-
-        # display
-        self.disable_progress_bar = disable_progress_bar
-        self.print_params = print_params
-
-        # performance
-        self.clear_session = clear_session
-        self.save_weights = save_weights
-        # input parameters section ends
-        
-        self.number = number
-        
-    def prepare(self, save_folder):
-        '''
-        Includes all preparation procedures up until starting the first
-        scan through run().
-        '''
-        
-        # In contrast to talos, the data is saved in a csv file of
-        # the format test_log_number.csv.
-        self._experiment_id = time.strftime('%D%H%M%S').replace('/', '')
-        _csv_filename  = 'test_log_{}.csv'.format(self.number)
-        self._experiment_log = os.path.join(save_folder, _csv_filename)
-
-        with open(self._experiment_log, 'w') as f:
-            f.write('') 
-
-        # for the case where x_val or y_val is missing when other is
-        # present
-        self.custom_val_split = False
-        if (self.x_val is not None and self.y_val is None) or \
-           (self.x_val is None and self.y_val is not None):
-            raise RuntimeError(('If x_val/y_val is inputted, ' +
-                                'other must as well.'))
-
-        elif self.x_val is not None and self.y_val is not None:
-            self.custom_val_split = True
-
-        # create reference for parameter keys
-        self._param_dict_keys = sorted(list(self.params.keys()))
-
-        # create the parameter object and move to self
-        from talos.parameters.ParamSpace import ParamSpace
-        self.param_object = ParamSpace(
-            params = self.params,
-            param_keys = self._param_dict_keys,
-            random_method = self.random_method,
-            fraction_limit = self.fraction_limit,
-            round_limit = self.round_limit,
-            time_limit = self.time_limit,
-            boolean_limit = self.boolean_limit)
-
-        # mark that it's a first round
-        self.first_round = True
-
-        # create various stores
-        self.round_history = []
-        self.peak_epochs = []
-        self.epoch_entropy = []
-        self.round_times = []
-        self.result = []
-        self.saved_models = []
-        self.saved_weights = []
-
-        # handle validation split
-        from talos.utils.validation_split import validation_split
-        self = validation_split(self)
-
-        # set data and len
-        self._data_len = len(self.x)
-
-    def run(self, save_folder):
-        '''
-        The high-level management of the scan procedures after the
-        scan preparation. Manages round_run()
-        '''
-        number = self.number
-        # initiate the progress bar
-        self.pbar = tqdm(total=len(self.param_object.param_index),
-                         disable=self.disable_progress_bar)
-
-        # the main cycle of the experiment
-        while True:
-
-            # get the parameters
-            self.round_params = self.param_object.round_parameters()
-
-            # break when there is no more permutations left
-            if self.round_params is False:
-                break
-            # otherwise proceed with next permutation
-            from talos.scan.scan_round import scan_round
-            self = scan_round(self)
-            self.pbar.update(1)
-
-        # close progress bar before finishing
-        self.pbar.close()
-
-        # finish
-        from talos.logging.logging_finish import logging_finish
-        self = logging_finish(self)
-
-        from talos.scan.scan_finish import scan_finish
-        self = scan_finish(self)
-        
-        self.number = number
-        
-        # Data is also stored in a pickle file to make reloading of 
-        # the class objects in the parameters possible.
-        _pkl_filename  = 'test_log_{}.pkl'.format(self.number)
-        self._experiment_log_pkl = os.path.join(save_folder,
-                                                _pkl_filename)
-        self.data.to_pickle(self._experiment_log_pkl)
-
-    def deploy(self, test_dir):
+    def deploy(self):
         """
         Method very similar to the Deploy class of Talos.
         Saves all details, the model, information about the rounds 
@@ -553,7 +523,7 @@ class Scan():
 
         """
         scan_folder = 'scan' + str(self.number)
-        scan_dir = os.path.join(test_dir, scan_folder)
+        scan_dir = os.path.join(self.experiment_dir, scan_folder)
         if os.path.isdir(scan_dir) == False:
             os.makedirs(scan_dir)
         
@@ -586,7 +556,23 @@ class Scan():
                 modelfile.write('%s\n' % listitem)
 
         print('Data was saved to scan archive.')
+    
+    def interrupt(self):
+        """
+        Method for catching an interruption and still saving the data.
+        """
+        self.round_params = self.param_object.round_parameters()
         
+        from talos.scan.scan_round import scan_round
+        scan_round(self)
+
+        self.pbar.close()
+
+        from talos.logging.logging_finish import logging_finish
+        logging_finish(self)
+        from talos.scan.scan_finish import scan_finish
+        scan_finish(self) 
+       
         
 class RestoredScan():
     """
@@ -892,7 +878,7 @@ class Plot():
         filename = self.name + '.png'
         self.fig_dir = os.path.join(filepath, filename)
         self.fig.savefig(self.fig_dir)
-        print('File saved to test directory!')
+        print('File saved to figures directory!')
 
         
         
