@@ -158,86 +158,6 @@ class Hyperoptimization():
                 number += 1
         
         # Initialize Scan object (based on talos.Scan)
-        scan = Scan(x = X_train_data,
-                    y = self.clf.y_train,
-                    params = params,
-                    model = self.hyper_opt,
-                    experiment_name = self.dir_name,
-                    x_val = X_val_data,
-                    y_val = self.clf.y_val,
-                    val_split = 0,
-                    reduction_metric = 'val_loss',
-                    minimize_loss = True,
-                    number = number,
-                    **kwargs)
-        # Prepare the scan: folder creation,
-        # parameter space calculation, ...
-        scan.prepare(self.test_dir)
-        
-        self.scans.append(scan)
-        
-        try:
-            # Run the TalosScan. Deploy all data to the scan folder.
-            scan.run(save_folder = self.test_dir)
-            print(('\n Parameter space was scanned. ' +
-                   'Training log was saved.'))
-            scan.deploy(self.test_dir)
-
-        except KeyboardInterrupt:
-            # In case of interruption, still deploy the scan.
-            scan.interrupt()
-            scan.deploy(self.test_dir)
-            print(('\n Scan was interrupted! ' +
-                   'Training log was saved until round {0}.').format(
-                       scan._data_len))
-            
-            
-        # Combine the new data with the previous results.
-        self.full_data = self.combine_results()
-        # Save the full data to pickle and csv files.
-        self.save_full_data()
-        # Store the saved_weights from all scans.
-        self.all_weights = self._get_all_weights()
-
-
-    def scan_parameter_space2(self, params, **kwargs):
-        """
-        Scan the parameter space provided in the params dictionary.
-        Keywords can be used to limit the search space.
-
-        Parameters
-        ----------
-        params : dict
-            Parameter space to be scanned.
-        **kwargs : str
-            Limiter arguments in Talos (see Talos doc), e.g.
-            'fraction_limit', 'round_limit', 'time_limit' 
-
-        Returns
-        -------
-        None.
-
-        """
-        # Restore all previous scans to the scan list.
-        self.scans = self.restore_previous_scans()
-        
-        # Allow for multiple inputs.
-        X_train_data = []
-        X_val_data = []
-        for i in range(self.clf.model.no_of_inputs):
-            X_train_data.append(self.clf.X_train)
-            X_val_data.append(self.clf.X_val)
-            
-        # Calculate the number of the scan according to the files
-        # already in the test directory.
-        filenames = next(os.walk(self.test_dir))[2]
-        number = 0
-        for filename in filenames:
-            if (filename.startswith('test_log') and 
-                filename.endswith('.pkl')):
-                number += 1
-        
-        # Initialize Scan object (based on talos.Scan)
         # start runtime
         
         scan = Scan(x = X_train_data,
@@ -253,20 +173,15 @@ class Hyperoptimization():
                     number = number,
                     **kwargs)
         self.scans.append(scan)
+        
         try:
             from talos.scan.scan_run import scan_run
             scan_run(scan)
             print(('\n Parameter space was scanned. ' +
                    'Training log was saved.'))
         
-        # Prepare the scan: folder creation,
-        # parameter space calculation, ...
-        #scan.prepare(self.test_dir)
-        ## Run the TalosScan. Deploy all data to the scan folder.
-        #scan.run(save_folder = self.test_dir)        
-        
         except KeyboardInterrupt: 
-            # In case of interruption, still deploy the scan.
+            # In case of interruption, still finish the scan round.
             scan.interrupt() 
             print(('\n Scan was interrupted! ' +
                    'Training log was saved until round {0}.').format(
@@ -441,6 +356,7 @@ class Hyperoptimization():
         
         self.clf.model._name = 'Model_{0}'.format(model_id)
         self.clf.model.set_weights(self.all_weights[model_id])
+ 
         
 class Scan(talos.Scan):
     """
