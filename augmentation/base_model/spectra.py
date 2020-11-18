@@ -658,8 +658,9 @@ class SimulatedSpectrum(Spectrum):
         
             # A poisson distributed noise is multplied by the noise
             # factor and added to the lineshape. 
-            poisson_noise = noise* np.random.poisson(1,
-                                                     self.lineshape.shape)
+            lamb = 1000
+            poisson_noise = noise* np.random.poisson(lamb,
+                                                     self.lineshape.shape)/lamb
         
             self.lineshape = self.lineshape + poisson_noise                         
             self.normalize()
