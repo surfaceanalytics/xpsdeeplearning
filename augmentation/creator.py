@@ -162,7 +162,7 @@ class Creator():
             self.augmentation_matrix[i,-5] = test[r]
             
             # Signal-to-noise
-            self.augmentation_matrix[i,-4] = np.random.randint(1,200)/100
+            self.augmentation_matrix[i,-4] = np.random.randint(1,200)/150
             
             # Scatterer ID
             self.augmentation_matrix[i,-3] = np.random.randint(0,4)
