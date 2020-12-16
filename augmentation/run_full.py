@@ -66,7 +66,7 @@ no_of_files = 500
 
 t0 = time()
 input_filenames =  ['Fe_metal','FeO','Fe3O4','Fe2O3']
-timestamp = datetime.datetime.now().strftime("%Y%m%d")
+#timestamp = datetime.datetime.now().strftime("%Y%m%d")
 run_name = 'iron_variable_linear_combination_gas_phase'
 time_and_run_name = timestamp + '_' + run_name
 
@@ -96,8 +96,8 @@ from json_to_hdf5 import to_hdf5
 
 t0 = time()
 output_datafolder = r'C:\Users\pielsticker\Simulations\\'
-output_file = output_datafolder + '20200909_iron_Mark_variable_linear_combination_gas_phase.h5'
-simulation_name = '20200909_iron_Mark_variable_linear_combination_gas_phase'
+output_file = output_datafolder + '20201612_iron_Mark_variable_linear_combination_gas_phase.h5'
+simulation_name = '20201612_iron_Mark_variable_linear_combination_gas_phase'
 no_of_files_per_load = 50
 
 to_hdf5(output_file, simulation_name, no_of_files_per_load)
@@ -116,8 +116,8 @@ runtimes['HDF5 Mark'] = calculate_runtime(t0,t1)
 
 t0 = time()
 output_datafolder = r'C:\Users\pielsticker\Simulations\\'
-output_file = output_datafolder + '20200910_iron_variable_linear_combination_gas_phase.h5'
-simulation_name = '20200910_iron_variable_linear_combination_gas_phase'
+output_file = output_datafolder + '20201612_iron_variable_linear_combination_gas_phase.h5'
+simulation_name = '20201612_iron_variable_linear_combination_gas_phase'
 no_of_files_per_load = 50
 
 to_hdf5(output_file, simulation_name, no_of_files_per_load)
@@ -178,8 +178,8 @@ def load_data(filenames):
     return X, y, shiftx, noise, fwhm, scatterer, distance, pressure
 
 
-filenames = ['20200909_iron_Mark_variable_linear_combination_gas_phase.h5',
-             '20200909_iron_Mark_variable_linear_combination_gas_phase.h5']
+filenames = ['20201612_iron_Mark_variable_linear_combination_gas_phase.h5',
+             '20201612_iron_variable_linear_combination_gas_phase.h5']
 
 t0 = time()
 X, y, shiftx, noise, fwhm, scatterer, distance, pressure = load_data(filenames)
@@ -187,7 +187,7 @@ X_shuff, y_shuff, shiftx_shuff, noise_shuff, fwhm_shuff,\
     scatterer_shuff, distance_shuff, pressure_shuff = \
         shuffle(X, y, shiftx, noise, fwhm, scatterer, distance, pressure)
 
-output_file = r'C:\Users\pielsticker\Simulations\20200910_iron_variable_linear_combination_gas_phase_combined_data.h5'   
+output_file = r'C:\Users\pielsticker\Simulations\20201612_iron_variable_linear_combination_gas_phase_combined_data.h5'   
 
 with h5py.File(output_file, 'w') as hf:
     hf.create_dataset('X', data = X_shuff,

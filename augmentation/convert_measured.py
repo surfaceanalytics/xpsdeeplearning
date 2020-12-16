@@ -28,8 +28,8 @@ from base_model.spectra import ReferenceSpectrum, FittedSpectrum
 from base_model.figures import Figure
   
 #%% For one reference spectrum.   
-input_datafolder = r'C:\Users\pielsticker\Desktop\Mixed iron spectra'
-filename = 'test.txt'
+input_datafolder = r'C:\Users\pielsticker\Lukas\MPI-CEC\Projects\xpsdeeplearning\data\references'
+filename = 'Fe_metal_Mark_shifted.txt'
 energies = []
 
 filepath = os.path.join(input_datafolder, filename)
@@ -40,9 +40,10 @@ ref_spectrum.resize(start = 694, stop = 750, step = 0.05)
 energies.append(ref_spectrum.x[np.argmax(ref_spectrum.lineshape)])
 fig = Figure(ref_spectrum.x, ref_spectrum.lineshape, title = 'new')
 #ref_spectrum.write(datafolder)
-a = ref_spectrum.lineshape
+l = ref_spectrum.lineshape
 x = ref_spectrum.x
-    
+
+
 #%% For one fitted XPS spectrum
 # =============================================================================
 # input_datafolder = r'C:\Users\pielsticker\Desktop\Mixed iron spectra\exported'
@@ -88,7 +89,7 @@ def _get_labels(filepath):
                         
     return y, names
 
-def convert_all_spectra(input_datafolder, plot_all = True):
+def convert_all_spectra(input_datafolder, label_filepath, plot_all = True):
     """
     Takes all xy files of measured spectra in the input_datafolder and
     extracts the features, labels and names. Resizes the spectra if 
@@ -98,28 +99,26 @@ def convert_all_spectra(input_datafolder, plot_all = True):
     ----------
     input_datafolder : str
         Folder of the exported XPS spectra.
+    label_filepath : str
+        Filepath of the excel file, has to be .xlsx.
     plot_all : bool, optional
         If plot_all, all loadded spectra are plotted. The default is True.
 
     Returns
     -------
-    X : TYPE
-        DESCRIPTION.
-    y : TYPE
-        DESCRIPTION.
-    names : TYPE
-        DESCRIPTION.
-    energies : TYPE
-        DESCRIPTION.
-
+    X : ndarray
+        3D array of xps data.
+    y : ndarray
+        2D array of labels.
+    names : ndarray
+        Spectra names.
     """
+    
     import warnings
     warnings.filterwarnings("ignore")
     filenames = next(os.walk(input_datafolder))[2]
     
-    X = np.zeros((len(filenames),1121,1))
-    
-    label_filepath = r'C:\Users\pielsticker\Desktop\Mixed iron spectra\peak fits.xlsx'     
+    X = np.zeros((len(filenames),1121,1)) 
 
     y, names = _get_labels(label_filepath)
     spectra = []
@@ -145,9 +144,12 @@ def convert_all_spectra(input_datafolder, plot_all = True):
     return X, y, names
 
 # Load the data into numpy arrays and save to hdf5 file.
-input_datafolder = r'C:\Users\pielsticker\Desktop\Mixed iron spectra\exported'
-X, y, names = convert_all_spectra(input_datafolder, plot_all = True)
-output_file= r'C:\Users\pielsticker\Simulations\20200922_measured.h5'
+input_datafolder = r'C:\Users\pielsticker\Lukas\MPI-CEC\Projects\Ammonia Synthesis\Data\NAP-XPS\analyzed data\Mixed iron spectra\exported'
+label_filepath = r'C:\Users\pielsticker\Lukas\MPI-CEC\Projects\Ammonia Synthesis\Data\NAP-XPS\analyzed data\Mixed iron spectra\analysis_20201207\peak_fits_20201207.xlsx'   
+X, y, names = convert_all_spectra(input_datafolder,
+                                  label_filepath,
+                                  plot_all = True)
+output_file= r'C:\Users\pielsticker\Simulations\20201207_iron_measured_tougaard_lineshapes.h5'
   
 with h5py.File(output_file, 'w') as hf:
     hf.create_dataset('X', data = X,

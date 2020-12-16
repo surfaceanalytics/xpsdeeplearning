@@ -162,7 +162,7 @@ class Creator():
             self.augmentation_matrix[i,-5] = test[r]
             
             # Signal-to-noise
-            self.augmentation_matrix[i,-4] = np.random.randint(1,200)/150
+            self.augmentation_matrix[i,-4] = np.random.randint(1000,25000)/1000
             
             # Scatterer ID
             self.augmentation_matrix[i,-3] = np.random.randint(0,4)
@@ -333,7 +333,8 @@ class Creator():
                 params_text += 'X shift: none' + '\n'
                 
             if (row['noise'] != None and row['noise'] != 0):
-                params_text += 'S/N: ' + str(int(row['noise'])) + '\n'      
+                #params_text += 'S/N: ' + str(int(row['noise'])) + '\n'      
+                params_text += 'S/N: ' + '{:.1f}'.format(row['noise']) + '\n' 
             else:
                 params_text += 'S/N: not changed' + '\n'
  
@@ -609,7 +610,7 @@ if __name__ == "__main__":
     input_filenames =  ['Fe_metal_Mark','FeO_Mark','Fe3O4_Mark','Fe2O3_Mark']
     creator = Creator(no_of_simulations, input_filenames, single = False)
     creator.run(broaden = False, x_shift = True, noise = True, scatter = True)
-    creator.plot_random(5)
+    creator.plot_random(10)
     datafolder = r'C:\Users\pielsticker\Simulations\\'
     filepath = datafolder + 'Multiple_species_gas_phase_20200902'
     #creator.upload_to_DB(filename, reduced = True)

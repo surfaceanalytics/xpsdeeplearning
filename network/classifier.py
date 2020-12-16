@@ -871,7 +871,7 @@ class Classifier():
             shift_text = ' Shift: none' + ', '
                 
         if (noise != None and noise != 0):
-            noise_text = 'S/N: ' + str(int(noise))   
+            noise_text = 'S/N: ' + '{:.1f}'.format(noise)   
         else:
             noise_text = 'S/N: not changed'
                 

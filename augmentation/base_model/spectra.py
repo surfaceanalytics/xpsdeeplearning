@@ -162,7 +162,7 @@ class MeasuredSpectrum(Spectrum):
                                                self.label)
         self.x = x
         self.lineshape = data[:,1][diff != 0]
-        self.normalize()
+        #self.normalize()
     
     def load(self, filepath):
         """
@@ -654,7 +654,10 @@ class SimulatedSpectrum(Spectrum):
             pass
         else:
             intensity_max = np.max(self.lineshape)
-            noise = intensity_max/signal_to_noise
+            intensity_min = np.min(self.lineshape)
+            
+            intensity_diff = intensity_max - intensity_min
+            noise = intensity_diff/signal_to_noise*10
         
             # A poisson distributed noise is multplied by the noise
             # factor and added to the lineshape. 
@@ -664,6 +667,7 @@ class SimulatedSpectrum(Spectrum):
         
             self.lineshape = self.lineshape + poisson_noise                         
             self.normalize()
+                  
 
     def change_resolution(self, resolution):
         """
