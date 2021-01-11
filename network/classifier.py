@@ -1690,22 +1690,14 @@ class ClassifierMultiple(Classifier):
         with shelve.open(filename,'n') as shelf:
             key_list = ['y_train', 'y_test', 'pred_train', 'pred_test',
                         'test_loss']
-            try:
-                key_list.append('aug_values_train')
-                key_list.append('aug_values_test')
-            except:
-                pass
-            try:
-                key_list.append('names_train')
-                key_list.append('names_test')
-
-            except:
-                pass
-              
+                  
             if full == True:
                 key_list.extend(['X, X_train', 'X_val', 'X_test', 'y',
                                  'y_val', 'class_distribution', 'history'])
             for key in key_list:
-                shelf[key] = vars(self)[key]
+                try:
+                    shelf[key] = vars(self)[key]
+                except:
+                    pass
         
         print("Saved results to file.")
