@@ -97,7 +97,7 @@ from json_to_hdf5 import to_hdf5
 t0 = time()
 output_datafolder = r'C:\Users\pielsticker\Simulations\\'
 output_file = output_datafolder + '20201612_iron_Mark_variable_linear_combination_gas_phase.h5'
-simulation_name = '20201612_iron_Mark_variable_linear_combination_gas_phase'
+simulation_name = '20201216_iron_Mark_variable_linear_combination_gas_phase'
 no_of_files_per_load = 50
 
 to_hdf5(output_file, simulation_name, no_of_files_per_load)
@@ -117,7 +117,7 @@ runtimes['HDF5 Mark'] = calculate_runtime(t0,t1)
 t0 = time()
 output_datafolder = r'C:\Users\pielsticker\Simulations\\'
 output_file = output_datafolder + '20201612_iron_variable_linear_combination_gas_phase.h5'
-simulation_name = '20201612_iron_variable_linear_combination_gas_phase'
+simulation_name = '20201216_iron_variable_linear_combination_gas_phase'
 no_of_files_per_load = 50
 
 to_hdf5(output_file, simulation_name, no_of_files_per_load)
@@ -173,7 +173,7 @@ def load_data(filenames):
             distance = np.concatenate((distance, distance_new), axis = 0)
             pressure = np.concatenate((pressure, pressure_new), axis = 0)
             
-            print('File {0} loaded'.format(filenames.index(filename)+1))
+            print('File {0} loaded'.format(filenames.index(filename)))
          
     return X, y, shiftx, noise, fwhm, scatterer, distance, pressure
 

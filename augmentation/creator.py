@@ -24,7 +24,8 @@ class Creator():
     Class for simulating large amounts of XPS spectra based on a 
     number of input_spectra
     """
-    def __init__(self, no_of_simulations, input_filenames, single = False):
+    def __init__(self, no_of_simulations, input_filenames, single = False,
+                 variable_no_of_inputs = True):
         """
         Loading the input spectra and creating the empty augmentation
         matrix based on the number of input spectra.
@@ -41,6 +42,11 @@ class Creator():
             for creating a single spectrum. If not single, a linear 
             combination of all spectra will be used.
             The default is True.
+         variable_no_of_inputs : bool, optional
+            If variable_no_of_inputs and if single, then the number of 
+            input spectra used in the linear combination will be randomly
+            chosen from the interval (1, No. of input spectra).
+            The default is True.         
 
         Returns
         -------
@@ -49,13 +55,15 @@ class Creator():
         """
         self.no_of_simulations = no_of_simulations
         
-        input_datapath = os.path.dirname(
+        input_datapath = os.path.join(*[os.path.dirname(
             os.path.abspath(__file__)).partition(
-                        'augmentation')[0] + '\\data\\references'
+                        'augmentation')[0],
+            'data',
+            'references'])
 
         self.input_spectra = []
         for label in input_filenames:
-            filename = input_datapath + '\\' + label + '.txt'
+            filename = os.path.join(input_datapath, label + '.txt')
             self.input_spectra += [MeasuredSpectrum(filename)]
                 
         # No. of parameter = no. of linear parameter + 6
@@ -68,13 +76,18 @@ class Creator():
                                              no_of_params))
         
         if single:
-            # If single, only one input spectrum is taken.
             self.create_matrix(single = True)
+
         else:
-            self.create_matrix(single = False)
+            if variable_no_of_inputs:
+                self.create_matrix(single = False,
+                                   variable_no_of_inputs = True)
+            else:
+                self.create_matrix(single = False,
+                                   variable_no_of_inputs = False)
 
     
-    def create_matrix(self, single = False):
+    def create_matrix(self, single = False, variable_no_of_inputs = True):
         """
         Creates the numpy array 'augmenttion_matrix' (instance
         variable) that is used to simulate the new spectra.
@@ -91,54 +104,60 @@ class Creator():
         single : bool, optional
             If single, only one input spectrum is taken.
             The default is False.
+        variable_no_of_inputs : bool, optional
+            If variable_no_of_inputs and if single, then the number of 
+            input spectra used in the linear combination will be randomly
+            chosen from the interval (1, No. of input spectra).
+            The default is True.
 
         Returns
         -------
         None.
 
         """
+        print(variable_no_of_inputs)
 
         for i in range(self.no_of_simulations):
             if single == False:  
-# =============================================================================
-#                 # Linear parameters
-#                 r = [np.random.uniform(0.1,1.0) for j \
-#                      in range(self.no_of_linear_params)]
-#                 s = sum(r)
-#                 linear_params = [k/s for k in r]
-# 
-#                 while all(p >= 0.1 for p in linear_params) == False:
-#                     # sample again if one of the parameters is smaller than
-#                     # 0.1.
-#                     r = [np.random.uniform(0.1,1.0) for j in \
-#                          range(self.no_of_linear_params)]
-#                     s = sum(r)
-#                     linear_params = [k/s for k in r]
-# 
-#                 self.augmentation_matrix[i,0:self.no_of_linear_params] = \
-#                     linear_params
-# =============================================================================
-                # Randomly choose how many spectra shall be combined
-                no_of_spectra = np.random.randint(1,
-                                                  self.no_of_linear_params+1)
-                r = [np.random.uniform(0.1,1.0) for j \
-                     in range(no_of_spectra)]
-                linear_params = [k/sum(r) for k in r]
-                
-                # Don't allow parameters below 0.1.
-                for p in linear_params:
-                    if p <= 0.1:
-                        linear_params[linear_params.index(p)] = 0.0
+                if variable_no_of_inputs:
+                    # Randomly choose how many spectra shall be combined
+                    no_of_spectra = np.random.randint(
+                        1, self.no_of_linear_params+1)
+                    r = [np.random.uniform(0.1,1.0) for j \
+                         in range(no_of_spectra)]
+                    linear_params = [k/sum(r) for k in r]
+                    
+                    # Don't allow parameters below 0.1.
+                    for p in linear_params:
+                        if p <= 0.1:
+                            linear_params[linear_params.index(p)] = 0.0
     
-                linear_params = [k/sum(linear_params) for k in linear_params]
-
-                # Add zeros if no_of_spectra < no_of_linear_params.
-                for _ in range(self.no_of_linear_params - no_of_spectra):
-                    linear_params.append(0.0)
+                    linear_params = [k/sum(linear_params) \
+                                     for k in linear_params]
+                        
+                    # Add zeros if no_of_spectra < no_of_linear_params.
+                    for _ in range(self.no_of_linear_params - no_of_spectra):
+                        linear_params.append(0.0)
+                    
+                    # Randomly shuffle so that zeros are equally distributed.    
+                    np.random.shuffle(linear_params)
                 
-                # Randomly shuffle so that zeros are equally distributed.    
-                np.random.shuffle(linear_params)
-
+                else:
+                    # Linear parameters
+                    r = [np.random.uniform(0.1,1.0) for j \
+                         in range(self.no_of_linear_params)]
+                    s = sum(r)
+                    linear_params = [k/s for k in r]
+                
+                    while all(p >= 0.1 for p in linear_params) == False:
+                        # sample again if one of the parameters is smaller 
+                        # than 0.1.
+                        r = [np.random.uniform(0.1,1.0) for j in \
+                             range(self.no_of_linear_params)]
+                        s = sum(r)
+                        linear_params = [k/s for k in r]
+                        
+                
                 self.augmentation_matrix[i,0:self.no_of_linear_params] = \
                     linear_params
                 
@@ -333,11 +352,9 @@ class Creator():
                 params_text += 'X shift: none' + '\n'
                 
             if (row['noise'] != None and row['noise'] != 0):
-                #params_text += 'S/N: ' + str(int(row['noise'])) + '\n'      
                 params_text += 'S/N: ' + '{:.1f}'.format(row['noise']) + '\n' 
             else:
                 params_text += 'S/N: not changed' + '\n'
- 
 
             
             scatter_text = '\n' 
@@ -606,13 +623,18 @@ def drop_db_collection(collection_name):
 #%%
 if __name__ == "__main__":
     t0 = time()
-    no_of_simulations = 20
-    input_filenames =  ['Fe_metal_Mark','FeO_Mark','Fe3O4_Mark','Fe2O3_Mark']
-    creator = Creator(no_of_simulations, input_filenames, single = False)
-    creator.run(broaden = False, x_shift = True, noise = True, scatter = True)
+    no_of_simulations = 10
+    input_filenames =  ['Pd_metal_narrow','PdO_narrow']
+    creator = Creator(no_of_simulations, input_filenames,
+                      single = False,
+                      variable_no_of_inputs = False)
+    creator.run(broaden = True,
+                x_shift = True,
+                noise = True,
+                scatter = False)
     creator.plot_random(10)
-    datafolder = r'C:\Users\pielsticker\Simulations\\'
-    filepath = datafolder + 'Multiple_species_gas_phase_20200902'
+    datafolder = r'C:\Users\pielsticker\Simulations'
+    filepath = os.path.join(datafolder, 'Multiple_species_gas_phase_20200902')
     #creator.upload_to_DB(filename, reduced = True)
     #collections = check_db(filename)
     #drop_db_collection(filename)
@@ -626,4 +648,3 @@ if __name__ == "__main__":
     print(f'Runtime: {runtime}.')
     del(t0,t1,runtime,filepath)
     #collections = check_db(filename)
-    
