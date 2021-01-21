@@ -28,18 +28,23 @@ from base_model.spectra import ReferenceSpectrum, FittedSpectrum
 from base_model.figures import Figure
   
 #%% For one reference spectrum.   
-input_datafolder = r'C:\Users\pielsticker\Lukas\MPI-CEC\Projects\xpsdeeplearning\data\references'
-filename = 'Fe_metal_Mark_shifted.txt'
+# =============================================================================
+# input_datafolder = r'C:\Users\pielsticker\Lukas\MPI-CEC\Projects\xpsdeeplearning\data\references'
+# filename = 'Fe_metal_Mark_shifted.txt'
+# =============================================================================
+input_datafolder = r'C:\Users\pielsticker\Desktop\Pd references'
+filename = 'Pd_metal.txt'
+
 energies = []
 
 filepath = os.path.join(input_datafolder, filename)
 ref_spectrum = ReferenceSpectrum(filepath)
 Figure(ref_spectrum.x, ref_spectrum.lineshape, title = 'old')
 energies.append(ref_spectrum.x[np.argmax(ref_spectrum.lineshape)])
-ref_spectrum.resize(start = 694, stop = 750, step = 0.05)
+#ref_spectrum.resize(start = 348.0, stop = 383, step = 0.05)
 energies.append(ref_spectrum.x[np.argmax(ref_spectrum.lineshape)])
 fig = Figure(ref_spectrum.x, ref_spectrum.lineshape, title = 'new')
-#ref_spectrum.write(datafolder)
+#ref_spectrum.write(input_datafolder)
 l = ref_spectrum.lineshape
 x = ref_spectrum.x
 
@@ -107,13 +112,12 @@ def convert_all_spectra(input_datafolder, label_filepath, plot_all = True):
     Returns
     -------
     X : ndarray
-        3D array of xps data.
+        3D array of XPS data.
     y : ndarray
         2D array of labels.
     names : ndarray
         Spectra names.
     """
-    
     import warnings
     warnings.filterwarnings("ignore")
     filenames = next(os.walk(input_datafolder))[2]

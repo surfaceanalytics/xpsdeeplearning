@@ -55,10 +55,9 @@ def load_data_preprocess(input_datafolder,start,end):
         Array of float values of the pressure values.
 
     """
-    label_values = ['Fe metal','FeO','Fe3O4','Fe2O3']
+
     
     filenames = next(os.walk(input_datafolder))[2]
-
     X = []
     y = []
     shiftx = []
@@ -69,7 +68,7 @@ def load_data_preprocess(input_datafolder,start,end):
     pressure = []
         
     for file in filenames[start:end]:
-        filename = input_datafolder + file
+        filename = os.path.join(input_datafolder, file)
         with open(filename, 'r') as json_file:
             test = json.load(json_file)
         for j in range(0,len(test)):
@@ -97,7 +96,7 @@ def load_data_preprocess(input_datafolder,start,end):
                                                   
     X = np.array(X)
     X = np.reshape(X, (X.shape[0], X.shape[1], 1))
-    y = _one_hot_encode(y, label_values)
+    y = _one_hot_encode(y)
     
     shiftx = np.reshape(np.array(shiftx),(-1,1))
     noise = np.reshape(np.array(noise),(-1,1))
@@ -108,8 +107,29 @@ def load_data_preprocess(input_datafolder,start,end):
 
     return X, y, shiftx, noise, FWHM, scatterer, distance, pressure
         
+def _load_energies(filepath):
+    """
+    Load the energy scale from one json file.
+
+    Parameters
+    ----------
+    filepath : str
+        Filepath of the json file.
+
+    Returns
+    -------
+    energies : ndarray
+        1d array with binding energies.
+
+    """
+    with open(filepath, 'r') as json_file:
+        test = json.load(json_file)
+        energies = np.array(test[0]['x'])
     
-def _one_hot_encode(y, label_values):
+    return energies
+
+    
+def _one_hot_encode(y):
     """
     One-hot encode the labels.
     As an example, if the label of a spectrum is Fe metal = 1 and all 
@@ -119,8 +139,6 @@ def _one_hot_encode(y, label_values):
     ----------
     y : list
         List of label strings.
-    label_values : list
-        List of label values to encode.
 
     Returns
     -------
@@ -128,6 +146,9 @@ def _one_hot_encode(y, label_values):
         One-hot encoded labels.
 
     """
+    #label_values = ['Fe metal','FeO','Fe3O4','Fe2O3']
+    label_values = ['Pd metal','PdO']
+    
     new_labels = np.zeros((len(y), len(label_values)))    
     
     for i,d in enumerate(y):
@@ -158,8 +179,8 @@ def to_hdf5(output_file, simulation_name, no_of_files_per_load):
     None.
 
     """
-    input_datafolder = r'C:\Users\pielsticker\Simulations\\' + \
-        simulation_name + '\\'
+    input_datafolder = os.path.join(r'C:\Users\pielsticker\Simulations',
+                                    simulation_name)
     filenames = next(os.walk(input_datafolder))[2]
     no_of_files = len(filenames)    
     no_of_loads = int(no_of_files/no_of_files_per_load) 
@@ -167,7 +188,7 @@ def to_hdf5(output_file, simulation_name, no_of_files_per_load):
     with h5py.File(output_file, 'w') as hf:
         start = 0
         end = no_of_files_per_load
-        X, y, shiftx, noise, FWHM, scatterer, distance, pressure  = \
+        X, y, shiftx, noise, FWHM, scatterer, distance, pressure = \
             load_data_preprocess(input_datafolder, start, end)
         hf.create_dataset('X', data = X,
                           compression="gzip", chunks=True,
@@ -194,6 +215,13 @@ def to_hdf5(output_file, simulation_name, no_of_files_per_load):
                           compression="gzip", chunks=True,
                           maxshape=(None, FWHM.shape[1]))
         print('Saved: ' + str(1) + '/' + str(no_of_loads))
+        
+        # Store energies in seperate dataset
+        filepath = os.path.join(input_datafolder,
+                                filenames[0])
+        energies = _load_energies(filepath)
+        hf.create_dataset('energies', data = energies,
+                          compression="gzip", chunks=True)
         
         for load in range(1,no_of_loads):
             start = load*no_of_files_per_load
@@ -235,8 +263,8 @@ def to_hdf5(output_file, simulation_name, no_of_files_per_load):
 #%%               
 if __name__ == "__main__":
     output_datafolder = r'C:\Users\pielsticker\Simulations\\'
-    output_file = output_datafolder + '20200903_iron_Mark_variable_linear_combination_gas_phase.h5'
-    simulation_name = '20200903_iron_Mark_variable_linear_combination_gas_phase'
+    output_file = output_datafolder + '20210118_palladium_linear_combination_gas_phase.h5'
+    simulation_name = '20210118_palladium_linear_combination_gas_phase'
     no_of_files_per_load = 50
 
     runtimes = {}
@@ -255,5 +283,6 @@ if __name__ == "__main__":
         shiftx_h5 = hf['shiftx'][:4000,:]
         noise_h5 = hf['noise'][:4000,:]
         fwhm_h5 = hf['FWHM'][:4000,:]
+        energies = hf['energies'][:]
         t1 = time()
         runtimes['h5_load'] = calculate_runtime(t0,t1)

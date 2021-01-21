@@ -20,10 +20,9 @@ from creator import Creator, calculate_runtime, check_db
 #%% Parameters
 no_of_simulations = 500
 no_of_files = 500
-input_filenames =  ['Fe_metal','FeO',
-                    'Fe3O4','Fe2O3']
+input_filenames =  ['Pd_metal_narrow','PdO_narrow']
 timestamp = datetime.datetime.now().strftime("%Y%m%d")
-run_name = 'iron_variable_linear_combination_gas_phase'
+run_name = 'palladium_linear_combination_gas_phase'
 time_and_run_name = timestamp + '_' + run_name
 
 datafolder = r'C:\Users\pielsticker\Simulations'
