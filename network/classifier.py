@@ -164,6 +164,11 @@ class Classifier():
         
         
         with h5py.File(input_filepath, 'r') as hf:
+            try:
+                self.energies = hf['energies'][:]
+            except:
+                self.energies = np.arange(694, 750.05, 0.05)
+                
             dataset_size = hf['X'].shape[0]
             # Randomly choose a subset of the whole data set.
             r = np.random.randint(0, dataset_size-self.no_of_examples)
@@ -1111,7 +1116,7 @@ class ClassifierSingle(Classifier):
                             wspace = 0.2, hspace = 0.2)
     
         for i in range(no_of_spectra):
-            x = np.arange(694, 750.05, 0.05)
+            x = self.energies
 
             if dataset == 'train':
                 r = np.random.randint(0, self.X_train.shape[0])
@@ -1164,9 +1169,10 @@ class ClassifierSingle(Classifier):
                         label =  ('Real label: ' + label)
                     
             row, col = int(i/no_of_cols), i % no_of_cols
-            axs[row, col].plot(np.flip(x),y)
+            axs[row, col].plot(x,y)
             axs[row, col].invert_xaxis()
-            axs[row, col].set_xlim(750.05,694)
+            print(np.max(self.energies),np.min(self.energies))
+            axs[row, col].set_xlim(np.max(self.energies),np.min(self.energies))
             axs[row, col].set_xlabel('Binding energy (eV)')
             axs[row, col].set_ylabel('Intensity (arb. units)')                          
 
@@ -1235,7 +1241,6 @@ class ClassifierSingle(Classifier):
         None.
 
         """
-        binding_energy = np.arange(694, 750.05, 0.05)
         
         wrong_pred_args = []
         
@@ -1285,9 +1290,9 @@ class ClassifierSingle(Classifier):
                 text = real_y + pred_y + label + pred_label + aug
             
                 row, col = int(n/no_of_cols), n % no_of_cols
-                axs[row, col].plot(np.flip(binding_energy),intensity)
+                axs[row, col].plot(self.energies,intensity)
                 axs[row, col].invert_xaxis()
-                axs[row, col].set_xlim(750.05,694)
+                axs[row, col].set_xlim(np.max(self.energies),np.min(self.energies))
                 axs[row, col].set_xlabel('Binding energy (eV)')
                 axs[row, col].set_ylabel('Intensity (arb. units)')  
                 axs[row, col].text(0.025, 0.4, text,
@@ -1493,8 +1498,6 @@ class ClassifierMultiple(Classifier):
                             wspace = 0.2, hspace = 0.2)
     
         for i in range(no_of_spectra):
-            energies = np.arange(694, 750.05, 0.05)
-
             if dataset == 'train':
                 X = self.X_train
                 y = self.y_train
@@ -1552,9 +1555,9 @@ class ClassifierMultiple(Classifier):
                 full_text_pred += loss_text
                             
             row, col = int(i/no_of_cols), i % no_of_cols
-            axs[row, col].plot(np.flip(energies),intensity)
+            axs[row, col].plot(self.energies,intensity)
             axs[row, col].invert_xaxis()
-            axs[row, col].set_xlim(750.05,694)
+            axs[row, col].set_xlim(np.max(self.energies),np.min(self.energies))
             axs[row, col].set_xlabel('Binding energy (eV)')
             axs[row, col].set_ylabel('Intensity (arb. units)')         
 
@@ -1634,7 +1637,7 @@ class ClassifierMultiple(Classifier):
     
         for i in range(no_of_spectra):
             index = worst_indices[i]
-            x = np.arange(694, 750.05, 0.05)
+            x = self.energies
             y = self.X_test[index]
             label = str(np.around(self.y_test[index], decimals = 3))
             real = ('Real: ' +  label + '\n')
@@ -1658,9 +1661,9 @@ class ClassifierMultiple(Classifier):
             full_text += loss_text
 
             row, col = int(i/no_of_cols), i % no_of_cols
-            axs[row, col].plot(np.flip(x),y)
+            axs[row, col].plot(x,y)
             axs[row, col].invert_xaxis()
-            axs[row, col].set_xlim(750.05,694)
+            axs[row, col].set_xlim(np.max(self.energies),np.min(self.energies))
             axs[row, col].set_xlabel('Binding energy (eV)')
             axs[row, col].set_ylabel('Intensity (arb. units)')                          
             axs[row, col].text(0.025, 0.4, full_text,
