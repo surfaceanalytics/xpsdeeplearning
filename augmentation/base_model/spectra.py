@@ -223,16 +223,18 @@ class MeasuredSpectrum(Spectrum):
         self.start, self.stop, self.step = start, stop, step
         
         self._remove_outside_points(start, stop)
+        
         initial_shape = self.x.shape
         self.update_range()
         factor = self.x.shape[0]/initial_shape[0]
 
-        if factor > 1:
-            factor = int(np.rint(factor))
-            self._upsample(factor)
-        elif factor < 1:     
-            factor = int(np.rint(1/factor))
-            self._downsample(factor)
+        if not factor == 0.0:
+            if factor > 1:
+                factor = int(np.rint(factor))+1
+                self._upsample(factor)
+            elif factor < 1: 
+                factor = int(np.rint(1/factor))
+                self._downsample(factor)
         
     def _remove_outside_points(self, start, stop):
         """
@@ -278,7 +280,7 @@ class MeasuredSpectrum(Spectrum):
     def _extrapolate(self, no_of_points, side):
         """
         Extrapolate the lineshape on the given side by concatenating the 
-        lineshape with an array of 
+        lineshape with an array of the values at either side.
 
         Parameters
         ----------
