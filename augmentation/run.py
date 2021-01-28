@@ -14,30 +14,45 @@ Total no. of spectra = no_of_simulations*no_of_files
 
 from time import time
 import os
+import json
 import datetime
-from creator import Creator, calculate_runtime, check_db
+import h5py
+from creator import Creator, calculate_runtime
+from json_to_hdf5 import to_hdf5
 
 #%% Parameters
-no_of_simulations = 500
-no_of_files = 500
-input_filenames =  ['Pd_metal_narrow','PdO_narrow']
-timestamp = datetime.datetime.now().strftime("%Y%m%d")
-run_name = 'palladium_linear_combination_gas_phase'
-time_and_run_name = timestamp + '_' + run_name
+param_filepath = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)),
+    'params_template.json')
 
-datafolder = r'C:\Users\pielsticker\Simulations'
-filepath = os.path.join(*[datafolder,time_and_run_name])
+with open(param_filepath, 'r') as param_file:
+    params = json.load(param_file)
+
+no_of_files = params['no_of_files']
+timestamp = datetime.datetime.now().strftime("%Y%m%d")
+time_and_run_name = timestamp + '_' + params['run_name']
+output_datafolder = params['output_datafolder']
+filepath = os.path.join(*[output_datafolder,time_and_run_name])
+
 try:
     os.makedirs(filepath)
 except:
     pass
+params['timestamp'] = timestamp
+params['h5_filename'] = time_and_run_name + '.h5'
+
+with open(os.path.join(filepath, 'run_params.json'), 'w') as out_file:
+    json.dump(params, out_file, indent=4)
+
 filename_basic = os.path.join(*[filepath,time_and_run_name])
 
 #%% Create multiple sets of similar spectra with the same settings
+runtimes = {}
+
 t0 = time()
 for i in range(no_of_files):
-    creator = Creator(no_of_simulations, input_filenames, single = False )
-    creator.run(broaden = False, x_shift = True, noise = True, scatter = True)
+    creator = Creator(params)
+    creator.run()
     creator.plot_random(5)
     filename = filename_basic + str(i)   
     #creator.upload_to_DB(filename, reduced = False)
@@ -51,3 +66,31 @@ for i in range(no_of_files):
 t1 = time()
 runtime = calculate_runtime(t0,t1)
 print(f'Runtime: {runtime}.')
+
+
+#%% Save all to HDF5.
+t0 = time()
+h5_file = params['output_datafolder'] + params['h5_filename']
+to_hdf5(h5_file, time_and_run_name)
+t1 = time()
+runtimes['h5_save'] = calculate_runtime(t0,t1)
+print('finished saving')
+
+# Test new file.
+t0 = time()    
+with h5py.File(h5_file, 'r') as hf:
+    size = hf['X'].shape
+    X_h5 = hf['X'][:4000,:,:]
+    y_h5 = hf['y'][:4000,:]
+    shiftx_h5 = hf['shiftx'][:4000,:]
+    noise_h5 = hf['noise'][:4000,:]
+    fwhm_h5 = hf['FWHM'][:4000,:]
+    energies_h5 = hf['energies'][:]
+
+t1 = time()
+runtimes['h5_load'] = calculate_runtime(t0,t1)
+
+
+
+
+

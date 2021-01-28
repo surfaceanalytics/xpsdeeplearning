@@ -58,6 +58,10 @@ def load_data_preprocess(input_datafolder,start,end):
 
     
     filenames = next(os.walk(input_datafolder))[2]
+    try:
+        filenames.remove('run_params.json')
+    except ValueError:
+        pass
     X = []
     y = []
     shiftx = []
@@ -159,7 +163,7 @@ def _one_hot_encode(y):
     return new_labels
 
 
-def to_hdf5(output_file, simulation_name, no_of_files_per_load):
+def to_hdf5(output_file, simulation_name, no_of_files_per_load = 50):
     """
     Function to store all data in an input datafolder in an HDF5
     file.
@@ -182,7 +186,7 @@ def to_hdf5(output_file, simulation_name, no_of_files_per_load):
     input_datafolder = os.path.join(r'C:\Users\pielsticker\Simulations',
                                     simulation_name)
     filenames = next(os.walk(input_datafolder))[2]
-    no_of_files = len(filenames)    
+    no_of_files = len(filenames)
     no_of_loads = int(no_of_files/no_of_files_per_load) 
     
     with h5py.File(output_file, 'w') as hf:
@@ -262,14 +266,16 @@ def to_hdf5(output_file, simulation_name, no_of_files_per_load):
 
 #%%               
 if __name__ == "__main__":
-    output_datafolder = r'C:\Users\pielsticker\Simulations\\'
-    output_file = output_datafolder + '20210118_palladium_linear_combination_gas_phase.h5'
-    simulation_name = '20210118_palladium_linear_combination_gas_phase'
-    no_of_files_per_load = 50
+    param_filepath = r'C:\Users\pielsticker\Simulations\20210127_palladium_linear_combination_gas_phase\run_params.json'
+    with open(param_filepath, 'r') as param_file:
+        params = json.load(param_file)
+        
+    output_file = params['output_datafolder'] + params['h5_filename']
+    simulation_name = params['timestamp'] + '_' + params['run_name']
 
     runtimes = {}
     t0 = time()
-    to_hdf5(output_file, simulation_name, no_of_files_per_load)
+    to_hdf5(output_file, simulation_name)
     t1 = time()
     runtimes['h5_save'] = calculate_runtime(t0,t1)
     print('finished saving')
@@ -283,6 +289,6 @@ if __name__ == "__main__":
         shiftx_h5 = hf['shiftx'][:4000,:]
         noise_h5 = hf['noise'][:4000,:]
         fwhm_h5 = hf['FWHM'][:4000,:]
-        energies = hf['energies'][:]
+        energies_h5 = hf['energies'][:]
         t1 = time()
         runtimes['h5_load'] = calculate_runtime(t0,t1)
