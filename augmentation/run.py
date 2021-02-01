@@ -21,28 +21,21 @@ from creator import Creator, calculate_runtime
 from json_to_hdf5 import to_hdf5
 
 #%% Parameters
-param_filepath = os.path.join(
-    os.path.dirname(os.path.abspath(__file__)),
-    'params_template.json')
+param_filepath = r'C:\Users\pielsticker\Simulations\test.json'
 
 with open(param_filepath, 'r') as param_file:
-    params = json.load(param_file)
+    run_params = json.load(param_file)
 
-no_of_files = params['no_of_files']
+no_of_files = run_params['no_of_files']
 timestamp = datetime.datetime.now().strftime("%Y%m%d")
-time_and_run_name = timestamp + '_' + params['run_name']
-output_datafolder = params['output_datafolder']
+time_and_run_name = timestamp + '_' + run_params['run_name']
+output_datafolder = run_params['output_datafolder']
 filepath = os.path.join(*[output_datafolder,time_and_run_name])
 
 try:
     os.makedirs(filepath)
 except:
     pass
-params['timestamp'] = timestamp
-params['h5_filename'] = time_and_run_name + '.h5'
-
-with open(os.path.join(filepath, 'run_params.json'), 'w') as out_file:
-    json.dump(params, out_file, indent=4)
 
 filename_basic = os.path.join(*[filepath,time_and_run_name])
 
@@ -51,7 +44,7 @@ runtimes = {}
 
 t0 = time()
 for i in range(no_of_files):
-    creator = Creator(params)
+    creator = Creator(run_params)
     creator.run()
     creator.plot_random(5)
     filename = filename_basic + str(i)   
@@ -63,6 +56,12 @@ for i in range(no_of_files):
                     how = 'full')
     print('Finished set ' + str(i+1) + ' of ' + str(no_of_files))
 
+run_params['timestamp'] = timestamp
+run_params['h5_filename'] = time_and_run_name + '.h5'
+
+with open(os.path.join(filepath, 'run_params.json'), 'w') as out_file:
+    json.dump(run_params, out_file, indent=4)
+
 t1 = time()
 runtime = calculate_runtime(t0,t1)
 print(f'Runtime: {runtime}.')
@@ -70,7 +69,7 @@ print(f'Runtime: {runtime}.')
 
 #%% Save all to HDF5.
 t0 = time()
-h5_file = params['output_datafolder'] + params['h5_filename']
+h5_file = run_params['output_datafolder'] + run_params['h5_filename']
 to_hdf5(h5_file, time_and_run_name)
 t1 = time()
 runtimes['h5_save'] = calculate_runtime(t0,t1)

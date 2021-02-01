@@ -1,17 +1,17 @@
 {
     "output_datafolder":"C:\\Users\\pielsticker\\Simulations\\",
-    "label_values":["Pd metal", "PdO"],
+    "label_values":["Fe metal", "FeO", "Fe3O4", "Fe2O3"],
     "no_of_files":5,
-    "run_name":"palladium_linear_combination_gas_phase",
-    "input_filenames":["Pd_metal_narrow", "PdO_narrow"],
+    "run_name":"iron_linear_combination_gas_phase",
+    "input_filenames":["Fe_metal", "FeO", "Fe3O4", "Fe2O3"],
     "no_of_simulations":5,
     "single":false,
     "variable_no_of_inputs":true,
-    "broaden":false,
+    "broaden":true,
     "shift_x":true,
     "noise":true,
     "scatter":true,
-    "sim_limits":{
+    "sim_ranges":{
        "shift_x":[-5,5],
        "noise":[1,25],
        "FWHM":[145,722],

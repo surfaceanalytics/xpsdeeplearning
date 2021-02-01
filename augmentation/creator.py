@@ -53,13 +53,21 @@ class Creator():
         default_param_filepath = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
             'default_params.json')
-            
-        with open(param_filepath, 'r') as param_file:
+    
+        with open(default_param_filepath, 'r') as param_file:
             self.params = json.load(param_file)
-                
-        else:
-            self.params = params
+            self.sim_ranges = self.params['sim_ranges']
             
+        if params != None:
+            for key in params.keys():
+                if key != 'sim_ranges':
+                    self.params[key] = params[key]
+                else:
+                    for subkey in params['sim_ranges'].keys():
+                        self.sim_ranges[subkey] = \
+                            params['sim_ranges'][subkey]
+                        
+                            
         self.no_of_simulations = self.params['no_of_simulations']
                               
         input_datapath = os.path.join(*[os.path.dirname(
@@ -121,27 +129,7 @@ class Creator():
         -------
         None.
 
-        """
-        self.sim_ranges = {
-            'shift_x': (-5,5),
-            'noise': (1,25),
-            'FWHM': (145,722),
-            'scatterers':  {
-                '0' : 'He',
-                '1' : 'H2', 
-                '2' : 'N2',
-                '3' : 'O2',
-                },
-            'pressure': (1,100),
-            'distance': (1,10),
-            }
-        
-        for key in self.sim_ranges.keys():
-            try:
-                self.sim_ranges[key] = self.params['sim_ranges'][key]
-            except:
-                pass
-                    
+        """                   
         for i in range(self.no_of_simulations):
             if single == False:  
                 if variable_no_of_inputs:
@@ -239,8 +227,8 @@ class Creator():
                                       self.sim_ranges['pressure'][1]*10)/10
                 # Distance
                 self.augmentation_matrix[i,-1] = \
-                    np.random.randint(self.sim_ranges['distance'][0]*10,
-                                      self.sim_ranges['distance'][1]*10)/10
+                    np.random.randint(self.sim_ranges['distance'][0]*100,
+                                      self.sim_ranges['distance'][1]*100)/100
                 
             else:
                 # Scatterer
@@ -550,15 +538,12 @@ if __name__ == "__main__":
     with open(param_filepath, 'r') as param_file:
             params = json.load(param_file)
             
-    creator = Creator(params)
+    creator = Creator(params=params)
     creator.run()
     creator.plot_random(10)
     datafolder = r'C:\Users\pielsticker\Simulations'
-    filepath = os.path.join(datafolder, 'Multiple_species_gas_phase_20200902')
-    #creator.upload_to_DB(filename, reduced = True)
-    #collections = check_db(filename)
-    #drop_db_collection(filename)
 # =============================================================================
+#     filepath = os.path.join(datafolder, 'Multiple_species_gas_phase')
 #     creator.to_file(filepath = filepath,
 #                     filetype = 'json',
 #                     how = 'full')
@@ -566,6 +551,5 @@ if __name__ == "__main__":
     t1 = time()
     runtime = calculate_runtime(t0,t1)
     print(f'Runtime: {runtime}.')
-    del(t0,t1,runtime,filepath)
-    #collections = check_db(filename)
+    del(t0,t1,runtime)
         

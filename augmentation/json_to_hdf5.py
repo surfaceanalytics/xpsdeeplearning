@@ -187,7 +187,7 @@ def to_hdf5(output_file, simulation_name, no_of_files_per_load = 50):
                                     simulation_name)
     filenames = next(os.walk(input_datafolder))[2]
     no_of_files = len(filenames)
-    no_of_loads = int(no_of_files/no_of_files_per_load) 
+    no_of_loads = int(no_of_files/no_of_files_per_load)
     
     with h5py.File(output_file, 'w') as hf:
         start = 0
