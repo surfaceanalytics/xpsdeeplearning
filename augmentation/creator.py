@@ -7,16 +7,14 @@ Created on Thu Jan 23 12:21:27 2020
 import numpy as np
 import os
 import pandas as pd
+import json
 from time import time
 import matplotlib.pyplot as plt
-import pymongo # MongoDB upload
 
 
 from base_model.spectra import MeasuredSpectrum
 from base_model.figures import Figure
 from simulation import Simulation
-import credentials
-from upload_to_db import connect_to_db
 
 #%%
 class Creator():
@@ -24,8 +22,7 @@ class Creator():
     Class for simulating large amounts of XPS spectra based on a 
     number of input_spectra
     """
-    def __init__(self, no_of_simulations, input_filenames, single = False,
-                 variable_no_of_inputs = True):
+    def __init__(self, params=None):
         """
         Loading the input spectra and creating the empty augmentation
         matrix based on the number of input spectra.
@@ -53,8 +50,26 @@ class Creator():
         None.
 
         """
-        self.no_of_simulations = no_of_simulations
-        
+        default_param_filepath = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),
+            'default_params.json')
+    
+        with open(default_param_filepath, 'r') as param_file:
+            self.params = json.load(param_file)
+            self.sim_ranges = self.params['sim_ranges']
+            
+        if params != None:
+            for key in params.keys():
+                if key != 'sim_ranges':
+                    self.params[key] = params[key]
+                else:
+                    for subkey in params['sim_ranges'].keys():
+                        self.sim_ranges[subkey] = \
+                            params['sim_ranges'][subkey]
+                        
+                            
+        self.no_of_simulations = self.params['no_of_simulations']
+                              
         input_datapath = os.path.join(*[os.path.dirname(
             os.path.abspath(__file__)).partition(
                         'augmentation')[0],
@@ -62,24 +77,24 @@ class Creator():
             'references'])
 
         self.input_spectra = []
-        for label in input_filenames:
+        for label in self.params['input_filenames']:
             filename = os.path.join(input_datapath, label + '.txt')
             self.input_spectra += [MeasuredSpectrum(filename)]
                 
         # No. of parameter = no. of linear parameter + 6
         # (one parameter each for resolution, shift_x, signal_to noise,
         # scatterer, distance, pressure)
-        self.no_of_linear_params = len(input_filenames) 
+        self.no_of_linear_params = len(self.params['input_filenames'])
         no_of_params = self.no_of_linear_params + 6
         
         self.augmentation_matrix = np.zeros((self.no_of_simulations,
                                              no_of_params))
         
-        if single:
+        if self.params['single'] == True:
             self.create_matrix(single = True)
 
         else:
-            if variable_no_of_inputs:
+            if self.params['variable_no_of_inputs'] == True:
                 self.create_matrix(single = False,
                                    variable_no_of_inputs = True)
             else:
@@ -89,7 +104,7 @@ class Creator():
     
     def create_matrix(self, single = False, variable_no_of_inputs = True):
         """
-        Creates the numpy array 'augmenttion_matrix' (instance
+        Creates the numpy array 'augmentation_matrix' (instance
         variable) that is used to simulate the new spectra.
         augmentation_matrix has the dimensions (n x p), where:
         n: no. of spectra that will be created
@@ -114,9 +129,7 @@ class Creator():
         -------
         None.
 
-        """
-        print(variable_no_of_inputs)
-
+        """                   
         for i in range(self.no_of_simulations):
             if single == False:  
                 if variable_no_of_inputs:
@@ -169,27 +182,61 @@ class Creator():
             
             
             # FWHM
-            self.augmentation_matrix[i,-6] = np.random.randint(145,722)
+            if self.params['broaden'] != False:               
+                self.augmentation_matrix[i,-6] = np.random.randint(
+                    self.sim_ranges['FWHM'][0],
+                    self.sim_ranges['FWHM'][1])
+            else:
+                self.augmentation_matrix[i,-6] = 0
             
             # shift_x
-            test = np.arange(-5,5,0.05)
-            r = np.round(np.random.randint(0,len(test)), decimals = 2)
-            
-            if -0.05 < test[r] < 0.05:
-                test[r] = 0
-            
-            self.augmentation_matrix[i,-5] = test[r]
-            
+            if self.params['shift_x'] != False:               
+                shift_range = np.arange(
+                    self.sim_ranges['shift_x'][0],
+                    self.sim_ranges['shift_x'][1],
+                    self.input_spectra[0].step)
+                r = np.round(np.random.randint(0,len(shift_range)),
+                             decimals = 2)
+                if -self.input_spectra[0].step < \
+                    shift_range[r] < self.input_spectra[0].step:
+                        shift_range[r] = 0
+                
+                self.augmentation_matrix[i,-5] = shift_range[r]
+                
+            else:
+                self.augmentation_matrix[i,-5] = 0
+                        
             # Signal-to-noise
-            self.augmentation_matrix[i,-4] = np.random.randint(1000,25000)/1000
+            if self.params['noise'] != False:
+                self.augmentation_matrix[i,-4] = np.random.randint(
+                    self.sim_ranges['noise'][0]*1000,
+                    self.sim_ranges['noise'][1]*1000)/1000
             
-            # Scatterer ID
-            self.augmentation_matrix[i,-3] = np.random.randint(0,4)
-            # Distance
-            self.augmentation_matrix[i,-2] = np.random.randint(1,10)/10 
-            # Pressure
-            self.augmentation_matrix[i,-1] = np.random.randint(1,100)/10
-  
+            else:
+                self.augmentation_matrix[i,-4] = 0
+            
+            # Scattering
+            if self.params['scatter'] != False:
+                # Scatterer ID
+                self.augmentation_matrix[i,-3] = \
+                    np.random.randint(
+                        0, len(self.sim_ranges['scatterers'].keys()))
+                # Pressure
+                self.augmentation_matrix[i,-2] = \
+                    np.random.randint(self.sim_ranges['pressure'][0]*10,
+                                      self.sim_ranges['pressure'][1]*10)/10
+                # Distance
+                self.augmentation_matrix[i,-1] = \
+                    np.random.randint(self.sim_ranges['distance'][0]*100,
+                                      self.sim_ranges['distance'][1]*100)/100
+                
+            else:
+                # Scatterer
+                self.augmentation_matrix[:,-3] = None
+                # Pressurex
+                self.augmentation_matrix[:,-2] = 0
+                # Distance
+                self.augmentation_matrix[:,-1] = 0
                 
     def run(self,
             broaden = True, 
@@ -244,19 +291,15 @@ class Creator():
             fwhm = self.augmentation_matrix[i][-6] 
             shift_x = self.augmentation_matrix[i][-5] 
             signal_to_noise = self.augmentation_matrix[i][-4] 
-            scatterer_id = self.augmentation_matrix[i][-3]
-            # In order to assign a label, the scatterers are encoded
-            # by numbers.
-            scatterers = {'0' : 'He',
-                          '1' : 'H2', 
-                          '2' : 'N2', 
-                          '3' : 'O2'}
-            
+            scatterer_id = self.augmentation_matrix[i][-3]            
             distance = self.augmentation_matrix[i][-2]
             pressure = self.augmentation_matrix[i][-1]
             
             try:
-                scatterer_label = scatterers[str(int(scatterer_id))]
+                # In order to assign a label, the scatterers are encoded
+                # by numbers.
+                scatterer_label = \
+                    self.sim_ranges['scatterers'][str(int(scatterer_id))]
             except ValueError:
                 scatterer_label = None
                        
@@ -376,7 +419,6 @@ class Creator():
                         transform = fig.ax.transAxes,
                         fontsize = 7)
             plt.show()
-        
 
 
     def to_file(self, filepath, filetype, how = 'full'):
@@ -414,7 +456,6 @@ class Creator():
                 
         self._save_to_file(df, filepath, filetype)
 
-
     def _save_to_file(self, df, filename, filetype):
         """
         Helper method for saving a dataframe to a file.
@@ -450,91 +491,7 @@ class Creator():
             with open(file, 'wb') as pickle_file:
                 df.to_pickle(pickle_file)
 
-                
-    def upload_to_DB(self, collection_name, reduced = True):
-        """
-        Upload the simulated data to a collection in the SIALab
-        MongoDB. 
 
-        Parameters
-        ----------
-        collection_name : str, optional
-            The name of the new collections.
-            The default is None.
-        reduced : bool, optional
-            If reduced, only the  columns x, y, and label are saved.
-            The default is True.
-
-        Returns
-        -------
-        None
-
-        """
-        client = pymongo.MongoClient(credentials.connectionstring)
-
-        db = client[credentials.db_name]
-        
-        # Decide whether all or only the reduced data shall be saved.
-        if reduced:
-            df = self.reduced_df
-        else:
-            df = self.df
-        
-        # Check for overwriting.
-        write = True
-        collections = [collection for collection \
-                       in db.list_collection_names()]
-        
-        while collection_name in collections:
-            print('\n SIALAb MongoDB: Collection already exists!')
-            answer = None
-            while answer not in ('yes','no'):
-                answer = input('Do you want to overwrite it? (yes/no)')
-                if answer == 'yes':
-                    write = True
-                    print('Collection overwritten.')
-                elif answer == 'no':
-                    write = False
-                    print('Collection not overwritten.')
-                    
-                    answer2 = None
-                    while answer2 not in ('yes', 'no'):
-                        answer2 = input(
-                            'Do you want to create a new collection? (yes/no)')
-                        if answer2 == "yes":
-                            write = True
-                            collection_name = input(
-                                'Please enter a new collection name.') 
-                            print('New collection was uploaded.')
-                        elif answer2 == 'no':
-                            write = False
-                            print('Data was not uploaded.')
-                    
-                elif answer2 == 'no':
-                    write = False
-                    
-                else:
-                    print('Please enter yes or no.')
-                    
-            if answer == 'yes':
-                break
-            if answer2 == 'no':
-                break
-
-        if write:
-            #Upload data to DB 
-            db[collection_name].delete_many({})
-            for i in range(self.no_of_simulations):
-                row = df.iloc[i]
-                data = row.to_dict()
-                data['X'] = list(np.round(data['x'],decimals = 2))
-                data['y'] = list(data['y'])
-                db[collection_name].insert_one(data)
-                print('Upload: ' + str(i+1) + '/' +
-                      str(self.no_of_simulations))
-        
-
-        
 def calculate_runtime(start, end):
     """
     Function to calculate the runtime between two points and return a
@@ -561,84 +518,32 @@ def calculate_runtime(start, end):
                                               seconds)
     
     return runtime
-
-
-def check_db(collection_name):  
-    """
-    Check which data was uploaded. 
-
-    Parameters
-    ----------
-    collection_name : str, optional
-        Name of the collection for which the data is to be checked.
-
-    Returns
-    -------
-    c : dict
-        All collections in the db.
-    all_data : TYPE
-        DESCRIPTION.
-
-    """
-    client, db = connect_to_db()
-    collection = db[collection_name]
     
-    all_data = []
-    for doc in collection.find():
-        data_single = doc
-        # Remove MongoDB id
-        del data_single['_id']
-        data_single['x'] = np.array(data_single['x'])
-        data_single['y'] = np.array(data_single['y'])
-        all_data.append(data_single)
-        
-    c = dict((collection,
-              [document for document in db.collection.find()])
-             for collection in db.list_collection_names())
-    client.close()
-
-    return c, all_data      
-
-
-def drop_db_collection(collection_name):  
-    """
-    Removes a collection from the SIALab MongoDB.
-
-    Parameters
-    ----------
-    collection_name : str, optional
-        Name of the collection which shall be deleted.
-
-    Returns
-    -------
-    None.
-
-    """
-    client, db = connect_to_db()
-    collection = db[collection_name]
-    collection.drop()
-    client.close()    
-
-             
 #%%
 if __name__ == "__main__":
     t0 = time()
-    no_of_simulations = 10
-    input_filenames =  ['Pd_metal_narrow','PdO_narrow']
-    creator = Creator(no_of_simulations, input_filenames,
-                      single = False,
-                      variable_no_of_inputs = False)
-    creator.run(broaden = True,
-                x_shift = True,
-                noise = True,
-                scatter = False)
+    #no_of_simulations = 10
+    #input_filenames =  ['Pd_metal_narrow','PdO_narrow']
+    #input_filenames = ['Fe_metal','FeO','Fe3O4','Fe2O3']
+# =============================================================================
+#     creator = Creator(no_of_simulations, input_filenames,
+#                       single = False,
+#                       variable_no_of_inputs = True)
+#     creator.run(broaden = True,
+#                 x_shift = True,
+#                 noise = True,
+#                 scatter = False)
+# =============================================================================
+    param_filepath = r'C:\Users\pielsticker\Simulations\test.json'
+    with open(param_filepath, 'r') as param_file:
+            params = json.load(param_file)
+            
+    creator = Creator(params=params)
+    creator.run()
     creator.plot_random(10)
     datafolder = r'C:\Users\pielsticker\Simulations'
-    filepath = os.path.join(datafolder, 'Multiple_species_gas_phase_20200902')
-    #creator.upload_to_DB(filename, reduced = True)
-    #collections = check_db(filename)
-    #drop_db_collection(filename)
 # =============================================================================
+#     filepath = os.path.join(datafolder, 'Multiple_species_gas_phase')
 #     creator.to_file(filepath = filepath,
 #                     filetype = 'json',
 #                     how = 'full')
@@ -646,5 +551,5 @@ if __name__ == "__main__":
     t1 = time()
     runtime = calculate_runtime(t0,t1)
     print(f'Runtime: {runtime}.')
-    del(t0,t1,runtime,filepath)
-    #collections = check_db(filename)
+    del(t0,t1,runtime)
+        

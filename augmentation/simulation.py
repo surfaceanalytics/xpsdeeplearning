@@ -227,10 +227,10 @@ if __name__ == '__main__':
          
     sim = Simulation(input_spectra)
     
-    sim.combine_linear(scaling_params = [0.4,0.4,0.1,0.1])    
+    sim.combine_linear(scaling_params = [0.4,0.4,0.1,0.1])
     sim.change_spectrum(shift_x = 5,
-                        signal_to_noise = 150,
-                        fwhm = 1050,
+                        signal_to_noise = 20,
+                        fwhm = 200,
                         scatterer = {'label': 'O2',
                                      'distance' : 0.2,
                                      'pressure' : 12.0})
