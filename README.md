@@ -1,4 +1,4 @@
-# XPS deep learning
+# Deep learning for XPS spectra.
 
 ## Purpose of the project
 Auto-identification of XPS peaks.
