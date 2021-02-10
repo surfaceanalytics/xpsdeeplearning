@@ -11,8 +11,6 @@ from tensorflow.keras import layers
 from tensorflow.keras.initializers import glorot_uniform
 from tensorflow.python.keras import backend as K
 
-CUDA_VISIBLE_DEVICES=""
-
 #%%
 class EmptyModel(models.Model):
     """
