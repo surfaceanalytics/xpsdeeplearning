@@ -10,19 +10,158 @@ import numpy as np
 import json
 from matplotlib import pyplot as plt
 
-from docx import Document
-from docx.shared import Cm
-from docx.enum.table import WD_TABLE_ALIGNMENT, WD_ROW_HEIGHT_RULE
-from docx.enum.text import WD_ALIGN_PARAGRAPH
-from docx.shared import Pt
-
-#%%                
+#%%             
+class SpectraPlot:
+    def __init__(self, data, annots):
+        self.data = data
+        self.annots = annots
+        self.no_of_spectra = self.data.shape[0]
+        
+        self.no_of_cols = 5
+        self.no_of_rows = int(self.no_of_spectra/self.no_of_cols)
+        if (self.no_of_spectra % self.no_of_cols) != 0:
+            self.no_of_rows += 1
+            
+        self.fig, self.axs = plt.subplots(nrows=self.no_of_rows,
+                                          ncols=self.no_of_cols)
+        plt.subplots_adjust(left = 0.125, bottom = 0.5,
+                            right=4.8, top = self.no_of_rows,
+                            wspace = 0.2, hspace = 0.2)
+    
+    def plot(self):
+        for i in range(self.no_of_spectra):
+            row, col = int(i/self.no_of_cols), i % self.no_of_cols
+            x = self.data[i][:,0]
+            y = self.data[i][:,1]
+            annot = self.annots[i]
+            
+            try:
+                self.axs[row, col].plot(x,y)
+                self.axs[row, col].invert_xaxis()
+                self.axs[row, col].set_xlim(np.max(x),
+                                            np.min(x))
+                self.axs[row, col].set_xlabel('Binding energy (eV)')
+                self.axs[row, col].set_ylabel('Intensity (arb. units)')
+                self.axs[row, col].text(
+                    0.025, 0.4, annot,
+                    horizontalalignment='left',
+                    verticalalignment='top',
+                    transform = self.axs[row, col].transAxes,
+                    fontsize = 12)
                 
+            except IndexError:
+                self.axs[row].plot(x,y)
+                self.axs[row].invert_xaxis()
+                self.axs[row].set_xlim(np.max(x),
+                                       np.min(x))
+                self.axs[row].set_xlabel('Binding energy (eV)')
+                self.axs[row].set_ylabel('Intensity (arb. units)')
+                self.axs[row].text(
+                    0.025, 0.4, annot,
+                    horizontalalignment='left',
+                    verticalalignment='top',
+                    transform = self.axs[row, col].transAxes,
+                    fontsize = 12)                
+            
+        return self.fig, self.axs
+
+
+class ClassDistribution:
+    def __init__(self, task, data_list):
+        """
+        Calculate the average distibutions of the labels in the 
+        different
+        data sets.
+                Calculate how many examples of each class are in the different
+        data sets.
+
+        Returns
+        -------
+        class_distribution : dict
+             Dictionary of the format {'all data': dict,
+                                       'training data': dict,
+                                       'validation data': dict,
+                                       'test data': dict}.
+            Each of the sub-dicts contains the average distribution of 
+            the labels in the data sub-set.
+            the number of examples
+        
+        Calculate how many examples of each class are in the different
+        data sets.
+
+        Returns
+        -------
+        class_distribution : dict
+            Nested Dictionary of the format {'all data': dict,
+                                      'training data': dict,
+                                      'validation data': dict,
+                                      'test data': dict}.
+            Each of the sub-dicts contains the number of examples for 
+            each label.
+            
+           
+        """
+        self.task = task
+        
+        self.cd = {'all data': {},
+                   'training data': {},
+                   'validation data': {},
+                   'test data': {}}
+         
+        for i in range(data_list[0].shape[1]):
+                self.cd['all data'][str(i)] = 0
+                self.cd['training data'][str(i)] = 0
+                self.cd['validation data'][str(i)] = 0
+                self.cd['test data'][str(i)] = 0
+        
+        if self.task == 'classification':
+            for i, dataset in enumerate(data_list):
+                key = list(self.cd.keys())[i]
+                for j in range(dataset.shape[0]): 
+                    argmax_class = np.argmax(dataset[j,:], axis = 0)
+                    self.cd[key][str(argmax_class)] +=1    
+                
+        elif self.task == 'regression':            
+            for i, dataset in enumerate(data_list):
+                key = list(self.cd.keys())[i]
+                average = list(np.mean(dataset, axis = 0))
+                self.cd[key] = average
+                
+    def plot(self, labels):
+        fig = plt.figure()
+        ax = fig.add_axes([0,0,1,1])
+        x = np.arange(len(self.cd.keys()))*1.5
+        data = []
+        
+        if self.task == 'classification':
+            plt.title('Class distribution')
+            for k, v in self.cd.items():
+                data_list = []
+                for key, value in v.items():
+                    data_list.append(value)
+            data.append(data_list)
+            data = np.transpose(np.array(data))
+            
+        elif self.task == 'regression':
+           plt.title('Average distribution across the classes')
+           # Plot of the average label distribution in the different
+           # data sets. 
+           for k, v in self.cd.items():
+               data.append(v)
+           data = np.transpose(np.array(data))  
+
+        for i in range(data.shape[0]):
+               ax.bar(x + i*0.25, data[i], align='edge', width = 0.2)
+        plt.legend(labels)   
+        plt.xticks(ticks=x+.5, labels=list(self.cd.keys()))
+        plt.show()
+    
+
 class TrainingGraphs():
     """
     Class for producing graphs with the result of the training in Keras.
     """
-    def __init__(self, history, dir_name):
+    def __init__(self, history, fig_dir):
         """
         Takes a dictionary containing the results from training.
 
@@ -40,9 +179,7 @@ class TrainingGraphs():
 
         """
         self.history = history
-        
-        root_dir = os.getcwd()
-        self.fig_dir = os.path.join(*[root_dir, 'figures', dir_name])
+        self.fig_dir = fig_dir
        
     def plot_loss(self):
         """
@@ -106,6 +243,11 @@ class Report:
         None.
 
         """
+        from docx import Document
+        from docx.shared import Pt
+        from docx.shared import Cm
+        from docx.enum.table import WD_TABLE_ALIGNMENT, WD_ROW_HEIGHT_RULE
+        from docx.enum.text import WD_ALIGN_PARAGRAPH       
         self.document = Document()
         style = self.document.styles['Normal']
         font = style.font

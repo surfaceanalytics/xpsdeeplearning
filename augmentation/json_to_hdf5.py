@@ -17,8 +17,10 @@ from time import time
 from creator import calculate_runtime
 
 #%%
-
-def load_data_preprocess(input_datafolder,start,end):
+def load_data_preprocess(input_datafolder,
+                         label_list,
+                         start,
+                         end):
     """
     This function loads data from JSON files in the input_datafolder.
     Data from the files that start and end with the respective numbers
@@ -28,6 +30,8 @@ def load_data_preprocess(input_datafolder,start,end):
     ----------
     input_datafolder : str
         Folderpath for the JSON files.
+    label_list : list
+        List of strings with label names.
     start : int
         First file to load.
     end : int
@@ -54,9 +58,7 @@ def load_data_preprocess(input_datafolder,start,end):
     pressure : pressure
         Array of float values of the pressure values.
 
-    """
-
-    
+    """   
     filenames = next(os.walk(input_datafolder))[2]
     try:
         filenames.remove('run_params.json')
@@ -100,7 +102,7 @@ def load_data_preprocess(input_datafolder,start,end):
                                                   
     X = np.array(X)
     X = np.reshape(X, (X.shape[0], X.shape[1], 1))
-    y = _one_hot_encode(y)
+    y = _one_hot_encode(y, label_list)
     
     shiftx = np.reshape(np.array(shiftx),(-1,1))
     noise = np.reshape(np.array(noise),(-1,1))
@@ -128,12 +130,34 @@ def _load_energies(filepath):
     """
     with open(filepath, 'r') as json_file:
         test = json.load(json_file)
-        energies = np.array(test[0]['x'])
+    energies = np.array(test[0]['x'])
     
     return energies
 
+def _load_labels(filepath):
+    """
+    Load the list of label values from one json file.
+
+    Parameters
+    ----------
+    filepath : str
+        Filepath of the json file.
+
+    Returns
+    -------
+    energies : ndarray
+        1d array with binding energies.
+
+    """
+    with open(filepath, 'r') as json_file:
+        test = json.load(json_file)
     
-def _one_hot_encode(y):
+    labels = list(test[0]['label'].keys())    
+    return labels
+
+  
+def _one_hot_encode(y,
+                    label_list):
     """
     One-hot encode the labels.
     As an example, if the label of a spectrum is Fe metal = 1 and all 
@@ -143,21 +167,20 @@ def _one_hot_encode(y):
     ----------
     y : list
         List of label strings.
+    label_list : list
+        List of strings with label names.
 
     Returns
     -------
     new_labels : arr
         One-hot encoded labels.
 
-    """
-    #label_values = ['Fe metal','FeO','Fe3O4','Fe2O3']
-    label_values = ['Pd metal','PdO']
-    
-    new_labels = np.zeros((len(y), len(label_values)))    
+    """    
+    new_labels = np.zeros((len(y), len(label_list)))    
     
     for i,d in enumerate(y):
         for species, value in d.items():  
-            number = label_values.index(species)
+            number = label_list.index(species)
             new_labels[i, number] = value
           
     return new_labels
@@ -190,10 +213,27 @@ def to_hdf5(output_file, simulation_name, no_of_files_per_load = 50):
     no_of_loads = int(no_of_files/no_of_files_per_load)
     
     with h5py.File(output_file, 'w') as hf:
+        # Store energies and labels in separate dataset.
+        filepath = os.path.join(input_datafolder,
+                                filenames[0])
+        energies = _load_energies(filepath)
+        hf.create_dataset('energies', data = energies,
+                          compression="gzip", chunks=True)
+        
+        label_list = _load_labels(filepath)   
+        labels = np.array(label_list, dtype=object)  
+        string_dt = h5py.special_dtype(vlen=str)
+        hf.create_dataset('labels', data = labels,
+                          dtype=string_dt,
+                          compression="gzip", chunks=True)
+        
         start = 0
         end = no_of_files_per_load
         X, y, shiftx, noise, FWHM, scatterer, distance, pressure = \
-            load_data_preprocess(input_datafolder, start, end)
+            load_data_preprocess(input_datafolder,
+                                 label_list,
+                                 start,
+                                 end)
         hf.create_dataset('X', data = X,
                           compression="gzip", chunks=True,
                           maxshape=(None,X.shape[1],X.shape[2]))        
@@ -219,20 +259,16 @@ def to_hdf5(output_file, simulation_name, no_of_files_per_load = 50):
                           compression="gzip", chunks=True,
                           maxshape=(None, FWHM.shape[1]))
         print('Saved: ' + str(1) + '/' + str(no_of_loads))
-        
-        # Store energies in seperate dataset
-        filepath = os.path.join(input_datafolder,
-                                filenames[0])
-        energies = _load_energies(filepath)
-        hf.create_dataset('energies', data = energies,
-                          compression="gzip", chunks=True)
-        
+                
         for load in range(1,no_of_loads):
             start = load*no_of_files_per_load
             end = start+no_of_files_per_load
             X_new, y_new, shiftx_new, noise_new, FWHM_new, \
                 scatterer_new, distance_new, pressure_new  = \
-                    load_data_preprocess(input_datafolder, start, end)
+                    load_data_preprocess(input_datafolder,
+                                         label_list,
+                                         start,
+                                         end)
             
             hf["X"].resize((hf["X"].shape[0] + X_new.shape[0]), axis = 0)
             hf["X"][-X_new.shape[0]:] = X_new
@@ -266,7 +302,7 @@ def to_hdf5(output_file, simulation_name, no_of_files_per_load = 50):
 
 #%%               
 if __name__ == "__main__":
-    param_filepath = r'C:\Users\pielsticker\Simulations\20210127_palladium_linear_combination_gas_phase\run_params.json'
+    param_filepath = r'C:\Users\pielsticker\Simulations\20210222_Fe_linear_combination_small_gas_phase\run_params.json'
     with open(param_filepath, 'r') as param_file:
         params = json.load(param_file)
         
@@ -290,5 +326,6 @@ if __name__ == "__main__":
         noise_h5 = hf['noise'][:4000,:]
         fwhm_h5 = hf['FWHM'][:4000,:]
         energies_h5 = hf['energies'][:]
+        labels_h5 = [str(label) for label in hf['labels'][:]]
         t1 = time()
         runtimes['h5_load'] = calculate_runtime(t0,t1)

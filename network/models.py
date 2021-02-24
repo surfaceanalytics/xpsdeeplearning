@@ -109,7 +109,7 @@ class CustomMLP(EmptyModel):
                                         name = 'Custom_MLP')      
 
 
-class CustomCNN(EmptyModel):
+class ClassificationCNN(EmptyModel):
     """
     A CNN with three convolutional layers of different kernel size at 
     the beginning. Works well for learning across scales.
@@ -169,15 +169,15 @@ class CustomCNN(EmptyModel):
         
         no_of_inputs = len(sublayers)
 
-        super(CustomCNN, self).__init__(inputs=self.input_1,
-                                        outputs=self.dense_2,
-                                        inputshape=inputshape,
-                                        num_classes=num_classes,
-                                        no_of_inputs=no_of_inputs, 
-                                        name ='Custom_CNN')  
+        super(ClassificationCNN, self).__init__(inputs=self.input_1,
+                                                outputs=self.dense_2,
+                                                inputshape=inputshape,
+                                                num_classes=num_classes,
+                                                no_of_inputs=no_of_inputs, 
+                                                name ='ClassificationCNN')  
       
         
-class CustomCNNMultiple(EmptyModel):
+class RegressionCNN(EmptyModel):
     """
     A CNN with three convolutional layers of different kernel size at 
     the beginning. Works well for learning across scales.
@@ -201,7 +201,7 @@ class CustomCNNMultiple(EmptyModel):
                                            activation='relu',
                                            name='conv_1_medium')(self.input_1)
         self.conv_1_long = layers.Conv1D(filters=12,
-                                         kernel_size=10,
+                                         kernel_size=15,
                                          strides=1,
                                          padding='same',
                                          activation='relu',
@@ -241,12 +241,12 @@ class CustomCNNMultiple(EmptyModel):
 
         no_of_inputs = len(sublayers)
 
-        super(CustomCNNMultiple, self).__init__(inputs=self.input_1,
-                                                outputs=self.output_norm,
-                                                inputshape=inputshape,
-                                                num_classes=num_classes,
-                                                no_of_inputs=no_of_inputs,
-                                                name='Custom_CNN_multiple') 
+        super(RegressionCNN, self).__init__(inputs=self.input_1,
+                                            outputs=self.output_norm,
+                                            inputshape=inputshape,
+                                            num_classes=num_classes,
+                                            no_of_inputs=no_of_inputs,
+                                            name='RegressionCNN') 
 
 
 ### RESNET50 implementation ###
@@ -420,6 +420,7 @@ class ResNet1D(EmptyModel):
     CONV1D -> BATCHNORM -> RELU -> MAXPOOL -> CONVBLOCK -> IDBLOCK*2 ->
     CONVBLOCK -> IDBLOCK*3 -> CONVBLOCK -> IDBLOCK*5 -> CONVBLOCK -> 
     IDBLOCK*2 -> AVGPOOL (optional) -> OUTPUTLAYER
+    -> NORMALIZED OUTPUTLAYER
     """
     def __init__(self,
                  inputshape,
@@ -577,7 +578,8 @@ class ResNet1DSubclassed(models.Model):
     Implementation of the popular ResNet50 the following architecture:
     CONV1D -> BATCHNORM -> RELU -> MAXPOOL -> CONVBLOCK -> IDBLOCK*2 ->
     CONVBLOCK -> IDBLOCK*3 -> CONVBLOCK -> IDBLOCK*5 -> CONVBLOCK -> 
-    IDBLOCK*2 -> AVGPOOL (optional) -> OUTPUTLAYER
+    IDBLOCK*2 -> AVGPOOL (optional) -> OUTPUTLAYER 
+    -> NORMALIZED OUTPUTLAYER
     """
     def __init__(self,
                  num_classes,
@@ -753,11 +755,13 @@ class ResNet1DSubclassed(models.Model):
         
 #%% 
 if __name__ == "__main__":
-    input_shape = (1121,1) 
+    import os
+    os.environ["CUDA_VISIBLE_DEVICES"]="0"
+    input_shape = (1121,2) 
     num_classes = 4
-    model = ResNet1D(input_shape, num_classes)
-    #model = CustomCNNMultiple(input_shape,num_classes)
+    #model = ResNet1D(input_shape, num_classes)
+    model = CustomCNNMultiple(input_shape,num_classes)
     #model = ResNet1DSubclassed(num_classes)
     #model.build((1,1121,1))
     model.compile()
-    model.summary()
+    #model.summary()
