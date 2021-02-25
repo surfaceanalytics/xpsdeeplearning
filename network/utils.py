@@ -10,6 +10,10 @@ import numpy as np
 import json
 from matplotlib import pyplot as plt
 
+from docx.enum.table import WD_TABLE_ALIGNMENT, WD_ROW_HEIGHT_RULE
+from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.shared import Cm, Pt
+
 #%%             
 class SpectraPlot:
     def __init__(self, data, annots):
@@ -181,7 +185,8 @@ class TrainingGraphs():
         self.history = history
         self.fig_dir = fig_dir
        
-    def plot_loss(self):
+    def plot_loss(self,
+                  to_file = True):
         """
         Plots the training and validation loss against the epochs.
 
@@ -198,10 +203,12 @@ class TrainingGraphs():
         ax.set_xlabel('Epoch')
         ax.legend(['Train', 'Validation'])
         fig_name = os.path.join(self.fig_dir, 'loss.png')
-        fig.savefig(fig_name)
+        if to_file:
+            fig.savefig(fig_name)
         plt.show()
         
-    def plot_accuracy(self):
+    def plot_accuracy(self,
+                      to_file = True):
         """
         Plots the training and validation accuracy against the epochs.
 
@@ -218,7 +225,8 @@ class TrainingGraphs():
         ax.set_xlabel('Epoch')
         ax.legend(['Train', 'Validation'])
         fig_name = os.path.join(self.fig_dir, 'accuracy.png')
-        fig.savefig(fig_name)
+        if to_file:
+            fig.savefig(fig_name)
         plt.show()
         
         
@@ -245,9 +253,7 @@ class Report:
         """
         from docx import Document
         from docx.shared import Pt
-        from docx.shared import Cm
-        from docx.enum.table import WD_TABLE_ALIGNMENT, WD_ROW_HEIGHT_RULE
-        from docx.enum.text import WD_ALIGN_PARAGRAPH       
+               
         self.document = Document()
         style = self.document.styles['Normal']
         font = style.font
@@ -260,12 +266,11 @@ class Report:
         self.log_dir = os.path.join(*[root_dir, 'logs', dir_name])
         self.fig_dir = os.path.join(*[root_dir, 'figures', dir_name])
         
-        self.name_data, self.class_dist, \
-            self.train_data, self.model_summary =\
-                self.get_hyperparams()
+        self.name_data, self.train_data, self.model_summary =\
+            self.get_hyperparams()
         self.results = self.get_results()
-        
-        self.filename = os.path.join(self.log_dir,'results.docx')
+        self.class_dist = self.results['class_distribution']
+        self.filename = os.path.join(self.log_dir,'report.docx')
         self.create_document()
         
         
@@ -278,6 +283,8 @@ class Report:
         None.
 
         """
+
+
         self.document.add_heading('Training report', 0)
         
         # Add the names and basic information.
@@ -289,27 +296,22 @@ class Report:
             j = int(list(self.name_data.keys()).index(key))
             name_table.cell(j, 0).text = key + ':'
             name_table.cell(j, 1).text = str(value)
-            
-        try:
-            # Add information about the class distribution in tables.
-            self.document.add_heading('Distribution:', 1)  
+    
+        self.document.add_heading('Distribution:', 1)  
+        dist_table = self.document.add_table(
+            rows = len(self.class_dist.keys())+1,
+            cols = len(next(iter(self.class_dist.values())))+1)
         
-            dist_table = self.document.add_table(
-                rows = len(self.class_dist.keys())+1,
-                cols = len(next(iter(self.class_dist.values())))+1)
-        
-            dist_table.alignment = WD_TABLE_ALIGNMENT.CENTER
-            for i, name in enumerate(self.name_data['Labels']):
-                dist_table.cell(0, i+1).text = name
-            for item, param in self.class_dist.items():
-                j = int(list(self.class_dist.keys()).index(item))+1
-                dist_table.cell(j, 0).text = item
+        dist_table.alignment = WD_TABLE_ALIGNMENT.CENTER
+        for i, name in enumerate(self.name_data['Labels']):
+            dist_table.cell(0, i+1).text = name
+        for item, param in self.class_dist.items():
+            j = int(list(self.class_dist.keys()).index(item))+1
+            dist_table.cell(j, 0).text = item
             
-                for key, value in self.class_dist[item].items():
-                    k = int(key)+1
-                    dist_table.cell(j, k).text = str(value)
-        except:
-            pass
+            for key, value in enumerate(self.class_dist[item]):
+                k = int(key)+1
+                dist_table.cell(j, k).text = str(np.round(value,3))
         
         self.document.add_page_break()
         
@@ -397,7 +399,6 @@ class Report:
            
         
         self.document.add_heading('Test data', 2)  
-        
         s = np.random.randint(0, self.results['y_test'].shape[0]-5)
         pred_test_5 = self.results['pred_test'][s:s+5,:] 
         y_test_5 = self.results['y_test'][s:s+5,:]
@@ -474,37 +475,35 @@ class Report:
             Summary of the model in str format.
 
         """
-        hyperparam_file_name = os.path.join(self.model_dir,
+        hyperparam_file_name = os.path.join(self.log_dir,
                                             'hyperparameters.json')
         with open(hyperparam_file_name) as json_file:
             data_dict = json.load(json_file)
             
         name_data = {
-            'Name' : data_dict['model_name'],
-            'Time created' : data_dict['datetime'], 
+            'Name' : data_dict['exp_name'],
+            'Time created' : data_dict['time'], 
             'No. of classes' : data_dict['num_of_classes'],
-            'Labels': data_dict['Labels'],
-            'Total no. of samples' : data_dict['Total no. of samples'],
-            'Train-test-split' : data_dict['train_test_split_percentage'],
-            'Train-val-split' : data_dict['train_val_split_percentage'],
+            'Labels': data_dict['labels'],
+            'Total no. of samples' : data_dict['no_of_examples'],
+            'Train-test-split' : data_dict['train_test_split'],
+            'Train-val-split' : data_dict['train_val_split'],
             'No. of training samples' : data_dict['No. of training samples'],
             'No. of validation samples' : data_dict['No. of validation samples'],
             'No. of test samples' : data_dict['No. of test samples'],
             'Shape of each sample' : data_dict['Shape of each sample']
             }
         
-        class_distribution = data_dict['class_distribution']
-
         train_data = {            
             'Optimizer' : data_dict['optimizer'],
-            'Learning rate' : data_dict['learning rate'],
+            'Learning rate' : data_dict['learning_rate'],
             'Loss function' : data_dict['loss'],
             'Epochs trained' : data_dict['epochs_trained'],
             'Batch size' : data_dict['batch_size']}
         
         model_summary = data_dict['model_summary']
 
-        return name_data, class_distribution, train_data, model_summary
+        return name_data, train_data, model_summary
         
             
     def get_results(self):
@@ -519,7 +518,7 @@ class Report:
 
         """
         data = {}
-        file_name = os.path.join(self.model_dir, 'vars')
+        file_name = os.path.join(self.log_dir, 'results')
         with shelve.open(file_name) as shelf:
             for key in shelf:
                 data[key] = shelf[key]

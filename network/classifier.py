@@ -532,21 +532,28 @@ class Classifier():
         """
         filename = os.path.join(self.logging.log_dir,'results')
         
-        key_list = ['pred_train',
+        key_list = ['y_train',
+                    'y_test',
+                    'pred_train',
                     'pred_test',
-                    'test_loss']
+                    'test_loss',
+                    'class_distribution']
         if self.task == 'classification':
-            key_list.extend(['test_loss',
+            key_list.extend(['test_accuracy',
                              'pred_train_classes',
                              'pred_test_classes'])
         
         with shelve.open(filename,'n') as result_shelf:
             for key in key_list:
                 try:
-                    result_shelf[key] = self.datahandler[key]
+                    if key == 'class_distribution':
+                        cd = getattr(self.datahandler, key)
+                        result_shelf[key] = cd.cd
+                    else:
+                        result_shelf[key] = getattr(self.datahandler, key)
                 except:
                     pass
-        
+                  
         print("Saved results to file.")
 
 
