@@ -5,11 +5,12 @@ Created on Tue Jun  9 14:10:44 2020
 @author: pielsticker
 """
 import os
-import shelve
+import pickle
 import numpy as np
 import json
 from matplotlib import pyplot as plt
 
+from docx import Document
 from docx.enum.table import WD_TABLE_ALIGNMENT, WD_ROW_HEIGHT_RULE
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.shared import Cm, Pt
@@ -29,7 +30,7 @@ class SpectraPlot:
         self.fig, self.axs = plt.subplots(nrows=self.no_of_rows,
                                           ncols=self.no_of_cols)
         plt.subplots_adjust(left = 0.125, bottom = 0.5,
-                            right=4.8, top = self.no_of_rows,
+                            right= 4.8, top = self.no_of_rows, 
                             wspace = 0.2, hspace = 0.2)
     
     def plot(self):
@@ -251,8 +252,6 @@ class Report:
         None.
 
         """
-        from docx import Document
-        from docx.shared import Pt
                
         self.document = Document()
         style = self.document.styles['Normal']
@@ -457,8 +456,7 @@ class Report:
                 new_table.cell(i+1, j).text = str(data_array[i,j])
                 new_table.cell(i+1, j).paragraphs[0].alignment = \
                     WD_ALIGN_PARAGRAPH.CENTER
-        
-
+    
     def get_hyperparams(self):
         """
         Load the hyperparameters of the training from the JSON file.
@@ -477,7 +475,7 @@ class Report:
         """
         hyperparam_file_name = os.path.join(self.log_dir,
                                             'hyperparameters.json')
-        with open(hyperparam_file_name) as json_file:
+        with open(hyperparam_file_name, 'r') as json_file:
             data_dict = json.load(json_file)
             
         name_data = {
@@ -504,8 +502,7 @@ class Report:
         model_summary = data_dict['model_summary']
 
         return name_data, train_data, model_summary
-        
-            
+                   
     def get_results(self):
         """
         Load the results (test data, predictions, ...) from the shelf
@@ -517,14 +514,12 @@ class Report:
             Dictionary of numpy arrays with the results..
 
         """
-        data = {}
-        file_name = os.path.join(self.log_dir, 'results')
-        with shelve.open(file_name) as shelf:
-            for key in shelf:
-                data[key] = shelf[key]
+        file_name = os.path.join(self.log_dir, 'results.pkl')
+        
+        with open(file_name, 'rb') as pickle_file:
+            data = pickle.load(pickle_file)
                 
         return data
-        
     
     def write(self):
         """
@@ -541,8 +536,8 @@ class Report:
 
 #%% 
 if __name__ == "__main__":
-    dir_name = '20200615_11h28m_Fe_single_4_classes_CNN_simple'
-    rep = Report(dir_name)  
+    dir_name = '20210226_16h07m_Fe_4_classes_linear_comb_new_noise'
+    rep = Report(dir_name) 
     data = rep.get_results()
     summary = rep.model_summary
-    rep.write()  
+    rep.write()

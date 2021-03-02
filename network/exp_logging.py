@@ -11,7 +11,6 @@ import csv
 import tensorflow as tf
 from tensorflow.keras import callbacks
 #%%
-
 class ExperimentLogging():
     def __init__(self, dir_name):
         self.root_dir = os.getcwd()
@@ -147,7 +146,7 @@ class ExperimentLogging():
         Returns
         -------
         history : dict
-            Dictionary containing all previous training results.
+            Dictionary containing the previous training history.
 
         """
         csv_file = os.path.join(self.log_dir,'log.csv')

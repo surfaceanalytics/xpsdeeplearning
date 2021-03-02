@@ -101,6 +101,9 @@ venv.bak/
 .spyderproject
 .spyproject
 
+# VSCode settings
+.vscode
+
 # Rope project settings
 .ropeproject
 
@@ -110,7 +113,6 @@ venv.bak/
 # mypy
 .mypy_cache/
 
-augmentation/credentials.py
 logs
 figures
 saved_models

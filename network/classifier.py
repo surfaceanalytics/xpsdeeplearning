@@ -6,7 +6,7 @@ Created on Mon Jun 15 16:55:44 2020
 """
 
 import os
-import shelve
+import pickle
 import numpy as np
 import json
 from matplotlib import pyplot as plt
@@ -521,16 +521,16 @@ class Classifier():
     def plot_class_distribution(self):
         self.datahandler.class_distribution.plot(self.datahandler.labels)
                    
-    def shelve_results(self):
+    def pickle_results(self):
         """
-        Store all outputs into a shelve object.        
+        Pickles and saves all outputs.        
 
         Returns
         -------
         None.
 
         """
-        filename = os.path.join(self.logging.log_dir,'results')
+        filename = os.path.join(self.logging.log_dir,'results.pkl')
         
         key_list = ['y_train',
                     'y_test',
@@ -543,20 +543,23 @@ class Classifier():
                              'pred_train_classes',
                              'pred_test_classes'])
         
-        with shelve.open(filename,'n') as result_shelf:
-            for key in key_list:
-                try:
-                    if key == 'class_distribution':
-                        cd = getattr(self.datahandler, key)
-                        result_shelf[key] = cd.cd
-                    else:
-                        result_shelf[key] = getattr(self.datahandler, key)
-                except:
-                    pass
-                  
+        pickle_data = {}
+        for key in key_list:
+            try:
+                if key == 'class_distribution':
+                    cd = getattr(self.datahandler, key)
+                    pickle_data[key] = cd.cd
+                else:
+                    pickle_data[key] = getattr(self.datahandler, key)
+            except:
+                pass            
+        
+        with open(filename,'n') as pickle_file:
+            pickle.dump(pickle_data,
+                        pickle_file,
+                        protocol=pickle.HIGHEST_PROTOCOL)
+            
         print("Saved results to file.")
-
-
         
 
         
