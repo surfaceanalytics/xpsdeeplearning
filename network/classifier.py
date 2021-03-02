@@ -554,7 +554,7 @@ class Classifier():
             except:
                 pass            
         
-        with open(filename,'n') as pickle_file:
+        with open(filename, 'wb') as pickle_file:
             pickle.dump(pickle_data,
                         pickle_file,
                         protocol=pickle.HIGHEST_PROTOCOL)
