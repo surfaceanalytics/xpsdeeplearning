@@ -25,6 +25,8 @@ class ExperimentLogging():
                                       dir_name])
         
         ### Callbacks ###
+        self.active_cbs = []
+        
         # Save the model if a new best validation_loss is achieved.
         model_file_path = self.model_dir
         self.checkpoint_callback = callbacks.ModelCheckpoint(
@@ -100,20 +102,18 @@ class ExperimentLogging():
                      tb_log = False, 
                      csv_log = True,
                      hyperparam_log = True):
-        active_cbs = []
+        
         if checkpoint:
-            active_cbs.append(self.checkpoint_callback)
+            self.active_cbs.append(self.checkpoint_callback)
         if early_stopping:
-            active_cbs.append(self.es_callback)
+            self.active_cbs.append(self.es_callback)
         if tb_log:
-            active_cbs.append(self.tb_callback)
+            self.active_cbs.append(self.tb_callback)
         if csv_log:
-            active_cbs.append(self.csv_callback)
+            self.active_cbs.append(self.csv_callback)
         if hyperparam_log:
-            active_cbs.append(self.hp_callback)
+            self.active_cbs.append(self.hp_callback)
 
-        return active_cbs
-    
     def _count_epochs_trained(self):
         """
         Count the numbers of previously trained epochs by searching the 

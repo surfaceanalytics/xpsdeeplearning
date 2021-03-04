@@ -190,7 +190,7 @@ class Classifier():
             print('New learning rate: ' +\
                   str(K.eval(self.model.optimizer.lr)))
 
-        callback_list = self.logging.activate_cbs(
+        self.logging.activate_cbs(
             checkpoint=checkpoint,
             early_stopping=early_stopping,
             tb_log=tb_log,
@@ -199,7 +199,7 @@ class Classifier():
         
 
             
-        # Update jaosn file with hyperparameters.
+        # Update json file with hyperparameters.
         train_params = {
             'model_summary' : self.model_summary,
             'epochs_trained' : epochs_trained,
@@ -210,27 +210,30 @@ class Classifier():
             }  
         self.logging.update_saved_hyperparams(train_params)
                 
-        # In case of submodel inputs, allow multiple inputs.
-        X_train_data = []
-        X_val_data = []
-        for i in range(self.model.no_of_inputs):
-            X_train_data.append(self.datahandler.X_train)
-            X_val_data.append(self.datahandler.X_val)
+# =============================================================================
+#        # In case of submodel inputs, allow multiple inputs.
+#
+#        X_train_data = []
+#        X_val_data = []
+#        for i in range(self.model.no_of_inputs):
+#            X_train_data.append(self.datahandler.X_train)
+#            X_val_data.append(self.datahandler.X_val)
+# =============================================================================
 
         try:
             # Train the model and store the previous and the new
             # results in the history attribute.
-            training = self.model.fit(X_train_data,
+            training = self.model.fit(self.datahandler.X_train,
                                       self.datahandler.y_train,
                                       validation_data = \
-                                          (X_val_data,
+                                          (self.datahandler.X_val,
                                            self.datahandler.y_val),
                                           epochs = epochs +\
                                               epochs_trained,
                                       batch_size = self.batch_size,
                                       initial_epoch = epochs_trained,
                                       verbose = verbose,
-                                      callbacks = callback_list) 
+                                      callbacks = self.logging.active_cbs) 
             
             self.last_training = training.history
             self.history = self.logging._get_total_history(self.task)
@@ -239,7 +242,9 @@ class Classifier():
         except KeyboardInterrupt:
             # Save the model and the history in case of interruption.
             print('Training interrupted!')
-            self.save_model()
+            if 'ModelCheckpoint' not in [type(cb).__name__ for cb in 
+                                         self.logging.active_cbs]:
+                self.save_model()
             self.history = self.logging._get_total_history(self.task)
         
         epoch_param = {
@@ -260,13 +265,16 @@ class Classifier():
             test accuracy are returned. If not, only the test loss 
             is returned.
         """
-        # In case of submodel inputs, allow multiple inputs.
-        X_test_data = []
-        
-        for i in range(self.model.no_of_inputs):
-            X_test_data.append(self.datahandler.X_test)
+# =============================================================================
+#       # In case of submodel inputs, allow multiple inputs.
+#       X_test_data = []
+#         
+#       for i in range(self.model.no_of_inputs):
+#           X_test_data.append(self.datahandler.X_test)
+# =============================================================================
 
-        score = self.model.evaluate(X_test_data,
+
+        score = self.model.evaluate(self.datahandler.X_test,
                                     self.datahandler.y_test,
                                     batch_size = self.batch_size,
                                     verbose = True)      
@@ -298,16 +306,18 @@ class Classifier():
             Array containing the predictions on the test set.
 
         """
-        # In case of submodel inputs, allow multiple inputs.
-        X_train_data = []
-        X_test_data = []
-        for i in range(self.model.no_of_inputs):
-            X_train_data.append(self.datahandler.X_train)
-            X_test_data.append(self.datahandler.X_test) 
-        
-        self.datahandler.pred_train = self.model.predict(X_train_data,
+# =============================================================================
+#        # In case of submodel inputs, allow multiple inputs.
+#        X_train_data = []
+#        X_test_data = []
+#        for i in range(self.model.no_of_inputs):
+#            X_train_data.append(self.datahandler.X_train)
+#            X_test_data.append(self.datahandler.X_test)
+# =============================================================================
+
+        self.datahandler.pred_train = self.model.predict(self.datahandler.X_train,
                                                          verbose = verbose)
-        self.datahandler.pred_test = self.model.predict(X_test_data,
+        self.datahandler.pred_test = self.model.predict(self.datahandler.X_test,
                                                         verbose = verbose)
         
         if verbose == True:

@@ -145,13 +145,13 @@ class ClassificationCNN(EmptyModel):
         self.conv_2 = layers.Conv1D(filters=10,
                                     kernel_size=5,
                                     strides=1,
-                                    padding='same',
+                                    padding='valid',
                                     activation='relu',
                                     name='conv_2')(merged_sublayers)
         self.conv_3 = layers.Conv1D(filters=10,
                                     kernel_size=5,
                                     strides=1,
-                                    padding='same',
+                                    padding='valid',
                                     activation='relu',
                                     name="conv_3")(self.conv_2)
         self.average_pool_1 = layers.AveragePooling1D(
@@ -213,13 +213,13 @@ class RegressionCNN(EmptyModel):
         self.conv_2 = layers.Conv1D(filters=10,
                                     kernel_size=5,
                                     strides=1,
-                                    padding='same',
+                                    padding='valid',
                                     activation='relu',
                                     name='conv_2')(merged_sublayers)
         self.conv_3 = layers.Conv1D(filters=10,
                                     kernel_size=5,
                                     strides=1,
-                                    padding='same',
+                                    padding='valid',
                                     activation='relu',
                                     name="conv_3")(self.conv_2)
         self.average_pool_1 = layers.AveragePooling1D(

@@ -79,12 +79,13 @@ class DataHandler:
             try:
                 self.energies = hf['energies'][:]
             except:
-                self.energies = np.arange(694, 750.05, 0.05)
+                self.energies = np.flip(np.arange(694, 750.05, 0.05))
+                print('The data set did not an energy scale. Default (Fe) was assumed.')
             try:
                 self.labels = [str(label) for label in hf['labels'][:]]
                 self.num_classes = len(self.labels)
             except:
-                pass
+                print('The data set did not contain any labels.')
                 
             dataset_size = hf['X'].shape[0]
             # Randomly choose a subset of the whole data set.
