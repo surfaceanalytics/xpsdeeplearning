@@ -521,30 +521,9 @@ class Classifier():
                                          dataset,
                                          with_prediction = False)     
     
-    def show_worst_predictions(self, 
-                               no_of_spectra,
-                               subset = 'all'):
-           
-        worst_indices = self.datahandler.get_worst_indices(
-            no_of_spectra,
-            loss_func = self.model.loss,
-            subset = subset)          
-        
-        self.datahandler.show_worst_predictions(worst_indices)
-        
-    def show_worst_predictions_above_threshold(self,
-                                               no_of_spectra,
-                                               worst_indices):
-        losses = self.datahandler.calculate_losses(
-            loss_func = self.model.loss)
-        #asdasdsssadasada
-        #dasddasdasssdasdsdassa
-        ##dasasdadsssssssddas
-        #dasasdasdasssssssd
-        #dasasasddasdasdsasd
-        #adasdddasdsdsassa
-        #sasdasdsdsdsssdasdad
-        ####asd#as#dassds#d#asd#asd#asdasd
+    def show_worst_predictions(self, no_of_spectra):
+        self.datahandler.show_worst_predictions(no_of_spectra,
+                                                loss_func = self.model.loss)
         
     def show_wrong_classification(self):
         self.datahandler.show_wrong_classification()

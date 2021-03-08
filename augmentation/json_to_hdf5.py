@@ -17,18 +17,18 @@ from time import time
 from creator import calculate_runtime
 
 #%%
-def load_data_preprocess(json_datafolder,
+def load_data_preprocess(input_datafolder,
                          label_list,
                          start,
                          end):
     """
-    This function loads data from JSON files in the json_datafolder.
+    This function loads data from JSON files in the input_datafolder.
     Data from the files that start and end with the respective numbers
     is loaded.
 
     Parameters
     ----------
-    json_datafolder : str
+    input_datafolder : str
         Folderpath for the JSON files.
     label_list : list
         List of strings with label names.
@@ -59,7 +59,7 @@ def load_data_preprocess(json_datafolder,
         Array of float values of the pressure values.
 
     """   
-    filenames = next(os.walk(json_datafolder))[2]
+    filenames = next(os.walk(input_datafolder))[2]
     try:
         filenames.remove('run_params.json')
     except ValueError:
@@ -74,7 +74,7 @@ def load_data_preprocess(json_datafolder,
     pressure = []
         
     for file in filenames[start:end]:
-        filename = os.path.join(json_datafolder, file)
+        filename = os.path.join(input_datafolder, file)
         with open(filename, 'r') as json_file:
             test = json.load(json_file)
         for j in range(0,len(test)):
@@ -186,36 +186,35 @@ def _one_hot_encode(y,
     return new_labels
 
 
-def to_hdf5(json_datafolder,
-            output_file,
-            no_of_files_per_load = 50):
+def to_hdf5(output_file, simulation_name, no_of_files_per_load = 50):
     """
     Function to store all data in an input datafolder in an HDF5
-    file.    
+    file.
 
     Parameters
     ----------
-    json_datafolder : str
-        Path where the json files are located.
     output_file : str
-        Output file name (.h5).
+        Output file name.
+    simulation_name : str
+        Name of the simulation for which the HDF5 shall be created.
     no_of_files_per_load : int
         Number of files to load before the HDF5 file is updated.
         Typically around 50.
-
 
     Returns
     -------
     None.
 
     """
-    filenames = next(os.walk(json_datafolder))[2]
+    input_datafolder = os.path.join(r'C:\Users\pielsticker\Simulations',
+                                    simulation_name)
+    filenames = next(os.walk(input_datafolder))[2]
     no_of_files = len(filenames)
     no_of_loads = int(no_of_files/no_of_files_per_load)
     
     with h5py.File(output_file, 'w') as hf:
         # Store energies and labels in separate dataset.
-        filepath = os.path.join(json_datafolder,
+        filepath = os.path.join(input_datafolder,
                                 filenames[0])
         energies = _load_energies(filepath)
         hf.create_dataset('energies', data = energies,
@@ -231,7 +230,7 @@ def to_hdf5(json_datafolder,
         start = 0
         end = no_of_files_per_load
         X, y, shiftx, noise, FWHM, scatterer, distance, pressure = \
-            load_data_preprocess(json_datafolder,
+            load_data_preprocess(input_datafolder,
                                  label_list,
                                  start,
                                  end)
@@ -303,24 +302,23 @@ def to_hdf5(json_datafolder,
 
 #%%               
 if __name__ == "__main__":
-    json_datafolder = r'C:\Users\pielsticker\Simulations\20210308_Pd_linear_combination_small_gas_phase'
-    param_filepath = os.path.join(json_datafolder,
-                                  'run_params.json')
+    param_filepath = r'C:\Users\pielsticker\Simulations\20210222_Fe_linear_combination_small_gas_phase\run_params.json'
     with open(param_filepath, 'r') as param_file:
         params = json.load(param_file)
         
-    output_filepath = params['output_datafolder'] + params['h5_filename']
+    output_file = params['output_datafolder'] + params['h5_filename']
+    simulation_name = params['timestamp'] + '_' + params['run_name']
 
     runtimes = {}
     t0 = time()
-    to_hdf5(json_datafolder, output_filepath)
+    to_hdf5(output_file, simulation_name)
     t1 = time()
     runtimes['h5_save'] = calculate_runtime(t0,t1)
     print('finished saving')
     
     # Test new file.
     t0 = time()    
-    with h5py.File(output_filepath, 'r') as hf:
+    with h5py.File(output_file, 'r') as hf:
         size = hf['X'].shape
         X_h5 = hf['X'][:4000,:,:]
         y_h5 = hf['y'][:4000,:]
@@ -329,5 +327,5 @@ if __name__ == "__main__":
         fwhm_h5 = hf['FWHM'][:4000,:]
         energies_h5 = hf['energies'][:]
         labels_h5 = [str(label) for label in hf['labels'][:]]
-    t1 = time()
-    runtimes['h5_load'] = calculate_runtime(t0,t1)
+        t1 = time()
+        runtimes['h5_load'] = calculate_runtime(t0,t1)

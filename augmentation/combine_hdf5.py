@@ -84,74 +84,55 @@ def load_data(filenames):
          
     return X, y, shiftx, noise, fwhm, scatterer, distance, pressure
 
+#%%
+filenames = ['20200708_iron_variable_linear_combination_500000.h5',
+             '20200714_iron_Mark_variable_linear_combination.h5']
 
-def combine_and_shuffle_measured(filenames, 
-                                 output_file):
-    """
-    
+X, y, shiftx, noise, fwhm, \
+    scatterer, distance, pressure = load_data(filenames)
 
-    Parameters
-    ----------
-    filenames : TYPE
-        DESCRIPTION.
-    output_file : TYPE
-        DESCRIPTION.
+# Shuffle all numpy arrays together.
+X_shuff, y_shuff, shiftx_shuff, noise_shuff, fwhm_shuff,\
+    scatterer_shuff, distance_shuff, pressure_shuff = \
+        shuffle(X, y, shiftx, noise, fwhm, scatterer, distance, pressure)
 
-    Returns
-    -------
-    None.
 
-    """
-    X, y, shiftx, noise, fwhm, \
-        scatterer, distance, pressure = load_data(filenames)
-        
-    # Shuffle all numpy arrays together.
-    X_shuff, y_shuff, shiftx_shuff, noise_shuff, fwhm_shuff,\
-        scatterer_shuff, distance_shuff, pressure_shuff = \
-            shuffle(X, y, shiftx, noise, fwhm, scatterer, distance, pressure)
-            
-    with h5py.File(output_file, 'w') as hf:
-        hf.create_dataset('X', data = X_shuff,
+#%% Write to new file.
+output_file = r'C:\Users\pielsticker\Simulations\20200720_iron_variable_linear_combination_combined_data.h5'   
+
+with h5py.File(output_file, 'w') as hf:
+    hf.create_dataset('X', data = X_shuff,
                       compression="gzip", chunks=True,
                       maxshape=(None,X.shape[1],X.shape[2]))
-        print('X written')  
-        hf.create_dataset('y', data = y_shuff,
+    print('X written')        
+    hf.create_dataset('y', data = y_shuff,
                       compression="gzip", chunks=True,
                       maxshape=(None, y.shape[1]))
-        print('y written')
-        hf.create_dataset('shiftx', data = shiftx_shuff,
+    print('y written')
+    hf.create_dataset('shiftx', data = shiftx_shuff,
                       compression="gzip", chunks=True,
                       maxshape=(None, shiftx.shape[1]))
-        print('shift written')
-        hf.create_dataset('noise', data = noise_shuff,
+    print('shift written')
+    hf.create_dataset('noise', data = noise_shuff,
                       compression="gzip", chunks=True,
                       maxshape=(None, noise.shape[1]))
-        print('noise written')
-        hf.create_dataset('FWHM', data = fwhm_shuff,
+    print('noise written')
+    hf.create_dataset('FWHM', data = fwhm_shuff,
                       compression="gzip", chunks=True,
                       maxshape=(None, fwhm.shape[1]))
-        print('fwhm written')
-        hf.create_dataset('scatterer', data = scatterer_shuff,
+    print('fwhm written')
+    hf.create_dataset('scatterer', data = scatterer_shuff,
                       compression="gzip", chunks=True,
                       maxshape=(None, scatterer.shape[1]))
-        print('scatterer written')
-        hf.create_dataset('distance', data = distance_shuff,
+    print('scatterer written')
+    hf.create_dataset('distance', data = distance_shuff,
                       compression="gzip", chunks=True,
                       maxshape=(None, distance.shape[1]))
-        print('distance written')
-        hf.create_dataset('pressure', data = pressure_shuff,
+    print('distance written')
+    hf.create_dataset('pressure', data = pressure_shuff,
                       compression="gzip", chunks=True,
                       maxshape=(None, pressure.shape[1]))
-        print('pressure written')
-
-#%%
-if __name__ == "__main__":
-    filenames = ['20200708_iron_variable_linear_combination_500000.h5',
-                 '20200714_iron_Mark_variable_linear_combination.h5']
-    output_file = r'C:\Users\pielsticker\Simulations\20200720_iron_variable_linear_combination_combined_data.h5'   
-
-combine_and_shuffle_measured(filenames,
-                             output_file)
+    print('pressure written')
     
 # Test new file.    
 with h5py.File(output_file, 'r') as hf:
