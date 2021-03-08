@@ -448,17 +448,104 @@ class DataHandler:
                               annots=texts)
         fig, axs = graphic.plot()    
         
+    def get_worst_indices(self,
+                          no_of_spectra,
+                          loss_func,
+                          subset = 'all',
+                          threshold = 0):
+
+
+             
+        if subset == 'all':
+            worst_indices = [
+                j[1] for j in sorted([(x,i) for (i,x) in \
+                enumerate(losses)  if (
+                    x >= threshold)],
+                        reverse=True )[:no_of_spectra]]
+        
+        if subset == 'single':
+            worst_indices = [
+                j[1] for j in sorted([(x,i) for (i,x) in \
+                enumerate(losses) if (
+                    x >= threshold and len(np.where(self.y_test[i] == 0.)[0]) == 3)],
+                        reverse=True)]
+            
+        if subset == 'multiple':
+            worst_indices = [
+                j[1] for j in sorted([(x,i) for (i,x) in \
+                enumerate(losses) if (
+                    x >= threshold and len(np.where(self.y_test[i] == 0.)[0]) != 3)],
+                        reverse=True)]
+        
+        return worst_indices
     
-    def show_worst_predictions(self, no_of_spectra, loss_func):
+    def calculate_losses(self, loss_func):
         losses = [loss_func(self.y_test[i], self.pred_test[i]).numpy() \
                   for i in range(self.y_test.shape[0])]
+                   
+    def show_worst_predictions_above_threshold(self,
+                                               no_of_spectra,
+                                               worst_indices,
+                                               losses):
+        data = []
+        texts = []
+                       
+        starting_point = len(worst_indices)-no_of_spectra
         
-        worst_indices = [j[1] for j in 
-                         sorted([(x,i) for (i,x) in enumerate(losses)],
-                                reverse=True )[:no_of_spectra]]
+        for i in range(no_of_spectra):
+            index = worst_indices[starting_point+i]
+            if self.intensity_only:
+                new_energies = np.reshape(np.array(self.energies),(-1,1))
+                data.append(np.hstack((new_energies, self.X_test[index])))
+            else:
+                data.append(self.X_test[index])
+                       
+            label = str(np.around(self.y_test[index],
+                                  decimals = 3))
+            real = ('Real: ' +  label + '\n')
+            text = real
+            
+            tmp_array = np.around(self.pred_test[index], 
+                                  decimals = 3) 
+            pred = ('Prediction: ' + str(list(tmp_array)) + '\n')
+            text += pred
+            
+            try:
+                aug = self._write_aug_text(
+                    dataset = 'test',
+                    index = index)
+                text += aug
+            except AttributeError:
+                pass
+            try:
+                name = self._write_measured_text(
+                    dataset = 'test',
+                    index = index)
+                text += name
+            except AttributeError:
+                pass
+            loss_text = ('Loss: ' + str(np.around(losses[index],
+                                                  decimals = 3)))
+            text += loss_text
+            
+            texts.append(text)
+            
+        data = np.array(data)
+        
+        graphic = SpectraPlot(data=data,
+                              annots=texts)
+        fig, axs = graphic.plot()
+    
+    def show_worst_predictions(self,
+                               no_of_spectra,
+                               worst_indices,
+                               loss_func=None):
         
         data = []
         texts = []
+        
+        losses = [loss_func(self.y_test[i], self.pred_test[i]).numpy() \
+                  for i in range(self.y_test.shape[0])]
               
         for i in range(no_of_spectra):
             index = worst_indices[i] 
