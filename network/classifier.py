@@ -397,7 +397,10 @@ class Classifier():
             pass
         print("Saved model to disk.")
                 
-    def load_model(self, model_path = None, drop_last_layers = None):
+    def load_model(self,
+                   model_path = None,
+                   drop_last_layers = None,
+                   compile = True):
         """
         Reload the model from file.
 
@@ -412,12 +415,16 @@ class Classifier():
             No. of layers to be dropped during the loading. Helpful for
             transfer learning.
             The default is None.
+        compile: bool, optional
+            Whether to compile the model after loading, using the
+            saved optimizer and loss.            
 
         Returns
         -------
         None.
 
         """
+        self.model = Model()
         if model_path != None:
             file_name = model_path
         else:
@@ -438,6 +445,8 @@ class Classifier():
 
         # Load from file.    
         loaded_model = load_model(file_name, custom_objects = custom_objects)
+        optimizer = loaded_model.optimizer
+        loss = loaded_model.loss
         
         # Instantiate a new EmptyModel and implement it with the loaded
         # parameters. Needed for dropping the layers while keeping all
@@ -468,15 +477,19 @@ class Classifier():
                 
             self.model = new_model
             
-            if no_of_drop_layers == 0:
+            if drop_last_layers == 0:
                 print('No layers were dropped.\n')
                 
-            if no_of_drop_layers == 1:
+            elif drop_last_layers == 1:
                 print('The last layer was dropped.\n')
                 
             else:
                 print('The last {} layers were dropped.\n'.format(
                     str(drop_last_layers)))
+        
+        if compile:
+            self.model.compile(optimizer = optimizer,
+                               loss = loss)
                         
     def load_data_preprocess(self,
                              input_filepath,
