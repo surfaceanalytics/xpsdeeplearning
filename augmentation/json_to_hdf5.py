@@ -266,7 +266,7 @@ def to_hdf5(json_datafolder,
             end = start+no_of_files_per_load
             X_new, y_new, shiftx_new, noise_new, FWHM_new, \
                 scatterer_new, distance_new, pressure_new  = \
-                    load_data_preprocess(input_datafolder,
+                    load_data_preprocess(json_datafolder,
                                          label_list,
                                          start,
                                          end)
