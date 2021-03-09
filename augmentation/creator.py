@@ -522,29 +522,20 @@ def calculate_runtime(start, end):
 #%%
 if __name__ == "__main__":
     t0 = time()
-    #no_of_simulations = 10
-    #input_filenames =  ['Pd_metal_narrow','PdO_narrow']
-    #input_filenames = ['Fe_metal','FeO','Fe3O4','Fe2O3']
-# =============================================================================
-#     creator = Creator(no_of_simulations, input_filenames,
-#                       single = False,
-#                       variable_no_of_inputs = True)
-#     creator.run(broaden = True,
-#                 x_shift = True,
-#                 noise = True,
-#                 scatter = False)
-# =============================================================================
-    param_filepath = r'C:\Users\pielsticker\Simulations\test.json'
-    with open(param_filepath, 'r') as param_file:
-            params = json.load(param_file)
+    init_param_folder = r'C:\Users\pielsticker\Simulations'
+    init_param_filepath = os.path.join(init_param_folder,
+                                   'init_params.json')
+    with open(init_param_filepath, 'r') as param_file:
+        params = json.load(param_file)
             
     creator = Creator(params=params)
     creator.run()
     creator.plot_random(10)
-    datafolder = r'C:\Users\pielsticker\Simulations'
+    output_datafolder = params['output_datafolder']
+    output_filepath = os.path.join(output_datafolder,
+                                   'multiple_species_gas_phase')
 # =============================================================================
-#     filepath = os.path.join(datafolder, 'Multiple_species_gas_phase')
-#     creator.to_file(filepath = filepath,
+#     creator.to_file(filepath = output_filepath,
 #                     filetype = 'json',
 #                     how = 'full')
 # =============================================================================

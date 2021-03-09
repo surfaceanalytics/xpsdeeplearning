@@ -5,24 +5,168 @@ Created on Tue Jun  9 14:10:44 2020
 @author: pielsticker
 """
 import os
-import shelve
+import pickle
 import numpy as np
 import json
 from matplotlib import pyplot as plt
 
 from docx import Document
-from docx.shared import Cm
 from docx.enum.table import WD_TABLE_ALIGNMENT, WD_ROW_HEIGHT_RULE
 from docx.enum.text import WD_ALIGN_PARAGRAPH
-from docx.shared import Pt
+from docx.shared import Cm, Pt
 
-#%%                
+#%%             
+class SpectraPlot:
+    def __init__(self, data, annots):
+        self.data = data
+        self.annots = annots
+        self.no_of_spectra = self.data.shape[0]
+        
+        self.no_of_cols = 5
+        self.no_of_rows = int(self.no_of_spectra/self.no_of_cols)
+        if (self.no_of_spectra % self.no_of_cols) != 0:
+            self.no_of_rows += 1
+            
+        self.fig, self.axs = plt.subplots(nrows=self.no_of_rows,
+                                          ncols=self.no_of_cols)
+        plt.subplots_adjust(left = 0.125, bottom = 0.5,
+                            right= 4.8, top = self.no_of_rows, 
+                            wspace = 0.2, hspace = 0.2)
+    
+    def plot(self):
+        for i in range(self.no_of_spectra):
+            row, col = int(i/self.no_of_cols), i % self.no_of_cols
+            x = self.data[i][:,0]
+            y = self.data[i][:,1]
+            annot = self.annots[i]
+            
+            try:
+                self.axs[row, col].plot(x,y)
+                self.axs[row, col].invert_xaxis()
+                self.axs[row, col].set_xlim(np.max(x),
+                                            np.min(x))
+                self.axs[row, col].set_xlabel('Binding energy (eV)')
+                self.axs[row, col].set_ylabel('Intensity (arb. units)')
+                self.axs[row, col].text(
+                    0.025, 0.4, annot,
+                    horizontalalignment='left',
+                    verticalalignment='top',
+                    transform = self.axs[row, col].transAxes,
+                    fontsize = 12)
                 
+            except IndexError:
+                self.axs[row].plot(x,y)
+                self.axs[row].invert_xaxis()
+                self.axs[row].set_xlim(np.max(x),
+                                       np.min(x))
+                self.axs[row].set_xlabel('Binding energy (eV)')
+                self.axs[row].set_ylabel('Intensity (arb. units)')
+                self.axs[row].text(
+                    0.025, 0.4, annot,
+                    horizontalalignment='left',
+                    verticalalignment='top',
+                    transform = self.axs[row, col].transAxes,
+                    fontsize = 12)                
+            
+        return self.fig, self.axs
+
+
+class ClassDistribution:
+    def __init__(self, task, data_list):
+        """
+        Calculate the average distibutions of the labels in the 
+        different
+        data sets.
+                Calculate how many examples of each class are in the different
+        data sets.
+
+        Returns
+        -------
+        class_distribution : dict
+             Dictionary of the format {'all data': dict,
+                                       'training data': dict,
+                                       'validation data': dict,
+                                       'test data': dict}.
+            Each of the sub-dicts contains the average distribution of 
+            the labels in the data sub-set.
+            the number of examples
+        
+        Calculate how many examples of each class are in the different
+        data sets.
+
+        Returns
+        -------
+        class_distribution : dict
+            Nested Dictionary of the format {'all data': dict,
+                                      'training data': dict,
+                                      'validation data': dict,
+                                      'test data': dict}.
+            Each of the sub-dicts contains the number of examples for 
+            each label.
+            
+           
+        """
+        self.task = task
+        
+        self.cd = {'all data': {},
+                   'training data': {},
+                   'validation data': {},
+                   'test data': {}}
+         
+        for i in range(data_list[0].shape[1]):
+                self.cd['all data'][str(i)] = 0
+                self.cd['training data'][str(i)] = 0
+                self.cd['validation data'][str(i)] = 0
+                self.cd['test data'][str(i)] = 0
+        
+        if self.task == 'classification':
+            for i, dataset in enumerate(data_list):
+                key = list(self.cd.keys())[i]
+                for j in range(dataset.shape[0]): 
+                    argmax_class = np.argmax(dataset[j,:], axis = 0)
+                    self.cd[key][str(argmax_class)] +=1    
+                
+        elif self.task == 'regression':            
+            for i, dataset in enumerate(data_list):
+                key = list(self.cd.keys())[i]
+                average = list(np.mean(dataset, axis = 0))
+                self.cd[key] = average
+                
+    def plot(self, labels):
+        fig = plt.figure()
+        ax = fig.add_axes([0,0,1,1])
+        x = np.arange(len(self.cd.keys()))*1.5
+        data = []
+        
+        if self.task == 'classification':
+            plt.title('Class distribution')
+            for k, v in self.cd.items():
+                data_list = []
+                for key, value in v.items():
+                    data_list.append(value)
+            data.append(data_list)
+            data = np.transpose(np.array(data))
+            
+        elif self.task == 'regression':
+           plt.title('Average distribution across the classes')
+           # Plot of the average label distribution in the different
+           # data sets. 
+           for k, v in self.cd.items():
+               data.append(v)
+           data = np.transpose(np.array(data))  
+
+        for i in range(data.shape[0]):
+               ax.bar(x + i*0.25, data[i], align='edge', width = 0.2)
+        plt.legend(labels)   
+        plt.xticks(ticks=x+.5, labels=list(self.cd.keys()))
+        plt.show()
+    
+
 class TrainingGraphs():
     """
     Class for producing graphs with the result of the training in Keras.
     """
-    def __init__(self, history, dir_name):
+    def __init__(self, history, fig_dir):
         """
         Takes a dictionary containing the results from training.
 
@@ -40,11 +184,10 @@ class TrainingGraphs():
 
         """
         self.history = history
-        
-        root_dir = os.getcwd()
-        self.fig_dir = os.path.join(*[root_dir, 'figures', dir_name])
+        self.fig_dir = fig_dir
        
-    def plot_loss(self):
+    def plot_loss(self,
+                  to_file = True):
         """
         Plots the training and validation loss against the epochs.
 
@@ -61,10 +204,12 @@ class TrainingGraphs():
         ax.set_xlabel('Epoch')
         ax.legend(['Train', 'Validation'])
         fig_name = os.path.join(self.fig_dir, 'loss.png')
-        fig.savefig(fig_name)
+        if to_file:
+            fig.savefig(fig_name)
         plt.show()
         
-    def plot_accuracy(self):
+    def plot_accuracy(self,
+                      to_file = True):
         """
         Plots the training and validation accuracy against the epochs.
 
@@ -81,7 +226,8 @@ class TrainingGraphs():
         ax.set_xlabel('Epoch')
         ax.legend(['Train', 'Validation'])
         fig_name = os.path.join(self.fig_dir, 'accuracy.png')
-        fig.savefig(fig_name)
+        if to_file:
+            fig.savefig(fig_name)
         plt.show()
         
         
@@ -106,6 +252,7 @@ class Report:
         None.
 
         """
+               
         self.document = Document()
         style = self.document.styles['Normal']
         font = style.font
@@ -118,12 +265,11 @@ class Report:
         self.log_dir = os.path.join(*[root_dir, 'logs', dir_name])
         self.fig_dir = os.path.join(*[root_dir, 'figures', dir_name])
         
-        self.name_data, self.class_dist, \
-            self.train_data, self.model_summary =\
-                self.get_hyperparams()
+        self.name_data, self.train_data, self.model_summary =\
+            self.get_hyperparams()
         self.results = self.get_results()
-        
-        self.filename = os.path.join(self.log_dir,'results.docx')
+        self.class_dist = self.results['class_distribution']
+        self.filename = os.path.join(self.log_dir,'report.docx')
         self.create_document()
         
         
@@ -136,6 +282,8 @@ class Report:
         None.
 
         """
+
+
         self.document.add_heading('Training report', 0)
         
         # Add the names and basic information.
@@ -147,27 +295,22 @@ class Report:
             j = int(list(self.name_data.keys()).index(key))
             name_table.cell(j, 0).text = key + ':'
             name_table.cell(j, 1).text = str(value)
-            
-        try:
-            # Add information about the class distribution in tables.
-            self.document.add_heading('Distribution:', 1)  
+    
+        self.document.add_heading('Distribution:', 1)  
+        dist_table = self.document.add_table(
+            rows = len(self.class_dist.keys())+1,
+            cols = len(next(iter(self.class_dist.values())))+1)
         
-            dist_table = self.document.add_table(
-                rows = len(self.class_dist.keys())+1,
-                cols = len(next(iter(self.class_dist.values())))+1)
-        
-            dist_table.alignment = WD_TABLE_ALIGNMENT.CENTER
-            for i, name in enumerate(self.name_data['Labels']):
-                dist_table.cell(0, i+1).text = name
-            for item, param in self.class_dist.items():
-                j = int(list(self.class_dist.keys()).index(item))+1
-                dist_table.cell(j, 0).text = item
+        dist_table.alignment = WD_TABLE_ALIGNMENT.CENTER
+        for i, name in enumerate(self.name_data['Labels']):
+            dist_table.cell(0, i+1).text = name
+        for item, param in self.class_dist.items():
+            j = int(list(self.class_dist.keys()).index(item))+1
+            dist_table.cell(j, 0).text = item
             
-                for key, value in self.class_dist[item].items():
-                    k = int(key)+1
-                    dist_table.cell(j, k).text = str(value)
-        except:
-            pass
+            for key, value in enumerate(self.class_dist[item]):
+                k = int(key)+1
+                dist_table.cell(j, k).text = str(np.round(value,3))
         
         self.document.add_page_break()
         
@@ -255,7 +398,6 @@ class Report:
            
         
         self.document.add_heading('Test data', 2)  
-        
         s = np.random.randint(0, self.results['y_test'].shape[0]-5)
         pred_test_5 = self.results['pred_test'][s:s+5,:] 
         y_test_5 = self.results['y_test'][s:s+5,:]
@@ -314,8 +456,7 @@ class Report:
                 new_table.cell(i+1, j).text = str(data_array[i,j])
                 new_table.cell(i+1, j).paragraphs[0].alignment = \
                     WD_ALIGN_PARAGRAPH.CENTER
-        
-
+    
     def get_hyperparams(self):
         """
         Load the hyperparameters of the training from the JSON file.
@@ -332,39 +473,36 @@ class Report:
             Summary of the model in str format.
 
         """
-        hyperparam_file_name = os.path.join(self.model_dir,
+        hyperparam_file_name = os.path.join(self.log_dir,
                                             'hyperparameters.json')
-        with open(hyperparam_file_name) as json_file:
+        with open(hyperparam_file_name, 'r') as json_file:
             data_dict = json.load(json_file)
             
         name_data = {
-            'Name' : data_dict['model_name'],
-            'Time created' : data_dict['datetime'], 
+            'Name' : data_dict['exp_name'],
+            'Time created' : data_dict['time'], 
             'No. of classes' : data_dict['num_of_classes'],
-            'Labels': data_dict['Labels'],
-            'Total no. of samples' : data_dict['Total no. of samples'],
-            'Train-test-split' : data_dict['train_test_split_percentage'],
-            'Train-val-split' : data_dict['train_val_split_percentage'],
+            'Labels': data_dict['labels'],
+            'Total no. of samples' : data_dict['no_of_examples'],
+            'Train-test-split' : data_dict['train_test_split'],
+            'Train-val-split' : data_dict['train_val_split'],
             'No. of training samples' : data_dict['No. of training samples'],
             'No. of validation samples' : data_dict['No. of validation samples'],
             'No. of test samples' : data_dict['No. of test samples'],
             'Shape of each sample' : data_dict['Shape of each sample']
             }
         
-        class_distribution = data_dict['class_distribution']
-
         train_data = {            
             'Optimizer' : data_dict['optimizer'],
-            'Learning rate' : data_dict['learning rate'],
+            'Learning rate' : data_dict['learning_rate'],
             'Loss function' : data_dict['loss'],
             'Epochs trained' : data_dict['epochs_trained'],
             'Batch size' : data_dict['batch_size']}
         
         model_summary = data_dict['model_summary']
 
-        return name_data, class_distribution, train_data, model_summary
-        
-            
+        return name_data, train_data, model_summary
+                   
     def get_results(self):
         """
         Load the results (test data, predictions, ...) from the shelf
@@ -376,14 +514,12 @@ class Report:
             Dictionary of numpy arrays with the results..
 
         """
-        data = {}
-        file_name = os.path.join(self.model_dir, 'vars')
-        with shelve.open(file_name) as shelf:
-            for key in shelf:
-                data[key] = shelf[key]
+        file_name = os.path.join(self.log_dir, 'results.pkl')
+        
+        with open(file_name, 'rb') as pickle_file:
+            data = pickle.load(pickle_file)
                 
         return data
-        
     
     def write(self):
         """
@@ -400,8 +536,8 @@ class Report:
 
 #%% 
 if __name__ == "__main__":
-    dir_name = '20200615_11h28m_Fe_single_4_classes_CNN_simple'
-    rep = Report(dir_name)  
+    dir_name = '20210226_16h07m_Fe_4_classes_linear_comb_new_noise'
+    rep = Report(dir_name) 
     data = rep.get_results()
     summary = rep.model_summary
-    rep.write()  
+    rep.write()
