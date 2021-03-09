@@ -29,25 +29,22 @@ from base_model.figures import Figure
   
 #%% For one reference spectrum.   
 # =============================================================================
-# input_datafolder = r'C:\Users\pielsticker\Lukas\MPI-CEC\Projects\xpsdeeplearning\data\references'
-# filename = 'Fe_metal_Mark_shifted.txt'
+# input_datafolder = r'C:\Users\pielsticker\Desktop\Pd references'
+# filename = 'Pd_metal.txt'
+# 
+# energies = []
+# 
+# filepath = os.path.join(input_datafolder, filename)
+# ref_spectrum = ReferenceSpectrum(filepath)
+# Figure(ref_spectrum.x, ref_spectrum.lineshape, title = 'old')
+# energies.append(ref_spectrum.x[np.argmax(ref_spectrum.lineshape)])
+# #ref_spectrum.resize(start = 348.0, stop = 383, step = 0.05)
+# energies.append(ref_spectrum.x[np.argmax(ref_spectrum.lineshape)])
+# fig = Figure(ref_spectrum.x, ref_spectrum.lineshape, title = 'new')
+# #ref_spectrum.write(input_datafolder)
+# l = ref_spectrum.lineshape
+# x = ref_spectrum.x
 # =============================================================================
-input_datafolder = r'C:\Users\pielsticker\Desktop\Pd references'
-filename = 'Pd_metal.txt'
-
-energies = []
-
-filepath = os.path.join(input_datafolder, filename)
-ref_spectrum = ReferenceSpectrum(filepath)
-Figure(ref_spectrum.x, ref_spectrum.lineshape, title = 'old')
-energies.append(ref_spectrum.x[np.argmax(ref_spectrum.lineshape)])
-#ref_spectrum.resize(start = 348.0, stop = 383, step = 0.05)
-energies.append(ref_spectrum.x[np.argmax(ref_spectrum.lineshape)])
-fig = Figure(ref_spectrum.x, ref_spectrum.lineshape, title = 'new')
-#ref_spectrum.write(input_datafolder)
-l = ref_spectrum.lineshape
-x = ref_spectrum.x
-
 
 #%% For one fitted XPS spectrum
 # =============================================================================
@@ -69,13 +66,17 @@ x = ref_spectrum.x
 
     
 #%% For multiple fitted XPS spectra
-def _get_labels(filepath):
+def _get_labels(filepath, label_list):
     """
     Takes the labels and names from the excel file in the filepath.
     Parameters
     ----------
     filepath : str
         Filepath of the excel file, has to be .xlsx.
+        labels: list
+    label_list: list
+    A list of labels that needs to match the column names in the 
+        Excel file.
 
     Returns
     -------
@@ -85,22 +86,22 @@ def _get_labels(filepath):
         Names of the spectra.
 
     """
-    df = pd.read_excel(filepath)
-# =============================================================================
-#     y = np.transpose(np.array([df['Fe metal'],
-#                                df['FeO'],
-#                                df['Fe3O4'],
-#                                df['Fe2O3']]))
-# =============================================================================
+    df = pd.read_excel(filepath,
+                       engine='openpyxl')
     
-    y = np.transpose(np.array([df['Pd metal'],
-                               df['PdO']]))    
+    columns = []
+    for key in label_list:
+        columns.append(df[key])
+    y = np.transpose(np.array(columns))   
 
     names = np.reshape(np.array(list(df['name'])),(-1,1))
                         
     return y, names
 
-def convert_all_spectra(input_datafolder, label_filepath, plot_all = True):
+def convert_all_spectra(input_datafolder, 
+                        label_filepath, 
+                        label_list,
+                        plot_all = True):
     """
     Takes all xy files of measured spectra in the input_datafolder and
     extracts the features, labels and names. Resizes the spectra if 
@@ -112,6 +113,9 @@ def convert_all_spectra(input_datafolder, label_filepath, plot_all = True):
         Folder of the exported XPS spectra.
     label_filepath : str
         Filepath of the excel file, has to be .xlsx.
+    label_list: list
+        A list of labels that needs to match the column names in the 
+        Excel file.
     plot_all : bool, optional
         If plot_all, all loadded spectra are plotted. The default is True.
 
@@ -132,7 +136,7 @@ def convert_all_spectra(input_datafolder, label_filepath, plot_all = True):
     
     X = np.zeros((len(filenames),381,1)) 
 
-    y, names = _get_labels(label_filepath)
+    y, names = _get_labels(label_filepath, label_list)
     spectra = []
     
     for name in filenames:
@@ -157,9 +161,11 @@ def convert_all_spectra(input_datafolder, label_filepath, plot_all = True):
 # Load the data into numpy arrays and save to hdf5 file.
 input_datafolder = r'C:\Users\pielsticker\Lukas\MPI-CEC\Projects\Ammonia Synthesis\Data\NAP-XPS\analyzed data\Mixed Pd spectra\exported'
 label_filepath = r'C:\Users\pielsticker\Lukas\MPI-CEC\Projects\Ammonia Synthesis\Data\NAP-XPS\analyzed data\Mixed Pd spectra\analysis_20210122\peak fits_20210122.xlsx'   
+label_list = ['Pd metal', 'PdO']
 X, y, names, energies = convert_all_spectra(input_datafolder,
-                                  label_filepath,
-                                  plot_all = True)
+                                            label_filepath,
+                                            label_list,
+                                            plot_all = False)
 output_file= r'C:\Users\pielsticker\Simulations\20210125_palladium_measured_caro_fit.h5'
   
 with h5py.File(output_file, 'w') as hf:
@@ -174,6 +180,11 @@ with h5py.File(output_file, 'w') as hf:
                       maxshape=(None, names.shape[1]))
     hf.create_dataset('energies', data = energies,
                       compression="gzip", chunks=True)
+    labels = np.array(label_list, dtype=object)  
+    string_dt = h5py.special_dtype(vlen=str)
+    hf.create_dataset('labels', data = labels,
+                      dtype=string_dt,
+                      compression="gzip", chunks=True)
 
 # Test the new file
 with h5py.File(output_file, 'r') as hf:
@@ -182,3 +193,4 @@ with h5py.File(output_file, 'r') as hf:
     y_h5 = hf['y'][:,:]
     names_h5 = hf['names'][:]
     energies_h5 = hf['energies'][:]
+    labels_h5 = [str(label) for label in hf['labels'][:]]

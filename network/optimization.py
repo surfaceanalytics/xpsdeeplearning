@@ -18,12 +18,14 @@ class Hyperoptimization():
     automatically based on the time and the name of the loaded data
     set.
     """
-    def __init__(self, time, data_name):
+    def __init__(self,
+                 time, 
+                 exp_name):
         self.time = time
-        self.data_name = data_name
+        self.exp_name = exp_name
         
         root_dir = os.getcwd()
-        self.dir_name = self.time + '_' + self.data_name 
+        self.dir_name = self.time + '_' + self.exp_name 
         self.test_dir = os.path.join(*[root_dir,
                                        'param_tests',
                                        self.dir_name])
@@ -43,8 +45,9 @@ class Hyperoptimization():
         self.save_full_data()
                   
         
-            
-    def initialize_clf(self, label_values):
+    def initialize_clf(self,
+                       task = 'regression',
+                       intensity_only = True):
         """
         Initialize a Classifier object that takes care of data
         handling.
@@ -61,10 +64,13 @@ class Hyperoptimization():
         None.
 
         """
-        self.clf = classifier.ClassifierMultiple(time = self.time,
-                                                 data_name = self.data_name,
-                                                 labels = label_values)
-        self.fig_dir = self.clf.fig_dir
+        self.clf = classifier.Classifier(
+            time = self.time,
+            exp_name = self.exp_name,
+            task = task,
+            intensity_only=intensity_only)
+        
+        self.fig_dir = self.clf.logging.fig_dir
         
 
     def hyper_opt(self, x_train, y_train, x_val, y_val, params):
@@ -104,8 +110,8 @@ class Hyperoptimization():
 
         """
         model_class = type(self.clf.model)
-        model = model_class(self.clf.input_shape,
-                            self.clf.num_classes,
+        model = model_class(self.clf.datahandler.input_shape,
+                            self.clf.datahandler.num_classes,
                             params)
         model.compile(loss = params['loss_function'](),
                       optimizer = params['optimizer'](
@@ -145,8 +151,8 @@ class Hyperoptimization():
         X_train_data = []
         X_val_data = []
         for i in range(self.clf.model.no_of_inputs):
-            X_train_data.append(self.clf.X_train)
-            X_val_data.append(self.clf.X_val)
+            X_train_data.append(self.clf.datahandler.X_train)
+            X_val_data.append(self.clf.datahandler.X_val)
             
         # Calculate the number of the scan according to the files
         # already in the test directory.
@@ -161,12 +167,12 @@ class Hyperoptimization():
         # start runtime
         
         scan = Scan(x = X_train_data,
-                    y = self.clf.y_train,
+                    y = self.clf.datahandler.y_train,
                     params = params,
                     model = self.hyper_opt,
                     experiment_name = self.dir_name,
                     x_val = X_val_data,
-                    y_val = self.clf.y_val,
+                    y_val = self.clf.datahandler.y_val,
                     val_split = 0,
                     reduction_metric = 'val_loss',
                     minimize_loss = True,
@@ -347,8 +353,8 @@ class Hyperoptimization():
             
         params = self.analyzer._get_params_from_id(model_id)
         model_class = type(self.clf.model)
-        self.clf.model = model_class(self.clf.input_shape,
-                                     self.clf.num_classes,
+        self.clf.model = model_class(self.clf.datahandler.input_shape,
+                                     self.clf.datahandler.num_classes,
                                      params)
         self.clf.model.compile(
             loss = params['loss_function'](),
