@@ -115,7 +115,7 @@ class ClassificationCNN(EmptyModel):
     the beginning. Works well for learning across scales.
     
     This is to be used for classification -> softmax activation in the
-    last layer
+    last layer.
     """
     def __init__(self, inputshape, num_classes):   
         self.input_1 = layers.Input(shape = inputshape)

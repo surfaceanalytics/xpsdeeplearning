@@ -48,11 +48,19 @@ class Classifier():
             Name of the experiment. Should include sufficient information
             for distinguishing runs on different data on the same day.
             The default is ''.
+        task : str, optional
+            Task to perform. Either 'classification' or 'regression'.
+            The default is 'regression'.
+        intensity_only : boolean, optional
+            If True, then only the intensity scale is loaded into X.
+            If False, the intensity and the BE scale is loaded into X.
+            The default is True.
         labels : list
             List of strings of the labels of the XPS spectra.
             Can also be loaded from file.
             Example: 
                 labels = ['Fe metal', 'FeO', 'Fe3O4', 'Fe2O3']
+            Can be empty if the labels are stored in the data file.
 
         Returns
         -------
@@ -125,12 +133,12 @@ class Classifier():
     def train(self,
               epochs,
               batch_size,
-              checkpoint=True, 
-              early_stopping=False,
-              tb_log=False,
-              csv_log=True,
-              hyperparam_log=True,
-              verbose=1,
+              checkpoint = True, 
+              early_stopping = False,
+              tb_log = False,
+              csv_log = True,
+              hyperparam_log = True,
+              verbose = 1,
               new_learning_rate = None):
         """
         Train the keras model. Implements various callbacks during
@@ -190,15 +198,14 @@ class Classifier():
             print('New learning rate: ' +\
                   str(K.eval(self.model.optimizer.lr)))
 
+        # Activate callbacks in experiment logging. 
         self.logging.activate_cbs(
-            checkpoint=checkpoint,
-            early_stopping=early_stopping,
-            tb_log=tb_log,
-            csv_log=csv_log,
-            hyperparam_log=hyperparam_log)
-        
+            checkpoint = checkpoint,
+            early_stopping = early_stopping,
+            tb_log = tb_log,
+            csv_log = csv_log,
+            hyperparam_log = hyperparam_log)
 
-            
         # Update json file with hyperparameters.
         train_params = {
             'model_summary' : self.model_summary,
@@ -219,7 +226,6 @@ class Classifier():
 #            X_train_data.append(self.datahandler.X_train)
 #            X_val_data.append(self.datahandler.X_val)
 # =============================================================================
-
         try:
             # Train the model and store the previous and the new
             # results in the history attribute.
@@ -272,8 +278,6 @@ class Classifier():
 #       for i in range(self.model.no_of_inputs):
 #           X_test_data.append(self.datahandler.X_test)
 # =============================================================================
-
-
         score = self.model.evaluate(self.datahandler.X_test,
                                     self.datahandler.y_test,
                                     batch_size = self.batch_size,
@@ -288,7 +292,8 @@ class Classifier():
             
         return score
      
-    def predict(self, verbose = True):
+    def predict(self, 
+                verbose = True):
         """
         Predict the labels on both the train and tests sets.
 
@@ -314,11 +319,12 @@ class Classifier():
 #            X_train_data.append(self.datahandler.X_train)
 #            X_test_data.append(self.datahandler.X_test)
 # =============================================================================
-
-        self.datahandler.pred_train = self.model.predict(self.datahandler.X_train,
-                                                         verbose = verbose)
-        self.datahandler.pred_test = self.model.predict(self.datahandler.X_test,
-                                                        verbose = verbose)
+        self.datahandler.pred_train = self.model.predict(
+            self.datahandler.X_train,
+            verbose = verbose)
+        self.datahandler.pred_test = self.model.predict(
+            self.datahandler.X_test,
+            verbose = verbose)
         
         if verbose:
             print('Prediction done!')
@@ -494,6 +500,32 @@ class Classifier():
                              no_of_examples,
                              train_test_split,
                              train_val_split):
+        """
+        Utilizes load_data_preprocess method
+        from DataHandler to load the data.
+        Stores all loading parameters in the 
+        hyperparameters.json file.
+
+        Parameters
+        ----------
+        input_filepath : str
+            Filepath of the .
+        no_of_examples : int
+            Number of samples from the input file.
+        train_test_split : float
+            Split percentage between train+val and test set.
+            Typically ~ 0.2.
+        train_val_split : float
+            Split percentage between train and val set.
+            Typically ~ 0.2.
+
+        Returns
+        -------
+        loaded_data : tuple
+            Return the output of the load_data_preprocess method
+            from DataHandler.
+
+        """
         loaded_data = self.datahandler.load_data_preprocess(
             input_filepath,
             no_of_examples,
@@ -522,6 +554,29 @@ class Classifier():
                     no_of_spectra,
                     dataset = 'train',
                     with_prediction = False): 
+        """
+        Plots random XPS spectra out of one of the data set.
+        The labels and additional information are shown as texts on the
+        plots.
+        Utilizes the method of the same name in DataHandler.
+        
+        Parameters
+        ----------
+        no_of_spectra : int
+            No. of plots to create.
+        dataset : str, optional
+            Either 'train', 'val', or 'test'.
+            The default is 'train'.
+        with_prediction : bool, optional
+            If True, information about the predicted values are also 
+            shown in the plot. 
+            The default is False.
+
+        Returns
+        -------
+        None.
+
+        """
         if with_prediction:
             self.datahandler.plot_random(no_of_spectra,
                                          dataset,
@@ -532,14 +587,48 @@ class Classifier():
                                          dataset,
                                          with_prediction = False)     
     
-    def show_worst_predictions(self, no_of_spectra):
+    def show_worst_predictions(self,
+                               no_of_spectra):
+        """
+        Utilizes the method of the same name in DataHandler.
+        Passes the loss attribute from the model.       
+
+        Parameters
+        ----------
+        no_of_spectra : int
+            No. of plots to create.
+
+        Returns
+        -------
+        None.
+
+        """
         self.datahandler.show_worst_predictions(no_of_spectra,
                                                 loss_func = self.model.loss)
         
     def show_wrong_classification(self):
+        """
+        Utilizes the method of the same name in DataHandler.
+        Plots all spectra in the test data set for which a wrong class
+        prediction was produced during training.
+
+        Returns
+        -------
+        None.
+
+        """
         self.datahandler.show_wrong_classification()
                    
     def plot_class_distribution(self):
+        """
+        Plots the class distribution of the data stored in the 
+        self.datahandler object.
+
+        Returns
+        -------
+        None.
+
+        """
         self.datahandler.class_distribution.plot(self.datahandler.labels)
                    
     def pickle_results(self):
@@ -585,6 +674,21 @@ class Classifier():
 
         
 def restore_clf_from_logs(logpath):
+    """
+    Restores a Classifier object from the logs saved in a previous 
+    experiment.
+
+    Parameters
+    ----------
+    logpath : str
+        Path where the logs from a previous experiment are located.
+
+    Returns
+    -------
+    clf : Classifier
+        Classifier object.
+
+    """
     hyperparam_file_name = os.path.join(logpath,
                                         'hyperparameters.json')
             
