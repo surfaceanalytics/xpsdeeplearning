@@ -398,7 +398,7 @@ class Classifier():
     def load_model(self,
                    model_path = None,
                    drop_last_layers = None,
-                   compile = True):
+                   compile_model = True):
         """
         Reload the model from file.
 
@@ -413,7 +413,7 @@ class Classifier():
             No. of layers to be dropped during the loading. Helpful for
             transfer learning.
             The default is None.
-        compile: bool, optional
+        compile_model: bool, optional
             Whether to compile the model after loading, using the
             saved optimizer and loss.            
 
@@ -485,7 +485,7 @@ class Classifier():
                 print('The last {} layers were dropped.\n'.format(
                     str(drop_last_layers)))
         
-        if compile:
+        if compile_model:
             self.model.compile(optimizer = optimizer,
                                loss = loss)
                         
