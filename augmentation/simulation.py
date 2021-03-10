@@ -139,7 +139,7 @@ class Simulation():
         None.
 
         """
-        if spectrum != None:
+        if spectrum is not None:
             # The step width is defined by the measured spectrum. 
             # The output spectrum needs to have its step widths 
             # redefined.
@@ -236,4 +236,3 @@ if __name__ == '__main__':
                                      'pressure' : 12.0})
     print('Linear combination parameters: ' + str(sim.output_spectrum.label))
     sim.plot_simulation(plot_inputs = False)
-
