@@ -12,7 +12,25 @@ import tensorflow as tf
 from tensorflow.keras import callbacks
 #%%
 class ExperimentLogging():
-    def __init__(self, dir_name):
+    """
+    Class for logigng during an experiment in tensorflow.
+    Handles keras Callbacks and saving of hyperparamters and results.
+    """
+    def __init__(self,
+                 dir_name):
+        """
+        Initialize folder structure and keras Callbacks.
+
+        Parameters
+        ----------
+        dir_name : str
+            Name of the folders to create.
+
+        Returns
+        -------
+        None.
+
+        """
         self.root_dir = os.getcwd()
         self.model_dir = os.path.join(*[self.root_dir,
                                         'saved_models',
@@ -68,28 +86,37 @@ class ExperimentLogging():
         # Update saved hyperparameters JSON file.
         self.hp_callback = HyperParamCallback(self)
     
-    def make_dirs(self):        
-        if os.path.isdir(self.model_dir) == False:
+    def make_dirs(self):     
+        """
+        Make folder structure unless it already exists.
+        Ensure that the folders are properly created.
+
+        Returns
+        -------
+        None.
+
+        """
+        if os.path.isdir(self.model_dir) is False:
             os.makedirs(self.model_dir)
-            if os.path.isdir(self.model_dir) == True:
+            if os.path.isdir(self.model_dir):
                 print('Model folder created at ' +\
                       str(self.model_dir.split(self.root_dir)[1]))
         else:
             print('Model folder was already at ' +\
                   str(self.model_dir.split(self.root_dir)[1]))
         
-        if os.path.isdir(self.log_dir) == False:
+        if os.path.isdir(self.log_dir) is False:
             os.makedirs(self.log_dir)
-            if os.path.isdir(self.log_dir) == True:
+            if os.path.isdir(self.log_dir):
                 print('Logs folder created at ' +\
                       str(self.log_dir.split(self.root_dir)[1]))
         else:
             print('Logs folder was already at ' +\
                   str(self.log_dir.split(self.root_dir)[1]))
         
-        if os.path.isdir(self.fig_dir) == False:
+        if os.path.isdir(self.fig_dir) is False:
             os.makedirs(self.fig_dir)
-            if os.path.isdir(self.fig_dir) == True:
+            if os.path.isdir(self.fig_dir):
                 print('Figures folder created at ' +\
                       str(self.fig_dir.split(self.root_dir)[1]))
         else:
@@ -102,6 +129,35 @@ class ExperimentLogging():
                      tb_log = False, 
                      csv_log = True,
                      hyperparam_log = True):
+        """
+        Method to be used before training. Activates the callbacks and 
+        stores the active ones in a list.
+
+        Parameters
+        ----------
+        checkpoint : boolean, optional
+            Saving of best model during training.
+            Should always be active
+            The default is True.
+        early_stopping : boolean, optional
+            Implements early stopping.
+            The default is False.
+        tb_log : boolean, optional
+            Initiates TensorBoard logging. The default is False.
+        csv_log : boolean, optional
+            Saving of history to CSV.
+            Should always be active.
+            The default is True.
+        hyperparam_log : boolean, optional
+            Saving of hyperparameters to JSON.
+            Should always be active.
+            The default is True.
+
+        Returns
+        -------
+        None.
+
+        """
         
         if checkpoint:
             self.active_cbs.append(self.checkpoint_callback)
@@ -133,7 +189,7 @@ class ExperimentLogging():
                 reader = csv.DictReader(csvfile)
                 for row in reader:
                     epochs += 1                    
-        except:
+        except FileNotFoundError:
             pass
         
         return epochs
@@ -167,7 +223,7 @@ class ExperimentLogging():
                         history['val_accuracy'].append(
                             float(d['val_accuracy']))
                         history['val_loss'].append(float(d['val_loss']))                
-            except:
+            except FileNotFoundError:
                 pass
                     
         elif task == 'regression':
@@ -180,13 +236,21 @@ class ExperimentLogging():
                         d = dict(row)
                         history['loss'].append(float(d['loss']))
                         history['val_loss'].append(float(d['val_loss']))
-            except:
+            except FileNotFoundError:
                 pass
         
         return history
     
 
     def save_hyperparams(self):
+        """
+        Save all saved hyperparameters to a JSON file in the log_dir.
+
+        Returns
+        -------
+        None.
+
+        """
         hyperparam_file_name = os.path.join(self.log_dir,
                                             'hyperparameters.json')
         
@@ -196,17 +260,64 @@ class ExperimentLogging():
                       ensure_ascii=False,
                       indent=4)
 
-    def update_saved_hyperparams(self, new_params):
+    def update_saved_hyperparams(self, 
+                                 new_params):
+        """
+        Updates already saved hyperparameters with data from a new dict.
+
+        Parameters
+        ----------
+        new_params : dict
+            Dictionary with new hyperparameters.
+
+        Returns
+        -------
+        None.
+
+        """
         for key in new_params:
             self.hyperparams[key] = new_params[key]
         self.save_hyperparams()        
 
 
 class HyperParamCallback(callbacks.Callback):
+    """
+    A keras Callback that saves the hyperparameter in a logging object at 
+    the end of each epoch.
+    """
     def __init__(self, logging):
+        """
+        Initiates the logging object.
+
+        Parameters
+        ----------
+        logging : ExperimentLogging
+            Logging object with hyperparameter dictionary.
+
+        Returns
+        -------
+        None.
+
+        """
         self.logging = logging
         
     def on_epoch_end(self, epoch, logs=None):
+        """
+        Update the epochs_trained parameter in the logging and saves
+        it to file.
+
+        Parameters
+        ----------
+        epoch : int
+            Index of epoch.
+        logs : dict, optional
+             Dict, metric results for this training epoch, and for the
+             validation epoch if validation is performed.
+        Returns
+        -------
+        None.
+
+        """
         epoch_param = {
             'epochs_trained' : self.logging._count_epochs_trained()
             }  
@@ -214,9 +325,14 @@ class HyperParamCallback(callbacks.Callback):
         
         
 class CustomModelCheckpoint(callbacks.ModelCheckpoint):
- def _save_model(self, epoch, logs):
+  """
+  Extends the ModelCheckpoint class from Keras in order to save the
+  model to JSON and the weights to HDF5 as well.
+  """
+  def _save_model(self, epoch, logs):
     from tensorflow.python.keras.utils import tf_utils
-    """Saves the model.
+    """
+    Saves the model.
     Arguments:
         epoch: the epoch this iteration is in.
         logs: the `logs` dict passed in to `on_batch_end` or `on_epoch_end`.

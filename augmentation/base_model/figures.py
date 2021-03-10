@@ -12,7 +12,10 @@ class Figure:
     """
     Class for plotting an XPS spectrum.
     """
-    def __init__(self, x, y, title):
+    def __init__(self, 
+                 x, 
+                 y, 
+                 title):
         """
         Plot the spectrum and set the x limits according to the min/max
         values of the binding energies.

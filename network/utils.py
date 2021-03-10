@@ -17,7 +17,27 @@ from docx.shared import Cm, Pt
 
 #%%             
 class SpectraPlot:
-    def __init__(self, data, annots):
+    """
+    Creates a nx5 array of plots from a given data set.
+    """
+    def __init__(self, 
+                 data, 
+                 annots):
+        """
+        Initiate subplots in a nx5 array where n = data.shape[0]/5.
+
+        Parameters
+        ----------
+        data : array
+            A numpy set with two channels: binding energy and intensity.
+        annots : list
+            List of annotations.
+
+        Returns
+        -------
+        None.
+
+        """
         self.data = data
         self.annots = annots
         self.no_of_spectra = self.data.shape[0]
@@ -27,13 +47,21 @@ class SpectraPlot:
         if (self.no_of_spectra % self.no_of_cols) != 0:
             self.no_of_rows += 1
             
-        self.fig, self.axs = plt.subplots(nrows=self.no_of_rows,
-                                          ncols=self.no_of_cols)
+        self.fig, self.axs = plt.subplots(nrows = self.no_of_rows,
+                                          ncols = self.no_of_cols)
         plt.subplots_adjust(left = 0.125, bottom = 0.5,
                             right= 4.8, top = self.no_of_rows, 
                             wspace = 0.2, hspace = 0.2)
     
     def plot(self):
+        """
+        Populates the plots with the daat.
+
+        Returns
+        -------
+        fig, axs
+            Matplotlib objects.
+        """
         for i in range(self.no_of_spectra):
             row, col = int(i/self.no_of_cols), i % self.no_of_cols
             x = self.data[i][:,0]
@@ -72,39 +100,37 @@ class SpectraPlot:
 
 
 class ClassDistribution:
-    def __init__(self, task, data_list):
+    def __init__(self, 
+                 task, 
+                 data_list):
         """
         Calculate the average distibutions of the labels in the 
-        different
-        data sets.
-                Calculate how many examples of each class are in the different
-        data sets.
-
-        Returns
-        -------
-        class_distribution : dict
-             Dictionary of the format {'all data': dict,
-                                       'training data': dict,
-                                       'validation data': dict,
-                                       'test data': dict}.
-            Each of the sub-dicts contains the average distribution of 
-            the labels in the data sub-set.
-            the number of examples
-        
+        different data sets if the task is 'regression'.
         Calculate how many examples of each class are in the different
-        data sets.
+        data sets  if the task is 'classification'.     
+        Saves it in a attribute called 'cd'
+        cd : dict
+        Dictionary of the format {'all data': dict,
+                                  'training data': dict,
+                                  'validation data': dict,
+                                  'test data': dict}.
+        Each of the sub-dicts contains the distribution of the labels
+        in the data sub-set.
+
+        Parameters
+        ----------
+        task : str
+            If task == 'regression', an average distribution is 
+            calculated.
+            If task == 'classification', the distribution of the labels
+            across the different data sets is calculated.
+        data_list : list
+            List of numpy arrays containing labels.
 
         Returns
         -------
-        class_distribution : dict
-            Nested Dictionary of the format {'all data': dict,
-                                      'training data': dict,
-                                      'validation data': dict,
-                                      'test data': dict}.
-            Each of the sub-dicts contains the number of examples for 
-            each label.
-            
-           
+        None.
+
         """
         self.task = task
         
@@ -132,7 +158,21 @@ class ClassDistribution:
                 average = list(np.mean(dataset, axis = 0))
                 self.cd[key] = average
                 
-    def plot(self, labels):
+    def plot(self, 
+             labels):
+        """
+        Plot the class distribution. Using the labels list as legend.
+
+        Parameters
+        ----------
+        labels : list
+            List of label values for the legend.
+
+        Returns
+        -------
+        None.
+
+        """
         fig = plt.figure()
         ax = fig.add_axes([0,0,1,1])
         x = np.arange(len(self.cd.keys()))*1.5
@@ -166,7 +206,9 @@ class TrainingGraphs():
     """
     Class for producing graphs with the result of the training in Keras.
     """
-    def __init__(self, history, fig_dir):
+    def __init__(self,
+                 history,
+                 fig_dir):
         """
         Takes a dictionary containing the results from training.
 
@@ -175,7 +217,7 @@ class TrainingGraphs():
         history : dict
             # A dictionary containing the results from the training of a
             neural network in Keras.
-        dir_name : str
+        fig_dir : str
             The name of the directory where the figures shall be saved.
 
         Returns
@@ -236,7 +278,8 @@ class Report:
     """
     Report on the results of the training of a neural network in keras.
     """
-    def __init__(self, dir_name = ''):
+    def __init__(self,
+                 dir_name = ''):
         """
         Initialize a docx document and load the data from the 
         hyperparamters file.
@@ -272,7 +315,6 @@ class Report:
         self.filename = os.path.join(self.log_dir,'report.docx')
         self.create_document()
         
-        
     def create_document(self):
         """
         Add data from the results to the report.
@@ -282,8 +324,6 @@ class Report:
         None.
 
         """
-
-
         self.document.add_heading('Training report', 0)
         
         # Add the names and basic information.
@@ -346,7 +386,7 @@ class Report:
             self.document.add_picture(acc_file, width=Cm(12))  
             last_paragraph = self.document.paragraphs[-1] 
             last_paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        except:
+        except FileNotFoundError:
             pass
         
         # Add results on the test data.
@@ -366,7 +406,7 @@ class Report:
                 for cell in row.cells:
                     cell.paragraphs[0].alignment = \
                         WD_ALIGN_PARAGRAPH.CENTER
-        except:
+        except KeyError:
             pass
                 
         self.document.add_page_break()
@@ -420,7 +460,8 @@ class Report:
         y_test_table = self.add_result_table(y_test_5)
         
         
-    def add_result_table(self, data_array):
+    def add_result_table(self, 
+                         data_array):
         """
         Helper mehthod to store and display the results from training.
 

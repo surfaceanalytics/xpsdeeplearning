@@ -13,12 +13,35 @@ from .utils import ClassDistribution, SpectraPlot
 
 #%%
 class DataHandler:
+    """
+    Class for data treatment during an experiment in tensorflow.
+    Handles data loading and plotting.
+    """
     def __init__(self,
-                 intensity_only=True):
+                 intensity_only = True):
+        """
+        Initialize with either just the intensity or with intensity
+        and energy axis combined.
+        
+        Parameters
+        ----------
+        intensity_only : boolean, optional
+            If True, then only the intensity scale is loaded into X.
+            If False, the intensity and the BE scale is loaded into X.
+            The default is True.
+
+        Returns
+        -------
+        None.
+
+        """
         self.intensity_only = intensity_only
     
-    def load_data_preprocess(self, input_filepath, no_of_examples,
-                             train_test_split, train_val_split):
+    def load_data_preprocess(self, 
+                             input_filepath,
+                             no_of_examples,
+                             train_test_split,
+                             train_val_split):
         """
         Load the data from an HDF5 file and preprocess it into three 
         datasets:
@@ -78,14 +101,16 @@ class DataHandler:
         with h5py.File(input_filepath, 'r') as hf:
             try:
                 self.energies = hf['energies'][:]
-            except:
+            except KeyError:
                 self.energies = np.flip(np.arange(694, 750.05, 0.05))
-                print('The data set did not an energy scale. Default (Fe) was assumed.')
+                print('The data set did not an energy scale. ' +
+                      'Default (Fe) was assumed.')
             try:
                 self.labels = [str(label) for label in hf['labels'][:]]
                 self.num_classes = len(self.labels)
-            except:
-                print('The data set did not contain any labels.')
+            except KeyError:
+                print('The data set did not contain any labels. ' +
+                      'The label list is empty.')
                 
             dataset_size = hf['X'].shape[0]
             # Randomly choose a subset of the whole data set.
@@ -200,7 +225,10 @@ class DataHandler:
                 return self.X_train, self.X_val, self.X_test, \
                        self.y_train, self.y_val, self.y_test
     
-    def _split_test_val_train(self, X, y, **kwargs):
+    def _split_test_val_train(self,
+                              X, 
+                              y, 
+                              **kwargs):
         """
         Helper method for splitting multiple numpy arrays two times:
         First, the whole data is split into the train+val and test sets
@@ -335,7 +363,25 @@ class DataHandler:
         else:
             return X_train, X_val, X_test, y_train, y_val, y_test
         
-    def check_class_distribution(self, task):
+    def check_class_distribution(self,
+                                 task):
+        
+        """
+        Generate a Class Distribution object based on a given task.
+
+        Parameters
+        ----------
+        task : str
+            If task == 'regression', an average distribution is 
+            calculated.
+            If task == 'classification', the distribution of the labels
+            across the different data sets is calculated.
+        Returns
+        -------
+        dict
+            Dictionary containing the class distribution.
+
+        """
         data_list = [self.y,
                      self.y_train,
                      self.y_val,
@@ -449,7 +495,23 @@ class DataHandler:
         fig, axs = graphic.plot()    
         
     
-    def show_worst_predictions(self, no_of_spectra, loss_func):
+    def show_worst_predictions(self,
+                               no_of_spectra,
+                               loss_func):
+        """
+        Calculates the lossesof all prediction for a given loss 
+        function. Plots the spectra with the highest losses.
+
+        Parameters
+        ----------
+        no_of_spectra : int
+            No. of plots to create.
+
+        Returns
+        -------
+        None.
+
+        """
         losses = [loss_func(self.y_test[i], self.pred_test[i]).numpy() \
                   for i in range(self.y_test.shape[0])]
         
@@ -573,8 +635,9 @@ class DataHandler:
                                   annots=texts)
             fig, axs = graphic.plot()
         
-        
-    def _write_aug_text(self, dataset, index):
+    def _write_aug_text(self,
+                        dataset,
+                        index):
         """
         Helper method for writing information about the parameters used 
         for data set creation into a figure. 
@@ -608,19 +671,19 @@ class DataHandler:
             noise = self.aug_values_test['noise'][index]
             fwhm = self.aug_values_test['fwhm'][index]
         
-        if (fwhm != None and fwhm != 0):
+        if (fwhm is not None and fwhm != 0):
             fwhm_text = 'FHWM: ' + \
                     str(np.round(float(fwhm), decimals = 2)) + ', '
         else:
             fwhm_text = 'FHWM: not changed' + ', '
                 
-        if (shift_x != None and shift_x != 0):            
+        if (shift_x is not None and shift_x != 0):            
             shift_text = ' Shift: ' + \
                     '{:.2f}'.format(float(shift_x)) + ', '
         else:
             shift_text = ' Shift: none' + ', '
                 
-        if (noise != None and noise != 0):
+        if (noise is not None and noise != 0):
             noise_text = 'S/N: ' + '{:.1f}'.format(float(noise))
         else:
             noise_text = 'S/N: not changed'
@@ -635,7 +698,9 @@ class DataHandler:
     
         return aug_text
     
-    def _write_scatter_text(self, dataset, index):
+    def _write_scatter_text(self,
+                            dataset,
+                            index):
         """
         Helper method for writing information about the parameters used 
         for simulation of scattering in a gas phase. 
@@ -686,7 +751,9 @@ class DataHandler:
     
         return scatter_text
 
-    def _write_measured_text(self, dataset, index):
+    def _write_measured_text(self,
+                             dataset,
+                             index):
         """
         Helper method for writing information about the measured 
         spectra in a data set into a figure. 
@@ -719,7 +786,7 @@ class DataHandler:
     
         return measured_text            
     
-    
+ #%%  
 if __name__ == "__main__":
     np.random.seed(502)
     input_filepath = r'C:\Users\pielsticker\Simulations\20210222_Fe_linear_combination_small_gas_phase.h5'
@@ -742,5 +809,3 @@ if __name__ == "__main__":
     datahandler.plot_random(no_of_spectra = 20,
                             dataset = 'train',
                             with_prediction = False)
-
-

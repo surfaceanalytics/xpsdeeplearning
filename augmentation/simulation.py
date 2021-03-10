@@ -21,7 +21,8 @@ class Simulation():
           as well as simulation of gas phase scattering
         - Plotting of the input and the simulated spectrum
     """
-    def __init__(self, input_spectra):  
+    def __init__(self, 
+                 input_spectra):  
         """
         Initialize the input spectra (a list) and an empty 
         SimulatedSpectrum for the output. The x-range for the output
@@ -52,7 +53,8 @@ class Simulation():
                                                  step,
                                                  label)         
         
-    def combine_linear(self, scaling_params):
+    def combine_linear(self,
+                       scaling_params):
         """
         Performs a linear combination of the input spectra. Each
         spectrum is scaled by a parameter in the range of [0,1]. All
@@ -105,7 +107,9 @@ class Simulation():
                print('Simulated spectrum was not changed!') 
 
 
-    def change_spectrum(self, spectrum = None, **kwargs): 
+    def change_spectrum(self,
+                        spectrum = None,
+                        **kwargs): 
         """
         Parameters
         ----------
@@ -139,7 +143,7 @@ class Simulation():
         None.
 
         """
-        if spectrum != None:
+        if spectrum is not None:
             # The step width is defined by the measured spectrum. 
             # The output spectrum needs to have its step widths 
             # redefined.
@@ -181,7 +185,8 @@ class Simulation():
         self.output_spectrum.normalize()
 
 
-    def plot_simulation(self, plot_inputs = False):   
+    def plot_simulation(self, 
+                        plot_inputs = False):   
         """
         Creates Figure objects for the output spectrum and (optionally)
         for the input spectra.
@@ -236,4 +241,3 @@ if __name__ == '__main__':
                                      'pressure' : 12.0})
     print('Linear combination parameters: ' + str(sim.output_spectrum.label))
     sim.plot_simulation(plot_inputs = False)
-

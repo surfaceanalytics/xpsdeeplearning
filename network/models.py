@@ -115,7 +115,7 @@ class ClassificationCNN(EmptyModel):
     the beginning. Works well for learning across scales.
     
     This is to be used for classification -> softmax activation in the
-    last layer
+    last layer.
     """
     def __init__(self, inputshape, num_classes):   
         self.input_1 = layers.Input(shape = inputshape)
@@ -760,7 +760,7 @@ if __name__ == "__main__":
     input_shape = (1121,2) 
     num_classes = 4
     #model = ResNet1D(input_shape, num_classes)
-    model = CustomCNNMultiple(input_shape,num_classes)
+    model = RegressionCNN(input_shape,num_classes)
     #model = ResNet1DSubclassed(num_classes)
     #model.build((1,1121,1))
     model.compile()

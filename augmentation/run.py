@@ -35,14 +35,16 @@ no_of_files = run_params['no_of_files']
 timestamp = datetime.datetime.now().strftime("%Y%m%d")
 time_and_run_name = timestamp + '_' + run_params['run_name']
 output_datafolder = run_params['output_datafolder']
-json_datafolder = os.path.join(*[output_datafolder,time_and_run_name])
+json_datafolder = os.path.join(*[output_datafolder,
+                                 time_and_run_name])
 
 try:
     os.makedirs(json_datafolder)
-except:
+except FileExistsError:
     pass
 
-filename_basic = os.path.join(*[json_datafolder,time_and_run_name])
+filename_basic = os.path.join(*[json_datafolder,
+                                time_and_run_name])
 
 #%% Create multiple sets of similar spectra with the same settings
 runtimes = {}
@@ -62,7 +64,9 @@ run_params['timestamp'] = timestamp
 run_params['h5_filename'] = time_and_run_name + '.h5'
 
 with open(os.path.join(json_datafolder, 'run_params.json'), 'w') as out_file:
-    json.dump(run_params, out_file, indent=4)
+    json.dump(run_params,
+              out_file,
+              indent=4)
 
 t1 = time()
 runtime = calculate_runtime(t0,t1)

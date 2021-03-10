@@ -18,9 +18,9 @@ from sklearn.utils import shuffle
 
 #%%
 
-def load_data(filenames):
+def _load_data(filenames):
     """
-    Load data from all HDF5 file and combine them into combined arrays.
+    Load data from all HDF5 file and combine them into arrays.
 
     Parameters
     ----------
@@ -80,22 +80,23 @@ def load_data(filenames):
             scatterer = np.concatenate((scatterer, scatterer_new), axis = 0)
             distance = np.concatenate((distance, distance_new), axis = 0)
             pressure = np.concatenate((pressure, pressure_new), axis = 0)
-            print('File {0} loaded'.format(filenames.index(filename)))
-         
+            print('File {0} loaded'.format(filenames.index(filename)))     
+    
     return X, y, shiftx, noise, fwhm, scatterer, distance, pressure
 
 
 def combine_and_shuffle_measured(filenames, 
                                  output_file):
     """
-    
+    Loads the data from the given filenames, shuffles them and stores
+    them in a new file.
 
     Parameters
     ----------
-    filenames : TYPE
-        DESCRIPTION.
-    output_file : TYPE
-        DESCRIPTION.
+    filenames : list
+        List of names of the HDF5 files that are to be combined.
+    output_file : str
+        Filepath of the output file.
 
     Returns
     -------
@@ -103,7 +104,7 @@ def combine_and_shuffle_measured(filenames,
 
     """
     X, y, shiftx, noise, fwhm, \
-        scatterer, distance, pressure = load_data(filenames)
+        scatterer, distance, pressure = _load_data(filenames)
         
     # Shuffle all numpy arrays together.
     X_shuff, y_shuff, shiftx_shuff, noise_shuff, fwhm_shuff,\
