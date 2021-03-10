@@ -97,13 +97,12 @@ class DataHandler:
         self.train_val_split = train_val_split
         self.no_of_examples = no_of_examples
         
-        
         with h5py.File(input_filepath, 'r') as hf:
             try:
                 self.energies = hf['energies'][:]
             except KeyError:
                 self.energies = np.flip(np.arange(694, 750.05, 0.05))
-                print('The data set did not an energy scale. ' +
+                print('The data set did have not an energy scale. ' +
                       'Default (Fe) was assumed.')
             try:
                 self.labels = [str(label) for label in hf['labels'][:]]
@@ -114,7 +113,16 @@ class DataHandler:
                 
             dataset_size = hf['X'].shape[0]
             # Randomly choose a subset of the whole data set.
-            r = np.random.randint(0, dataset_size-self.no_of_examples)
+            try:
+                r = np.random.randint(0, dataset_size-self.no_of_examples)
+            except ValueError as e:
+                error_msg = (
+                    'There are not enough spectra in this data set. ' +
+                    'Please choose a value of less than {0} '.format(
+                        dataset_size-1) +
+                    'for no_of_examples.')                   
+                raise type(e)(error_msg)
+
             X = hf['X'][r:r+self.no_of_examples, :, :]
             y = hf['y'][r:r+self.no_of_examples, :]
             
@@ -128,7 +136,7 @@ class DataHandler:
             if 'shiftx' in hf.keys():
                 shift_x = hf['shiftx'][r:r+self.no_of_examples, :]
                 noise = hf['noise'][r:r+self.no_of_examples, :]
-                fwhm = hf['FWHM'][r:r+self.no_of_examples, :] 
+                fwhm = hf['FWHM'][r:r+self.no_of_examples, :]
                 
                 if 'scatterer' in hf.keys():
                     # If the data set was artificially created, check 
@@ -173,11 +181,11 @@ class DataHandler:
                 # needed for model building in Keras. 
                 self.input_shape = (self.X_train.shape[1],
                                     self.X_train.shape[2])
-            
-                return self.X_train, self.X_val, self.X_test, \
-                       self.y_train, self.y_val, self.y_test, \
-                       self.aug_values_train, self.aug_values_val, \
-                       self.aug_values_test
+                
+                loaded_data = (self.X_train, self.X_val, self.X_test,
+                               self.y_train, self.y_val, self.y_test,
+                               self.aug_values_train, self.aug_values_val,
+                               self.aug_values_test)
                 
             # Check if the data have associated names. Typical for
             # measured spectra.
@@ -202,10 +210,11 @@ class DataHandler:
                 # needed for model building in Keras. 
                 self.input_shape = (self.X_train.shape[1],
                                     self.X_train.shape[2])
-                                    
-                return self.X_train, self.X_val, self.X_test, \
-                       self.y_train, self.y_val, self.y_test, \
-                       self.names_train, self.names_val, self.names_test
+                
+                loaded_data = (self.X_train, self.X_val, self.X_test,
+                               self.y_train, self.y_val, self.y_test,
+                               self.names_train, self.names_val, 
+                               self.names_test)
             
             # If there are neither augmentation values nor names in 
             # the dataset, just load the X and y arrays.
@@ -222,8 +231,10 @@ class DataHandler:
                 self.input_shape = (self.X_train.shape[1],
                                     self.X_train.shape[2])
                 
-                return self.X_train, self.X_val, self.X_test, \
-                       self.y_train, self.y_val, self.y_test
+                loaded_data = (self.X_train, self.X_val, self.X_test,
+                               self.y_train, self.y_val, self.y_test)
+            
+        return loaded_data
     
     def _split_test_val_train(self,
                               X, 
