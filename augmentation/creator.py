@@ -90,11 +90,11 @@ class Creator():
         self.augmentation_matrix = np.zeros((self.no_of_simulations,
                                              no_of_params))
         
-        if self.params['single'] == True:
+        if self.params['single'] is True:
             self.create_matrix(single = True)
 
         else:
-            if self.params['variable_no_of_inputs'] == True:
+            if self.params['variable_no_of_inputs'] is True:
                 self.create_matrix(single = False,
                                    variable_no_of_inputs = True)
             else:
@@ -131,7 +131,7 @@ class Creator():
 
         """                   
         for i in range(self.no_of_simulations):
-            if single == False:  
+            if not single:  
                 if variable_no_of_inputs:
                     # Randomly choose how many spectra shall be combined
                     no_of_spectra = np.random.randint(
@@ -162,7 +162,7 @@ class Creator():
                     s = sum(r)
                     linear_params = [k/s for k in r]
                 
-                    while all(p >= 0.1 for p in linear_params) == False:
+                    while all(p >= 0.1 for p in linear_params) is not False:
                         # sample again if one of the parameters is smaller 
                         # than 0.1.
                         r = [np.random.uniform(0.1,1.0) for j in \
@@ -182,7 +182,7 @@ class Creator():
             
             
             # FWHM
-            if self.params['broaden'] != False:               
+            if self.params['broaden'] is not False:               
                 self.augmentation_matrix[i,-6] = np.random.randint(
                     self.sim_ranges['FWHM'][0],
                     self.sim_ranges['FWHM'][1])
@@ -190,7 +190,7 @@ class Creator():
                 self.augmentation_matrix[i,-6] = 0
             
             # shift_x
-            if self.params['shift_x'] != False:               
+            if self.params['shift_x'] is not False:               
                 shift_range = np.arange(
                     self.sim_ranges['shift_x'][0],
                     self.sim_ranges['shift_x'][1],
@@ -207,7 +207,7 @@ class Creator():
                 self.augmentation_matrix[i,-5] = 0
                         
             # Signal-to-noise
-            if self.params['noise'] != False:
+            if self.params['noise'] is not False:
                 self.augmentation_matrix[i,-4] = np.random.randint(
                     self.sim_ranges['noise'][0]*1000,
                     self.sim_ranges['noise'][1]*1000)/1000
@@ -216,7 +216,7 @@ class Creator():
                 self.augmentation_matrix[i,-4] = 0
             
             # Scattering
-            if self.params['scatter'] != False:
+            if self.params['scatter'] is not False:
                 # Scatterer ID
                 self.augmentation_matrix[i,-3] = \
                     np.random.randint(
@@ -268,13 +268,13 @@ class Creator():
         None.
 
         """
-        if broaden == False:
+        if not broaden:
             self.augmentation_matrix[:,-6] = 0
-        if x_shift == False:
+        if not x_shift:
             self.augmentation_matrix[:,-5] = 0
-        if noise == False:
+        if not noise:
             self.augmentation_matrix[:,-4] = 0
-        if scatter == False:
+        if not scatter:
             self.augmentation_matrix[:,-3] = None
             # Distance
             self.augmentation_matrix[:,-2] = 0 
@@ -382,26 +382,26 @@ class Creator():
                     str(np.round(row['label'][key],decimals =2)) + '\n'
             
             params_text = '\n' 
-            if (row['FWHM'] != None and row['FWHM'] != 0):
+            if (row['FWHM'] is not None and row['FWHM'] != 0):
                 params_text += 'FHWM: ' + \
                     str(np.round(row['FWHM'], decimals = 2)) + '\n'
             else:
                 params_text += 'FHWM: not changed' + '\n'
                 
-            if (row['shift_x'] != None and row['shift_x'] != 0):            
+            if (row['shift_x'] is not None and row['shift_x'] != 0):            
                 params_text += 'X shift: ' + \
                     '{:.3f}'.format(row['shift_x']) + '\n'
             else:
                 params_text += 'X shift: none' + '\n'
                 
-            if (row['noise'] != None and row['noise'] != 0):
+            if (row['noise'] is not None and row['noise'] != 0):
                 params_text += 'S/N: ' + '{:.1f}'.format(row['noise']) + '\n' 
             else:
                 params_text += 'S/N: not changed' + '\n'
 
             
             scatter_text = '\n' 
-            if row['scatterer'] != None:
+            if row['scatterer'] is not None:
                 scatter_text += ('Scatterer: ' + 
                                  str(row['scatterer']) + '\n')  
                 scatter_text += ('Pressure: ' + 
