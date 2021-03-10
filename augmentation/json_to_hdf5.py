@@ -97,7 +97,8 @@ def load_data_preprocess(json_datafolder,
             scatterer.append(scatterer_one)
             distance.append(distance_one)
             pressure.append(pressure_one)
-        print('Load: ' + str((filenames.index(file)-start)*len(test)+j+1) + '/' + \
+            number = j
+        print('Load: ' + str((filenames.index(file)-start)*len(test)+number+1) + '/' + \
                       str(len(filenames[start:end])*len(test)))
                                                   
     X = np.array(X)
