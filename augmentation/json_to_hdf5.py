@@ -77,17 +77,17 @@ def load_data_preprocess(json_datafolder,
         filename = os.path.join(json_datafolder, file)
         with open(filename, 'r') as json_file:
             test = json.load(json_file)
-        for j in range(0,len(test)):
-            X_one = test[j]['y']
-            y_one = test[j]['label']
-            shiftx_one = test[j]['shift_x']
-            noise_one = test[j]['noise']
-            FWHM_one = test[j]['FWHM']
-            scatterer_name = test[j]['scatterer']
+        for j, spec_data in enumerate(test):
+            X_one = spec_data['y']
+            y_one = spec_data['label']
+            shiftx_one = spec_data['shift_x']
+            noise_one = spec_data['noise']
+            FWHM_one = spec_data['FWHM']
+            scatterer_name = spec_data['scatterer']
             scatterers = {'He' : 0, 'H2' : 1, 'N2' : 2, 'O2' : 3}
             scatterer_one = scatterers[scatterer_name]
-            distance_one = test[j]['distance']
-            pressure_one = test[j]['pressure']
+            distance_one = spec_data['distance']
+            pressure_one = spec_data['pressure']
 
             X.append(X_one)
             y.append(y_one)
