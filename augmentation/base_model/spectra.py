@@ -227,7 +227,7 @@ class MeasuredSpectrum(Spectrum):
         initial_shape = self.x.shape
         self.update_range()
         factor = self.x.shape[0]/initial_shape[0]
-
+        
         if not factor == 0.0:
             if factor > 1:
                 factor = int(np.rint(factor))+1
@@ -270,10 +270,10 @@ class MeasuredSpectrum(Spectrum):
             diff_len_low = self.x.shape[0] - self.lineshape.shape[0]
             low = True
             
-        if not(high == True and low == True):
-            if high == True:
+        if not(high is True and low is True):
+            if high is True:
                 self._extrapolate(diff_len_high, side = 'high')
-            if low == True:
+            if low is True:
                 self._extrapolate(diff_len_low, side = 'low')
                 
             
@@ -321,19 +321,18 @@ class MeasuredSpectrum(Spectrum):
         None.
 
         """
-
         new_lineshape = np.zeros(self.x.shape[0])
 
         for i in range(self.lineshape.shape[0]):
             try:
                 new_lineshape[i*factor] = self.lineshape[i]
-            except:
+            except IndexError:
                 pass
             for j in range(1,factor):
                 try:
                     new_lineshape[i*factor+j] = np.mean((self.lineshape[i],
                                                          self.lineshape[i+1]))
-                except:
+                except IndexError:
                     pass
               
         self.lineshape = new_lineshape
@@ -509,7 +508,7 @@ class SyntheticSpectrum(Spectrum):
 
         """
         self.components += [component]
-        if rebuild == True:
+        if rebuild:
             self.rebuild()
         
     def remove_component(self, comp_idx):
@@ -601,7 +600,7 @@ class SimulatedSpectrum(Spectrum):
         # The shift should not be bigger than +-9 eV.
         acceptable_values = [-9, 9]
         
-        if shift_x == None:
+        if shift_x is None:
             pass
         elif (shift_x >= acceptable_values[0] \
               and shift_x <= acceptable_values[1]):
@@ -652,7 +651,7 @@ class SimulatedSpectrum(Spectrum):
         -------
         None.
         """
-        if (signal_to_noise == 0 or signal_to_noise == None):
+        if (signal_to_noise == 0 or signal_to_noise is None):
             pass
         else:
             intensity_max = np.max(self.lineshape)
@@ -690,7 +689,7 @@ class SimulatedSpectrum(Spectrum):
         None.
 
         """
-        if (resolution == 0 or resolution == None):
+        if (resolution == 0 or resolution is None):
             fwhm = resolution
         else:
             fwhm = np.mean(self.x)/ float(resolution) 
@@ -856,7 +855,7 @@ class SimulatedSpectrum(Spectrum):
             self.pressure = pressure
             self.distance = distance
 
-        elif label == None:
+        elif label is None:
             pass
         else:
             print('Please enter a valid scatterer label!')
@@ -878,4 +877,3 @@ if __name__ == '__main__':
     fig = Figure(measured_spectrum.x,
                  measured_spectrum.lineshape,
                  title = label)
-
