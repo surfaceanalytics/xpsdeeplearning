@@ -73,7 +73,12 @@ class Hyperoptimization():
         self.fig_dir = self.clf.logging.fig_dir
         
 
-    def hyper_opt(self, x_train, y_train, x_val, y_val, params):
+    def hyper_opt(self, 
+                  x_train,
+                  y_train, 
+                  x_val, 
+                  y_val, 
+                  params):
         """
         Model input/output format used in the Talos Scan.
 
@@ -126,7 +131,9 @@ class Hyperoptimization():
     
         return out, model
 
-    def scan_parameter_space(self, params, **kwargs):
+    def scan_parameter_space(self, 
+                             params,
+                             **kwargs):
         """
         Scan the parameter space provided in the params dictionary.
         Keywords can be used to limit the search space.
@@ -303,7 +310,8 @@ class Hyperoptimization():
 
         self.analyzer = Analysis(df)
         
-    def get_best_params(self, metric):
+    def get_best_params(self,
+                        metric):
         """
         Get the best params for a certain metric by exploiting the
         Analyzer object.
@@ -324,9 +332,10 @@ class Hyperoptimization():
         
         return self.best_params
     
-    def load_model_from_scans(self, best = False,
-                             model_id = None,
-                             metric = 'val_loss'):
+    def load_model_from_scans(self,
+                              best = False,
+                              model_id = None,
+                              metric = 'val_loss'):
         """
         Reload a model from all scans. Either the best model or a model 
         from an ID is loaded.
@@ -421,7 +430,8 @@ class Scan(talos.Scan):
                                    reduction_threshold = reduction_threshold,
                                    reduction_metric = reduction_metric,
                                    minimize_loss = minimize_loss,
-                                   disable_progress_bar = disable_progress_bar,
+                                   disable_progress_bar = \
+                                       disable_progress_bar,
                                    print_params = print_params,
                                    clear_session = clear_session,
                                    save_weights = save_weights,
@@ -506,7 +516,9 @@ class RestoredScan():
     this class is only a container for the results from a previous 
     scan.
     """
-    def __init__(self, folder, number):
+    def __init__(self, 
+                 folder, 
+                 number):
         """
         Load all data from a previous scan.
 
@@ -563,7 +575,8 @@ class Analysis():
     Class for the analysis of results from one or multiple scans. 
     Very similar to talos.Reporting, but with added analysis tools.
     """
-    def __init__(self, df):
+    def __init__(self, 
+                 df):
         """
         Needs a results DataFrame as input.
 
@@ -579,7 +592,8 @@ class Analysis():
         """
         self.df = df
    
-    def _get_params_from_id(self, model_id):
+    def _get_params_from_id(self,
+                            model_id):
         """
         Load the parameters for a particular round.
 
@@ -598,7 +612,9 @@ class Analysis():
 
         return params
 
-    def _get_best_round(self, metric, low = True):
+    def _get_best_round(self,
+                        metric,
+                        low = True):
         """
         Returns the ID of the round that produced the lowest\highest
         value for a given metric.
@@ -621,7 +637,8 @@ class Analysis():
         """
         return self.df[self.df[metric] == self.df[metric].min()].index[0]
 
-    def _minimum_value(self, metric):
+    def _minimum_value(self,
+                       metric):
         """
         Returns the minimum value for a given metric.
         """
@@ -639,7 +656,9 @@ class Analysis():
 
         return exclude
 
-    def _cols(self, metric, exclude):
+    def _cols(self,
+              metric,
+              exclude):
         '''
         Helper to remove other than desired metric from data table.
         '''
@@ -652,7 +671,8 @@ class Analysis():
 
         return cols
 
-    def create_line_data(self, metric):
+    def create_line_data(self,
+                         metric):
         """
         Selects the metric column of the df for a line plot.
 
@@ -669,7 +689,8 @@ class Analysis():
         """
         return self.df[metric]
 
-    def correlate(self, metric):
+    def correlate(self,
+                  metric):
         """
         Returns a correlation matrix between all parameters and the
         given metric.
@@ -694,7 +715,8 @@ class Analysis():
                 
         return corr_data
 
-    def create_hist_data(self, metric):
+    def create_hist_data(self,
+                         metric):
         """
         Selects the metric column of the df for a histogram plot.
 
@@ -711,7 +733,9 @@ class Analysis():
         """
         return self.df[metric]
         
-    def create_kde_data(self, x, y = None):
+    def create_kde_data(self,
+                        x,
+                        y = None):
         """
         Selects one or two columns of the df for a kernel density 
         estimation plot.
@@ -734,7 +758,11 @@ class Analysis():
             return self.df[[x, y]]
         return self.df
         
-    def create_bar_data(self, x, y, hue, col):
+    def create_bar_data(self,
+                        x,
+                        y,
+                        hue,
+                        col):
         """
         Selects four columns of the df for a 4d bar plot.
 
@@ -761,7 +789,8 @@ class Plot():
     """
     Base class for plotting one of the analysis plots.
     """
-    def __init__(self, data):
+    def __init__(self,
+                 data):
         self.data = data
         self.name = None
         self.fig = None
@@ -782,7 +811,8 @@ class Plot():
         except AttributeError:
             pass
 
-    def to_file(self, filepath):
+    def to_file(self,
+                filepath):
         """
         Saves the figure stored in self.fig to a PNG file.
 
@@ -807,7 +837,8 @@ class LinePlot(Plot):
     """
     Class for a line plot of a chosen metric across all rounds.
     """
-    def __init__(self, data):
+    def __init__(self,
+                 data):
         super(LinePlot, self).__init__(data)
         self.data = data
         self.name = 'line plot_' + self.metric
@@ -845,7 +876,8 @@ class HistPlot(Plot):
     """
     Class for a histogram of a chosen metric across all rounds.
     """
-    def __init__(self, data):
+    def __init__(self,
+                 data):
         super(HistPlot, self).__init__(data)
         self.name = 'histogram_' + self.metric
     
@@ -854,7 +886,8 @@ class HistPlot(Plot):
         self.ax.hist(self.data, bins = bins)
         
         self.ax.set_title(
-            'Histogram of the {0} across all rounds'.format(self.display_name), 
+            'Histogram of the {0} across all rounds'.format(
+                self.display_name), 
             self.font_dict)
         
         self.ax.set_xlabel(self.display_name, 
@@ -872,7 +905,8 @@ class CorrPlot(Plot):
     Class for a plot of the correlation matrix between all parameters
     and the metrics.
     """
-    def __init__(self, data):
+    def __init__(self,
+                 data):
         super(CorrPlot, self).__init__(data)
         self.name = 'correlation_plot'
     
@@ -900,7 +934,10 @@ class KDEPlot(Plot):
     """
     Class for a 1d or 2d kernel density estimation plot.
     """
-    def __init__(self, data, x, y = None):
+    def __init__(self,
+                 data,
+                 x,
+                 y = None):
         super(KDEPlot, self).__init__(data)
         self.x = x
         self.y = y
@@ -937,7 +974,6 @@ class KDEPlot(Plot):
         for tick in self.ax.yaxis.get_major_ticks():
             tick.label.set_fontsize(13)
             tick.label.set_color('black')
-
             
 class BarPlot(Plot):
     """

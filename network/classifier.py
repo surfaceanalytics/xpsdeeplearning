@@ -287,7 +287,7 @@ class Classifier():
         try:
             self.datahandler.test_loss, self.datahandler.test_accuracy = \
                 score[0], score[1]
-        except:
+        except TypeError:
             self.datahandler.test_loss = score
             
         return score
