@@ -69,27 +69,27 @@ class ExperimentLogging():
         self.hp_callback = HyperParamCallback(self)
     
     def make_dirs(self):        
-        if os.path.isdir(self.model_dir) == False:
+        if os.path.isdir(self.model_dir) is False:
             os.makedirs(self.model_dir)
-            if os.path.isdir(self.model_dir) == True:
+            if os.path.isdir(self.model_dir):
                 print('Model folder created at ' +\
                       str(self.model_dir.split(self.root_dir)[1]))
         else:
             print('Model folder was already at ' +\
                   str(self.model_dir.split(self.root_dir)[1]))
         
-        if os.path.isdir(self.log_dir) == False:
+        if os.path.isdir(self.log_dir) is False:
             os.makedirs(self.log_dir)
-            if os.path.isdir(self.log_dir) == True:
+            if os.path.isdir(self.log_dir):
                 print('Logs folder created at ' +\
                       str(self.log_dir.split(self.root_dir)[1]))
         else:
             print('Logs folder was already at ' +\
                   str(self.log_dir.split(self.root_dir)[1]))
         
-        if os.path.isdir(self.fig_dir) == False:
+        if os.path.isdir(self.fig_dir) is False:
             os.makedirs(self.fig_dir)
-            if os.path.isdir(self.fig_dir) == True:
+            if os.path.isdir(self.fig_dir):
                 print('Figures folder created at ' +\
                       str(self.fig_dir.split(self.root_dir)[1]))
         else:
@@ -133,7 +133,7 @@ class ExperimentLogging():
                 reader = csv.DictReader(csvfile)
                 for row in reader:
                     epochs += 1                    
-        except:
+        except FileNotFoundError:
             pass
         
         return epochs
@@ -167,7 +167,7 @@ class ExperimentLogging():
                         history['val_accuracy'].append(
                             float(d['val_accuracy']))
                         history['val_loss'].append(float(d['val_loss']))                
-            except:
+            except FileNotFoundError:
                 pass
                     
         elif task == 'regression':
@@ -180,7 +180,7 @@ class ExperimentLogging():
                         d = dict(row)
                         history['loss'].append(float(d['loss']))
                         history['val_loss'].append(float(d['val_loss']))
-            except:
+            except FileNotFoundError:
                 pass
         
         return history
@@ -216,7 +216,8 @@ class HyperParamCallback(callbacks.Callback):
 class CustomModelCheckpoint(callbacks.ModelCheckpoint):
  def _save_model(self, epoch, logs):
     from tensorflow.python.keras.utils import tf_utils
-    """Saves the model.
+    """
+    Saves the model.
     Arguments:
         epoch: the epoch this iteration is in.
         logs: the `logs` dict passed in to `on_batch_end` or `on_epoch_end`.
