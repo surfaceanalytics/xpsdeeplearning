@@ -58,7 +58,7 @@ class Creator():
             self.params = json.load(param_file)
             self.sim_ranges = self.params['sim_ranges']
             
-        if params != None:
+        if params is not None:
             for key in params.keys():
                 if key != 'sim_ranges':
                     self.params[key] = params[key]
