@@ -760,7 +760,7 @@ if __name__ == "__main__":
     input_shape = (1121,2) 
     num_classes = 4
     #model = ResNet1D(input_shape, num_classes)
-    model = CustomCNNMultiple(input_shape,num_classes)
+    model = RegressionCNN(input_shape,num_classes)
     #model = ResNet1DSubclassed(num_classes)
     #model.build((1,1121,1))
     model.compile()

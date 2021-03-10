@@ -182,7 +182,7 @@ class Classifier():
         # In case of refitting, get the new epoch start point.
         epochs_trained = self.logging._count_epochs_trained()
         
-        if new_learning_rate != None:
+        if new_learning_rate is not None:
             # Overwrite the previus optimizer learning rate using the
             # backend of keras.
             K.set_value(self.model.optimizer.learning_rate,
@@ -320,7 +320,7 @@ class Classifier():
         self.datahandler.pred_test = self.model.predict(self.datahandler.X_test,
                                                         verbose = verbose)
         
-        if verbose == True:
+        if verbose:
             print('Prediction done!')
         
         return self.datahandler.pred_train, self.datahandler.pred_test
@@ -391,10 +391,8 @@ class Classifier():
             json_file.write(model_json)
         # serialize weights to HDF5
         self.model.save_weights(weights_file_name)
-        try:
-            self.model.save(self.logging.model_dir)
-        except:
-            pass
+        self.model.save(self.logging.model_dir)
+        
         print("Saved model to disk.")
                 
     def load_model(self,
@@ -425,7 +423,7 @@ class Classifier():
 
         """
         self.model = Model()
-        if model_path != None:
+        if model_path is not None:
             file_name = model_path
         else:
             file_name = self.logging.model_dir
@@ -462,7 +460,7 @@ class Classifier():
 
         print("Loaded model from disk.")
       
-        if drop_last_layers != None:
+        if drop_last_layers is not None:
             # Remove the last layers and stored the other layers in a
             # new EmptyModel object.
             no_of_drop_layers = drop_last_layers + 1
@@ -574,7 +572,7 @@ class Classifier():
                     pickle_data[key] = cd.cd
                 else:
                     pickle_data[key] = getattr(self.datahandler, key)
-            except:
+            except KeyError:
                 pass            
         
         with open(filename, 'wb') as pickle_file:
