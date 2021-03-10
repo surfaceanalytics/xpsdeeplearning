@@ -346,7 +346,7 @@ class Report:
             self.document.add_picture(acc_file, width=Cm(12))  
             last_paragraph = self.document.paragraphs[-1] 
             last_paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        except:
+        except FileNotFoundError:
             pass
         
         # Add results on the test data.
@@ -366,7 +366,7 @@ class Report:
                 for cell in row.cells:
                     cell.paragraphs[0].alignment = \
                         WD_ALIGN_PARAGRAPH.CENTER
-        except:
+        except KeyError:
             pass
                 
         self.document.add_page_break()
