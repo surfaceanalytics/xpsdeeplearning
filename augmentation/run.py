@@ -39,7 +39,7 @@ json_datafolder = os.path.join(*[output_datafolder,time_and_run_name])
 
 try:
     os.makedirs(json_datafolder)
-except:
+except FileExistsError:
     pass
 
 filename_basic = os.path.join(*[json_datafolder,time_and_run_name])
