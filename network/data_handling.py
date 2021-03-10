@@ -78,14 +78,16 @@ class DataHandler:
         with h5py.File(input_filepath, 'r') as hf:
             try:
                 self.energies = hf['energies'][:]
-            except:
+            except KeyError:
                 self.energies = np.flip(np.arange(694, 750.05, 0.05))
-                print('The data set did not an energy scale. Default (Fe) was assumed.')
+                print('The data set did not an energy scale. ' +
+                      'Default (Fe) was assumed.')
             try:
                 self.labels = [str(label) for label in hf['labels'][:]]
                 self.num_classes = len(self.labels)
-            except:
-                print('The data set did not contain any labels.')
+            except KeyError:
+                print('The data set did not contain any labels. ' +
+                      'The label list is empty.')
                 
             dataset_size = hf['X'].shape[0]
             # Randomly choose a subset of the whole data set.
@@ -608,19 +610,19 @@ class DataHandler:
             noise = self.aug_values_test['noise'][index]
             fwhm = self.aug_values_test['fwhm'][index]
         
-        if (fwhm != None and fwhm != 0):
+        if (fwhm is not None and fwhm != 0):
             fwhm_text = 'FHWM: ' + \
                     str(np.round(float(fwhm), decimals = 2)) + ', '
         else:
             fwhm_text = 'FHWM: not changed' + ', '
                 
-        if (shift_x != None and shift_x != 0):            
+        if (shift_x is not None and shift_x != 0):            
             shift_text = ' Shift: ' + \
                     '{:.2f}'.format(float(shift_x)) + ', '
         else:
             shift_text = ' Shift: none' + ', '
                 
-        if (noise != None and noise != 0):
+        if (noise is not None and noise != 0):
             noise_text = 'S/N: ' + '{:.1f}'.format(float(noise))
         else:
             noise_text = 'S/N: not changed'
@@ -742,5 +744,3 @@ if __name__ == "__main__":
     datahandler.plot_random(no_of_spectra = 20,
                             dataset = 'train',
                             with_prediction = False)
-
-
