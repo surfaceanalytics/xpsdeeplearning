@@ -13,7 +13,10 @@ class Peak:
     Basic class for a peak that gets a number of parameters and creates a 
     lineshape based on these parameters.
     """
-    def __init__(self, position, width, intensity):
+    def __init__(self, 
+                 position,
+                 width, 
+                 intensity):
         self.position = position
         self.width = width
         self.intensity = intensity
@@ -23,7 +26,10 @@ class Gauss(Peak):
     """
     Gaussian peak with position, width, and intensity parameters.
     """
-    def __init__(self, position, width, intensity):
+    def __init__(self,
+                 position,
+                 width,
+                 intensity):
         """
         Initialize basic Peak class. 
 
@@ -43,7 +49,8 @@ class Gauss(Peak):
         """
         super(Gauss, self).__init__(position, width, intensity)
 
-    def function(self, x):
+    def function(self, 
+                 x):
         """
         Create a numpy array of a Gaussian peak based on the
         input x values. 
@@ -69,7 +76,10 @@ class Lorentz(Peak):
     """
     Lorentzian peak with position, width, and intensity parameters.
     """
-    def __init__(self,position,width,intensity):
+    def __init__(self,
+                 position,
+                 width,
+                 intensity):
         """
         Initialize basic Peak class. 
 
@@ -89,7 +99,8 @@ class Lorentz(Peak):
         """
         super(Lorentz, self).__init__(position, width, intensity) 
     
-    def function(self, x):
+    def function(self,
+                 x):
         """
         Create a numpy array of a Lorentzian peak based on the
         input x values. 
@@ -115,7 +126,11 @@ class Voigt(Peak):
     """
     Voigt peak shape with position, width, and intensity parameters.
     """    
-    def __init__(self, position, width, intensity, fraction_gauss=0.5):
+    def __init__(self,
+                 position,
+                 width, 
+                 intensity, 
+                 fraction_gauss = 0.5):
         """
         Initialize basic Peak class. 
 
@@ -139,7 +154,8 @@ class Voigt(Peak):
         super(Voigt, self).__init__(position, width, intensity) 
         self.fraction_gauss = fraction_gauss
         
-    def function(self,x):
+    def function(self,
+                 x):
         """
         Create a numpy array of a mixed Gaussian/Lorentzian peak
         based on the input x values. 
@@ -173,7 +189,11 @@ class VacuumExcitation():
     fermi edge and using a power law to simulate the extended 
     background shape.
     """
-    def __init__(self, edge, fermi_width, intensity, exponent):
+    def __init__(self,
+                 edge, 
+                 fermi_width, 
+                 intensity,
+                 exponent):
         """
         
         Parameters
@@ -197,7 +217,8 @@ class VacuumExcitation():
         self.intensity = intensity
         self.exponent = exponent
         
-    def fermi_edge(self, x):
+    def fermi_edge(self, 
+                   x):
         """
         Create the FE lineshape.
         
@@ -216,7 +237,8 @@ class VacuumExcitation():
         f = 1/(np.exp((self.edge-x)/(k*self.fermi_width))+1)
         return f
     
-    def power_law(self, x):
+    def power_law(self, 
+                  x):
         """
         Create the lineshape away from the FE following a power law.
         
@@ -234,7 +256,8 @@ class VacuumExcitation():
         p = np.exp(-1 * (x+self.edge) * self.exponent)
         return p
     
-    def function(self,x):
+    def function(self,
+                 x):
         """
         Combine the fermi edge and power law lineshapes and scale
         by the overall intensity.
@@ -259,7 +282,11 @@ class Tougaard():
     """
     Class for simulating a Tougaard background lineshape.
     """
-    def __init__(self,B, C, D, Eg):
+    def __init__(self,
+                 B,
+                 C,
+                 D,
+                 Eg):
         """
         U4 Tougaard lineshape based on 4 parameters.
 
@@ -283,7 +310,8 @@ class Tougaard():
         self.t = 300 # Temperature in Kelvin
         self.kb = 0.000086 # Boltzman constant
         
-    def function(self, x):
+    def function(self, 
+                 x):
         """
         Create the Tougaard lineshape of the form
         F(x) = B*x/(C-x**2)**2 + D*x**2) if x > Eg

@@ -21,7 +21,9 @@ except ImportError as e:
         raise
    
 #%% Basic classes.
-def safe_arange_with_edges(start, stop, step):
+def safe_arange_with_edges(start, 
+                           stop,
+                           step):
     """
     In order to avoid float point errors in the division by step.
 
@@ -49,7 +51,11 @@ class Spectrum:
     Basic class for a spectrum containing x-values and a lineshape as
     numpy arrays.
     """
-    def __init__(self, start, stop, step, label):
+    def __init__(self,
+                 start,
+                 stop,
+                 step,
+                 label):
         """
         Initialize an array for the x values using the start, stop,
         and step values.
@@ -128,7 +134,8 @@ class MeasuredSpectrum(Spectrum):
     """
     Class for loading a measured spectrum from a txt file.
     """
-    def __init__(self, filepath):
+    def __init__(self, 
+                 filepath):
         """
         Load the data into a Spectrum object. The step size is
         automatically determined from the last data points.
@@ -164,7 +171,8 @@ class MeasuredSpectrum(Spectrum):
         self.lineshape = data[:,1][diff != 0]
         #self.normalize()
     
-    def load(self, filepath):
+    def load(self, 
+             filepath):
         """
         Load the data from the file. The first line of the file needs to 
         contain the label as a string.
@@ -198,7 +206,10 @@ class MeasuredSpectrum(Spectrum):
         
         return label, data
     
-    def resize(self, start, stop, step):
+    def resize(self, 
+               start,
+               stop,
+               step):
         """
         Method to resize the x and lineshape arrays.
         First, the points outside the start and stop values are removed
@@ -236,7 +247,9 @@ class MeasuredSpectrum(Spectrum):
                 factor = int(np.rint(1/factor))
                 self._downsample(factor)
         
-    def _remove_outside_points(self, start, stop):
+    def _remove_outside_points(self, 
+                               start,
+                               stop):
         """
         Method to remove points in the lineshape that are outside of 
         the range of the new start and stop values.
@@ -277,7 +290,9 @@ class MeasuredSpectrum(Spectrum):
                 self._extrapolate(diff_len_low, side = 'low')
                 
             
-    def _extrapolate(self, no_of_points, side):
+    def _extrapolate(self,
+                     no_of_points,
+                     side):
         """
         Extrapolate the lineshape on the given side by concatenating the 
         lineshape with an array of the values at either side.
@@ -306,7 +321,8 @@ class MeasuredSpectrum(Spectrum):
             self.lineshape = np.concatenate(
                 (np.ones(no_of_points) * end_value, self.lineshape))
 
-    def _upsample(self, factor):
+    def _upsample(self,
+                  factor):
         """
         Interpolate the lineshape if the original lineshape has more points
         than the desired lineshape.
@@ -337,7 +353,8 @@ class MeasuredSpectrum(Spectrum):
               
         self.lineshape = new_lineshape
         
-    def _downsample(self, factor): 
+    def _downsample(self,
+                    factor): 
         """
         Downsample the lineshape if the original lineshape has more points
         than the desired lineshape.
@@ -369,11 +386,13 @@ class ReferenceSpectrum(MeasuredSpectrum):
     """
     Class for loading, resizing, and saving a measured reference spectrum.
     """
-    def __init__(self, filepath):
+    def __init__(self,
+                 filepath):
         super(ReferenceSpectrum, self).__init__(filepath)
         self.type = 'reference'
 
-    def write(self, output_folder):
+    def write(self,
+              output_folder):
         """
         Write the reference spectrum to a new file.
         
@@ -406,11 +425,13 @@ class FittedSpectrum(MeasuredSpectrum):
     """
     Class for loading and resizing a fitted spectrum.
     """
-    def __init__(self, filepath):
+    def __init__(self,
+                 filepath):
         super(FittedSpectrum, self).__init__(filepath)
         self.type = 'fitted'
         
-    def load(self, filepath):
+    def load(self,
+             filepath):
         """
         Load method from the MeasuredSpectrum class is overwritten 
         to accomodate header of CasaXPS export and associate the
@@ -445,13 +466,16 @@ class FittedSpectrum(MeasuredSpectrum):
         return label, data  
 
 
-
 class SyntheticSpectrum(Spectrum):
     """
     Class for simulating a SyntheticSpectrum with multiple peaks
     forming the lineshape.
     """
-    def __init__(self, start, stop, step, label):
+    def __init__(self,
+                 start,
+                 stop,
+                 step,
+                 label):
         """
         Initialize an x array using the start, stop, and step values.
 
@@ -490,7 +514,9 @@ class SyntheticSpectrum(Spectrum):
             y = np.array([component.function(x) for x in self.x])
             self.lineshape = np.add(self.lineshape,y)
             
-    def addComponent(self, component, rebuild = True):
+    def addComponent(self,
+                     component,
+                     rebuild = True):
         """
         Adding a Peak component to the spectrum. 
 
@@ -511,7 +537,8 @@ class SyntheticSpectrum(Spectrum):
         if rebuild:
             self.rebuild()
         
-    def remove_component(self, comp_idx):
+    def remove_component(self,
+                         comp_idx):
         """
         Remove a specific component and rebuild the lineshape 
         without it.
@@ -549,7 +576,11 @@ class SimulatedSpectrum(Spectrum):
     gas phase scattering.
     
     """
-    def __init__(self, start, stop, step, label):
+    def __init__(self,
+                 start,
+                 stop,
+                 step,
+                 label):
         """
         Initialize an x array using the start, stop, and step values.
         Set all change parameters to None.
@@ -580,7 +611,8 @@ class SimulatedSpectrum(Spectrum):
         self.distance = None
         
    
-    def shift_horizontal(self, shift_x):
+    def shift_horizontal(self,
+                         shift_x):
         """
         Shifts the output lineshape by some eV.
         
@@ -638,7 +670,8 @@ class SimulatedSpectrum(Spectrum):
             print('Shift value too big.')
             print("Simulated spectrum was not changed!") 
     
-    def add_noise(self, signal_to_noise):
+    def add_noise(self,
+                  signal_to_noise):
         """
         Adds noise from a Poisson distribution to the lineshape.
         
@@ -669,8 +702,8 @@ class SimulatedSpectrum(Spectrum):
             self.lineshape = self.lineshape + poisson_noise                         
             self.normalize()
                   
-
-    def change_resolution(self, resolution):
+    def change_resolution(self,
+                          resolution):
         """
         Apply Gaussian instrumental broadening. This methdod broadens
         a spectrum assuming a Gaussian kernel. The width of the kernel

@@ -22,7 +22,8 @@ class Creator():
     Class for simulating large amounts of XPS spectra based on a 
     number of input_spectra
     """
-    def __init__(self, params=None):
+    def __init__(self, 
+                 params = None):
         """
         Loading the input spectra and creating the empty augmentation
         matrix based on the number of input spectra.
@@ -102,7 +103,9 @@ class Creator():
                                    variable_no_of_inputs = False)
 
     
-    def create_matrix(self, single = False, variable_no_of_inputs = True):
+    def create_matrix(self,
+                      single = False, 
+                      variable_no_of_inputs = True):
         """
         Creates the numpy array 'augmentation_matrix' (instance
         variable) that is used to simulate the new spectra.
@@ -323,7 +326,8 @@ class Creator():
         print('Number of created spectra: ' + str(self.no_of_simulations))
             
                      
-    def _dict_from_one_simulation(self, sim):
+    def _dict_from_one_simulation(self, 
+                                  sim):
         """
         Creates a dictionary containing all information from one
         simulation event.
@@ -354,7 +358,22 @@ class Creator():
         return d
     
     
-    def plot_random(self, no_of_spectra):
+    def plot_random(self,
+                    no_of_spectra):
+        """
+        Randomly plots of the generated spetra.
+        Labels and augmentation parameters are added as texts.
+
+        Parameters
+        ----------
+        no_of_spectra : int
+            No. of random spectra to be plotted.
+
+        Returns
+        -------
+        None.
+
+        """
         if no_of_spectra > self.no_of_simulations:
             # In this case, plot all spectra.
             no_of_spectra = self.no_of_simulations
@@ -421,7 +440,10 @@ class Creator():
             plt.show()
 
 
-    def to_file(self, filepath, filetype, how = 'full'):
+    def to_file(self, 
+                filepath,
+                filetype,
+                how = 'full'):
         """
         Create file from the dataframe of simulated spectra.
 
@@ -456,7 +478,10 @@ class Creator():
                 
         self._save_to_file(df, filepath, filetype)
 
-    def _save_to_file(self, df, filename, filetype):
+    def _save_to_file(self,
+                      df,
+                      filename,
+                      filetype):
         """
         Helper method for saving a dataframe to a file.
 
@@ -492,7 +517,8 @@ class Creator():
                 df.to_pickle(pickle_file)
 
 
-def calculate_runtime(start, end):
+def calculate_runtime(start, 
+                      end):
     """
     Function to calculate the runtime between two points and return a
     string of the format hh:mm:ss:ff.

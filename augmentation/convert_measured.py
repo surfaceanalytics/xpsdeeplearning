@@ -66,7 +66,8 @@ from base_model.figures import Figure
 
     
 #%% For multiple fitted XPS spectra
-def _get_labels(filepath, label_list):
+def _get_labels(filepath,
+                label_list):
     """
     Takes the labels and names from the excel file in the filepath.
     Parameters

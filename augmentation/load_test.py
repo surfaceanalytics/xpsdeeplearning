@@ -11,17 +11,13 @@ from xpsdeeplearning.network.data_handling import DataHandler
 
 #%%
 np.random.seed(502)
-#input_filepath = r'C:\Users\pielsticker\Simulations\20210125_palladium_measured_caro_fit.h5'
 input_filepath = r'C:\Users\pielsticker\Simulations\20210222_Fe_linear_combination_small_gas_phase.h5'
 
 datahandler = DataHandler(intensity_only = False)
 train_test_split = 0.2
 train_val_split = 0.2
-no_of_examples = 180#1000
+no_of_examples = 180
     
-#datahandler.labels = ['Pd metal', 'PdO']
-#datahandler.num_classes = len(datahandler.labels)
-
 X_train, X_val, X_test, y_train, y_val, y_test,\
     aug_values_train, aug_values_val, aug_values_test =\
         datahandler.load_data_preprocess(

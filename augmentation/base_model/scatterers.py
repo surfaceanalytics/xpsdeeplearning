@@ -23,7 +23,8 @@ class Scatterer():
     Basic class for creating a scatterer which can be used as part of
     a ScatteringMedium.
     """
-    def __init__(self, label):
+    def __init__(self,
+                 label):
         """
         Create a default loss function going from 0 to 200 eV with a 
         step size of 0.1 eV.
@@ -47,7 +48,8 @@ class Scatterer():
         self.inelastic_xsect = 0.01 # in units of nm^3
         self.norm_factor = 1 
         
-    def build_loss_from_json(self, input_datapath):
+    def build_loss_from_json(self,
+                             input_datapath):
         """
         This function builds the spectrum of the loss function from the
         components in a scatterrer loaded from a json file.             
@@ -97,7 +99,8 @@ class ScatteringMedium():
     A ScatteringMedium contains one or more Scatterer object and can be
     used to simulate scattering of photoelectrons in a medium.
     """
-    def __init__(self, label):
+    def __init__(self, 
+                 label):
         """
         In this case, only one Scatterer object is used, 
         depending on the input label.
