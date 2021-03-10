@@ -33,9 +33,9 @@ class Hyperoptimization():
         self.scans = []
         self.full_data = pd.DataFrame()
 
-        if os.path.isdir(self.test_dir) == False:
+        if os.path.isdir(self.test_dir) is False:
             os.makedirs(self.test_dir)
-            if os.path.isdir(self.test_dir) == True:
+            if os.path.isdir(self.test_dir):
                 print('Test folder created at ' +\
                       str(self.test_dir.split(root_dir)[1]))
         else:
@@ -226,7 +226,7 @@ class Hyperoptimization():
                                              scan_number)
                 scans.append(restored_scan)
         except:
-            pass
+            print('Previous scans could not be restored.')
         
         return scans
             
@@ -348,7 +348,7 @@ class Hyperoptimization():
         None.
 
         """
-        if (best == True or model_id == None):
+        if (best is True or model_id is None):
             model_id = self.analyzer._get_best_round(metric)
             
         params = self.analyzer._get_params_from_id(model_id)
@@ -446,7 +446,7 @@ class Scan(talos.Scan):
         """
         scan_folder = 'scan' + str(self.number)
         scan_dir = os.path.join(self.experiment_dir, scan_folder)
-        if os.path.isdir(scan_dir) == False:
+        if os.path.isdir(scan_dir) is False:
             os.makedirs(scan_dir)
         
         detail_file = os.path.join(scan_dir, 'details.txt') 
@@ -730,7 +730,7 @@ class Analysis():
         pd.DataFrame
             DataFrame only containing one or two columns of the main df.
         """
-        if y != None:
+        if y is not None:
             return self.df[[x, y]]
         else:
             return self.df
@@ -906,13 +906,13 @@ class KDEPlot(Plot):
         self.x = x
         self.y = y
         self.name = 'kde_plot_' + self.x
-        if y != None:
+        if y is not None:
             self.name += ('-' + self.y)
 
     def plot(self):
         self.fig, self.ax = plt.subplots(figsize = (10,10))
         
-        if self.y != None:
+        if self.y is not None:
             data2 = self.data[self.y]
         else:
             data2 = None
