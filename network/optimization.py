@@ -732,8 +732,7 @@ class Analysis():
         """
         if y is not None:
             return self.df[[x, y]]
-        else:
-            return self.df
+        return self.df
         
     def create_bar_data(self, x, y, hue, col):
         """
@@ -780,7 +779,7 @@ class Plot():
         try:
             self.metric = self.data.name
             self.display_name = display_names[self.metric]
-        except:
+        except AttributeError:
             pass
 
     def to_file(self, filepath):
