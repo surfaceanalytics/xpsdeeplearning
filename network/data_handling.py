@@ -403,7 +403,7 @@ class DataHandler:
     
     def calculate_losses(self, 
                          loss_func):
-        print('Calculate loss for each example.')
+        print('Calculating loss for each example...')
         self.losses_train = [loss_func(self.y_train[i],
                                        self.pred_train[i]).numpy() \
                           for i in range(self.y_train.shape[0])]   
@@ -411,7 +411,8 @@ class DataHandler:
         self.losses_test = [loss_func(self.y_test[i],
                                        self.pred_test[i]).numpy() \
                             for i in range(self.y_test.shape[0])]
-                
+        print('Done!')
+        
     def plot_spectra(self, 
                     no_of_spectra, 
                     dataset,
@@ -539,8 +540,11 @@ class DataHandler:
         if kind == 'all':
             indices = [
                 j[1] for j in sorted([(x,i) for (i,x) in \
-                                      enumerate(losses)],
-                                     reverse=True )[:no_of_spectra]]  
+                                      enumerate(losses) if x >= threshold],
+                                     reverse=True )]
+            len_all = y.shape[0]
+            print_statement = ''
+
         elif kind == 'single':
             indices = [
                 j[1] for j in sorted([(x,i) for (i,x) in \
@@ -548,6 +552,10 @@ class DataHandler:
                                           len(np.where(y[i] == 0.)[0]) == 3 \
                                           and x >= threshold)],
                                  reverse=True)]
+            len_all = len([i for (i,x) in enumerate(losses) if (
+                          len(np.where(y[i] == 0.)[0]) == 3)])
+            print_statement = 'with a single species '
+
         elif kind == 'linear_comb':
             indices = [
                 j[1] for j in sorted([(x,i) for (i,x) in \
@@ -555,9 +563,21 @@ class DataHandler:
                                           len(np.where(y[i] == 0.)[0]) != 3 \
                                           and x >= threshold)],
                                  reverse=True)]
+            len_all = len([i for (i,x) in enumerate(losses) if (
+                          len(np.where(y[i] == 0.)[0]) != 3)])
+            print_statement = 'with multiple species '                
          
-        if threshold >= 0.:
-            indices = indices[no_of_spectra:]
+        if threshold > 0.:
+            print('{0} of {1} test samples ({2}%) {3}have a mean '.format(
+                str(len(indices)),
+                str(len_all),
+                str(100*(np.around(len(indices)/len_all,
+                                   decimals = 3))),
+                print_statement) +
+                'absolute error of of at least {0}.'.format(
+                    str(threshold)))
+            indices = indices[-no_of_spectra:]
+
         else:
             indices = indices[:no_of_spectra]
         
