@@ -1,6 +1,6 @@
 # Deep learning for XPS spectra.
 <a href="https://www.codefactor.io/repository/github/lukaspie/xpsdeeplearning"><img src="https://www.codefactor.io/repository/github/lukaspie/xpsdeeplearning/badge?s=e9dbf0ea5d4ce269c738ea85e856fd6811b425ce" alt="CodeFactor" /></a>
-[![GitHub](https://img.shields.io/github/license/Anselmoo/copy2hash?logo=GitHub)](https://github.com/Anselmoo/copy2hash/blob/master/LICENSE)
+
 ## Purpose of the project
 Auto-identification of XPS peaks.
 
