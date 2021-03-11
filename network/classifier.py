@@ -578,33 +578,62 @@ class Classifier():
 
         """
         if with_prediction:
-            self.datahandler.plot_random(no_of_spectra,
-                                         dataset,
-                                         with_prediction = True,
-                                         loss_func=self.model.loss)  
+            try:
+                self.datahandler.plot_random(
+                    no_of_spectra,
+                    dataset,
+                    with_prediction = True) 
+            except AttributeError:
+                self.datahandler.calculate_losses(self.model.loss)
+                self.datahandler.plot_random(
+                    no_of_spectra,
+                    dataset,
+                    with_prediction = True)                 
         else:
             self.datahandler.plot_random(no_of_spectra,
                                          dataset,
-                                         with_prediction = False)     
+                                         with_prediction)     
     
     def show_worst_predictions(self,
-                               no_of_spectra):
+                               no_of_spectra,
+                               kind = 'all',
+                               threshold = 0.):
         """
         Utilizes the method of the same name in DataHandler.
-        Passes the loss attribute from the model.       
-
+        Plots the spectra with the highest losses.
+        Accepts a threshold parameter. If a threshold other than 0 is
+        given, the spectra with losses right above this threshold are
+        plotted.
+        
         Parameters
         ----------
         no_of_spectra : int
-            No. of plots to create.
+            No. of spectra to plot.
+        kind : str, optional
+            Choice of sub set in test data.
+            'all': all test data.
+            'single': only test data with single species.
+            'linear_comb': only test data with linear combination 
+                           of  species.
+            The default is 'all'.
+        threshold : float
+            Threshold value for loss.            
 
         Returns
         -------
         None.
 
         """
-        self.datahandler.show_worst_predictions(no_of_spectra,
-                                                loss_func = self.model.loss)
+        try:
+            self.datahandler.show_worst_predictions(no_of_spectra,
+                                                    kind,
+                                                    threshold)
+        except AttributeError:
+            self.datahandler.calculate_losses(self.model.loss)
+            self.datahandler.show_worst_predictions(no_of_spectra,
+                                                    kind,
+                                                    threshold)       
+                    
         
     def show_wrong_classification(self):
         """

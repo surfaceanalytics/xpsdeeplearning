@@ -187,7 +187,7 @@ class DataHandler:
                                self.aug_values_train, self.aug_values_val,
                                self.aug_values_test)
                 
-            # Check if the data have associated names. Typical for
+            # Check if the spectra have associated names. Typical for
             # measured spectra.
             elif 'names' in hf.keys():
                 names_load_list = [name[0].decode("utf-8") for name
@@ -400,22 +400,87 @@ class DataHandler:
         self.class_distribution = ClassDistribution(task,
                                                     data_list)
         return self.class_distribution.cd
+    
+    def calculate_losses(self, 
+                         loss_func):
+        print('Calculating loss for each example...')
+        self.losses_train = [loss_func(self.y_train[i],
+                                       self.pred_train[i]).numpy() \
+                          for i in range(self.y_train.shape[0])]   
         
-    def plot_random(self, 
+        self.losses_test = [loss_func(self.y_test[i],
+                                       self.pred_test[i]).numpy() \
+                            for i in range(self.y_test.shape[0])]
+        print('Done!')
+        
+    def plot_spectra(self, 
                     no_of_spectra, 
                     dataset,
-                    with_prediction,
-                    loss_func=None): 
+                    indices, 
+                    with_prediction):
         """
-        Plots random XPS spectra out of one of the data set.
-        The labels and additional information are shown as texts on the
-        plots.
+        Generate spectra plot for a given data set.
 
         Parameters
         ----------
         no_of_spectra : int
             No. of plots to create.
-        dataset : str, optional
+        dataset : str
+            Either 'train', 'val', or 'test'.
+            The default is 'train'.
+        indices: list
+            List 
+        with_prediction : bool, optional
+            If True, information about the predicted values are also 
+            shown in the plot. 
+            The default is False.
+
+        Returns
+        -------
+        None.
+
+        """
+        data = [] 
+        texts = []
+        
+        X, y = self._select_dataset(dataset)
+                                       
+        for i in range(no_of_spectra): 
+            index = indices[i]               
+            if self.intensity_only:
+                new_energies = np.reshape(np.array(self.energies),(-1,1))
+                data.append(np.hstack((new_energies, X[index])))
+            else:
+                data.append(X[index])
+                
+            text = self.write_text_for_spectrum(
+                dataset = dataset,
+                index = index,
+                with_prediction = with_prediction)
+                
+            texts.append(text)
+            
+        data = np.array(data)
+        
+        graphic = SpectraPlot(data = data,
+                              annots = texts)
+        fig, axs = graphic.plot()    
+              
+        
+    def plot_random(self, 
+                    no_of_spectra, 
+                    dataset, 
+                    with_prediction):
+        """
+        Plots random XPS spectra out of one of the data set.
+        The labels and additional information are shown as texts on the
+        plots.
+        
+        Parameters
+        ----------
+        no_of_spectra : int
+            No. of plots to create.
+        dataset : str
             Either 'train', 'val', or 'test'.
             The default is 'train'.
         with_prediction : bool, optional
@@ -427,160 +492,105 @@ class DataHandler:
         -------
         None.
 
-        """    
-        data = [] 
-        texts = []
+        """
+        X, y = self._select_dataset(dataset)
         
-        if dataset == 'train':
-            X = self.X_train
-            y = self.y_train
-            if with_prediction:
-                pred = self.pred_train
-
-        elif dataset == 'val':
-            X = self.X_val
-            y = self.y_val
-
-        elif dataset == 'test':
-            X = self.X_test
-            y = self.y_test
-            if with_prediction:
-                pred = self.pred_test
-                               
-        for i in range(no_of_spectra):                
+        indices = []
+        for i in range(no_of_spectra):
             r = np.random.randint(0, X.shape[0])
-            if self.intensity_only:
-                new_energies = np.reshape(np.array(self.energies),(-1,1))
-                data.append(np.hstack((new_energies, X[r])))
-            else:
-                data.append(X[r])
-            label = str(np.around(y[r], decimals = 3))
-          
-            text = ('Real: ' + label + '\n')
-                
-            if with_prediction:
-                # Round prediction and sum to 1
-                tmp_array = np.around(pred[r], decimals = 4)
-                row_sums = tmp_array.sum()
-                tmp_array = tmp_array / row_sums
-                tmp_array = np.around(tmp_array, decimals = 3)    
-                pred_text = ('Prediction: ' +\
-                             str(list(tmp_array)) + '\n')
-                try:
-                    pred_label = ('Predicted label: ' +\
-                                  str(self.pred_test_classes[r,0]))
-                    pred_text += pred_label
-                except AttributeError:
-                    pass   
-                text += pred_text 
-                
-                losses = [loss_func(y[i], pred[i]).numpy() \
-                          for i in range(y.shape[0])]   
-                loss_text = ('Loss: ' + str(np.around(losses[r],
-                                                      decimals = 3)))
-                text += loss_text                               
-            try:
-                aug_text = self._write_aug_text(
-                    dataset = dataset,
-                    index = r)
-                text += aug_text
-            except AttributeError:
-                pass
-            try:
-                name_text = self._write_measured_text(
-                    dataset = dataset,
-                    index = r)
-                text += name_text
-            except AttributeError:
-                pass
-                
-            if with_prediction:
-                text += loss_text
-                
-            texts.append(text)
+            indices.append(r)
             
-        data = np.array(data)
+        self.plot_spectra(no_of_spectra = no_of_spectra, 
+                          dataset = dataset,
+                          indices = indices, 
+                          with_prediction = with_prediction)  
         
-        graphic = SpectraPlot(data=data,
-                              annots=texts)
-        fig, axs = graphic.plot()    
-        
-    
     def show_worst_predictions(self,
                                no_of_spectra,
-                               loss_func):
+                               kind = 'all',
+                               threshold = 0.):
         """
-        Calculates the lossesof all prediction for a given loss 
-        function. Plots the spectra with the highest losses.
+        Plots the spectra with the highest losses.
+        Accepts a threshold parameter. If a threshold other than 0 is
+        given, the spectra with losses right above this threshold are
+        plotted.
 
         Parameters
         ----------
         no_of_spectra : int
-            No. of plots to create.
+            No. of spectra to plot.
+        kind : str, optional
+            Choice of sub set in test data.
+            'all': all test data.
+            'single': only test data with single species.
+            'linear_comb': only test data with linear combination 
+                           of  species.
+            The default is 'all'.
+        threshold : float
+            Threshold value for loss.            
 
         Returns
         -------
         None.
 
         """
-        losses = [loss_func(self.y_test[i], self.pred_test[i]).numpy() \
-                  for i in range(self.y_test.shape[0])]
+        X, y = self._select_dataset('test')
+        pred, losses = self._get_predictions('test')
         
-        worst_indices = [j[1] for j in 
-                         sorted([(x,i) for (i,x) in enumerate(losses)],
-                                reverse=True )[:no_of_spectra]]
+        if kind == 'all':
+            indices = [
+                j[1] for j in sorted([(x,i) for (i,x) in \
+                                      enumerate(losses) if x >= threshold],
+                                     reverse=True )]
+            len_all = y.shape[0]
+            print_statement = ''
+
+        elif kind == 'single':
+            indices = [
+                j[1] for j in sorted([(x,i) for (i,x) in \
+                                      enumerate(losses) if (
+                                          len(np.where(y[i] == 0.)[0]) == 3 \
+                                          and x >= threshold)],
+                                 reverse=True)]
+            len_all = len([i for (i,x) in enumerate(losses) if (
+                          len(np.where(y[i] == 0.)[0]) == 3)])
+            print_statement = 'with a single species '
+
+        elif kind == 'linear_comb':
+            indices = [
+                j[1] for j in sorted([(x,i) for (i,x) in \
+                                      enumerate(losses) if (
+                                          len(np.where(y[i] == 0.)[0]) != 3 \
+                                          and x >= threshold)],
+                                 reverse=True)]
+            len_all = len([i for (i,x) in enumerate(losses) if (
+                          len(np.where(y[i] == 0.)[0]) != 3)])
+            print_statement = 'with multiple species '                
+         
+        if threshold > 0.:
+            print('{0} of {1} test samples ({2}%) {3}have a mean '.format(
+                str(len(indices)),
+                str(len_all),
+                str(100*(np.around(len(indices)/len_all,
+                                   decimals = 3))),
+                print_statement) +
+                'absolute error of of at least {0}.'.format(
+                    str(threshold)))
+            indices = indices[-no_of_spectra:]
+
+        else:
+            indices = indices[:no_of_spectra]
         
-        data = []
-        texts = []
-              
-        for i in range(no_of_spectra):
-            index = worst_indices[i] 
-            if self.intensity_only:
-                new_energies = np.reshape(np.array(self.energies),(-1,1))
-                data.append(np.hstack((new_energies, self.X_test[index])))
-            else:
-                data.append(self.X_test[index])
-                       
-            label = str(np.around(self.y_test[index],
-                                  decimals = 3))
-            real = ('Real: ' +  label + '\n')
-            text = real
-            
-            tmp_array = np.around(self.pred_test[index], 
-                                  decimals = 3) 
-            pred = ('Prediction: ' + str(list(tmp_array)) + '\n')
-            text += pred
-            
-            try:
-                aug = self._write_aug_text(
-                    dataset = 'test',
-                    index = index)
-                text += aug
-            except AttributeError:
-                pass
-            try:
-                name = self._write_measured_text(
-                    dataset = 'test',
-                    index = index)
-                text += name
-            except AttributeError:
-                pass
-            loss_text = ('Loss: ' + str(np.around(losses[index],
-                                                  decimals = 3)))
-            text += loss_text
-            
-            texts.append(text)
-            
-        data = np.array(data)
-        
-        graphic = SpectraPlot(data=data,
-                              annots=texts)
-        fig, axs = graphic.plot()
-        
+        self.plot_spectra(no_of_spectra = no_of_spectra, 
+                          dataset = 'test',
+                          indices = indices, 
+                          with_prediction = True) 
+
     def show_wrong_classification(self):
         """
         Plots all spectra in the test data set for which a wrong class
-        prediction was produced during training.
+        prediction was produced during training. 
+        Only works for classification.
 
         Returns
         -------
@@ -644,8 +654,123 @@ class DataHandler:
         
             graphic = SpectraPlot(data=data,
                                   annots=texts)
-            fig, axs = graphic.plot()
+            fig, axs = graphic.plot()           
+      
+    def _select_dataset(self, 
+                        dataset_name):
+        """
+        Selects a data set (for plotting).
+
+        Parameters
+        ----------
+        name : str
+            Name of the data set. Options: 'train', 'val', 'test'.
+
+        Returns
+        -------
+        TYPE
+            DESCRIPTION.
+
+        """
+        if dataset_name == 'train':
+            X = self.X_train
+            y = self.y_train
         
+        elif dataset_name == 'val':
+            X = self.X_val
+            y = self.y_val
+
+        elif dataset_name == 'test':
+            X = self.X_test
+            y = self.y_test
+                
+        return X, y
+    
+    def _get_predictions(self,
+                         dataset_name):
+        """
+        Get the predictions and losses for one data set.
+        Used for writing the annotations in for plotting.
+
+        Parameters
+        ----------
+        name : str
+            Name of the data set. Options: 'train', 'val', 'test'.
+
+        Returns
+        -------
+        TYPE
+            DESCRIPTION.
+
+        """
+        if dataset_name == 'train':
+            pred = self.pred_train
+            losses = self.losses_train
+
+        elif dataset_name == 'test':
+            pred = self.pred_test
+            losses = self.losses_test  
+            
+        return pred, losses
+    
+    def write_text_for_spectrum(self, 
+                                dataset,
+                                index,
+                                with_prediction = True):
+        """
+        Create the annotation for a plot of one spectrum.
+
+        Parameters
+        ----------
+        dataset : TYPE
+            DESCRIPTION.
+        index : TYPE
+            DESCRIPTION.
+        with_prediction : TYPE, optional
+            DESCRIPTION. The default is True.
+
+        Returns
+        -------
+        text : TYPE
+            DESCRIPTION.
+
+        """
+        X, y = self._select_dataset(dataset)
+              
+        label = str(np.around(y[index], decimals = 3))
+        text = ('Real: ' + label + '\n')
+                
+        if with_prediction:
+            pred, losses = self._get_predictions(dataset)
+            # Round prediction and sum to 1
+            tmp_array = np.around(pred[index], decimals = 4)
+            row_sums = tmp_array.sum()
+            tmp_array = tmp_array / row_sums
+            tmp_array = np.around(tmp_array, decimals = 3)    
+            pred_text = ('Prediction: ' +\
+                         str(list(tmp_array)) + '\n')
+            text += pred_text 
+                
+        try:
+            text += self._write_aug_text(
+                dataset = dataset,
+                index = index)
+        except AttributeError:
+            pass
+        try:
+            text += self._write_measured_text(
+                dataset = dataset,
+                index = index)
+        except AttributeError:
+            pass
+                
+        if with_prediction:
+            loss_text = ('Loss: ' + str(np.around(losses[index],
+                                                      decimals = 3)))
+            text += loss_text
+        
+        return text
+                                      
     def _write_aug_text(self,
                         dataset,
                         index):
