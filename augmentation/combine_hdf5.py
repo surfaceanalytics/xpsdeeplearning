@@ -58,6 +58,8 @@ def _load_data(filenames):
             scatterer = hf['scatterer'][:]
             distance = hf['distance'][:]
             pressure = hf['pressure'][:]
+            energies = hf['energies'][:]
+            labels = hf['labels'][:]
             print('File 0 loaded')
 
     for filename in filenames[1:]:
@@ -82,7 +84,8 @@ def _load_data(filenames):
             pressure = np.concatenate((pressure, pressure_new), axis = 0)
             print('File {0} loaded'.format(filenames.index(filename)))     
     
-    return X, y, shiftx, noise, fwhm, scatterer, distance, pressure
+    return X, y, shiftx, noise, fwhm, scatterer, distance,\
+        pressure, energies, labels
 
 
 def combine_and_shuffle_measured(filenames, 
@@ -104,7 +107,8 @@ def combine_and_shuffle_measured(filenames,
 
     """
     X, y, shiftx, noise, fwhm, \
-        scatterer, distance, pressure = _load_data(filenames)
+        scatterer, distance, pressure, energies, labels = \
+            _load_data(filenames)
         
     # Shuffle all numpy arrays together.
     X_shuff, y_shuff, shiftx_shuff, noise_shuff, fwhm_shuff,\
@@ -144,12 +148,18 @@ def combine_and_shuffle_measured(filenames,
                       compression="gzip", chunks=True,
                       maxshape=(None, pressure.shape[1]))
         print('pressure written')
-
+        hf.create_dataset('energies', data = energies,
+                          compression="gzip", chunks=True)
+        print('energies written')
+        hf.create_dataset('labels', data = labels,
+                          compression="gzip", chunks=True)
+        print('labels written')
+        
 #%%
 if __name__ == "__main__":
-    filenames = ['20200708_iron_variable_linear_combination_500000.h5',
-                 '20200714_iron_Mark_variable_linear_combination.h5']
-    output_file = r'C:\Users\pielsticker\Simulations\20200720_iron_variable_linear_combination_combined_data.h5'   
+    filenames = ['20210222_Fe_linear_combination_small_gas_phase.h5',
+                 '20210310_Fe_linear_combination_small_gas_phase_Mark.h5']
+    output_file = r'C:\Users\pielsticker\Simulations\20210311_Fe_linear_combination_small_gas_phase_combined_data.h5'   
 
 combine_and_shuffle_measured(filenames,
                              output_file)
@@ -157,8 +167,10 @@ combine_and_shuffle_measured(filenames,
 # Test new file.    
 with h5py.File(output_file, 'r') as hf:
     size = hf['X'].shape
-    X_h5_one = hf['X'][:100,:,:]
-    y_h5_one = hf['y'][:100,:]
-    shiftx_h5_one = hf['shiftx'][:100]
-    noise_h5_one = hf['noise'][:100]
-    fwhm_h5_one = hf['FWHM'][:100]        
+    X_h5 = hf['X'][:100,:,:]
+    y_h5 = hf['y'][:100,:]
+    shiftx_h5 = hf['shiftx'][:100]
+    noise_h5 = hf['noise'][:100]
+    fwhm_h5 = hf['FWHM'][:100]
+    energies_h5 = hf['energies'][:]
+    labels_h5 = [str(label) for label in hf['labels'][:]]
