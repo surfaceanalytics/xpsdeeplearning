@@ -55,7 +55,7 @@ class SpectraPlot:
     
     def plot(self):
         """
-        Populates the plots with the daat.
+        Populates the plots with the data.
 
         Returns
         -------
