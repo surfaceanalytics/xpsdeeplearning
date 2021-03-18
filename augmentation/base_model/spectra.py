@@ -11,6 +11,7 @@ import numpy as np
 import os
 import csv
 from scipy.signal import fftconvolve
+import math
 
 try:
     from .peaks import (Gauss, Lorentz, Voigt, VacuumExcitation, Tougaard)
@@ -230,10 +231,10 @@ class MeasuredSpectrum(Spectrum):
         -------
         None.
 
-        """
+        """       
+        self._remove_outside_points(start, stop, step)
         self.start, self.stop, self.step = start, stop, step
-        
-        self._remove_outside_points(start, stop)
+
         
         initial_shape = self.x.shape
         self.update_range()
@@ -241,15 +242,18 @@ class MeasuredSpectrum(Spectrum):
         
         if not factor == 0.0:
             if factor > 1:
-                factor = int(np.rint(factor))+1
+                factor = math.ceil(factor) #int(np.rint(factor))+1
                 self._upsample(factor)
             elif factor < 1: 
+                print(1/factor)
                 factor = int(np.rint(1/factor))
+                print(factor)
                 self._downsample(factor)
         
     def _remove_outside_points(self, 
                                start,
-                               stop):
+                               stop,
+                               step):
         """
         Method to remove points in the lineshape that are outside of 
         the range of the new start and stop values.
@@ -271,18 +275,20 @@ class MeasuredSpectrum(Spectrum):
         high = False
         low = False
         
+        new_x = np.flip(safe_arange_with_edges(start,stop,self.step))
+        
         if min_x < start:
             index = np.where(self.x < start)[0][0]
             self.lineshape = self.lineshape[:index]
-            diff_len_high = self.x.shape[0] - self.lineshape.shape[0]
+            diff_len_high = new_x.shape[0] - self.lineshape.shape[0]
             high = True
             
         if max_x > stop:
-            index = np.where(self.x > stop)[0][-1]
+            index = np.where(self.x > stop)[0][-1]+1
             self.lineshape = self.lineshape[index:]
-            diff_len_low = self.x.shape[0] - self.lineshape.shape[0]
+            diff_len_low = new_x.shape[0] - self.lineshape.shape[0]
             low = True
-            
+
         if not(high is True and low is True):
             if high is True:
                 self._extrapolate(diff_len_high, side = 'high')

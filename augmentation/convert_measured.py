@@ -29,21 +29,23 @@ from base_model.figures import Figure
   
 #%% For one reference spectrum.   
 # =============================================================================
-# input_datafolder = r'C:\Users\pielsticker\Desktop\Pd references'
-# filename = 'Pd_metal.txt'
+# input_datafolder = r'C:\Users\pielsticker\Downloads\Ti'
+# filename = 'Ti_metal_regular.txt'
 # 
 # energies = []
 # 
 # filepath = os.path.join(input_datafolder, filename)
 # ref_spectrum = ReferenceSpectrum(filepath)
+# l_old = ref_spectrum.lineshape
+# x_old = ref_spectrum.x
 # Figure(ref_spectrum.x, ref_spectrum.lineshape, title = 'old')
 # energies.append(ref_spectrum.x[np.argmax(ref_spectrum.lineshape)])
-# #ref_spectrum.resize(start = 348.0, stop = 383, step = 0.05)
+# ref_spectrum.resize(start = 446.2, stop = 499.0, step = 0.05)
 # energies.append(ref_spectrum.x[np.argmax(ref_spectrum.lineshape)])
-# fig = Figure(ref_spectrum.x, ref_spectrum.lineshape, title = 'new')
-# #ref_spectrum.write(input_datafolder)
 # l = ref_spectrum.lineshape
 # x = ref_spectrum.x
+# fig = Figure(ref_spectrum.x, ref_spectrum.lineshape, title = 'new')
+# ref_spectrum.write(input_datafolder)
 # =============================================================================
 
 #%% For one fitted XPS spectrum
