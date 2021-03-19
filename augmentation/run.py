@@ -66,7 +66,7 @@ run_params['h5_filename'] = time_and_run_name + '.h5'
 with open(os.path.join(json_datafolder, 'run_params.json'), 'w') as out_file:
     json.dump(run_params,
               out_file,
-              indent=4)
+              indent = 4)
 
 t1 = time()
 runtime = calculate_runtime(t0,t1)
