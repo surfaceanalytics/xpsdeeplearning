@@ -182,11 +182,11 @@ class Classifier():
 
         Returns
         -------
-        self.history: dict
+        self.logging.history: dict
             Dictionary containing the training results for each epoch.
 
         """
-        self.batch_size = batch_size
+        self.logging.hyperparameter['batch_size'] = batch_size
         # In case of refitting, get the new epoch start point.
         epochs_trained = self.logging._count_epochs_trained()
         
@@ -210,7 +210,7 @@ class Classifier():
         train_params = {
             'model_summary' : self.model_summary,
             'epochs_trained' : epochs_trained,
-            'batch_size' : self.batch_size,
+            'batch_size' : self.logging.hyperparameter['batch_size'],
             'loss' : type(self.model.loss).__name__,
             'optimizer' : type(self.model.optimizer).__name__,
             'learning_rate' : str(K.eval(self.model.optimizer.lr))
@@ -236,13 +236,13 @@ class Classifier():
                                            self.datahandler.y_val),
                                           epochs = epochs +\
                                               epochs_trained,
-                                      batch_size = self.batch_size,
+                                      batch_size = self.logging.hyperparameter['batch_size'],
                                       initial_epoch = epochs_trained,
                                       verbose = verbose,
                                       callbacks = self.logging.active_cbs) 
             
-            self.last_training = training.history
-            self.history = self.logging._get_total_history(self.task)
+            self.logging.last_training = training.history
+            self.logging.history = self.logging._get_total_history(self.task)
             print('Training done!')
            
         except KeyboardInterrupt:
@@ -251,14 +251,14 @@ class Classifier():
             if 'ModelCheckpoint' not in [type(cb).__name__ for cb in 
                                          self.logging.active_cbs]:
                 self.save_model()
-            self.history = self.logging._get_total_history(self.task)
+            self.logging.history = self.logging._get_total_history(self.task)
         
         epoch_param = {
             'epochs_trained' : self.logging._count_epochs_trained()
             }  
         self.logging.update_saved_hyperparams(epoch_param)
         
-        return self.history
+        return self.logging.history
 
     def evaluate(self):
         """
@@ -280,7 +280,7 @@ class Classifier():
 # =============================================================================
         score = self.model.evaluate(self.datahandler.X_test,
                                     self.datahandler.y_test,
-                                    batch_size = self.batch_size,
+                                    batch_size = self.logging.hyperparams['batch_size'],
                                     verbose = True)      
         print('Evaluation done! \n')
 
@@ -733,6 +733,7 @@ def restore_clf_from_logs(logpath):
                      task=task,
                      intensity_only=intensity_only)
     clf.logging.hyperparams = hyperparams
+    clf.logging.history = clf.logging._get_total_history(clf.task)
     clf.logging.save_hyperparams()
     
     print("Recovered classifier from file.")  
