@@ -253,13 +253,13 @@ def to_hdf5(json_datafolder,
                           maxshape=(None, FWHM.shape[1]))
         hf.create_dataset('scatterer', data = scatterer,
                           compression="gzip", chunks=True,
-                          maxshape=(None, FWHM.shape[1]))
+                          maxshape=(None, scatterer.shape[1]))
         hf.create_dataset('distance', data = distance,
                           compression="gzip", chunks=True,
-                          maxshape=(None, FWHM.shape[1]))
+                          maxshape=(None, distance.shape[1]))
         hf.create_dataset('pressure', data = pressure,
                           compression="gzip", chunks=True,
-                          maxshape=(None, FWHM.shape[1]))
+                          maxshape=(None, pressure.shape[1]))
         print('Saved: ' + str(1) + '/' + str(no_of_loads))
                 
         for load in range(1,no_of_loads):
