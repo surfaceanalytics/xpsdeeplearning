@@ -448,7 +448,7 @@ class DataHandler:
                 aug_values_test,
             )
 
-        elif "names" in kwargs.keys():
+        if "names" in kwargs.keys():
             # Also split the names array.
             names = kwargs["names"]
             names_train_val = names[:no_of_train_val, :]
