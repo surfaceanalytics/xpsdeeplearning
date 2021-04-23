@@ -216,16 +216,7 @@ class Classifier():
             'learning_rate' : str(K.eval(self.model.optimizer.lr))
             }  
         self.logging.update_saved_hyperparams(train_params)
-                
-# =============================================================================
-#        # In case of submodel inputs, allow multiple inputs.
-#
-#        X_train_data = []
-#        X_val_data = []
-#        for i in range(self.model.no_of_inputs):
-#            X_train_data.append(self.datahandler.X_train)
-#            X_val_data.append(self.datahandler.X_val)
-# =============================================================================
+
         try:
             # Train the model and store the previous and the new
             # results in the history attribute.
@@ -271,13 +262,6 @@ class Classifier():
             test accuracy are returned. If not, only the test loss 
             is returned.
         """
-# =============================================================================
-#       # In case of submodel inputs, allow multiple inputs.
-#       X_test_data = []
-#         
-#       for i in range(self.model.no_of_inputs):
-#           X_test_data.append(self.datahandler.X_test)
-# =============================================================================
         score = self.model.evaluate(self.datahandler.X_test,
                                     self.datahandler.y_test,
                                     batch_size = self.logging.hyperparams['batch_size'],
@@ -311,14 +295,6 @@ class Classifier():
             Array containing the predictions on the test set.
 
         """
-# =============================================================================
-#        # In case of submodel inputs, allow multiple inputs.
-#        X_train_data = []
-#        X_test_data = []
-#        for i in range(self.model.no_of_inputs):
-#            X_train_data.append(self.datahandler.X_train)
-#            X_test_data.append(self.datahandler.X_test)
-# =============================================================================
         self.datahandler.pred_train = self.model.predict(
             self.datahandler.X_train,
             verbose = verbose)
