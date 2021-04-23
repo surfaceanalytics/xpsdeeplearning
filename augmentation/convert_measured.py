@@ -17,7 +17,7 @@ up-/downsampled according to the new step value.
 For fitted spectra, it is possible to load the data from multiple .xy
 files and store them in a hdf5 file as a test data set for the neural
 network studies.
-""" 
+"""
 
 import numpy as np
 import os
@@ -26,14 +26,14 @@ import pandas as pd
 
 from base_model.spectra import ReferenceSpectrum, FittedSpectrum
 from base_model.figures import Figure
-  
-#%% For one reference spectrum.   
+
+#%% For one reference spectrum.
 # =============================================================================
 # input_datafolder = r'C:\Users\pielsticker\Downloads\Ti'
 # filename = 'Ti_metal_regular.txt'
-# 
+#
 # energies = []
-# 
+#
 # filepath = os.path.join(input_datafolder, filename)
 # ref_spectrum = ReferenceSpectrum(filepath)
 # l_old = ref_spectrum.lineshape
@@ -53,7 +53,7 @@ from base_model.figures import Figure
 # input_datafolder = r'C:\Users\pielsticker\Desktop\Mixed Fe spectra\exported'
 # filename = 'measured0001.txt'
 # energies = []
-# 
+#
 # filepath = os.path.join(input_datafolder, filename)
 # fit_spectrum = FittedSpectrum(filepath)
 # Figure(fit_spectrum.x, fit_spectrum.lineshape, title = 'old')
@@ -66,10 +66,9 @@ from base_model.figures import Figure
 # x = fit_spectrum.x
 # =============================================================================
 
-    
+
 #%% For multiple fitted XPS spectra
-def _get_labels(filepath,
-                label_list):
+def _get_labels(filepath, label_list):
     """
     Takes the labels and names from the excel file in the filepath.
     Parameters
@@ -89,22 +88,21 @@ def _get_labels(filepath,
         Names of the spectra.
 
     """
-    df = pd.read_excel(filepath,
-                       engine='openpyxl')
-    
+    df = pd.read_excel(filepath, engine="openpyxl")
+
     columns = []
     for key in label_list:
         columns.append(df[key])
-    y = np.transpose(np.array(columns))   
+    y = np.transpose(np.array(columns))
 
-    names = np.reshape(np.array(list(df['name'])),(-1,1))
-                        
+    names = np.reshape(np.array(list(df["name"])), (-1, 1))
+
     return y, names
 
-def convert_all_spectra(input_datafolder, 
-                        label_filepath, 
-                        label_list,
-                        plot_all = True):
+
+def convert_all_spectra(
+    input_datafolder, label_filepath, label_list, plot_all=True
+):
     """
     Takes all xy files of measured spectra in the input_datafolder and
     extracts the features, labels and names. Resizes the spectra if 
@@ -134,66 +132,88 @@ def convert_all_spectra(input_datafolder,
         1D array of binding energies
     """
     import warnings
+
     warnings.filterwarnings("ignore")
     filenames = next(os.walk(input_datafolder))[2]
-    
-    X = np.zeros((len(filenames),381,1)) 
+
+    X = np.zeros((len(filenames), 381, 1))
 
     y, names = _get_labels(label_filepath, label_list)
     spectra = []
-    
+
     for name in filenames:
         filepath = os.path.join(input_datafolder, name)
         spectrum = FittedSpectrum(filepath)
         index = filenames.index(name)
-        spectrum.resize(start = 331, stop = 350, step = 0.05)
-        #spectrum.resize(start = 694, stop = 750, step = 0.05)
+        spectrum.resize(start=331, stop=350, step=0.05)
+        # spectrum.resize(start = 694, stop = 750, step = 0.05)
         spectrum.normalize()
         spectra.append(spectrum)
-        X[index] = np.reshape(spectrum.lineshape, (-1,1))
+        X[index] = np.reshape(spectrum.lineshape, (-1, 1))
 
         if plot_all:
-            text = 'Spectrum no. ' + str(spectrum.number) + '\n' +\
-                str(spectrum.label)
-            Figure(spectrum.x, spectrum.lineshape, title = text)
-    
+            text = (
+                "Spectrum no. "
+                + str(spectrum.number)
+                + "\n"
+                + str(spectrum.label)
+            )
+            Figure(spectrum.x, spectrum.lineshape, title=text)
+
     energies = spectrum.x
-    
+
     return X, y, names, energies
 
+
 # Load the data into numpy arrays and save to hdf5 file.
-input_datafolder = r'C:\Users\pielsticker\Lukas\MPI-CEC\Projects\Ammonia Synthesis\Data\NAP-XPS\analyzed data\Mixed Pd spectra\exported'
-label_filepath = r'C:\Users\pielsticker\Lukas\MPI-CEC\Projects\Ammonia Synthesis\Data\NAP-XPS\analyzed data\Mixed Pd spectra\analysis_20210122\peak fits_20210122.xlsx'   
-label_list = ['Pd metal', 'PdO']
-X, y, names, energies = convert_all_spectra(input_datafolder,
-                                            label_filepath,
-                                            label_list,
-                                            plot_all = False)
-output_file= r'C:\Users\pielsticker\Simulations\20210125_palladium_measured_caro_fit.h5'
-  
-with h5py.File(output_file, 'w') as hf:
-    hf.create_dataset('X', data = X,
-                      compression="gzip", chunks=True,
-                      maxshape=(None,X.shape[1],X.shape[2]))        
-    hf.create_dataset('y', data = y,
-                      compression="gzip", chunks=True,
-                      maxshape=(None, y.shape[1]))
-    hf.create_dataset('names', data=np.array(names, dtype='S'),
-                      compression="gzip", chunks=True,
-                      maxshape=(None, names.shape[1]))
-    hf.create_dataset('energies', data = energies,
-                      compression="gzip", chunks=True)
-    labels = np.array(label_list, dtype=object)  
+input_datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\Ammonia Synthesis\Data\NAP-XPS\analyzed data\Mixed Pd spectra\exported"
+label_filepath = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\Ammonia Synthesis\Data\NAP-XPS\analyzed data\Mixed Pd spectra\analysis_20210122\peak fits_20210122.xlsx"
+label_list = ["Pd metal", "PdO"]
+X, y, names, energies = convert_all_spectra(
+    input_datafolder, label_filepath, label_list, plot_all=False
+)
+output_file = r"C:\Users\pielsticker\Simulations\20210125_palladium_measured_caro_fit.h5"
+
+with h5py.File(output_file, "w") as hf:
+    hf.create_dataset(
+        "X",
+        data=X,
+        compression="gzip",
+        chunks=True,
+        maxshape=(None, X.shape[1], X.shape[2]),
+    )
+    hf.create_dataset(
+        "y",
+        data=y,
+        compression="gzip",
+        chunks=True,
+        maxshape=(None, y.shape[1]),
+    )
+    hf.create_dataset(
+        "names",
+        data=np.array(names, dtype="S"),
+        compression="gzip",
+        chunks=True,
+        maxshape=(None, names.shape[1]),
+    )
+    hf.create_dataset(
+        "energies", data=energies, compression="gzip", chunks=True
+    )
+    labels = np.array(label_list, dtype=object)
     string_dt = h5py.special_dtype(vlen=str)
-    hf.create_dataset('labels', data = labels,
-                      dtype=string_dt,
-                      compression="gzip", chunks=True)
+    hf.create_dataset(
+        "labels",
+        data=labels,
+        dtype=string_dt,
+        compression="gzip",
+        chunks=True,
+    )
 
 # Test the new file
-with h5py.File(output_file, 'r') as hf:
-    size = hf['X'].shape
-    X_h5 = hf['X'][:,:,:]
-    y_h5 = hf['y'][:,:]
-    names_h5 = hf['names'][:]
-    energies_h5 = hf['energies'][:]
-    labels_h5 = [str(label) for label in hf['labels'][:]]
+with h5py.File(output_file, "r") as hf:
+    size = hf["X"].shape
+    X_h5 = hf["X"][:, :, :]
+    y_h5 = hf["y"][:, :]
+    names_h5 = hf["names"][:]
+    energies_h5 = hf["energies"][:]
+    labels_h5 = [str(label) for label in hf["labels"][:]]

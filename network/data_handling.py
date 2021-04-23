@@ -17,8 +17,8 @@ class DataHandler:
     Class for data treatment during an experiment in tensorflow.
     Handles data loading and plotting.
     """
-    def __init__(self,
-                 intensity_only = True):
+
+    def __init__(self, intensity_only=True):
         """
         Initialize with either just the intensity or with intensity
         and energy axis combined.
@@ -36,12 +36,14 @@ class DataHandler:
 
         """
         self.intensity_only = intensity_only
-    
-    def load_data_preprocess(self, 
-                             input_filepath,
-                             no_of_examples,
-                             train_test_split,
-                             train_val_split):
+
+    def load_data_preprocess(
+        self,
+        input_filepath,
+        no_of_examples,
+        train_test_split,
+        train_val_split,
+    ):
         """
         Load the data from an HDF5 file and preprocess it into three 
         datasets:
@@ -96,150 +98,221 @@ class DataHandler:
         self.train_test_split = train_test_split
         self.train_val_split = train_val_split
         self.no_of_examples = no_of_examples
-        
-        with h5py.File(input_filepath, 'r') as hf:
+
+        with h5py.File(input_filepath, "r") as hf:
             try:
-                self.energies = hf['energies'][:]
+                self.energies = hf["energies"][:]
             except KeyError:
                 self.energies = np.flip(np.arange(694, 750.05, 0.05))
-                print('The data set did have not an energy scale. ' +
-                      'Default (Fe) was assumed.')
+                print(
+                    "The data set did have not an energy scale. "
+                    + "Default (Fe) was assumed."
+                )
             try:
-                self.labels = [str(label) for label in hf['labels'][:]]
+                self.labels = [str(label) for label in hf["labels"][:]]
                 self.num_classes = len(self.labels)
             except KeyError:
-                print('The data set did not contain any labels. ' +
-                      'The label list is empty.')
-                
-            dataset_size = hf['X'].shape[0]
+                print(
+                    "The data set did not contain any labels. "
+                    + "The label list is empty."
+                )
+
+            dataset_size = hf["X"].shape[0]
             # Randomly choose a subset of the whole data set.
             try:
-                r = np.random.randint(0, dataset_size-self.no_of_examples)
+                r = np.random.randint(0, dataset_size - self.no_of_examples)
             except ValueError as e:
                 error_msg = (
-                    'There are not enough spectra in this data set. ' +
-                    'Please choose a value of less than {0} '.format(
-                        dataset_size-1) +
-                    'for no_of_examples.')                   
+                    "There are not enough spectra in this data set. "
+                    + "Please choose a value of less than {0} ".format(
+                        dataset_size - 1
+                    )
+                    + "for no_of_examples."
+                )
                 raise type(e)(error_msg)
 
-            X = hf['X'][r:r+self.no_of_examples, :, :]
-            y = hf['y'][r:r+self.no_of_examples, :]
-            
+            X = hf["X"][r : r + self.no_of_examples, :, :]
+            y = hf["y"][r : r + self.no_of_examples, :]
+
             if not self.intensity_only:
                 new_energies = np.tile(
-                    np.reshape(np.array(self.energies),(-1,1)),
-                    (X.shape[0],1,1))
+                    np.reshape(np.array(self.energies), (-1, 1)),
+                    (X.shape[0], 1, 1),
+                )
                 X = np.dstack((new_energies, X))
-            
+
             # Check if the data set was artificially created.
-            if 'shiftx' in hf.keys():
-                shift_x = hf['shiftx'][r:r+self.no_of_examples, :]
-                noise = hf['noise'][r:r+self.no_of_examples, :]
-                fwhm = hf['FWHM'][r:r+self.no_of_examples, :]
-                
-                if 'scatterer' in hf.keys():
-                    # If the data set was artificially created, check 
+            if "shiftx" in hf.keys():
+                shift_x = hf["shiftx"][r : r + self.no_of_examples, :]
+                noise = hf["noise"][r : r + self.no_of_examples, :]
+                fwhm = hf["FWHM"][r : r + self.no_of_examples, :]
+
+                if "scatterer" in hf.keys():
+                    # If the data set was artificially created, check
                     # if scattering in a gas phase was simulated.
-                    scatterer = hf['scatterer'][r:r+self.no_of_examples, :]
-                    distance = hf['distance'][r:r+self.no_of_examples, :]
-                    pressure = hf['pressure'][r:r+self.no_of_examples, :]
-                    
-                    self.X, self.y, shift_x, noise, fwhm, \
-                        scatterer, distance, pressure = \
-                            shuffle(X, y, shift_x, noise, fwhm,
-                                    scatterer, distance, pressure) 
-                            
+                    scatterer = hf["scatterer"][
+                        r : r + self.no_of_examples, :
+                    ]
+                    distance = hf["distance"][r : r + self.no_of_examples, :]
+                    pressure = hf["pressure"][r : r + self.no_of_examples, :]
+
+                    (
+                        self.X,
+                        self.y,
+                        shift_x,
+                        noise,
+                        fwhm,
+                        scatterer,
+                        distance,
+                        pressure,
+                    ) = shuffle(
+                        X,
+                        y,
+                        shift_x,
+                        noise,
+                        fwhm,
+                        scatterer,
+                        distance,
+                        pressure,
+                    )
+
                     # Store all parameters of the simulations in a dict
-                    aug_values = {'shift_x' : shift_x,
-                                  'noise' : noise,
-                                  'fwhm' : fwhm,
-                                  'scatterer' : scatterer,
-                                  'distance' : distance,
-                                  'pressure' : pressure}
-                    self.aug_values = aug_values 
-                    
+                    aug_values = {
+                        "shift_x": shift_x,
+                        "noise": noise,
+                        "fwhm": fwhm,
+                        "scatterer": scatterer,
+                        "distance": distance,
+                        "pressure": pressure,
+                    }
+                    self.aug_values = aug_values
+
                 else:
                     # Shuffle all arrays together
-                    self.X, self.y, shift_x, noise, fwhm = \
-                        shuffle(X, y, shift_x, noise, fwhm)
-                    aug_values = {'shift_x' : shift_x,
-                                  'noise' : noise,
-                                  'fwhm' : fwhm}
-                    self.aug_values = aug_values 
-                    
-            # Split into train, val and test sets
-                self.X_train, self.X_val, self.X_test, \
-                    self.y_train, self.y_val, self.y_test, \
-                        self.aug_values_train, self.aug_values_val, \
-                            self.aug_values_test = \
-                                self._split_test_val_train(
-                                    self.X, self.y,
-                                    aug_values = self.aug_values)
-                
-                # Determine the shape of the training features, 
-                # needed for model building in Keras. 
-                self.input_shape = (self.X_train.shape[1],
-                                    self.X_train.shape[2])
-                
-                loaded_data = (self.X_train, self.X_val, self.X_test,
-                               self.y_train, self.y_val, self.y_test,
-                               self.aug_values_train, self.aug_values_val,
-                               self.aug_values_test)
-                
-            # Check if the spectra have associated names. Typical for
-            # measured spectra.
-            elif 'names' in hf.keys():
-                names_load_list = [name[0].decode("utf-8") for name
-                                   in hf['names'][r:r+self.no_of_examples, :]]
-                names = np.reshape(np.array(names_load_list),(-1,1))
-                
-                # Shuffle all arrays together
-                self.X, self.y, self.names = \
-                        shuffle(X,y , names)
+                    self.X, self.y, shift_x, noise, fwhm = shuffle(
+                        X, y, shift_x, noise, fwhm
+                    )
+                    aug_values = {
+                        "shift_x": shift_x,
+                        "noise": noise,
+                        "fwhm": fwhm,
+                    }
+                    self.aug_values = aug_values
 
                 # Split into train, val and test sets
-                self.X_train, self.X_val, self.X_test, \
-                    self.y_train, self.y_val, self.y_test, \
-                      self.names_train, self.names_val, \
-                          self.names_test = \
-                              self._split_test_val_train(
-                                  self.X, self.y, names = self.names)
+                (
+                    self.X_train,
+                    self.X_val,
+                    self.X_test,
+                    self.y_train,
+                    self.y_val,
+                    self.y_test,
+                    self.aug_values_train,
+                    self.aug_values_val,
+                    self.aug_values_test,
+                ) = self._split_test_val_train(
+                    self.X, self.y, aug_values=self.aug_values
+                )
 
-                # Determine the shape of the training features, 
-                # needed for model building in Keras. 
-                self.input_shape = (self.X_train.shape[1],
-                                    self.X_train.shape[2])
-                
-                loaded_data = (self.X_train, self.X_val, self.X_test,
-                               self.y_train, self.y_val, self.y_test,
-                               self.names_train, self.names_val, 
-                               self.names_test)
-            
-            # If there are neither augmentation values nor names in 
+                # Determine the shape of the training features,
+                # needed for model building in Keras.
+                self.input_shape = (
+                    self.X_train.shape[1],
+                    self.X_train.shape[2],
+                )
+
+                loaded_data = (
+                    self.X_train,
+                    self.X_val,
+                    self.X_test,
+                    self.y_train,
+                    self.y_val,
+                    self.y_test,
+                    self.aug_values_train,
+                    self.aug_values_val,
+                    self.aug_values_test,
+                )
+
+            # Check if the spectra have associated names. Typical for
+            # measured spectra.
+            elif "names" in hf.keys():
+                names_load_list = [
+                    name[0].decode("utf-8")
+                    for name in hf["names"][r : r + self.no_of_examples, :]
+                ]
+                names = np.reshape(np.array(names_load_list), (-1, 1))
+
+                # Shuffle all arrays together
+                self.X, self.y, self.names = shuffle(X, y, names)
+
+                # Split into train, val and test sets
+                (
+                    self.X_train,
+                    self.X_val,
+                    self.X_test,
+                    self.y_train,
+                    self.y_val,
+                    self.y_test,
+                    self.names_train,
+                    self.names_val,
+                    self.names_test,
+                ) = self._split_test_val_train(
+                    self.X, self.y, names=self.names
+                )
+
+                # Determine the shape of the training features,
+                # needed for model building in Keras.
+                self.input_shape = (
+                    self.X_train.shape[1],
+                    self.X_train.shape[2],
+                )
+
+                loaded_data = (
+                    self.X_train,
+                    self.X_val,
+                    self.X_test,
+                    self.y_train,
+                    self.y_val,
+                    self.y_test,
+                    self.names_train,
+                    self.names_val,
+                    self.names_test,
+                )
+
+            # If there are neither augmentation values nor names in
             # the dataset, just load the X and y arrays.
             else:
                 # Shuffle X and y together
                 self.X, self.y = shuffle(X, y)
                 # Split into train, val and test sets
-                self.X_train, self.X_val, self.X_test, \
-                self.y_train, self.y_val, self.y_test = \
-                    self._split_test_val_train(self.X, self.y)
-                
-                # Determine the shape of the training features, 
-                # needed for model building in Keras. 
-                self.input_shape = (self.X_train.shape[1],
-                                    self.X_train.shape[2])
-                
-                loaded_data = (self.X_train, self.X_val, self.X_test,
-                               self.y_train, self.y_val, self.y_test)
-            
+                (
+                    self.X_train,
+                    self.X_val,
+                    self.X_test,
+                    self.y_train,
+                    self.y_val,
+                    self.y_test,
+                ) = self._split_test_val_train(self.X, self.y)
+
+                # Determine the shape of the training features,
+                # needed for model building in Keras.
+                self.input_shape = (
+                    self.X_train.shape[1],
+                    self.X_train.shape[2],
+                )
+
+                loaded_data = (
+                    self.X_train,
+                    self.X_val,
+                    self.X_test,
+                    self.y_train,
+                    self.y_val,
+                    self.y_test,
+                )
+
         return loaded_data
-    
-    def _split_test_val_train(self,
-                              X, 
-                              y, 
-                              **kwargs):
+
+    def _split_test_val_train(self, X, y, **kwargs):
         """
         Helper method for splitting multiple numpy arrays two times:
         First, the whole data is split into the train+val and test sets
@@ -263,120 +336,144 @@ class DataHandler:
         E.g. for input X, the returns are X_train, X_val, X_test.
         """
         # First split into train+val and test sets
-        no_of_train_val = int((1-self.train_test_split) *\
-                              X.shape[0])
-        
-        X_train_val = X[:no_of_train_val,:,:]
-        X_test = X[no_of_train_val:,:,:]
-        y_train_val = y[:no_of_train_val,:]
-        y_test = y[no_of_train_val:,:]
-                    
+        no_of_train_val = int((1 - self.train_test_split) * X.shape[0])
+
+        X_train_val = X[:no_of_train_val, :, :]
+        X_test = X[no_of_train_val:, :, :]
+        y_train_val = y[:no_of_train_val, :]
+        y_test = y[no_of_train_val:, :]
+
         # Then create val subset from train set
-        no_of_train = int((1-self.train_val_split) *\
-                          X_train_val.shape[0])
-                    
-        X_train = X_train_val[:no_of_train,:,:]
-        X_val = X_train_val[no_of_train:,:,:]
-        y_train = y_train_val[:no_of_train,:]
-        y_val = y_train_val[no_of_train:,:]
-        
+        no_of_train = int((1 - self.train_val_split) * X_train_val.shape[0])
+
+        X_train = X_train_val[:no_of_train, :, :]
+        X_val = X_train_val[no_of_train:, :, :]
+        y_train = y_train_val[:no_of_train, :]
+        y_val = y_train_val[no_of_train:, :]
+
         print("Data was loaded!")
-        print('Total no. of samples: ' + str(self.X.shape[0]))
-        print('No. of training samples: ' + str(X_train.shape[0]))
-        print('No. of validation samples: ' + str(X_val.shape[0]))
-        print('No. of test samples: ' + str(X_test.shape[0]))
-        print('Shape of each sample : '
-              + str(X_train.shape[1]) + ' features (X)' 
-              + ' + ' + str(y_train.shape[1])
-              + ' labels (y)')
-        
-        if 'aug_values' in kwargs.keys():
+        print("Total no. of samples: " + str(self.X.shape[0]))
+        print("No. of training samples: " + str(X_train.shape[0]))
+        print("No. of validation samples: " + str(X_val.shape[0]))
+        print("No. of test samples: " + str(X_test.shape[0]))
+        print(
+            "Shape of each sample : "
+            + str(X_train.shape[1])
+            + " features (X)"
+            + " + "
+            + str(y_train.shape[1])
+            + " labels (y)"
+        )
+
+        if "aug_values" in kwargs.keys():
             # Also split the arrays in the 'aug_values' dictionary.
-            aug_values = kwargs['aug_values']
-            shift_x = aug_values['shift_x']
-            noise = aug_values['noise']
-            fwhm = aug_values['fwhm']
-            
-            shift_x_train_val = shift_x[:no_of_train_val,:]
-            shift_x_test = shift_x[no_of_train_val:,:]
-            noise_train_val = noise[:no_of_train_val,:]
-            noise_test = noise[no_of_train_val:,:]
-            fwhm_train_val = fwhm[:no_of_train_val,:]
-            fwhm_test = fwhm[no_of_train_val:,:]
-            
-            shift_x_train = shift_x_train_val[:no_of_train,:]
-            shift_x_val = shift_x_train_val[no_of_train:,:]
-            noise_train = noise_train_val[:no_of_train,:]
-            noise_val = noise_train_val[no_of_train:,:]
-            fwhm_train = fwhm_train_val[:no_of_train,:]
-            fwhm_val = fwhm_train_val[no_of_train:,:]
-            
-            aug_values_train = {'shift_x' : shift_x_train,
-                                'noise' : noise_train,
-                                'fwhm' : fwhm_train}
-            aug_values_val = {'shift_x' : shift_x_val,
-                              'noise' : noise_val,
-                              'fwhm' : fwhm_val}
-            aug_values_test = {'shift_x' : shift_x_test,
-                              'noise' : noise_test,
-                              'fwhm' : fwhm_test}
-            
-            if 'scatterer' in aug_values.keys():
+            aug_values = kwargs["aug_values"]
+            shift_x = aug_values["shift_x"]
+            noise = aug_values["noise"]
+            fwhm = aug_values["fwhm"]
+
+            shift_x_train_val = shift_x[:no_of_train_val, :]
+            shift_x_test = shift_x[no_of_train_val:, :]
+            noise_train_val = noise[:no_of_train_val, :]
+            noise_test = noise[no_of_train_val:, :]
+            fwhm_train_val = fwhm[:no_of_train_val, :]
+            fwhm_test = fwhm[no_of_train_val:, :]
+
+            shift_x_train = shift_x_train_val[:no_of_train, :]
+            shift_x_val = shift_x_train_val[no_of_train:, :]
+            noise_train = noise_train_val[:no_of_train, :]
+            noise_val = noise_train_val[no_of_train:, :]
+            fwhm_train = fwhm_train_val[:no_of_train, :]
+            fwhm_val = fwhm_train_val[no_of_train:, :]
+
+            aug_values_train = {
+                "shift_x": shift_x_train,
+                "noise": noise_train,
+                "fwhm": fwhm_train,
+            }
+            aug_values_val = {
+                "shift_x": shift_x_val,
+                "noise": noise_val,
+                "fwhm": fwhm_val,
+            }
+            aug_values_test = {
+                "shift_x": shift_x_test,
+                "noise": noise_test,
+                "fwhm": fwhm_test,
+            }
+
+            if "scatterer" in aug_values.keys():
                 # Also split the scatterer, distance, and pressure
                 # arrays if they are present in the in the 'aug_values'
                 # dictionary.
-                scatterer = aug_values['scatterer']
-                distance = aug_values['distance']
-                pressure = aug_values['pressure']
-                
-                scatterer_train_val = scatterer[:no_of_train_val,:]
-                scatterer_test = scatterer[no_of_train_val:,:]
-                distance_train_val = distance[:no_of_train_val,:]
-                distance_test = distance[no_of_train_val:,:]
-                pressure_train_val = pressure[:no_of_train_val,:]
-                pressure_test = pressure[no_of_train_val:,:]
-            
-                scatterer_train = scatterer_train_val[:no_of_train,:]
-                scatterer_val = scatterer_train_val[no_of_train:,:]
-                distance_train = distance_train_val[:no_of_train,:]
-                distance_val = distance_train_val[no_of_train:,:]
-                pressure_train = pressure_train_val[:no_of_train,:]
-                pressure_val = pressure_train_val[no_of_train:,:]
-                
-                aug_values_train['scatterer'] = scatterer_train
-                aug_values_train['distance'] = distance_train
-                aug_values_train['pressure'] = pressure_train
-                
-                aug_values_val['scatterer'] = scatterer_val
-                aug_values_val['distance'] = distance_val
-                aug_values_val['pressure'] = pressure_val
-                
-                aug_values_test['scatterer'] = scatterer_test
-                aug_values_test['distance'] = distance_test
-                aug_values_test['pressure'] = pressure_test
-                
-            return X_train, X_val, X_test, y_train, y_val, y_test,\
-                   aug_values_train, aug_values_val, \
-                   aug_values_test
-        
-        elif 'names' in kwargs.keys():
+                scatterer = aug_values["scatterer"]
+                distance = aug_values["distance"]
+                pressure = aug_values["pressure"]
+
+                scatterer_train_val = scatterer[:no_of_train_val, :]
+                scatterer_test = scatterer[no_of_train_val:, :]
+                distance_train_val = distance[:no_of_train_val, :]
+                distance_test = distance[no_of_train_val:, :]
+                pressure_train_val = pressure[:no_of_train_val, :]
+                pressure_test = pressure[no_of_train_val:, :]
+
+                scatterer_train = scatterer_train_val[:no_of_train, :]
+                scatterer_val = scatterer_train_val[no_of_train:, :]
+                distance_train = distance_train_val[:no_of_train, :]
+                distance_val = distance_train_val[no_of_train:, :]
+                pressure_train = pressure_train_val[:no_of_train, :]
+                pressure_val = pressure_train_val[no_of_train:, :]
+
+                aug_values_train["scatterer"] = scatterer_train
+                aug_values_train["distance"] = distance_train
+                aug_values_train["pressure"] = pressure_train
+
+                aug_values_val["scatterer"] = scatterer_val
+                aug_values_val["distance"] = distance_val
+                aug_values_val["pressure"] = pressure_val
+
+                aug_values_test["scatterer"] = scatterer_test
+                aug_values_test["distance"] = distance_test
+                aug_values_test["pressure"] = pressure_test
+
+            return (
+                X_train,
+                X_val,
+                X_test,
+                y_train,
+                y_val,
+                y_test,
+                aug_values_train,
+                aug_values_val,
+                aug_values_test,
+            )
+
+        elif "names" in kwargs.keys():
             # Also split the names array.
-            names = kwargs['names']
-            names_train_val = names[:no_of_train_val,:]
-            names_test = names[no_of_train_val:,:]
-            
-            names_train = names_train_val[:no_of_train,:]
-            names_val = names_train_val[no_of_train:,:]
-            
-            return X_train, X_val, X_test, y_train, y_val, y_test,\
-                   names_train, names_val, names_test
-                   
+            names = kwargs["names"]
+            names_train_val = names[:no_of_train_val, :]
+            names_test = names[no_of_train_val:, :]
+
+            names_train = names_train_val[:no_of_train, :]
+            names_val = names_train_val[no_of_train:, :]
+
+            return (
+                X_train,
+                X_val,
+                X_test,
+                y_train,
+                y_val,
+                y_test,
+                names_train,
+                names_val,
+                names_test,
+            )
+
         else:
             return X_train, X_val, X_test, y_train, y_val, y_test
-        
-    def check_class_distribution(self,
-                                 task):
-        
+
+    def check_class_distribution(self, task):
+
         """
         Generate a Class Distribution object based on a given task.
 
@@ -393,31 +490,24 @@ class DataHandler:
             Dictionary containing the class distribution.
 
         """
-        data_list = [self.y,
-                     self.y_train,
-                     self.y_val,
-                     self.y_test]
-        self.class_distribution = ClassDistribution(task,
-                                                    data_list)
+        data_list = [self.y, self.y_train, self.y_val, self.y_test]
+        self.class_distribution = ClassDistribution(task, data_list)
         return self.class_distribution.cd
-    
-    def calculate_losses(self, 
-                         loss_func):
-        print('Calculating loss for each example...')
-        self.losses_train = [loss_func(self.y_train[i],
-                                       self.pred_train[i]).numpy() \
-                          for i in range(self.y_train.shape[0])]   
-        
-        self.losses_test = [loss_func(self.y_test[i],
-                                       self.pred_test[i]).numpy() \
-                            for i in range(self.y_test.shape[0])]
-        print('Done!')
-        
-    def plot_spectra(self, 
-                    no_of_spectra, 
-                    dataset,
-                    indices, 
-                    with_prediction):
+
+    def calculate_losses(self, loss_func):
+        print("Calculating loss for each example...")
+        self.losses_train = [
+            loss_func(self.y_train[i], self.pred_train[i]).numpy()
+            for i in range(self.y_train.shape[0])
+        ]
+
+        self.losses_test = [
+            loss_func(self.y_test[i], self.pred_test[i]).numpy()
+            for i in range(self.y_test.shape[0])
+        ]
+        print("Done!")
+
+    def plot_spectra(self, no_of_spectra, dataset, indices, with_prediction):
         """
         Generate spectra plot for a given data set.
 
@@ -440,37 +530,31 @@ class DataHandler:
         None.
 
         """
-        data = [] 
+        data = []
         texts = []
-        
+
         X, y = self._select_dataset(dataset)
-                                       
-        for i in range(no_of_spectra): 
-            index = indices[i]               
+
+        for i in range(no_of_spectra):
+            index = indices[i]
             if self.intensity_only:
-                new_energies = np.reshape(np.array(self.energies),(-1,1))
+                new_energies = np.reshape(np.array(self.energies), (-1, 1))
                 data.append(np.hstack((new_energies, X[index])))
             else:
                 data.append(X[index])
-                
+
             text = self.write_text_for_spectrum(
-                dataset = dataset,
-                index = index,
-                with_prediction = with_prediction)
-                
+                dataset=dataset, index=index, with_prediction=with_prediction
+            )
+
             texts.append(text)
-            
+
         data = np.array(data)
-        
-        graphic = SpectraPlot(data = data,
-                              annots = texts)
-        fig, axs = graphic.plot()    
-              
-        
-    def plot_random(self, 
-                    no_of_spectra, 
-                    dataset, 
-                    with_prediction):
+
+        graphic = SpectraPlot(data=data, annots=texts)
+        fig, axs = graphic.plot()
+
+    def plot_random(self, no_of_spectra, dataset, with_prediction):
         """
         Plots random XPS spectra out of one of the data set.
         The labels and additional information are shown as texts on the
@@ -494,21 +578,22 @@ class DataHandler:
 
         """
         X, y = self._select_dataset(dataset)
-        
+
         indices = []
         for i in range(no_of_spectra):
             r = np.random.randint(0, X.shape[0])
             indices.append(r)
-            
-        self.plot_spectra(no_of_spectra = no_of_spectra, 
-                          dataset = dataset,
-                          indices = indices, 
-                          with_prediction = with_prediction)  
-        
-    def show_worst_predictions(self,
-                               no_of_spectra,
-                               kind = 'all',
-                               threshold = 0.):
+
+        self.plot_spectra(
+            no_of_spectra=no_of_spectra,
+            dataset=dataset,
+            indices=indices,
+            with_prediction=with_prediction,
+        )
+
+    def show_worst_predictions(
+        self, no_of_spectra, kind="all", threshold=0.0
+    ):
         """
         Plots the spectra with the highest losses.
         Accepts a threshold parameter. If a threshold other than 0 is
@@ -534,57 +619,95 @@ class DataHandler:
         None.
 
         """
-        X, y = self._select_dataset('test')
-        pred, losses = self._get_predictions('test')
-        
-        if kind == 'all':
+        X, y = self._select_dataset("test")
+        pred, losses = self._get_predictions("test")
+
+        if kind == "all":
             indices = [
-                j[1] for j in sorted([(x,i) for (i,x) in \
-                                      enumerate(losses) if x >= threshold],
-                                     reverse=True )]
+                j[1]
+                for j in sorted(
+                    [
+                        (x, i)
+                        for (i, x) in enumerate(losses)
+                        if x >= threshold
+                    ],
+                    reverse=True,
+                )
+            ]
             len_all = y.shape[0]
-            print_statement = ''
+            print_statement = ""
 
-        elif kind == 'single':
+        elif kind == "single":
             indices = [
-                j[1] for j in sorted([(x,i) for (i,x) in \
-                                      enumerate(losses) if (
-                                          len(np.where(y[i] == 0.)[0]) == 3 \
-                                          and x >= threshold)],
-                                 reverse=True)]
-            len_all = len([i for (i,x) in enumerate(losses) if (
-                          len(np.where(y[i] == 0.)[0]) == 3)])
-            print_statement = 'with a single species '
+                j[1]
+                for j in sorted(
+                    [
+                        (x, i)
+                        for (i, x) in enumerate(losses)
+                        if (
+                            len(np.where(y[i] == 0.0)[0]) == 3
+                            and x >= threshold
+                        )
+                    ],
+                    reverse=True,
+                )
+            ]
+            len_all = len(
+                [
+                    i
+                    for (i, x) in enumerate(losses)
+                    if (len(np.where(y[i] == 0.0)[0]) == 3)
+                ]
+            )
+            print_statement = "with a single species "
 
-        elif kind == 'linear_comb':
+        elif kind == "linear_comb":
             indices = [
-                j[1] for j in sorted([(x,i) for (i,x) in \
-                                      enumerate(losses) if (
-                                          len(np.where(y[i] == 0.)[0]) != 3 \
-                                          and x >= threshold)],
-                                 reverse=True)]
-            len_all = len([i for (i,x) in enumerate(losses) if (
-                          len(np.where(y[i] == 0.)[0]) != 3)])
-            print_statement = 'with multiple species '                
-         
-        if threshold > 0.:
-            print('{0} of {1} test samples ({2}%) {3}have a mean '.format(
-                str(len(indices)),
-                str(len_all),
-                str(100*(np.around(len(indices)/len_all,
-                                   decimals = 3))),
-                print_statement) +
-                'absolute error of of at least {0}.'.format(
-                    str(threshold)))
+                j[1]
+                for j in sorted(
+                    [
+                        (x, i)
+                        for (i, x) in enumerate(losses)
+                        if (
+                            len(np.where(y[i] == 0.0)[0]) != 3
+                            and x >= threshold
+                        )
+                    ],
+                    reverse=True,
+                )
+            ]
+            len_all = len(
+                [
+                    i
+                    for (i, x) in enumerate(losses)
+                    if (len(np.where(y[i] == 0.0)[0]) != 3)
+                ]
+            )
+            print_statement = "with multiple species "
+
+        if threshold > 0.0:
+            print(
+                "{0} of {1} test samples ({2}%) {3}have a mean ".format(
+                    str(len(indices)),
+                    str(len_all),
+                    str(
+                        100 * (np.around(len(indices) / len_all, decimals=3))
+                    ),
+                    print_statement,
+                )
+                + "absolute error of of at least {0}.".format(str(threshold))
+            )
             indices = indices[-no_of_spectra:]
 
         else:
             indices = indices[:no_of_spectra]
-        
-        self.plot_spectra(no_of_spectra = no_of_spectra, 
-                          dataset = 'test',
-                          indices = indices, 
-                          with_prediction = True) 
+
+        self.plot_spectra(
+            no_of_spectra=no_of_spectra,
+            dataset="test",
+            indices=indices,
+            with_prediction=True,
+        )
 
     def show_wrong_classification(self):
         """
@@ -599,65 +722,64 @@ class DataHandler:
         """
         data = []
         texts = []
-        
+
         wrong_pred_args = []
-        
-        for i in range(self.pred_test.shape[0]): 
-            argmax_class_true = np.argmax(self.y_test[i,:], axis = 0)
-            argmax_class_pred = np.argmax(self.pred_test[i,:], axis = 0)
-            
+
+        for i in range(self.pred_test.shape[0]):
+            argmax_class_true = np.argmax(self.y_test[i, :], axis=0)
+            argmax_class_pred = np.argmax(self.pred_test[i, :], axis=0)
+
         if argmax_class_true != argmax_class_pred:
             wrong_pred_args.append(i)
         no_of_wrong_pred = len(wrong_pred_args)
-        print('No. of wrong predictions on the test data: ' +\
-              str(no_of_wrong_pred))
-        
+        print(
+            "No. of wrong predictions on the test data: "
+            + str(no_of_wrong_pred)
+        )
+
         if no_of_wrong_pred > 0:
             for i in range(no_of_wrong_pred):
                 index = wrong_pred_args[i]
-            
-                real_y = ('Real: ' + \
-                    str(self.y_test[index]) + '\n')
+
+                real_y = "Real: " + str(self.y_test[index]) + "\n"
                 # Round prediction and sum to 1
-                tmp_array = np.around(self.pred_test[index], decimals = 4)
+                tmp_array = np.around(self.pred_test[index], decimals=4)
                 row_sums = tmp_array.sum()
                 tmp_array = tmp_array / row_sums
-                tmp_array = np.around(tmp_array, decimals = 2)
-                pred_y = ('Prediction: ' +\
-                          str(tmp_array) + '\n')
-                pred_label = ('Predicted label: ' +\
-                              str(self.pred_test_classes[index,0]) + '\n')
+                tmp_array = np.around(tmp_array, decimals=2)
+                pred_y = "Prediction: " + str(tmp_array) + "\n"
+                pred_label = (
+                    "Predicted label: "
+                    + str(self.pred_test_classes[index, 0])
+                    + "\n"
+                )
                 labels = self.y_test[index]
                 for j, value in enumerate(labels):
                     if value == 1:
                         label = str(self.label_values[j])
-                        label =  ('Real label: ' + label + '\n')
-                text = real_y + pred_y + label + pred_label     
+                        label = "Real label: " + label + "\n"
+                text = real_y + pred_y + label + pred_label
                 try:
-                    aug = self._write_aug_text(
-                        dataset = 'test',
-                        index = index)
+                    aug = self._write_aug_text(dataset="test", index=index)
                     text += aug
                 except AttributeError:
                     pass
                 try:
                     name = self._write_measured_text(
-                        dataset = 'test',
-                        index = index)
+                        dataset="test", index=index
+                    )
                     text += name
                 except AttributeError:
-                       pass
-                
+                    pass
+
                 texts.append(text)
-            
+
             data = np.array(data)
-        
-            graphic = SpectraPlot(data=data,
-                                  annots=texts)
-            fig, axs = graphic.plot()           
-      
-    def _select_dataset(self, 
-                        dataset_name):
+
+            graphic = SpectraPlot(data=data, annots=texts)
+            fig, axs = graphic.plot()
+
+    def _select_dataset(self, dataset_name):
         """
         Selects a data set (for plotting).
 
@@ -672,22 +794,21 @@ class DataHandler:
             DESCRIPTION.
 
         """
-        if dataset_name == 'train':
+        if dataset_name == "train":
             X = self.X_train
             y = self.y_train
-        
-        elif dataset_name == 'val':
+
+        elif dataset_name == "val":
             X = self.X_val
             y = self.y_val
 
-        elif dataset_name == 'test':
+        elif dataset_name == "test":
             X = self.X_test
             y = self.y_test
-                
+
         return X, y
-    
-    def _get_predictions(self,
-                         dataset_name):
+
+    def _get_predictions(self, dataset_name):
         """
         Get the predictions and losses for one data set.
         Used for writing the annotations in for plotting.
@@ -703,20 +824,17 @@ class DataHandler:
             DESCRIPTION.
 
         """
-        if dataset_name == 'train':
+        if dataset_name == "train":
             pred = self.pred_train
             losses = self.losses_train
 
-        elif dataset_name == 'test':
+        elif dataset_name == "test":
             pred = self.pred_test
-            losses = self.losses_test  
-            
+            losses = self.losses_test
+
         return pred, losses
-    
-    def write_text_for_spectrum(self, 
-                                dataset,
-                                index,
-                                with_prediction = True):
+
+    def write_text_for_spectrum(self, dataset, index, with_prediction=True):
         """
         Create the annotation for a plot of one spectrum.
 
@@ -736,44 +854,36 @@ class DataHandler:
 
         """
         X, y = self._select_dataset(dataset)
-              
-        label = str(np.around(y[index], decimals = 3))
-        text = ('Real: ' + label + '\n')
-                
+
+        label = str(np.around(y[index], decimals=3))
+        text = "Real: " + label + "\n"
+
         if with_prediction:
             pred, losses = self._get_predictions(dataset)
             # Round prediction and sum to 1
-            tmp_array = np.around(pred[index], decimals = 4)
+            tmp_array = np.around(pred[index], decimals=4)
             row_sums = tmp_array.sum()
             tmp_array = tmp_array / row_sums
-            tmp_array = np.around(tmp_array, decimals = 3)    
-            pred_text = ('Prediction: ' +\
-                         str(list(tmp_array)) + '\n')
-            text += pred_text 
-                
+            tmp_array = np.around(tmp_array, decimals=3)
+            pred_text = "Prediction: " + str(list(tmp_array)) + "\n"
+            text += pred_text
+
         try:
-            text += self._write_aug_text(
-                dataset = dataset,
-                index = index)
+            text += self._write_aug_text(dataset=dataset, index=index)
         except AttributeError:
             pass
         try:
-            text += self._write_measured_text(
-                dataset = dataset,
-                index = index)
+            text += self._write_measured_text(dataset=dataset, index=index)
         except AttributeError:
             pass
-                
+
         if with_prediction:
-            loss_text = ('Loss: ' + str(np.around(losses[index],
-                                                      decimals = 3)))
+            loss_text = "Loss: " + str(np.around(losses[index], decimals=3))
             text += loss_text
-        
+
         return text
-                                      
-    def _write_aug_text(self,
-                        dataset,
-                        index):
+
+    def _write_aug_text(self, dataset, index):
         """
         Helper method for writing information about the parameters used 
         for data set creation into a figure. 
@@ -792,51 +902,48 @@ class DataHandler:
             Output text in a figure.
 
         """
-        if dataset == 'train':
-            shift_x = self.aug_values_train['shift_x'][index]
-            noise = self.aug_values_train['noise'][index]
-            fwhm = self.aug_values_train['fwhm'][index]
-            
-        elif dataset == 'val':
-            shift_x = self.aug_values_val['shift_x'][index]
-            noise = self.aug_values_val['noise'][index]
-            fwhm = self.aug_values_val['fwhm'][index]
-            
-        elif dataset == 'test':
-            shift_x = self.aug_values_test['shift_x'][index]
-            noise = self.aug_values_test['noise'][index]
-            fwhm = self.aug_values_test['fwhm'][index]
-        
-        if (fwhm is not None and fwhm != 0):
-            fwhm_text = 'FHWM: ' + \
-                    str(np.round(float(fwhm), decimals = 2)) + ', '
+        if dataset == "train":
+            shift_x = self.aug_values_train["shift_x"][index]
+            noise = self.aug_values_train["noise"][index]
+            fwhm = self.aug_values_train["fwhm"][index]
+
+        elif dataset == "val":
+            shift_x = self.aug_values_val["shift_x"][index]
+            noise = self.aug_values_val["noise"][index]
+            fwhm = self.aug_values_val["fwhm"][index]
+
+        elif dataset == "test":
+            shift_x = self.aug_values_test["shift_x"][index]
+            noise = self.aug_values_test["noise"][index]
+            fwhm = self.aug_values_test["fwhm"][index]
+
+        if fwhm is not None and fwhm != 0:
+            fwhm_text = (
+                "FHWM: " + str(np.round(float(fwhm), decimals=2)) + ", "
+            )
         else:
-            fwhm_text = 'FHWM: not changed' + ', '
-                
-        if (shift_x is not None and shift_x != 0):            
-            shift_text = ' Shift: ' + \
-                    '{:.2f}'.format(float(shift_x)) + ', '
+            fwhm_text = "FHWM: not changed" + ", "
+
+        if shift_x is not None and shift_x != 0:
+            shift_text = " Shift: " + "{:.2f}".format(float(shift_x)) + ", "
         else:
-            shift_text = ' Shift: none' + ', '
-                
-        if (noise is not None and noise != 0):
-            noise_text = 'S/N: ' + '{:.1f}'.format(float(noise))
+            shift_text = " Shift: none" + ", "
+
+        if noise is not None and noise != 0:
+            noise_text = "S/N: " + "{:.1f}".format(float(noise))
         else:
-            noise_text = 'S/N: not changed'
-                
-        aug_text = fwhm_text + shift_text + noise_text + '\n'
-        
-        if 'scatterer' in self.aug_values.keys():
+            noise_text = "S/N: not changed"
+
+        aug_text = fwhm_text + shift_text + noise_text + "\n"
+
+        if "scatterer" in self.aug_values.keys():
             aug_text += self._write_scatter_text(dataset, index)
         else:
-            aug_text += 'Spectrum not scattered.'
-            
-    
+            aug_text += "Spectrum not scattered."
+
         return aug_text
-    
-    def _write_scatter_text(self,
-                            dataset,
-                            index):
+
+    def _write_scatter_text(self, dataset, index):
         """
         Helper method for writing information about the parameters used 
         for simulation of scattering in a gas phase. 
@@ -855,41 +962,35 @@ class DataHandler:
             Output text in a figure.
 
         """
-        if dataset == 'train':
-            scatterer = self.aug_values_train['scatterer'][index]
-            distance = self.aug_values_train['distance'][index]
-            pressure = self.aug_values_train['pressure'][index]
-            
-        elif dataset == 'val':
-            scatterer = self.aug_values_val['scatterer'][index]
-            distance = self.aug_values_val['distance'][index]
-            pressure = self.aug_values_val['pressure'][index]
-            
-        elif dataset == 'test':
-            scatterer = self.aug_values_test['scatterer'][index]
-            distance = self.aug_values_test['distance'][index]
-            pressure = self.aug_values_test['pressure'][index]
-       
-        scatterers = {'0' : 'He',
-                      '1' : 'H2', 
-                      '2' : 'N2',
-                      '3' : 'O2'}       
-        scatterer_name =  scatterers[str(scatterer[0])]
+        if dataset == "train":
+            scatterer = self.aug_values_train["scatterer"][index]
+            distance = self.aug_values_train["distance"][index]
+            pressure = self.aug_values_train["pressure"][index]
 
-        name_text = 'Scatterer: ' + scatterer_name + ', '
-        
-        pressure_text = '{:.1f}'.format(float(pressure)) + ' mbar, '  
-        
-        distance_text = 'd = ' + \
-                    '{:.1f}'.format(float(distance)) + ' mm'
-                
-        scatter_text = name_text + pressure_text + distance_text + '\n'
-    
+        elif dataset == "val":
+            scatterer = self.aug_values_val["scatterer"][index]
+            distance = self.aug_values_val["distance"][index]
+            pressure = self.aug_values_val["pressure"][index]
+
+        elif dataset == "test":
+            scatterer = self.aug_values_test["scatterer"][index]
+            distance = self.aug_values_test["distance"][index]
+            pressure = self.aug_values_test["pressure"][index]
+
+        scatterers = {"0": "He", "1": "H2", "2": "N2", "3": "O2"}
+        scatterer_name = scatterers[str(scatterer[0])]
+
+        name_text = "Scatterer: " + scatterer_name + ", "
+
+        pressure_text = "{:.1f}".format(float(pressure)) + " mbar, "
+
+        distance_text = "d = " + "{:.1f}".format(float(distance)) + " mm"
+
+        scatter_text = name_text + pressure_text + distance_text + "\n"
+
         return scatter_text
 
-    def _write_measured_text(self,
-                             dataset,
-                             index):
+    def _write_measured_text(self, dataset, index):
         """
         Helper method for writing information about the measured 
         spectra in a data set into a figure. 
@@ -908,40 +1009,49 @@ class DataHandler:
             Output text in a figure.
 
         """
-        if dataset == 'train':
+        if dataset == "train":
             name = self.names_train[index][0]
-            
-        elif dataset == 'val':
+
+        elif dataset == "val":
             name = self.names_val[index][0]
-            
-        elif dataset == 'test':
+
+        elif dataset == "test":
             name = self.names_test[index][0]
-        
-        measured_text = 'Spectrum no. ' + str(index) + '\n' +\
-                str(name) + '\n'
-    
-        return measured_text            
-    
- #%%  
+
+        measured_text = "Spectrum no. " + str(index) + "\n" + str(name) + "\n"
+
+        return measured_text
+
+
+#%%
 if __name__ == "__main__":
     np.random.seed(502)
-    input_filepath = r'C:\Users\pielsticker\Simulations\20210222_Fe_linear_combination_small_gas_phase.h5'
+    input_filepath = r"C:\Users\pielsticker\Simulations\20210222_Fe_linear_combination_small_gas_phase.h5"
     datahandler = DataHandler(intensity_only=True)
     train_test_split = 0.2
     train_val_split = 0.2
     no_of_examples = 1000
-    
-    X_train, X_val, X_test, y_train, y_val, y_test,\
-    aug_values_train, aug_values_val, aug_values_test =\
-        datahandler.load_data_preprocess(
-            input_filepath = input_filepath,
-            no_of_examples = no_of_examples,
-            train_test_split = train_test_split,
-            train_val_split = train_val_split)        
-    print('Input shape: ' + str(datahandler.input_shape))
-    print('Labels: ' + str(datahandler.labels))
-    print('No. of classes: ' + str(datahandler.num_classes))
-  
-    datahandler.plot_random(no_of_spectra = 20,
-                            dataset = 'train',
-                            with_prediction = False)
+
+    (
+        X_train,
+        X_val,
+        X_test,
+        y_train,
+        y_val,
+        y_test,
+        aug_values_train,
+        aug_values_val,
+        aug_values_test,
+    ) = datahandler.load_data_preprocess(
+        input_filepath=input_filepath,
+        no_of_examples=no_of_examples,
+        train_test_split=train_test_split,
+        train_val_split=train_val_split,
+    )
+    print("Input shape: " + str(datahandler.input_shape))
+    print("Labels: " + str(datahandler.labels))
+    print("No. of classes: " + str(datahandler.num_classes))
+
+    datahandler.plot_random(
+        no_of_spectra=20, dataset="train", with_prediction=False
+    )

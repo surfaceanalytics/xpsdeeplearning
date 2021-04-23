@@ -14,17 +14,15 @@ from scipy.signal import fftconvolve
 import math
 
 try:
-    from .peaks import (Gauss, Lorentz, Voigt, VacuumExcitation, Tougaard)
+    from .peaks import Gauss, Lorentz, Voigt, VacuumExcitation, Tougaard
 except ImportError as e:
-    if str(e) == 'attempted relative import with no known parent package': 
+    if str(e) == "attempted relative import with no known parent package":
         pass
     else:
         raise
-   
+
 #%% Basic classes.
-def safe_arange_with_edges(start, 
-                           stop,
-                           step):
+def safe_arange_with_edges(start, stop, step):
     """
     In order to avoid float point errors in the division by step.
 
@@ -44,7 +42,7 @@ def safe_arange_with_edges(start,
         incremented by step.
 
     """
-    return step * np.arange(start / step, (stop+step) / step)
+    return step * np.arange(start / step, (stop + step) / step)
 
 
 class Spectrum:
@@ -52,11 +50,8 @@ class Spectrum:
     Basic class for a spectrum containing x-values and a lineshape as
     numpy arrays.
     """
-    def __init__(self,
-                 start,
-                 stop,
-                 step,
-                 label):
+
+    def __init__(self, start, stop, step, label):
         """
         Initialize an array for the x values using the start, stop,
         and step values.
@@ -80,13 +75,13 @@ class Spectrum:
         self.start = start
         self.stop = stop
         self.step = step
-        self.x = np.flip(safe_arange_with_edges(self.start,
-                                                self.stop,
-                                                self.step))
+        self.x = np.flip(
+            safe_arange_with_edges(self.start, self.stop, self.step)
+        )
         self.clear_lineshape()
         self.label = label
         self.type = None
-        
+
     def clear_lineshape(self):
         """
         Set the lineshape to an array of all zeros, with the shape
@@ -98,11 +93,16 @@ class Spectrum:
 
         """
         self.lineshape = np.zeros(
-            int(np.round((self.stop-self.start+self.step)/self.step,
-                         decimals = 1)))
-        self.x = np.flip(safe_arange_with_edges(self.start,
-                                                self.stop,
-                                                self.step))
+            int(
+                np.round(
+                    (self.stop - self.start + self.step) / self.step,
+                    decimals=1,
+                )
+            )
+        )
+        self.x = np.flip(
+            safe_arange_with_edges(self.start, self.stop, self.step)
+        )
 
     def normalize(self):
         """
@@ -114,8 +114,8 @@ class Spectrum:
 
         """
         if np.sum(self.lineshape) != 0:
-            self.lineshape = self.lineshape / np.nansum(self.lineshape) 
-            
+            self.lineshape = self.lineshape / np.nansum(self.lineshape)
+
     def update_range(self):
         """
         Update the x axis of the spectrum. Can be used when the 
@@ -126,17 +126,17 @@ class Spectrum:
         None.
 
         """
-        self.x = np.flip(safe_arange_with_edges(self.start,
-                                                self.stop,
-                                                self.step))
+        self.x = np.flip(
+            safe_arange_with_edges(self.start, self.stop, self.step)
+        )
 
 
 class MeasuredSpectrum(Spectrum):
     """
     Class for loading a measured spectrum from a txt file.
     """
-    def __init__(self, 
-                 filepath):
+
+    def __init__(self, filepath):
         """
         Load the data into a Spectrum object. The step size is
         automatically determined from the last data points.
@@ -152,28 +152,26 @@ class MeasuredSpectrum(Spectrum):
         None.
 
         """
-        self.type = 'measured'
+        self.type = "measured"
         self.filepath = filepath
         self.label, data = self.load(self.filepath)
-        x = data[:,0]
-        
+        x = data[:, 0]
+
         # Determine the step size from the last two data points.
-        x1 = np.roll(x,-1)
-        diff = np.abs(np.subtract(x,x1))
-        self.step = np.round(np.min(diff[diff!=0]),3)
-        x = x[diff !=0]
+        x1 = np.roll(x, -1)
+        diff = np.abs(np.subtract(x, x1))
+        self.step = np.round(np.min(diff[diff != 0]), 3)
+        x = x[diff != 0]
         self.start = np.min(x)
         self.stop = np.max(x)
-        super(MeasuredSpectrum, self).__init__(self.start,
-                                               self.stop,
-                                               self.step, 
-                                               self.label)
+        super(MeasuredSpectrum, self).__init__(
+            self.start, self.stop, self.step, self.label
+        )
         self.x = x
-        self.lineshape = data[:,1][diff != 0]
-        #self.normalize()
-    
-    def load(self, 
-             filepath):
+        self.lineshape = data[:, 1][diff != 0]
+        # self.normalize()
+
+    def load(self, filepath):
         """
         Load the data from the file. The first line of the file needs to 
         contain the label as a string.
@@ -193,24 +191,21 @@ class MeasuredSpectrum(Spectrum):
 
         """
         lines = []
-        with open(filepath,'r') as file:
+        with open(filepath, "r") as file:
             for line in file.readlines():
                 lines += [line]
         # This takes the species given in the first line.
-        species = str(lines[0]).split('\n')[0] 
+        species = str(lines[0]).split("\n")[0]
         lines = lines[1:]
         lines = [[float(i) for i in line.split()] for line in lines]
         data = np.array(lines)
         # The label is a dictionary of the form
         # {species: concentration}.
         label = {species: 1.0}
-        
+
         return label, data
-    
-    def resize(self, 
-               start,
-               stop,
-               step):
+
+    def resize(self, start, stop, step):
         """
         Method to resize the x and lineshape arrays.
         First, the points outside the start and stop values are removed
@@ -231,29 +226,25 @@ class MeasuredSpectrum(Spectrum):
         -------
         None.
 
-        """       
+        """
         self._remove_outside_points(start, stop, step)
         self.start, self.stop, self.step = start, stop, step
 
-        
         initial_shape = self.x.shape
         self.update_range()
-        factor = self.x.shape[0]/initial_shape[0]
-        
+        factor = self.x.shape[0] / initial_shape[0]
+
         if not factor == 0.0:
             if factor > 1:
-                factor = math.ceil(factor) #int(np.rint(factor))+1
+                factor = math.ceil(factor)  # int(np.rint(factor))+1
                 self._upsample(factor)
-            elif factor < 1: 
-                print(1/factor)
-                factor = int(np.rint(1/factor))
+            elif factor < 1:
+                print(1 / factor)
+                factor = int(np.rint(1 / factor))
                 print(factor)
                 self._downsample(factor)
-        
-    def _remove_outside_points(self, 
-                               start,
-                               stop,
-                               step):
+
+    def _remove_outside_points(self, start, stop, step):
         """
         Method to remove points in the lineshape that are outside of 
         the range of the new start and stop values.
@@ -274,31 +265,28 @@ class MeasuredSpectrum(Spectrum):
         max_x = max(self.x)
         high = False
         low = False
-        
-        new_x = np.flip(safe_arange_with_edges(start,stop,self.step))
-        
+
+        new_x = np.flip(safe_arange_with_edges(start, stop, self.step))
+
         if min_x < start:
             index = np.where(self.x < start)[0][0]
             self.lineshape = self.lineshape[:index]
             diff_len_high = new_x.shape[0] - self.lineshape.shape[0]
             high = True
-            
+
         if max_x > stop:
-            index = np.where(self.x > stop)[0][-1]+1
+            index = np.where(self.x > stop)[0][-1] + 1
             self.lineshape = self.lineshape[index:]
             diff_len_low = new_x.shape[0] - self.lineshape.shape[0]
             low = True
 
-        if not(high is True and low is True):
+        if not (high is True and low is True):
             if high is True:
-                self._extrapolate(diff_len_high, side = 'high')
+                self._extrapolate(diff_len_high, side="high")
             if low is True:
-                self._extrapolate(diff_len_low, side = 'low')
-                
-            
-    def _extrapolate(self,
-                     no_of_points,
-                     side):
+                self._extrapolate(diff_len_low, side="low")
+
+    def _extrapolate(self, no_of_points, side):
         """
         Extrapolate the lineshape on the given side by concatenating the 
         lineshape with an array of the values at either side.
@@ -318,17 +306,18 @@ class MeasuredSpectrum(Spectrum):
         None.
 
         """
-        if side == 'low':
+        if side == "low":
             begin_value = self.lineshape[-1]
             self.lineshape = np.concatenate(
-                (self.lineshape, np.ones(no_of_points) * begin_value))
-        elif side == 'high':
+                (self.lineshape, np.ones(no_of_points) * begin_value)
+            )
+        elif side == "high":
             end_value = self.lineshape[0]
             self.lineshape = np.concatenate(
-                (np.ones(no_of_points) * end_value, self.lineshape))
+                (np.ones(no_of_points) * end_value, self.lineshape)
+            )
 
-    def _upsample(self,
-                  factor):
+    def _upsample(self, factor):
         """
         Interpolate the lineshape if the original lineshape has more points
         than the desired lineshape.
@@ -347,20 +336,20 @@ class MeasuredSpectrum(Spectrum):
 
         for i in range(self.lineshape.shape[0]):
             try:
-                new_lineshape[i*factor] = self.lineshape[i]
+                new_lineshape[i * factor] = self.lineshape[i]
             except IndexError:
                 pass
-            for j in range(1,factor):
+            for j in range(1, factor):
                 try:
-                    new_lineshape[i*factor+j] = np.mean((self.lineshape[i],
-                                                         self.lineshape[i+1]))
+                    new_lineshape[i * factor + j] = np.mean(
+                        (self.lineshape[i], self.lineshape[i + 1])
+                    )
                 except IndexError:
                     pass
-              
+
         self.lineshape = new_lineshape
-        
-    def _downsample(self,
-                    factor): 
+
+    def _downsample(self, factor):
         """
         Downsample the lineshape if the original lineshape has more points
         than the desired lineshape.
@@ -378,27 +367,27 @@ class MeasuredSpectrum(Spectrum):
         new_lineshape = np.zeros(self.x.shape[0])
 
         for i in range(self.x.shape[0]):
-            index = i*factor
+            index = i * factor
             if i == 0:
                 new_lineshape[i] = self.lineshape[index]
             else:
                 new_lineshape[i] = np.mean(
-                    self.lineshape[index-factor:index:factor])               
-             
+                    self.lineshape[index - factor : index : factor]
+                )
+
         self.lineshape = new_lineshape
-        
-        
+
+
 class ReferenceSpectrum(MeasuredSpectrum):
     """
     Class for loading, resizing, and saving a measured reference spectrum.
     """
-    def __init__(self,
-                 filepath):
-        super(ReferenceSpectrum, self).__init__(filepath)
-        self.type = 'reference'
 
-    def write(self,
-              output_folder):
+    def __init__(self, filepath):
+        super(ReferenceSpectrum, self).__init__(filepath)
+        self.type = "reference"
+
+    def write(self, output_folder):
         """
         Write the reference spectrum to a new file.
         
@@ -414,16 +403,19 @@ class ReferenceSpectrum(MeasuredSpectrum):
         """
         path = os.path.normpath(self.filepath)
         filename = path.split(os.sep)[-1]
-        filename_new = filename.split('.')[0] + '_new.txt'
+        filename_new = filename.split(".")[0] + "_new.txt"
 
         filepath_new = os.path.join(output_folder, filename_new)
-        with open(filepath_new, 'w') as file:
+        with open(filepath_new, "w") as file:
             species = list(self.label.keys())[0]
-            lines = [species + '\n']
+            lines = [species + "\n"]
             for i in range(len(self.x)):
                 lines.append(
-                    str('{:e}'.format(self.x[i])) + 
-                    ' ' + str('{:e}'.format(self.lineshape[i]))+ '\n')
+                    str("{:e}".format(self.x[i]))
+                    + " "
+                    + str("{:e}".format(self.lineshape[i]))
+                    + "\n"
+                )
             file.writelines(lines)
 
 
@@ -431,13 +423,12 @@ class FittedSpectrum(MeasuredSpectrum):
     """
     Class for loading and resizing a fitted spectrum.
     """
-    def __init__(self,
-                 filepath):
+
+    def __init__(self, filepath):
         super(FittedSpectrum, self).__init__(filepath)
-        self.type = 'fitted'
-        
-    def load(self,
-             filepath):
+        self.type = "fitted"
+
+    def load(self, filepath):
         """
         Load method from the MeasuredSpectrum class is overwritten 
         to accomodate header of CasaXPS export and associate the
@@ -458,18 +449,18 @@ class FittedSpectrum(MeasuredSpectrum):
 
         """
         lines = []
-        with open(filepath,'r') as file:
+        with open(filepath, "r") as file:
             for line in file.readlines():
                 lines += [line]
         # This takes the species given in the first line
-        label = str(lines[0]).split(' ', maxsplit = 2)[2].split(':')[0]
-        number = int(str(lines[0]).split(' ', maxsplit = 2)[1].split(':')[1])
+        label = str(lines[0]).split(" ", maxsplit=2)[2].split(":")[0]
+        number = int(str(lines[0]).split(" ", maxsplit=2)[1].split(":")[1])
         lines = lines[8:]
         lines = [[float(i) for i in line.split()] for line in lines]
-        data = np.array(lines)[:,2:]
+        data = np.array(lines)[:, 2:]
         self.number = number
-        
-        return label, data  
+
+        return label, data
 
 
 class SyntheticSpectrum(Spectrum):
@@ -477,11 +468,8 @@ class SyntheticSpectrum(Spectrum):
     Class for simulating a SyntheticSpectrum with multiple peaks
     forming the lineshape.
     """
-    def __init__(self,
-                 start,
-                 stop,
-                 step,
-                 label):
+
+    def __init__(self, start, stop, step, label):
         """
         Initialize an x array using the start, stop, and step values.
 
@@ -502,9 +490,9 @@ class SyntheticSpectrum(Spectrum):
 
         """
         super(SyntheticSpectrum, self).__init__(start, stop, step, label)
-        self.type = 'synthetic'
+        self.type = "synthetic"
         self.components = []
-    
+
     def build_line(self):
         """
         Build the lineshape by calling the function method on each of
@@ -518,11 +506,9 @@ class SyntheticSpectrum(Spectrum):
         self.clear_lineshape()
         for component in self.components:
             y = np.array([component.function(x) for x in self.x])
-            self.lineshape = np.add(self.lineshape,y)
-            
-    def addComponent(self,
-                     component,
-                     rebuild = True):
+            self.lineshape = np.add(self.lineshape, y)
+
+    def addComponent(self, component, rebuild=True):
         """
         Adding a Peak component to the spectrum. 
 
@@ -542,9 +528,8 @@ class SyntheticSpectrum(Spectrum):
         self.components += [component]
         if rebuild:
             self.rebuild()
-        
-    def remove_component(self,
-                         comp_idx):
+
+    def remove_component(self, comp_idx):
         """
         Remove a specific component and rebuild the lineshape 
         without it.
@@ -572,7 +557,7 @@ class SyntheticSpectrum(Spectrum):
 
         """
         self.update_range()
-        self.build_line()   
+        self.build_line()
 
 
 class SimulatedSpectrum(Spectrum):
@@ -582,11 +567,8 @@ class SimulatedSpectrum(Spectrum):
     gas phase scattering.
     
     """
-    def __init__(self,
-                 start,
-                 stop,
-                 step,
-                 label):
+
+    def __init__(self, start, stop, step, label):
         """
         Initialize an x array using the start, stop, and step values.
         Set all change parameters to None.
@@ -608,17 +590,15 @@ class SimulatedSpectrum(Spectrum):
 
         """
         super(SimulatedSpectrum, self).__init__(start, stop, step, label)
-        self.type = 'simulated'
+        self.type = "simulated"
         self.shift_x = None
         self.signal_to_noise = None
         self.resolution = None
         self.scatterer = None
         self.pressure = None
         self.distance = None
-        
-   
-    def shift_horizontal(self,
-                         shift_x):
+
+    def shift_horizontal(self, shift_x):
         """
         Shifts the output lineshape by some eV.
         
@@ -633,51 +613,52 @@ class SimulatedSpectrum(Spectrum):
         None.
         
         """
-        b = np.nansum(self.lineshape) 
-        
+        b = np.nansum(self.lineshape)
+
         # The shift should not be bigger than +-9 eV.
         acceptable_values = [-9, 9]
-        
+
         if shift_x is None:
             pass
-        elif (shift_x >= acceptable_values[0] \
-              and shift_x <= acceptable_values[1]):
+        elif (
+            shift_x >= acceptable_values[0]
+            and shift_x <= acceptable_values[1]
+        ):
             # scale the shift by the step size
-            shift = int(np.round(shift_x/self.step, 1))
-            
+            shift = int(np.round(shift_x / self.step, 1))
+
             begin_value = self.lineshape[0]
             end_value = self.lineshape[-1]
 
             # Edge handling by concatenating the first/last value
-            # so that the lineshape shape is conserved. 
+            # so that the lineshape shape is conserved.
             if shift_x < 0:
                 self.lineshape = np.concatenate(
-                    (np.full(-shift, begin_value),
-                     self.lineshape[:shift]))
-                
+                    (np.full(-shift, begin_value), self.lineshape[:shift])
+                )
+
             elif shift_x > 0:
                 self.lineshape = np.concatenate(
-                    (self.lineshape[shift:],
-                     np.full(shift, end_value)))      
+                    (self.lineshape[shift:], np.full(shift, end_value))
+                )
             else:
                 pass
-        
+
             self.shift_x = shift_x
-            
+
             # For normalization, take the sum of the original
             # lineshape.
             if b != 0:
                 self.lineshape /= b
             else:
                 print("Simulation was not successful.")
-        
+
         else:
             # Return error and repeat input
-            print('Shift value too big.')
-            print("Simulated spectrum was not changed!") 
-    
-    def add_noise(self,
-                  signal_to_noise):
+            print("Shift value too big.")
+            print("Simulated spectrum was not changed!")
+
+    def add_noise(self, signal_to_noise):
         """
         Adds noise from a Poisson distribution to the lineshape.
         
@@ -690,26 +671,26 @@ class SimulatedSpectrum(Spectrum):
         -------
         None.
         """
-        if (signal_to_noise == 0 or signal_to_noise is None):
+        if signal_to_noise == 0 or signal_to_noise is None:
             pass
         else:
             intensity_max = np.max(self.lineshape)
             intensity_min = np.min(self.lineshape)
-            
+
             intensity_diff = intensity_max - intensity_min
-            noise = intensity_diff/signal_to_noise*10
-        
+            noise = intensity_diff / signal_to_noise * 10
+
             # A poisson distributed noise is multplied by the noise
-            # factor and added to the lineshape. 
+            # factor and added to the lineshape.
             lamb = 1000
-            poisson_noise = noise* np.random.poisson(lamb,
-                                                     self.lineshape.shape)/lamb
-        
-            self.lineshape = self.lineshape + poisson_noise                         
+            poisson_noise = (
+                noise * np.random.poisson(lamb, self.lineshape.shape) / lamb
+            )
+
+            self.lineshape = self.lineshape + poisson_noise
             self.normalize()
-                  
-    def change_resolution(self,
-                          resolution):
+
+    def change_resolution(self, resolution):
         """
         Apply Gaussian instrumental broadening. This methdod broadens
         a spectrum assuming a Gaussian kernel. The width of the kernel
@@ -728,53 +709,54 @@ class SimulatedSpectrum(Spectrum):
         None.
 
         """
-        if (resolution == 0 or resolution is None):
+        if resolution == 0 or resolution is None:
             fwhm = resolution
         else:
-            fwhm = np.mean(self.x)/ float(resolution) 
+            fwhm = np.mean(self.x) / float(resolution)
             sigma = fwhm / (2.0 * np.sqrt(2.0 * np.log(2.0)))
-        
-            # To preserve the position of spectral lines, the 
-            # broadening function must be centered at 
+
+            # To preserve the position of spectral lines, the
+            # broadening function must be centered at
             # N//2 - (1-N%2) = N//2 + N%2 - 1.
             len_x = len(self.x)
             step = self.step
-            gauss_x = (np.arange(
-                len_x, dtype=np.int) - sum(divmod(len_x, 2)) + 1) * step
-        
-        
+            gauss_x = (
+                np.arange(len_x, dtype=np.int) - sum(divmod(len_x, 2)) + 1
+            ) * step
+
             # The broadening spectrum is a synthetic spectrum.
-            broadening_spectrum = SyntheticSpectrum(gauss_x[0],
-                                                    gauss_x[-1],
-                                                    step,
-                                                    label = 'Gauss')
-            broadening_spectrum.addComponent(Gauss(position = 0,
-                                                   width = sigma,
-                                                   intensity = 1))
-                     
+            broadening_spectrum = SyntheticSpectrum(
+                gauss_x[0], gauss_x[-1], step, label="Gauss"
+            )
+            broadening_spectrum.addComponent(
+                Gauss(position=0, width=sigma, intensity=1)
+            )
+
             # This assures that the edges are handled correctly.
             len_y = len(self.lineshape)
-            y = np.concatenate((np.ones(len_y) * self.lineshape[0],
-                                self.lineshape,
-                                np.ones(len_y) * self.lineshape[-1]))
-        
+            y = np.concatenate(
+                (
+                    np.ones(len_y) * self.lineshape[0],
+                    self.lineshape,
+                    np.ones(len_y) * self.lineshape[-1],
+                )
+            )
+
             # This performs the convolution of the initial lineshape
             # with the Gaussian kernel.
             # Note: The convolution is performed in the Fourier space.
-            result = fftconvolve(y,
-                                 broadening_spectrum.lineshape,
-                                 mode="same")
+            result = fftconvolve(
+                y, broadening_spectrum.lineshape, mode="same"
+            )
             result = result[len_y:-len_y]
-            
+
             self.lineshape = result
             self.normalize()
-        self.fwhm = fwhm    
-        
-    def scatter_in_gas(self,
-                       filetype = 'json',
-                       label = 'He',
-                       distance = 0.8,
-                       pressure = 1.0):
+        self.fwhm = fwhm
+
+    def scatter_in_gas(
+        self, filetype="json", label="He", distance=0.8, pressure=1.0
+    ):
         """
         This method is for the case of scattering though a gas
         phase/film. First the convolved spectra are dotted with the
@@ -802,91 +784,105 @@ class SimulatedSpectrum(Spectrum):
         None.
 
         """
-        if label in ['He', 'H2', 'N2', 'O2']:
+        if label in ["He", "H2", "N2", "O2"]:
             # Make sure that the ScatteringMedium class is imported.
             from .scatterers import ScatteringMedium
+
             medium = ScatteringMedium(label)
             # Loss function and lineshape need to have the same step
             # size.
             medium.scatterer.loss_function.step = self.step
             medium.pressure = pressure
             medium.distance = distance
-            # Calculate ScatteringMedium attributes based on the 
+            # Calculate ScatteringMedium attributes based on the
             # inputs.
             medium.convert_distance()
-            medium.calcDensity()   
-            
-            if filetype == 'json':
-                # Build the loss function using the parameters in a 
+            medium.calcDensity()
+
+            if filetype == "json":
+                # Build the loss function using the parameters in a
                 # json file.
-                input_datapath = os.path.dirname(
-                    os.path.abspath(__file__)).partition(
-                        'augmentation')[0] + '\\data\\scatterers.json'
+                input_datapath = (
+                    os.path.dirname(os.path.abspath(__file__)).partition(
+                        "augmentation"
+                    )[0]
+                    + "\\data\\scatterers.json"
+                )
                 medium.scatterer.build_loss_from_json(input_datapath)
                 loss_fn = medium.scatterer.loss_function
-                loss_lineshape = loss_fn.lineshape                     
-                        
-            elif filetype == 'csv':
+                loss_lineshape = loss_fn.lineshape
+
+            elif filetype == "csv":
                 # Build the loss function using xy values in a csv
                 # file.
-                root_dir = os.path.abspath(__file__).partition(
-                    'augmentation')[0] + '\\data'
-                data_dir = os.path.join(root_dir,
-                                        label + ' loss function.csv')
+                root_dir = (
+                    os.path.abspath(__file__).partition("augmentation")[0]
+                    + "\\data"
+                )
+                data_dir = os.path.join(
+                    root_dir, label + " loss function.csv"
+                )
                 loss_x = []
                 loss_lineshape = []
-                
-                with open(data_dir, mode='r') as csv_file:
-                    reader = csv.DictReader(csv_file, fieldnames = ['x','y'])
+
+                with open(data_dir, mode="r") as csv_file:
+                    reader = csv.DictReader(csv_file, fieldnames=["x", "y"])
                     for row in reader:
                         d = dict(row)
-                        loss_x.append(float(d['x']))
-                        loss_lineshape.append(float(d['y']))
-                        
+                        loss_x.append(float(d["x"]))
+                        loss_lineshape.append(float(d["y"]))
+
                 loss_x = np.array(loss_x)
                 loss_lineshape = np.array(loss_lineshape)
-                
+
                 medium.scatterer.inelastic_xsect = 0.08
                 medium.scatterer.norm_factor = 1
-            
+
             if np.sum(loss_lineshape) != 0:
                 # Normalize the lineshape of the loss function.
-                loss_lineshape /= np.sum(loss_lineshape)  
-                                               
+                loss_lineshape /= np.sum(loss_lineshape)
+
             y = self.lineshape
-    
-            # move the minimum of the lineshape to 0. 
+
+            # move the minimum of the lineshape to 0.
             min_value = np.min(y)
             y -= min_value
-           
+
             loss = loss_lineshape
 
             # Pad the imput spectrum with zeros so that it has the same
             # dimensions as the loss function.
-            input_spec_padded = np.pad(y, (loss.shape[0]-y.shape[0],0),
-                                       'constant', constant_values = 0)
-            
-            # Take Fourier transform of the input spectrum and the 
+            input_spec_padded = np.pad(
+                y,
+                (loss.shape[0] - y.shape[0], 0),
+                "constant",
+                constant_values=0,
+            )
+
+            # Take Fourier transform of the input spectrum and the
             # loss function.
             fft_input_spec = np.fft.fft(input_spec_padded)
             fft_loss = np.fft.fft(loss)
-            
+
             # Calculate the poisson factor for inelastic scattering.
-            poisson_factor = medium.distance * \
-                medium.scatterer.inelastic_xsect * \
-                medium.density
+            poisson_factor = (
+                medium.distance
+                * medium.scatterer.inelastic_xsect
+                * medium.density
+            )
             norm_factor = medium.scatterer.norm_factor
-            total_factor = poisson_factor * norm_factor       
-            
+            total_factor = poisson_factor * norm_factor
+
             exp_factor = np.exp(-1 * poisson_factor)
-            
+
             # Convolution in real space = Multiplication in Fourier space.
-            fft_total = exp_factor * np.multiply(fft_input_spec, 
-                                         np.exp(total_factor*fft_loss))
-                   
+            fft_total = exp_factor * np.multiply(
+                fft_input_spec, np.exp(total_factor * fft_loss)
+            )
+
             # Take the inverse Fourier transform of the convolved spectrum.
-            total = np.real(np.fft.ifft(fft_total)[-len(y):])
-            result = total + min_value  
+            total = np.real(np.fft.ifft(fft_total)[-len(y) :])
+            result = total + min_value
 
             self.lineshape = result
             self.normalize()
@@ -897,22 +893,27 @@ class SimulatedSpectrum(Spectrum):
         elif label is None:
             pass
         else:
-            print('Please enter a valid scatterer label!')
- 
+            print("Please enter a valid scatterer label!")
 
-#%% 
-if __name__ == '__main__':
-    from peaks import (Gauss, Lorentz, Voigt, VacuumExcitation, Tougaard)
-    label = 'Fe2O3'
-    datapath = os.path.dirname(
-                os.path.abspath(__file__)).partition(
-                        'augmentation')[0] + 'data\\references'
-                    
-    filepath = datapath + '\\' + label + '.txt'
-        
+
+#%%
+if __name__ == "__main__":
+    from peaks import Gauss, Lorentz, Voigt, VacuumExcitation, Tougaard
+
+    label = "Fe2O3"
+    datapath = (
+        os.path.dirname(os.path.abspath(__file__)).partition("augmentation")[
+            0
+        ]
+        + "data\\references"
+    )
+
+    filepath = datapath + "\\" + label + ".txt"
+
     measured_spectrum = MeasuredSpectrum(filepath)
-    
+
     from figures import Figure
-    fig = Figure(measured_spectrum.x,
-                 measured_spectrum.lineshape,
-                 title = label)
+
+    fig = Figure(
+        measured_spectrum.x, measured_spectrum.lineshape, title=label
+    )

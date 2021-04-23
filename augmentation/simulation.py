@@ -7,12 +7,15 @@ Created on Thu May  7 11:25:02 2020
 
 import numpy as np
 import os
-from base_model.spectra import (MeasuredSpectrum, SimulatedSpectrum,
-                                SyntheticSpectrum)
+from base_model.spectra import (
+    MeasuredSpectrum,
+    SimulatedSpectrum,
+    SyntheticSpectrum,
+)
 from base_model.figures import Figure
 
 #%%
-class Simulation():
+class Simulation:
     """
     Basic class for simulating a spectrum from input spectra.
     The main methods are:
@@ -21,8 +24,8 @@ class Simulation():
           as well as simulation of gas phase scattering
         - Plotting of the input and the simulated spectrum
     """
-    def __init__(self, 
-                 input_spectra):  
+
+    def __init__(self, input_spectra):
         """
         Initialize the input spectra (a list) and an empty 
         SimulatedSpectrum for the output. The x-range for the output
@@ -41,20 +44,16 @@ class Simulation():
         self.input_spectra = input_spectra
         for spectrum in input_spectra:
             spectrum.normalize()
-        
+
         # Initilaize the axes and label to the spectrum loaded first.
-        start = self.input_spectra[0].start 
-        stop = self.input_spectra[0].stop    
-        step = self.input_spectra[0].step 
+        start = self.input_spectra[0].start
+        stop = self.input_spectra[0].stop
+        step = self.input_spectra[0].step
         label = self.input_spectra[0].label
-        
-        self.output_spectrum = SimulatedSpectrum(start,
-                                                 stop,
-                                                 step,
-                                                 label)         
-        
-    def combine_linear(self,
-                       scaling_params):
+
+        self.output_spectrum = SimulatedSpectrum(start, stop, step, label)
+
+    def combine_linear(self, scaling_params):
         """
         Performs a linear combination of the input spectra. Each
         spectrum is scaled by a parameter in the range of [0,1]. All
@@ -74,42 +73,40 @@ class Simulation():
         """
         # Make sure that the right amount of params is given.
         if len(self.input_spectra) < len(scaling_params):
-            print('Please supply the correct amount of scaling parameters.')
-            print('Simulated spectrum was not changed!') 
-            
+            print("Please supply the correct amount of scaling parameters.")
+            print("Simulated spectrum was not changed!")
+
         elif len(self.input_spectra) > len(scaling_params):
-            print('Please supply enough scaling parameters.')
-            print('Simulated spectrum was not changed!') 
-         
+            print("Please supply enough scaling parameters.")
+            print("Simulated spectrum was not changed!")
+
         else:
             self.output_spectrum.label = {}
-            if np.round(sum(scaling_params),decimals = 1) == 1.0:
+            if np.round(sum(scaling_params), decimals=1) == 1.0:
                 output_list = []
                 for i in range(len(self.input_spectra)):
                     # Species = List of input spectra names
                     species = list(self.input_spectra[i].label.keys())[0]
                     concentration = scaling_params[i]
-                    
-                    intensity = self.input_spectra[i].lineshape* \
-                                scaling_params[i]
+
+                    intensity = (
+                        self.input_spectra[i].lineshape * scaling_params[i]
+                    )
                     output_list.append(intensity)
-                    
+
                     # For each species, the label gets a new key:value
                     # pair of the format species: concentration
                     self.output_spectrum.label[species] = concentration
-           
+
                 # Linear combination
                 self.output_spectrum.lineshape = sum(output_list)
                 self.output_spectrum.normalize()
-                
+
             else:
-               print('Scaling parameters have to sum to 1!') 
-               print('Simulated spectrum was not changed!') 
+                print("Scaling parameters have to sum to 1!")
+                print("Simulated spectrum was not changed!")
 
-
-    def change_spectrum(self,
-                        spectrum = None,
-                        **kwargs): 
+    def change_spectrum(self, spectrum=None, **kwargs):
         """
         Parameters
         ----------
@@ -144,49 +141,48 @@ class Simulation():
 
         """
         if spectrum is not None:
-            # The step width is defined by the measured spectrum. 
-            # The output spectrum needs to have its step widths 
+            # The step width is defined by the measured spectrum.
+            # The output spectrum needs to have its step widths
             # redefined.
             self.output_spectrum.lineshape = spectrum.lineshape
-            start = spectrum.start 
-            stop = spectrum.stop    
-            step = spectrum.step 
+            start = spectrum.start
+            stop = spectrum.stop
+            step = spectrum.step
             self.label = spectrum.label
-            self.output_spectrum.x = np.flip(np.arange(
-                                                 start,
-                                                 stop+step,
-                                                 step))
+            self.output_spectrum.x = np.flip(
+                np.arange(start, stop + step, step)
+            )
         else:
             pass
-            
-        if 'fwhm' in kwargs.keys():
-            self.output_spectrum.resolution = kwargs['fwhm']
-            self.output_spectrum.change_resolution(kwargs['fwhm'])
-            
-        if 'shift_x' in kwargs.keys():
-            self.output_spectrum.shift_x = kwargs['shift_x']
-            self.output_spectrum.shift_horizontal(kwargs['shift_x'])
-            
-        if 'signal_to_noise' in kwargs.keys():
-            self.output_spectrum.signal_to_noise = kwargs['signal_to_noise'] 
-            self.output_spectrum.add_noise(kwargs['signal_to_noise'])
-            
-        if 'scatterer' in kwargs.keys():
-            scatter_dict = kwargs['scatterer']
-            self.output_spectrum.scatterer = scatter_dict['label']
-            self.output_spectrum.distance = scatter_dict['distance']
-            self.output_spectrum.pressure = scatter_dict['pressure']
-            
-            self.output_spectrum.scatter_in_gas('json',
-                                                scatter_dict['label'],
-                                                scatter_dict['distance'],
-                                                scatter_dict['pressure'])
-            
+
+        if "fwhm" in kwargs.keys():
+            self.output_spectrum.resolution = kwargs["fwhm"]
+            self.output_spectrum.change_resolution(kwargs["fwhm"])
+
+        if "shift_x" in kwargs.keys():
+            self.output_spectrum.shift_x = kwargs["shift_x"]
+            self.output_spectrum.shift_horizontal(kwargs["shift_x"])
+
+        if "signal_to_noise" in kwargs.keys():
+            self.output_spectrum.signal_to_noise = kwargs["signal_to_noise"]
+            self.output_spectrum.add_noise(kwargs["signal_to_noise"])
+
+        if "scatterer" in kwargs.keys():
+            scatter_dict = kwargs["scatterer"]
+            self.output_spectrum.scatterer = scatter_dict["label"]
+            self.output_spectrum.distance = scatter_dict["distance"]
+            self.output_spectrum.pressure = scatter_dict["pressure"]
+
+            self.output_spectrum.scatter_in_gas(
+                "json",
+                scatter_dict["label"],
+                scatter_dict["distance"],
+                scatter_dict["pressure"],
+            )
+
         self.output_spectrum.normalize()
 
-
-    def plot_simulation(self, 
-                        plot_inputs = False):   
+    def plot_simulation(self, plot_inputs=False):
         """
         Creates Figure objects for the output spectrum and (optionally)
         for the input spectra.
@@ -202,42 +198,46 @@ class Simulation():
         -------
         None.
 
-        """        
+        """
         if plot_inputs:
             figs_input = []
             for spectrum in self.input_spectra:
                 x = spectrum.x
                 y = spectrum.lineshape
                 title = next(iter(spectrum.label))
-                fig_input = Figure(x, y, title = title)
+                fig_input = Figure(x, y, title=title)
                 figs_input.append(fig_input)
-        
-        Figure(self.output_spectrum.x,
-               self.output_spectrum.lineshape,
-               title = self.output_spectrum.type)
 
-            
+        Figure(
+            self.output_spectrum.x,
+            self.output_spectrum.lineshape,
+            title=self.output_spectrum.type,
+        )
 
-#%% 
-if __name__ == '__main__':
-    datapath = os.path.dirname(
-                os.path.abspath(__file__)).partition(
-                        'augmentation')[0] + 'data\\references'
-       
-    labels = ['Fe_metal','FeO','Fe3O4','Fe2O3']
+
+#%%
+if __name__ == "__main__":
+    datapath = (
+        os.path.dirname(os.path.abspath(__file__)).partition("augmentation")[
+            0
+        ]
+        + "data\\references"
+    )
+
+    labels = ["Fe_metal", "FeO", "Fe3O4", "Fe2O3"]
     input_spectra = []
     for label in labels:
-        filename = datapath + '\\' + label + '.txt'
+        filename = datapath + "\\" + label + ".txt"
         input_spectra += [MeasuredSpectrum(filename)]
-         
+
     sim = Simulation(input_spectra)
-    
-    sim.combine_linear(scaling_params = [0.4,0.4,0.1,0.1])
-    sim.change_spectrum(shift_x = 5,
-                        signal_to_noise = 20,
-                        fwhm = 200,
-                        scatterer = {'label': 'O2',
-                                     'distance' : 0.2,
-                                     'pressure' : 12.0})
-    print('Linear combination parameters: ' + str(sim.output_spectrum.label))
-    sim.plot_simulation(plot_inputs = False)
+
+    sim.combine_linear(scaling_params=[0.4, 0.4, 0.1, 0.1])
+    sim.change_spectrum(
+        shift_x=5,
+        signal_to_noise=20,
+        fwhm=200,
+        scatterer={"label": "O2", "distance": 0.2, "pressure": 12.0},
+    )
+    print("Linear combination parameters: " + str(sim.output_spectrum.label))
+    sim.plot_simulation(plot_inputs=False)
