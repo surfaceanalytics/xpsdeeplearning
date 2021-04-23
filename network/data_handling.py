@@ -469,8 +469,7 @@ class DataHandler:
                 names_test,
             )
 
-        else:
-            return X_train, X_val, X_test, y_train, y_val, y_test
+        return X_train, X_val, X_test, y_train, y_val, y_test
 
     def check_class_distribution(self, task):
 
