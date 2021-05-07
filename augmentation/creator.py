@@ -59,6 +59,8 @@ class Creator:
             self.params = json.load(param_file)
             self.sim_ranges = self.params["sim_ranges"]
 
+        # Replace the default params with the supplied params
+        # if available.
         if params is not None:
             for key in params.keys():
                 if key != "sim_ranges":
@@ -68,6 +70,49 @@ class Creator:
                         self.sim_ranges[subkey] = params["sim_ranges"][subkey]
 
         self.no_of_simulations = self.params["no_of_simulations"]
+        self.labels = self.params["labels"]
+
+        # Load input spectra from all reference sets.
+        self.input_spectra = self.load_input_spectra(
+            self.params["input_filenames"]
+        )
+
+        # No. of parameter = 1 ref_set + no. of linear parameter + 6
+        # (one parameter each for resolution, shift_x, signal_to noise,
+        # scatterer, distance, pressure)
+        self.no_of_linear_params = len(self.labels)
+        no_of_params = 1 + self.no_of_linear_params + 6
+
+        self.augmentation_matrix = np.zeros(
+            (self.no_of_simulations, no_of_params)
+        )
+
+        if self.params["single"] is True:
+            self.create_matrix(single=True)
+        else:
+            if self.params["variable_no_of_inputs"] is True:
+                self.create_matrix(single=False, variable_no_of_inputs=True)
+            else:
+                self.create_matrix(single=False, variable_no_of_inputs=False)
+
+    def load_input_spectra(self, filenames):
+        """
+        Load input spectra from all reference sets into DataFrame.
+        Will store NaN value if no reference is available.        
+
+        Parameters
+        ----------
+        filenames : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        pd.DataFrame
+            A DataFrame containing instances of MeasuredSpectrum.
+            Each row contains one set of reference spectra.
+
+        """
+        input_spectra = pd.DataFrame(columns=self.labels)
 
         input_datapath = os.path.join(
             *[
@@ -79,29 +124,20 @@ class Creator:
             ]
         )
 
-        self.input_spectra = []
-        for label in self.params["input_filenames"]:
-            filename = os.path.join(input_datapath, label + ".txt")
-            self.input_spectra += [MeasuredSpectrum(filename)]
+        input_spectra_list = []
+        for set_key, value_list in filenames.items():
+            ref_spectra_dict = {}
+            for filename in value_list:
+                filepath = os.path.join(input_datapath, filename)
+                measured_spectrum = MeasuredSpectrum(filepath)
+                label = next(iter(measured_spectrum.label.keys()))
+                ref_spectra_dict[label] = measured_spectrum
 
-        # No. of parameter = no. of linear parameter + 6
-        # (one parameter each for resolution, shift_x, signal_to noise,
-        # scatterer, distance, pressure)
-        self.no_of_linear_params = len(self.params["input_filenames"])
-        no_of_params = self.no_of_linear_params + 6
+            input_spectra_list.append(ref_spectra_dict)
 
-        self.augmentation_matrix = np.zeros(
-            (self.no_of_simulations, no_of_params)
+        return pd.concat(
+            [input_spectra, pd.DataFrame(input_spectra_list)], join="outer"
         )
-
-        if self.params["single"] is True:
-            self.create_matrix(single=True)
-
-        else:
-            if self.params["variable_no_of_inputs"] is True:
-                self.create_matrix(single=False, variable_no_of_inputs=True)
-            else:
-                self.create_matrix(single=False, variable_no_of_inputs=False)
 
     def create_matrix(self, single=False, variable_no_of_inputs=True):
         """
@@ -122,8 +158,8 @@ class Creator:
             The default is False.
         variable_no_of_inputs : bool, optional
             If variable_no_of_inputs and if single, then the number of 
-            input spectra used in the linear combination will be randomly
-            chosen from the interval (1, No. of input spectra).
+            input spectra used in the linear combination will be
+            randomly chosen from the interval (1, No. of input spectra).
             The default is True.
 
         Returns
@@ -132,182 +168,246 @@ class Creator:
 
         """
         for i in range(self.no_of_simulations):
-            if not single:
-                if variable_no_of_inputs:
-                    # Randomly choose how many spectra shall be combined
-                    no_of_spectra = np.random.randint(
-                        1, self.no_of_linear_params + 1
-                    )
-                    r = [
-                        np.random.uniform(0.1, 1.0)
-                        for j in range(no_of_spectra)
-                    ]
-                    linear_params = [k / sum(r) for k in r]
+            key = self.select_reference_set()  # select a set of references
+            self.augmentation_matrix[i, 0] = int(key)
 
-                    # Don't allow parameters below 0.1.
-                    for p in linear_params:
-                        if p <= 0.1:
-                            linear_params[linear_params.index(p)] = 0.0
+            self.augmentation_matrix[
+                i, 1 : self.no_of_linear_params + 1
+            ] = self.select_scaling_params(key, single, variable_no_of_inputs)
 
-                    linear_params = [
-                        k / sum(linear_params) for k in linear_params
-                    ]
+            self.augmentation_matrix[
+                i, self.no_of_linear_params + 1 :
+            ] = self.select_sim_params(key)
 
-                    # Add zeros if no_of_spectra < no_of_linear_params.
-                    for _ in range(self.no_of_linear_params - no_of_spectra):
-                        linear_params.append(0.0)
-
-                    # Randomly shuffle so that zeros are equally distributed.
-                    np.random.shuffle(linear_params)
-
-                else:
-                    # Linear parameters
-                    r = [
-                        np.random.uniform(0.1, 1.0)
-                        for j in range(self.no_of_linear_params)
-                    ]
-                    s = sum(r)
-                    linear_params = [k / s for k in r]
-
-                    while all(p >= 0.1 for p in linear_params) is not False:
-                        # sample again if one of the parameters is smaller
-                        # than 0.1.
-                        r = [
-                            np.random.uniform(0.1, 1.0)
-                            for j in range(self.no_of_linear_params)
-                        ]
-                        s = sum(r)
-                        linear_params = [k / s for k in r]
-
-                self.augmentation_matrix[
-                    i, 0 : self.no_of_linear_params
-                ] = linear_params
-
-            else:
-                q = np.random.choice(list(range(self.no_of_linear_params)))
-                self.augmentation_matrix[i, q] = 1.0
-                self.augmentation_matrix[i, :q] = 0
-                self.augmentation_matrix[i, q + 1 :] = 0
-
-            # FWHM
-            if self.params["broaden"] is not False:
-                self.augmentation_matrix[i, -6] = np.random.randint(
-                    self.sim_ranges["FWHM"][0], self.sim_ranges["FWHM"][1]
-                )
-            else:
-                self.augmentation_matrix[i, -6] = 0
-
-            # shift_x
-            if self.params["shift_x"] is not False:
-                shift_range = np.arange(
-                    self.sim_ranges["shift_x"][0],
-                    self.sim_ranges["shift_x"][1],
-                    self.input_spectra[0].step,
-                )
-                r = np.round(
-                    np.random.randint(0, len(shift_range)), decimals=2
-                )
-                if (
-                    -self.input_spectra[0].step
-                    < shift_range[r]
-                    < self.input_spectra[0].step
-                ):
-                    shift_range[r] = 0
-
-                self.augmentation_matrix[i, -5] = shift_range[r]
-
-            else:
-                self.augmentation_matrix[i, -5] = 0
-
-            # Signal-to-noise
-            if self.params["noise"] is not False:
-                self.augmentation_matrix[i, -4] = (
-                    np.random.randint(
-                        self.sim_ranges["noise"][0] * 1000,
-                        self.sim_ranges["noise"][1] * 1000,
-                    )
-                    / 1000
-                )
-
-            else:
-                self.augmentation_matrix[i, -4] = 0
-
-            # Scattering
-            if self.params["scatter"] is not False:
-                # Scatterer ID
-                self.augmentation_matrix[i, -3] = np.random.randint(
-                    0, len(self.sim_ranges["scatterers"].keys())
-                )
-                # Pressure
-                self.augmentation_matrix[i, -2] = (
-                    np.random.randint(
-                        self.sim_ranges["pressure"][0] * 10,
-                        self.sim_ranges["pressure"][1] * 10,
-                    )
-                    / 10
-                )
-                # Distance
-                self.augmentation_matrix[i, -1] = (
-                    np.random.randint(
-                        self.sim_ranges["distance"][0] * 100,
-                        self.sim_ranges["distance"][1] * 100,
-                    )
-                    / 100
-                )
-
-            else:
-                # Scatterer
-                self.augmentation_matrix[:, -3] = None
-                # Pressurex
-                self.augmentation_matrix[:, -2] = 0
-                # Distance
-                self.augmentation_matrix[:, -1] = 0
-
-    def run(self, broaden=True, x_shift=True, noise=True, scatter=True):
+    def select_reference_set(self):
         """
-        The artificial spectra and stare createad using the simulation
-        class and the augmentation matrix. All data is then stored in 
-        a dataframe.
+        Randomly select a number for calling one of the reference sets.
+
+        Returns
+        -------
+        int
+            A number between 0 and the number of input reference sets.
+
+        """
+        return np.random.randint(0, self.input_spectra.shape[0])
+
+    def select_scaling_params(
+        self, key, single=False, variable_no_of_inputs=True
+    ):
+        """
+        Select scaling parameters for a simulation from one set 
+        of reference spectra (given by key).
 
         Parameters
         ----------
-        broaden : bool, optional
-            If bool, the spectra are artificially broadened.
+        key : int
+            Integer number of the reference spectrum set to use.
+        single : bool, optional
+            If single, only one input spectrum is taken.
+            The default is False.
+        variable_no_of_inputs : bool, optional
+            If variable_no_of_inputs and if single, then the number of 
+            input spectra used in the linear combination will be 
+            randomly chosen from the interval (1, No. of input spectra).
             The default is True.
-        x_shift : bool, optional
-            If x_shift, the spectra are shifted horizontally.
-            The default is True.
-        noise : bool, optional
-            If noise, artificial noise is added to the spectra.
-            The default is True.
-        scatter : bool, optional
-            If scatter, scattering through a gas phase is simulated.
-            The default is True.
+
+        Returns
+        -------
+        linear_params : list
+            A list of parameters for the linear combination of r
+            eference spectra.
+
+        """
+        linear_params = [0.0] * self.no_of_linear_params
+
+        ### Only select linear params if a reference spectrum is available.
+        inputs = self.input_spectra.iloc[[key]]
+        indices = [
+            self.labels.index(j)
+            for j in inputs.columns[inputs.isnull().any() == False].tolist()
+        ]
+        indices_empty = [
+            self.labels.index(j)
+            for j in inputs.columns[inputs.isnull().any()].tolist()
+        ]
+
+        if not single:
+            if variable_no_of_inputs:
+                # Randomly choose how many spectra shall be combined
+                no_of_spectra = np.random.randint(1, len(indices) + 1)
+                r = [
+                    np.random.uniform(0.1, 1.0) for j in range(no_of_spectra)
+                ]
+                params = [k / sum(r) for k in r]
+
+                # Don't allow parameters below 0.1.
+                for p in params:
+                    if p <= 0.1:
+                        params[params.index(p)] = 0.0
+
+                params = [k / sum(params) for k in params]
+
+                # Add zeros if no_of_spectra < no_of_linear_params.
+                for _ in range(len(indices) - no_of_spectra):
+                    params.append(0.0)
+
+            else:
+                # Linear parameters
+                r = [np.random.uniform(0.1, 1.0) for j in range(len(indices))]
+                s = sum(r)
+                params = [k / s for k in r]
+
+                while all(p >= 0.1 for p in params) is not False:
+                    # sample again if one of the parameters is smaller
+                    # than 0.1.
+                    r = [
+                        np.random.uniform(0.1, 1.0)
+                        for j in range(len(indices))
+                    ]
+                    s = sum(r)
+                    params = [k / s for k in r]
+
+            # Randomly shuffle so that zeros are equally distributed.
+            np.random.shuffle(params)
+
+            # Add linear params at the positions where there
+            # are reference spectra available.
+            param_iter = iter(params)
+            for index in indices:
+                linear_params[index] = next(param_iter)
+
+        else:
+            q = np.random.choice(indices)
+            linear_params[q] = 1.0
+
+        # If no spectrum is avalable, set the linear param to NaN.
+        for index in indices_empty:
+            linear_params[index] = float("NAN")
+
+        return linear_params
+
+    def select_sim_params(self, row):
+        """
+        Select simulation parameters for one row in the augmentation matrix.
+
+        Parameters
+        ----------
+        row : int
+            Row in the augmentation matrix to fill.
+
+        Returns
+        -------
+        sim_params : list
+            List of parameters for changing a spectrum using 
+            various processing steps.
+
+        """
+
+        sim_params = [0.0] * 6
+        step = self.input_spectra.iloc[row][0].step
+
+        # FWHM
+        if self.params["broaden"] is not False:
+            sim_params[-6] = np.random.randint(
+                self.sim_ranges["FWHM"][0], self.sim_ranges["FWHM"][1]
+            )
+        else:
+            self.augmentation_matrix[row, -6] = 0
+
+        # shift_x
+        if self.params["shift_x"] is not False:
+            shift_range = np.arange(
+                self.sim_ranges["shift_x"][0],
+                self.sim_ranges["shift_x"][1],
+                step,
+            )
+            r = np.round(np.random.randint(0, len(shift_range)), decimals=2)
+            if -step < shift_range[r] < step:
+                shift_range[r] = 0
+
+            sim_params[-5] = shift_range[r]
+
+        else:
+            sim_params[-5] = 0
+
+        # Signal-to-noise
+        if self.params["noise"] is not False:
+            sim_params[-4] = (
+                np.random.randint(
+                    self.sim_ranges["noise"][0] * 1000,
+                    self.sim_ranges["noise"][1] * 1000,
+                )
+                / 1000
+            )
+
+        else:
+            sim_params[-4] = 0
+
+        # Scattering
+        if self.params["scatter"] is not False:
+            # Scatterer ID
+            sim_params[-3] = np.random.randint(
+                0, len(self.sim_ranges["scatterers"].keys())
+            )
+            # Pressure
+            sim_params[-2] = (
+                np.random.randint(
+                    self.sim_ranges["pressure"][0] * 10,
+                    self.sim_ranges["pressure"][1] * 10,
+                )
+                / 10
+            )
+            # Distance
+            sim_params[-1] = (
+                np.random.randint(
+                    self.sim_ranges["distance"][0] * 100,
+                    self.sim_ranges["distance"][1] * 100,
+                )
+                / 100
+            )
+
+        else:
+            # Scatterer
+            sim_params[-3] = None
+            # Pressurex
+            sim_params[-2] = 0
+            # Distance
+            sim_params[-1] = 0
+
+        return sim_params
+
+    def run(self):
+        """
+        The artificial spectra are createad using the simulation
+        class and the augmentation matrix. All data is then stored in 
+        a dataframe.        
 
         Returns
         -------
         None.
 
         """
-        if not broaden:
-            self.augmentation_matrix[:, -6] = 0
-        if not x_shift:
-            self.augmentation_matrix[:, -5] = 0
-        if not noise:
-            self.augmentation_matrix[:, -4] = 0
-        if not scatter:
-            self.augmentation_matrix[:, -3] = None
-            # Distance
-            self.augmentation_matrix[:, -2] = 0
-            # Pressure
-            self.augmentation_matrix[:, -1] = 0
-
         dict_list = []
         for i in range(self.no_of_simulations):
-            self.sim = Simulation(self.input_spectra)
-            scaling_params = self.augmentation_matrix[i][
-                0 : self.no_of_linear_params
+            ref_set_key = int(self.augmentation_matrix[i, 0])
+
+            # Only select input spectra and scaling parameter
+            # for the references that are avalable.
+            sim_input_spectra = [
+                spectrum
+                for spectrum in self.input_spectra.iloc[ref_set_key].tolist()
+                if str(spectrum) != "nan"
             ]
+            scaling_params = [
+                p
+                for p in self.augmentation_matrix[i][
+                    1 : self.no_of_linear_params + 1
+                ]
+                if str(p) != "nan"
+            ]
+
+            self.sim = Simulation(sim_input_spectra)
+
             self.sim.combine_linear(scaling_params=scaling_params)
 
             fwhm = self.augmentation_matrix[i][-6]
@@ -337,7 +437,9 @@ class Creator:
                 },
             )
 
-            d = self._dict_from_one_simulation(self.sim)
+            d1 = {"reference_set": ref_set_key}
+            d2 = self._dict_from_one_simulation(self.sim)
+            d = {**d1, **d2}
             dict_list.append(d)
             print(
                 "Simulation: "
@@ -380,6 +482,10 @@ class Creator:
             "x": spectrum.x,
             "y": spectrum.lineshape,
         }
+
+        for label_value in self.labels:
+            if label_value not in d["label"].keys():
+                d["label"][label_value] = 0.0
 
         return d
 
@@ -582,10 +688,11 @@ if __name__ == "__main__":
     creator = Creator(params=params)
     creator.run()
     creator.plot_random(10)
-    output_datafolder = params["output_datafolder"]
-    output_filepath = os.path.join(
-        output_datafolder, "multiple_species_gas_phase"
-    )
+    #     output_datafolder = params["output_datafolder"]
+    #     output_filepath = os.path.join(
+    #         output_datafolder, "multiple_species_gas_phase"
+    #     )
+    # =============================================================================
     # =============================================================================
     #     creator.to_file(filepath = output_filepath,
     #                     filetype = 'json',

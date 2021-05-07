@@ -84,8 +84,9 @@ with h5py.File(h5_filepath, "r") as hf:
     shiftx_h5 = hf["shiftx"][:4000, :]
     noise_h5 = hf["noise"][:4000, :]
     fwhm_h5 = hf["FWHM"][:4000, :]
-    energies_h5 = hf["energies"][:]
-    labels_h5 = [str(label) for label in hf["labels"][:]]
+    scatterers_h5 = hf["scatterer"][:4000, :]
+    energies_h5 = hf["energies"][:4000]
+    labels_h5 = [str(label) for label in hf["labels"][:4000]]
 
 t1 = time()
 runtimes["h5_load"] = calculate_runtime(t0, t1)
