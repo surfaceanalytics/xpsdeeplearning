@@ -534,6 +534,14 @@ class Classifier:
             input_filepath, no_of_examples, train_test_split, train_val_split
         )
 
+        energy_range = [
+            np.min(self.datahandler.energies),
+            np.max(self.datahandler.energies),
+            np.round(
+                self.datahandler.energies[0] - self.datahandler.energies[1], 2
+            ),
+        ]
+
         data_params = {
             "input_filepath": self.datahandler.input_filepath,
             "train_test_split": self.datahandler.train_test_split,
@@ -541,6 +549,7 @@ class Classifier:
             "labels": self.datahandler.labels,
             "num_of_classes": self.datahandler.num_classes,
             "no_of_examples": self.datahandler.no_of_examples,
+            "energy_range": energy_range,
             "No. of training samples": str(self.datahandler.X_train.shape[0]),
             "No. of validation samples": str(self.datahandler.X_val.shape[0]),
             "No. of test samples": str(self.datahandler.X_test.shape[0]),
