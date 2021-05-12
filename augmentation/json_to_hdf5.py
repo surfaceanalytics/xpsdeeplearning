@@ -82,7 +82,10 @@ def load_data_preprocess(json_datafolder, label_list, start, end):
             FWHM_one = spec_data["FWHM"]
             scatterer_name = spec_data["scatterer"]
             scatterers = {"He": 0, "H2": 1, "N2": 2, "O2": 3}
-            scatterer_one = scatterers[scatterer_name]
+            try:
+                scatterer_one = scatterers[scatterer_name]
+            except KeyError:
+                scatterer_one = float("NAN")
             distance_one = spec_data["distance"]
             pressure_one = spec_data["pressure"]
 
@@ -153,11 +156,11 @@ def _load_labels(filepath):
         1d array with binding energies.
 
     """
-    with open(filepath, "r") as json_file:
-        test = json.load(json_file)
+    param_filepath = os.path.join(filepath, "run_params.json")
+    with open(param_filepath, "r") as param_file:
+        run_params = json.load(param_file)
 
-    labels = list(test[0]["label"].keys())
-    return labels
+    return run_params["labels"]
 
 
 def _one_hot_encode(y, label_list):
@@ -222,7 +225,7 @@ def to_hdf5(json_datafolder, output_file, no_of_files_per_load=50):
             "energies", data=energies, compression="gzip", chunks=True
         )
 
-        label_list = _load_labels(filepath)
+        label_list = _load_labels(json_datafolder)
         labels = np.array(label_list, dtype=object)
         string_dt = h5py.special_dtype(vlen=str)
         hf.create_dataset(
@@ -354,7 +357,7 @@ def to_hdf5(json_datafolder, output_file, no_of_files_per_load=50):
 
 #%%
 if __name__ == "__main__":
-    json_datafolder = r"C:\Users\pielsticker\Simulations\20210308_Pd_linear_combination_small_gas_phase"
+    json_datafolder = r"C:\Users\pielsticker\Simulations\20210506_Fe_linear_combination_small_gas_phase"
     param_filepath = os.path.join(json_datafolder, "run_params.json")
     with open(param_filepath, "r") as param_file:
         params = json.load(param_file)
@@ -379,5 +382,6 @@ if __name__ == "__main__":
         fwhm_h5 = hf["FWHM"][:4000, :]
         energies_h5 = hf["energies"][:]
         labels_h5 = [str(label) for label in hf["labels"][:]]
+        scatterers_h5 = hf["scatterer"][:4000, :]
     t1 = time()
     runtimes["h5_load"] = calculate_runtime(t0, t1)

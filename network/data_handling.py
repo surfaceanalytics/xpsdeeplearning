@@ -938,7 +938,7 @@ class DataHandler:
         if "scatterer" in self.aug_values.keys():
             aug_text += self._write_scatter_text(dataset, index)
         else:
-            aug_text += "Spectrum not scattered."
+            aug_text += "Scattering: none."
 
         return aug_text
 
@@ -977,7 +977,10 @@ class DataHandler:
             pressure = self.aug_values_test["pressure"][index]
 
         scatterers = {"0": "He", "1": "H2", "2": "N2", "3": "O2"}
-        scatterer_name = scatterers[str(scatterer[0])]
+        try:
+            scatterer_name = scatterers[str(scatterer[0])]
+        except KeyError:
+            return "Scattering: none."
 
         name_text = "Scatterer: " + scatterer_name + ", "
 
@@ -1026,10 +1029,12 @@ class DataHandler:
 if __name__ == "__main__":
     np.random.seed(502)
     input_filepath = r"C:\Users\pielsticker\Simulations\20210222_Fe_linear_combination_small_gas_phase.h5"
+    input_filepath = r"C:\Users\pielsticker\Simulations\20210506_Fe_linear_combination_small_gas_phase.h5"
+
     datahandler = DataHandler(intensity_only=True)
     train_test_split = 0.2
     train_val_split = 0.2
-    no_of_examples = 1000
+    no_of_examples = 19
 
     (
         X_train,
