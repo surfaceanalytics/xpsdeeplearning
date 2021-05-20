@@ -6,10 +6,9 @@ Created on Thu May  6 17:05:50 2021
 """
 import os
 import json
-import zipfile
 import shutil
 
-
+#%%
 class Uploader:
     def __init__(self, model_path, dataset_path):
         self.model_path = model_path

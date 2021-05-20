@@ -54,8 +54,8 @@ class Creator:
 
         """
         self.timestamp = datetime.datetime.now().strftime("%Y%m%d")
-        self.name =  self.timestamp + "_" + params["run_name"]
-        
+        self.name = self.timestamp + "_" + params["name"]
+
         default_param_filepath = os.path.join(
             os.path.dirname(os.path.abspath(__file__)), "default_params.json"
         )
@@ -183,7 +183,7 @@ class Creator:
             self.augmentation_matrix[
                 i, self.no_of_linear_params + 1 :
             ] = self.select_sim_params(key)
-                
+
             print(
                 "Random parameters: "
                 + str(i + 1)
@@ -590,7 +590,7 @@ class Creator:
             )
             plt.show()
 
-    def to_file(self, filetypes):
+    def to_file(self, filetypes, metadata=True):
         """
         Create file from the dataframe of simulated spectra.
 
@@ -605,18 +605,27 @@ class Creator:
         None.
 
         """
-        filepath = os.path.join(*[self.params["output_datafolder"],
-                                  self.name])
-                                  
+        datafolder = os.path.join(
+            *[self.params["output_datafolder"], self.name]
+        )
+        try:
+            os.makedirs(datafolder)
+        except FileExistsError:
+            pass
+
+        self.filepath = os.path.join(datafolder, self.name)
+
         valid_filetypes = ["excel", "json", "pickle", "hdf5"]
 
         for filetype in filetypes:
             if filetype not in valid_filetypes:
                 print("Saving was not successful. Choose a valid filetype!")
             else:
-                self._save_to_file(self.df, filepath, filetype)
-                print("Data was saved.")
+                self._save_to_file(self.df, self.filepath, filetype)
+                print("Data was saved to {0} file.".format(filetype.upper()))
 
+        if metadata:
+            self.save_metadata()
 
     def _save_to_file(self, df, filename, filetype):
         """
@@ -652,20 +661,19 @@ class Creator:
             file = filename + ".pkl"
             with open(file, "wb") as pickle_file:
                 df.to_pickle(pickle_file)
-        
+
         if filetype == "hdf5":
+            print("Saving data to HDF5...")           
             self.hdf5_filepath = filename + ".h5"
-            
+
             hdf5_data = self.prepare_hdf5(self.df)
-            
+
             with h5py.File(self.hdf5_filepath, "w") as hf:
                 for key, value in hdf5_data.items():
                     try:
                         hf.create_dataset(
-                            key, 
-                            data=value, 
-                            compression="gzip", 
-                            chunks=True)
+                            key, data=value, compression="gzip", chunks=True
+                        )
                     except TypeError:
                         value = np.array(value, dtype=object)
                         string_dt = h5py.special_dtype(vlen=str)
@@ -674,11 +682,11 @@ class Creator:
                             data=value,
                             dtype=string_dt,
                             compression="gzip",
-                            chunks=True)
+                            chunks=True,
+                        )
                     print("Saved " + key + " to HDF5 file.")
 
-            
-    def prepare_hdf5(self, df):            
+    def prepare_hdf5(self, df):
         X = []
         y = []
         shiftx = []
@@ -687,7 +695,7 @@ class Creator:
         scatterer = []
         distance = []
         pressure = []
-    
+
         energies = df["x"][0]
         for index, row in df.iterrows():
             X_one = row["y"]
@@ -703,7 +711,7 @@ class Creator:
                 scatterer_one = float("NAN")
             distance_one = row["distance"]
             pressure_one = row["pressure"]
-            
+
             X.append(X_one)
             y.append(y_one)
             shiftx.append(shiftx_one)
@@ -712,36 +720,34 @@ class Creator:
             scatterer.append(scatterer_one)
             distance.append(distance_one)
             pressure.append(pressure_one)
-            
+
             print(
-                "Prepare HDF5 upload: "
-                + str(index)
-                + "/"
-                + str(df.shape[0])
+                "Prepare HDF5 upload: " + str(index) + "/" + str(df.shape[0])
             )
-    
         X = np.array(X)
         X = np.reshape(X, (X.shape[0], X.shape[1], 1))
         y = self._one_hot_encode(y)
-    
+
         shiftx = np.reshape(np.array(shiftx), (-1, 1))
         noise = np.reshape(np.array(noise), (-1, 1))
         FWHM = np.reshape(np.array(FWHM), (-1, 1))
         scatterer = np.reshape(np.array(scatterer), (-1, 1))
         distance = np.reshape(np.array(distance), (-1, 1))
         pressure = np.reshape(np.array(pressure), (-1, 1))
-        
-        return {"X": X,
-                "y": y,
-                "shiftx": shiftx,
-                "noise": noise,
-                "FWHM": FWHM,
-                "scatterer": scatterer,
-                "distance": distance,
-                "pressure": pressure,
-                "energies": energies,
-                "labels": self.labels}
-    
+
+        return {
+            "X": X,
+            "y": y,
+            "shiftx": shiftx,
+            "noise": noise,
+            "FWHM": FWHM,
+            "scatterer": scatterer,
+            "distance": distance,
+            "pressure": pressure,
+            "energies": energies,
+            "labels": self.labels,
+        }
+
     def _one_hot_encode(self, y):
         """
         One-hot encode the labels.
@@ -760,17 +766,24 @@ class Creator:
     
         """
         new_labels = np.zeros((len(y), len(self.labels)))
-    
+
         for i, d in enumerate(y):
             for species, value in d.items():
                 number = self.labels.index(species)
                 new_labels[i, number] = value
-    
+
         return new_labels
-    
-    def save_run_params(self):
-        pass
-        
+
+    def save_metadata(self):
+        self.params["timestamp"] = self.timestamp
+        self.params["name"] = self.name
+
+        del self.params["timestamp"]
+
+        json_filepath = self.filepath + "_metadata.json"
+
+        with open(json_filepath, "w") as out_file:
+            json.dump(self.params, out_file, indent=4)
 
 
 def calculate_runtime(start, end):
@@ -803,8 +816,6 @@ def calculate_runtime(start, end):
 
 #%%
 if __name__ == "__main__":
-    runtimes = {}
-    
     init_param_filepath = r"C:\Users\pielsticker\Simulations\init_params.json"
     with open(init_param_filepath, "r") as param_file:
         params = json.load(param_file)
@@ -813,23 +824,7 @@ if __name__ == "__main__":
     creator = Creator(params)
     creator.run()
     creator.plot_random(10)
-    creator.to_file(filetypes = ['hdf5'])
+    #creator.to_file(filetypes = ['hdf5'], metadata=True)
     t1 = time()
     runtime = calculate_runtime(t0, t1)
     print(f"Runtime: {runtime}.")
-    
-    # Test new file.
-    t0 = time()
-    with h5py.File(creator.hdf5_filepath, "r") as hf:
-        size = hf["X"].shape
-        X_h5 = hf["X"][:4000, :, :]
-        y_h5 = hf["y"][:4000, :]
-        shiftx_h5 = hf["shiftx"][:4000, :]
-        noise_h5 = hf["noise"][:4000, :]
-        fwhm_h5 = hf["FWHM"][:4000, :]
-        energies_h5 = hf["energies"][:]
-        labels_h5 = [str(label) for label in hf["labels"][:]]
-        scatterers_h5 = hf["scatterer"][:4000, :]
-
-
-

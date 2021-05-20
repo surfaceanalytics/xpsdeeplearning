@@ -369,7 +369,6 @@ if __name__ == "__main__":
     to_hdf5(json_datafolder, output_filepath)
     t1 = time()
     runtimes["h5_save"] = calculate_runtime(t0, t1)
-    print("finished saving")
 
     # Test new file.
     t0 = time()
