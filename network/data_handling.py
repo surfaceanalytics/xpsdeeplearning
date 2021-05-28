@@ -1029,7 +1029,6 @@ class DataHandler:
 if __name__ == "__main__":
     np.random.seed(502)
     input_filepath = r"C:\Users\pielsticker\Simulations\20210520_Fe_linear_combination_small_gas_phase\20210520_Fe_linear_combination_small_gas_phase.h5"
-    
 
     datahandler = DataHandler(intensity_only=True)
     train_test_split = 0.2

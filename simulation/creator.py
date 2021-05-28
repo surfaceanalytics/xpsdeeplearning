@@ -17,6 +17,7 @@ import matplotlib.pyplot as plt
 from base_model.spectra import MeasuredSpectrum
 from base_model.figures import Figure
 from sim import Simulation
+
 #%%
 class Creator:
     """
@@ -61,7 +62,6 @@ class Creator:
         with open(default_param_filepath, "r") as param_file:
             self.params = json.load(param_file)
             self.sim_ranges = self.params["sim_ranges"]
-
 
         # Replace the default params with the supplied params
         # if available.
@@ -128,7 +128,7 @@ class Creator:
                 "references",
             ]
         )
-        
+
         input_spectra_list = []
         for set_key, value_list in filenames.items():
             ref_spectra_dict = {}
@@ -140,31 +140,31 @@ class Creator:
 
             input_spectra_list.append(ref_spectra_dict)
 
-# =============================================================================
-#         input_spectra_list = []
-#         for set_key, value_list in filenames.items():
-#             ref_spectra_dict = {}
-#             for filename in value_list:
-#                 filepath = os.path.join(input_datapath, filename)
-#                 converter = data_converter.DataConverter()
-#                 converter.load(filepath)
-#                 data = converter.data
-#                 selection = [d for d in data if d["spectrum_type"] == "Fe2p"]
-#                 
-#                 loaded_spectra = []
-#                 for d in converter.data:
-#                     x = d['data']['x']
-#                     y = d['data']['y0']
-#                     species = d['group_name']
-#                     label = {species: 1.0}
-#                     loaded_spectra += [MeasuredVamasSpectrum(x,y,label)]
-#                     del(converter)
-#                     measured_spectrum = MeasuredSpectrum(filepath)
-#                     label = next(iter(measured_spectrum.label.keys()))
-#                     ref_spectra_dict[label] = measured_spectrum
-#  
-#                 input_spectra_list.append(ref_spectra_dict)
-# =============================================================================
+        # =============================================================================
+        #         input_spectra_list = []
+        #         for set_key, value_list in filenames.items():
+        #             ref_spectra_dict = {}
+        #             for filename in value_list:
+        #                 filepath = os.path.join(input_datapath, filename)
+        #                 converter = data_converter.DataConverter()
+        #                 converter.load(filepath)
+        #                 data = converter.data
+        #                 selection = [d for d in data if d["spectrum_type"] == "Fe2p"]
+        #
+        #                 loaded_spectra = []
+        #                 for d in converter.data:
+        #                     x = d['data']['x']
+        #                     y = d['data']['y0']
+        #                     species = d['group_name']
+        #                     label = {species: 1.0}
+        #                     loaded_spectra += [MeasuredVamasSpectrum(x,y,label)]
+        #                     del(converter)
+        #                     measured_spectrum = MeasuredSpectrum(filepath)
+        #                     label = next(iter(measured_spectrum.label.keys()))
+        #                     ref_spectra_dict[label] = measured_spectrum
+        #
+        #                 input_spectra_list.append(ref_spectra_dict)
+        # =============================================================================
 
         return pd.concat(
             [input_spectra, pd.DataFrame(input_spectra_list)], join="outer"
@@ -689,7 +689,7 @@ class Creator:
                 df.to_pickle(pickle_file)
 
         if filetype == "hdf5":
-            print("Saving data to HDF5...")           
+            print("Saving data to HDF5...")
             self.hdf5_filepath = filename + ".h5"
 
             hdf5_data = self.prepare_hdf5(self.df)
@@ -806,9 +806,7 @@ class Creator:
         self.params["energy_range"] = [
             np.min(self.df["x"][0]),
             np.max(self.df["x"][0]),
-            np.round(
-                self.df["x"][0][0] - self.df["x"][0][1], 2
-            ),
+            np.round(self.df["x"][0][0] - self.df["x"][0][1], 2),
         ]
 
         del self.params["timestamp"]
@@ -857,7 +855,7 @@ if __name__ == "__main__":
     creator = Creator(params=params)
     creator.run()
     creator.plot_random(10)
-    #creator.to_file(filetypes = ['hdf5'], metadata=True)
+    # creator.to_file(filetypes = ['hdf5'], metadata=True)
     t1 = time()
     runtime = calculate_runtime(t0, t1)
     print(f"Runtime: {runtime}.")

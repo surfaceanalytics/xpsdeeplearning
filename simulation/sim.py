@@ -217,9 +217,7 @@ class Simulation:
 #%%
 if __name__ == "__main__":
     datapath = (
-        os.path.dirname(os.path.abspath(__file__)).partition("simulation")[
-            0
-        ]
+        os.path.dirname(os.path.abspath(__file__)).partition("simulation")[0]
         + "data\\references"
     )
 

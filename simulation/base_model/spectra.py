@@ -132,35 +132,38 @@ class Spectrum:
             safe_arange_with_edges(self.start, self.stop, self.step)
         )
 
+
 class MeasuredVamasSpectrum(Spectrum):
     """
     NOT WORKING YET!
     """
-    def __init__(self, x, y, label):  
-        self.type = "measured"  
+
+    def __init__(self, x, y, label):
+        self.type = "measured"
         self.label = label
         self.start = x[0]
         self.step = x[1] - x[0]
         self.stop = x[-1]
         super(MeasuredVamasSpectrum, self).__init__(
             self.start, self.stop, self.step, self.label
-        )        
+        )
         self.x = x
         self.lineshape = y
-    
-    def load(self, filepath):        
+
+    def load(self, filepath):
         self.converter = DataConverter()
         self.converter.load(filepath)
-        if filepath.rsplit('.')[-1] == 'vms':
+        if filepath.rsplit(".")[-1] == "vms":
             for data in self.converter.data:
-                if data['settings']['y_units'] == 'counts':
-                    y = np.array(data['data']['y0'])
-                    dwell = data['settings']['dwell_time']
-                    scans = data['scans']
+                if data["settings"]["y_units"] == "counts":
+                    y = np.array(data["data"]["y0"])
+                    dwell = data["settings"]["dwell_time"]
+                    scans = data["scans"]
                     y = y / dwell / scans
-                    data['data']['y0'] = list(y)
-                    data['settings']['y_units'] = 'counts_per_second'         
+                    data["data"]["y0"] = list(y)
+                    data["settings"]["y_units"] = "counts_per_second"
         return len(self.converter.data)
+
 
 class MeasuredSpectrum(Spectrum):
     """
@@ -185,8 +188,7 @@ class MeasuredSpectrum(Spectrum):
         """
         self.type = "measured"
         self.filepath = filepath
-        
-        
+
         self.label, data = self.load(self.filepath)
         x = data[:, 0]
 
@@ -222,7 +224,7 @@ class MeasuredSpectrum(Spectrum):
         data : ndarray
             2D numpy array with the x and y values from the file.
 
-        """        
+        """
         lines = []
         with open(filepath, "r") as file:
             for line in file.readlines():
@@ -787,9 +789,7 @@ class SimulatedSpectrum(Spectrum):
             self.normalize()
         self.fwhm = fwhm
 
-    def scatter_in_gas(
-        self, label="He", distance=0.8, pressure=1.0
-    ):
+    def scatter_in_gas(self, label="He", distance=0.8, pressure=1.0):
         """
         This method is for the case of scattering though a gas
         phase/film. First the convolved spectra are dotted with the
@@ -835,7 +835,7 @@ class SimulatedSpectrum(Spectrum):
             input_datapath = (
                 os.path.dirname(os.path.abspath(__file__)).partition(
                     "simulation"
-                    )[0]
+                )[0]
                 + "\\data\\scatterers.json"
             )
             medium.scatterer.build_loss_from_json(input_datapath)
@@ -906,9 +906,7 @@ if __name__ == "__main__":
 
     label = "Fe2O3"
     datapath = (
-        os.path.dirname(os.path.abspath(__file__)).partition("simulation")[
-            0
-        ]
+        os.path.dirname(os.path.abspath(__file__)).partition("simulation")[0]
         + "data\\references"
     )
 
