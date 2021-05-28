@@ -140,10 +140,6 @@ class Creator:
 
             input_spectra_list.append(ref_spectra_dict)
 
-        return pd.concat(
-            [input_spectra, pd.DataFrame(input_spectra_list)], join="outer"
-        )
-
 # =============================================================================
 #         input_spectra_list = []
 #         for set_key, value_list in filenames.items():
@@ -266,7 +262,7 @@ class Creator:
         inputs = self.input_spectra.iloc[[key]]
         indices = [
             self.labels.index(j)
-            for j in inputs.columns[inputs.isnull().any() == False].tolist()
+            for j in inputs.columns[inputs.isnull().any() is False].tolist()
         ]
         indices_empty = [
             self.labels.index(j)

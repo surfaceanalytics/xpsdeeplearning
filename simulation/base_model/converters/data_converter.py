@@ -41,10 +41,3 @@ class DataConverter():
         
         self.parser = self._parser_methods[in_format]()
         self.data = self.parser.parse_file(filename)
-        '''try:
-            self.parser = self._parser_methods[in_format]()
-            self.data = self.parser.parseFile(filename)
-            
-        except:
-            print("input file format not supported")'''
-
