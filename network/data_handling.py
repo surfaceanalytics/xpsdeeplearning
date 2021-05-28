@@ -78,9 +78,9 @@ class DataHandler:
             
         Optionally, the method can also return more information about
         the data set:
-            self.aug_values_train,
-            self.aug_values_val,
-            self.aug_values_test : dicts
+            self.sim_values_train,
+            self.sim_values_val,
+            self.sim_values_test : dicts
                 Dictionary containing information about the parameters
                 used during the artificical constructuon of the dataset.
                 Keys : 'shiftx', 'noise', 'FWHM',
@@ -177,7 +177,7 @@ class DataHandler:
                     )
 
                     # Store all parameters of the simulations in a dict
-                    aug_values = {
+                    sim_values = {
                         "shift_x": shift_x,
                         "noise": noise,
                         "fwhm": fwhm,
@@ -185,19 +185,19 @@ class DataHandler:
                         "distance": distance,
                         "pressure": pressure,
                     }
-                    self.aug_values = aug_values
+                    self.sim_values = sim_values
 
                 else:
                     # Shuffle all arrays together
                     self.X, self.y, shift_x, noise, fwhm = shuffle(
                         X, y, shift_x, noise, fwhm
                     )
-                    aug_values = {
+                    sim_values = {
                         "shift_x": shift_x,
                         "noise": noise,
                         "fwhm": fwhm,
                     }
-                    self.aug_values = aug_values
+                    self.sim_values = sim_values
 
                 # Split into train, val and test sets
                 (
@@ -207,11 +207,11 @@ class DataHandler:
                     self.y_train,
                     self.y_val,
                     self.y_test,
-                    self.aug_values_train,
-                    self.aug_values_val,
-                    self.aug_values_test,
+                    self.sim_values_train,
+                    self.sim_values_val,
+                    self.sim_values_test,
                 ) = self._split_test_val_train(
-                    self.X, self.y, aug_values=self.aug_values
+                    self.X, self.y, sim_values=self.sim_values
                 )
 
                 # Determine the shape of the training features,
@@ -228,9 +228,9 @@ class DataHandler:
                     self.y_train,
                     self.y_val,
                     self.y_test,
-                    self.aug_values_train,
-                    self.aug_values_val,
-                    self.aug_values_test,
+                    self.sim_values_train,
+                    self.sim_values_val,
+                    self.sim_values_test,
                 )
 
             # Check if the spectra have associated names. Typical for
@@ -279,7 +279,7 @@ class DataHandler:
                     self.names_test,
                 )
 
-            # If there are neither augmentation values nor names in
+            # If there are neither simulation values nor names in
             # the dataset, just load the X and y arrays.
             else:
                 # Shuffle X and y together
@@ -328,7 +328,7 @@ class DataHandler:
             Labels to be learned. 2d array.
         **kwargs : str
             Possible keywords:
-                'aug_values', 'names'.
+                'sim_values', 'names'.
 
         Returns
         -------
@@ -365,12 +365,12 @@ class DataHandler:
             + " labels (y)"
         )
 
-        if "aug_values" in kwargs.keys():
-            # Also split the arrays in the 'aug_values' dictionary.
-            aug_values = kwargs["aug_values"]
-            shift_x = aug_values["shift_x"]
-            noise = aug_values["noise"]
-            fwhm = aug_values["fwhm"]
+        if "sim_values" in kwargs.keys():
+            # Also split the arrays in the 'sim_values' dictionary.
+            sim_values = kwargs["sim_values"]
+            shift_x = sim_values["shift_x"]
+            noise = sim_values["noise"]
+            fwhm = sim_values["fwhm"]
 
             shift_x_train_val = shift_x[:no_of_train_val, :]
             shift_x_test = shift_x[no_of_train_val:, :]
@@ -386,29 +386,29 @@ class DataHandler:
             fwhm_train = fwhm_train_val[:no_of_train, :]
             fwhm_val = fwhm_train_val[no_of_train:, :]
 
-            aug_values_train = {
+            sim_values_train = {
                 "shift_x": shift_x_train,
                 "noise": noise_train,
                 "fwhm": fwhm_train,
             }
-            aug_values_val = {
+            sim_values_val = {
                 "shift_x": shift_x_val,
                 "noise": noise_val,
                 "fwhm": fwhm_val,
             }
-            aug_values_test = {
+            sim_values_test = {
                 "shift_x": shift_x_test,
                 "noise": noise_test,
                 "fwhm": fwhm_test,
             }
 
-            if "scatterer" in aug_values.keys():
+            if "scatterer" in sim_values.keys():
                 # Also split the scatterer, distance, and pressure
-                # arrays if they are present in the in the 'aug_values'
+                # arrays if they are present in the in the 'sim_values'
                 # dictionary.
-                scatterer = aug_values["scatterer"]
-                distance = aug_values["distance"]
-                pressure = aug_values["pressure"]
+                scatterer = sim_values["scatterer"]
+                distance = sim_values["distance"]
+                pressure = sim_values["pressure"]
 
                 scatterer_train_val = scatterer[:no_of_train_val, :]
                 scatterer_test = scatterer[no_of_train_val:, :]
@@ -424,17 +424,17 @@ class DataHandler:
                 pressure_train = pressure_train_val[:no_of_train, :]
                 pressure_val = pressure_train_val[no_of_train:, :]
 
-                aug_values_train["scatterer"] = scatterer_train
-                aug_values_train["distance"] = distance_train
-                aug_values_train["pressure"] = pressure_train
+                sim_values_train["scatterer"] = scatterer_train
+                sim_values_train["distance"] = distance_train
+                sim_values_train["pressure"] = pressure_train
 
-                aug_values_val["scatterer"] = scatterer_val
-                aug_values_val["distance"] = distance_val
-                aug_values_val["pressure"] = pressure_val
+                sim_values_val["scatterer"] = scatterer_val
+                sim_values_val["distance"] = distance_val
+                sim_values_val["pressure"] = pressure_val
 
-                aug_values_test["scatterer"] = scatterer_test
-                aug_values_test["distance"] = distance_test
-                aug_values_test["pressure"] = pressure_test
+                sim_values_test["scatterer"] = scatterer_test
+                sim_values_test["distance"] = distance_test
+                sim_values_test["pressure"] = pressure_test
 
             return (
                 X_train,
@@ -443,9 +443,9 @@ class DataHandler:
                 y_train,
                 y_val,
                 y_test,
-                aug_values_train,
-                aug_values_val,
-                aug_values_test,
+                sim_values_train,
+                sim_values_val,
+                sim_values_test,
             )
 
         if "names" in kwargs.keys():
@@ -759,8 +759,8 @@ class DataHandler:
                         label = "Real label: " + label + "\n"
                 text = real_y + pred_y + label + pred_label
                 try:
-                    aug = self._write_aug_text(dataset="test", index=index)
-                    text += aug
+                    sim = self._write_sim_text(dataset="test", index=index)
+                    text += sim
                 except AttributeError:
                     pass
                 try:
@@ -868,7 +868,7 @@ class DataHandler:
             text += pred_text
 
         try:
-            text += self._write_aug_text(dataset=dataset, index=index)
+            text += self._write_sim_text(dataset=dataset, index=index)
         except AttributeError:
             pass
         try:
@@ -882,7 +882,7 @@ class DataHandler:
 
         return text
 
-    def _write_aug_text(self, dataset, index):
+    def _write_sim_text(self, dataset, index):
         """
         Helper method for writing information about the parameters used 
         for data set creation into a figure. 
@@ -891,30 +891,30 @@ class DataHandler:
         ----------
         dataset : str
             Either 'train', 'val', or 'test.
-            Needed for taking the correct aug_values.
+            Needed for taking the correct sim_values.
         index : int
             Index of the example for which the text shall be created.
 
         Returns
         -------
-        aug_text : str
+        sim_text : str
             Output text in a figure.
 
         """
         if dataset == "train":
-            shift_x = self.aug_values_train["shift_x"][index]
-            noise = self.aug_values_train["noise"][index]
-            fwhm = self.aug_values_train["fwhm"][index]
+            shift_x = self.sim_values_train["shift_x"][index]
+            noise = self.sim_values_train["noise"][index]
+            fwhm = self.sim_values_train["fwhm"][index]
 
         elif dataset == "val":
-            shift_x = self.aug_values_val["shift_x"][index]
-            noise = self.aug_values_val["noise"][index]
-            fwhm = self.aug_values_val["fwhm"][index]
+            shift_x = self.sim_values_val["shift_x"][index]
+            noise = self.sim_values_val["noise"][index]
+            fwhm = self.sim_values_val["fwhm"][index]
 
         elif dataset == "test":
-            shift_x = self.aug_values_test["shift_x"][index]
-            noise = self.aug_values_test["noise"][index]
-            fwhm = self.aug_values_test["fwhm"][index]
+            shift_x = self.sim_values_test["shift_x"][index]
+            noise = self.sim_values_test["noise"][index]
+            fwhm = self.sim_values_test["fwhm"][index]
 
         if fwhm is not None and fwhm != 0:
             fwhm_text = (
@@ -933,14 +933,14 @@ class DataHandler:
         else:
             noise_text = "S/N: not changed"
 
-        aug_text = fwhm_text + shift_text + noise_text + "\n"
+        sim_text = fwhm_text + shift_text + noise_text + "\n"
 
-        if "scatterer" in self.aug_values.keys():
-            aug_text += self._write_scatter_text(dataset, index)
+        if "scatterer" in self.sim_values.keys():
+            sim_text += self._write_scatter_text(dataset, index)
         else:
-            aug_text += "Scattering: none."
+            sim_text += "Scattering: none."
 
-        return aug_text
+        return sim_text
 
     def _write_scatter_text(self, dataset, index):
         """
@@ -951,7 +951,7 @@ class DataHandler:
         ----------
         dataset : str
             Either 'train', 'val', or 'test.
-            Needed for taking the correct aug_values.
+            Needed for taking the correct sim_values.
         index : int
             Index of the example for which the text shall be created.
 
@@ -962,19 +962,19 @@ class DataHandler:
 
         """
         if dataset == "train":
-            scatterer = self.aug_values_train["scatterer"][index]
-            distance = self.aug_values_train["distance"][index]
-            pressure = self.aug_values_train["pressure"][index]
+            scatterer = self.sim_values_train["scatterer"][index]
+            distance = self.sim_values_train["distance"][index]
+            pressure = self.sim_values_train["pressure"][index]
 
         elif dataset == "val":
-            scatterer = self.aug_values_val["scatterer"][index]
-            distance = self.aug_values_val["distance"][index]
-            pressure = self.aug_values_val["pressure"][index]
+            scatterer = self.sim_values_val["scatterer"][index]
+            distance = self.sim_values_val["distance"][index]
+            pressure = self.sim_values_val["pressure"][index]
 
         elif dataset == "test":
-            scatterer = self.aug_values_test["scatterer"][index]
-            distance = self.aug_values_test["distance"][index]
-            pressure = self.aug_values_test["pressure"][index]
+            scatterer = self.sim_values_test["scatterer"][index]
+            distance = self.sim_values_test["distance"][index]
+            pressure = self.sim_values_test["pressure"][index]
 
         scatterers = {"0": "He", "1": "H2", "2": "N2", "3": "O2"}
         try:
@@ -1028,13 +1028,13 @@ class DataHandler:
 #%%
 if __name__ == "__main__":
     np.random.seed(502)
-    input_filepath = r"C:\Users\pielsticker\Simulations\20210222_Fe_linear_combination_small_gas_phase.h5"
-    input_filepath = r"C:\Users\pielsticker\Simulations\20210506_Fe_linear_combination_small_gas_phase.h5"
+    input_filepath = r"C:\Users\pielsticker\Simulations\20210520_Fe_linear_combination_small_gas_phase\20210520_Fe_linear_combination_small_gas_phase.h5"
+    
 
     datahandler = DataHandler(intensity_only=True)
     train_test_split = 0.2
     train_val_split = 0.2
-    no_of_examples = 19
+    no_of_examples = 1000
 
     (
         X_train,
@@ -1043,9 +1043,9 @@ if __name__ == "__main__":
         y_train,
         y_val,
         y_test,
-        aug_values_train,
-        aug_values_val,
-        aug_values_test,
+        sim_values_train,
+        sim_values_val,
+        sim_values_test,
     ) = datahandler.load_data_preprocess(
         input_filepath=input_filepath,
         no_of_examples=no_of_examples,
