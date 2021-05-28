@@ -5,7 +5,7 @@ Created on Mon Jul 20 11:39:22 2020
 @author: Mark
 """
 
-
+#%%
 class Vamas:
     def __init__(self):
         pass

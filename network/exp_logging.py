@@ -33,11 +33,11 @@ class ExperimentLogging:
 
         """
         self.root_dir = os.path.join(*[os.getcwd(), "runs", dir_name])
-               
+
         self.model_dir = os.path.join(self.root_dir, "model")
         self.log_dir = os.path.join(self.root_dir, "logs")
         self.fig_dir = os.path.join(self.root_dir, "figures")
-        
+
         ### Callbacks ###
         self.active_cbs = []
 
@@ -97,46 +97,27 @@ class ExperimentLogging:
         model_split = str(self.model_dir.split("runs")[1])
         log_split = str(self.log_dir.split("runs")[1])
         fig_split = str(self.fig_dir.split("runs")[1])
-               
-        
+
         if os.path.isdir(self.model_dir) is False:
             os.makedirs(self.model_dir)
             if os.path.isdir(self.model_dir):
-                print(
-                    "Model folder created at "
-                    + model_split
-                )
+                print("Model folder created at " + model_split)
         else:
-            print(
-                "Model folder was already at "
-                + model_split
-            )
+            print("Model folder was already at " + model_split)
 
         if os.path.isdir(self.log_dir) is False:
             os.makedirs(self.log_dir)
             if os.path.isdir(self.log_dir):
-                print(
-                    "Logs folder created at "
-                    + log_split
-                )
+                print("Logs folder created at " + log_split)
         else:
-            print(
-                "Logs folder was already at "
-                + log_split
-            )
+            print("Logs folder was already at " + log_split)
 
         if os.path.isdir(self.fig_dir) is False:
             os.makedirs(self.fig_dir)
             if os.path.isdir(self.fig_dir):
-                print(
-                    "Figures folder created at "
-                    + fig_split
-                )
+                print("Figures folder created at " + fig_split)
         else:
-            print(
-                "Figures folder was already at "
-                + fig_split
-            )
+            print("Figures folder was already at " + fig_split)
 
     def activate_cbs(
         self,
@@ -453,7 +434,8 @@ class CustomModelCheckpoint(callbacks.ModelCheckpoint):
                     )
                 # Re-throw the error for any other causes.
                 raise e
-                
+
+
 #%%
 if __name__ == "__main__":
     dir_name = "test"

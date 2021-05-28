@@ -10,7 +10,6 @@ import os
 from base_model.spectra import (
     MeasuredSpectrum,
     SimulatedSpectrum,
-    SyntheticSpectrum,
 )
 from base_model.figures import Figure
 

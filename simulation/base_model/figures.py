@@ -8,7 +8,7 @@ Created on Thu Sep 10 10:43:16 2020
 import matplotlib.pyplot as plt
 import numpy as np
 
-
+#%%
 class Figure:
     """
     Class for plotting an XPS spectrum.

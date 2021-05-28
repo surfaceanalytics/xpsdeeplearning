@@ -24,12 +24,9 @@ class Hyperoptimization:
         root_dir = os.getcwd()
         self.dir_name = self.time + "_" + self.exp_name
         self.test_dir = os.path.join(
-            *[root_dir,
-              "runs",
-              self.dir_name,
-              "param_tests"]
+            *[root_dir, "runs", self.dir_name, "param_tests"]
         )
-        
+
         self.scans = []
         self.full_data = pd.DataFrame()
 
