@@ -2,8 +2,6 @@ import numpy as np
 import talos
 import os
 import pandas as pd
-import time
-from tqdm import tqdm
 from matplotlib import pyplot as plt
 from matplotlib import ticker
 import seaborn as sns
@@ -26,9 +24,12 @@ class Hyperoptimization:
         root_dir = os.getcwd()
         self.dir_name = self.time + "_" + self.exp_name
         self.test_dir = os.path.join(
-            *[root_dir, "param_tests", self.dir_name]
+            *[root_dir,
+              "runs",
+              self.dir_name,
+              "param_tests"]
         )
-
+        
         self.scans = []
         self.full_data = pd.DataFrame()
 

@@ -32,13 +32,12 @@ class ExperimentLogging:
         None.
 
         """
-        self.root_dir = os.getcwd()
-        self.model_dir = os.path.join(
-            *[self.root_dir, "saved_models", dir_name]
-        )
-        self.log_dir = os.path.join(*[self.root_dir, "logs", dir_name])
-        self.fig_dir = os.path.join(*[self.root_dir, "figures", dir_name])
-
+        self.root_dir = os.path.join(*[os.getcwd(), "runs", dir_name])
+               
+        self.model_dir = os.path.join(self.root_dir, "model")
+        self.log_dir = os.path.join(self.root_dir, "logs")
+        self.fig_dir = os.path.join(self.root_dir, "figures")
+        
         ### Callbacks ###
         self.active_cbs = []
 
@@ -95,17 +94,22 @@ class ExperimentLogging:
         None.
 
         """
+        model_split = str(self.model_dir.split("runs")[1])
+        log_split = str(self.log_dir.split("runs")[1])
+        fig_split = str(self.fig_dir.split("runs")[1])
+               
+        
         if os.path.isdir(self.model_dir) is False:
             os.makedirs(self.model_dir)
             if os.path.isdir(self.model_dir):
                 print(
                     "Model folder created at "
-                    + str(self.model_dir.split(self.root_dir)[1])
+                    + model_split
                 )
         else:
             print(
                 "Model folder was already at "
-                + str(self.model_dir.split(self.root_dir)[1])
+                + model_split
             )
 
         if os.path.isdir(self.log_dir) is False:
@@ -113,12 +117,12 @@ class ExperimentLogging:
             if os.path.isdir(self.log_dir):
                 print(
                     "Logs folder created at "
-                    + str(self.log_dir.split(self.root_dir)[1])
+                    + log_split
                 )
         else:
             print(
                 "Logs folder was already at "
-                + str(self.log_dir.split(self.root_dir)[1])
+                + log_split
             )
 
         if os.path.isdir(self.fig_dir) is False:
@@ -126,12 +130,12 @@ class ExperimentLogging:
             if os.path.isdir(self.fig_dir):
                 print(
                     "Figures folder created at "
-                    + str(self.fig_dir.split(self.root_dir)[1])
+                    + fig_split
                 )
         else:
             print(
                 "Figures folder was already at "
-                + str(self.fig_dir.split(self.root_dir)[1])
+                + fig_split
             )
 
     def activate_cbs(
@@ -449,3 +453,9 @@ class CustomModelCheckpoint(callbacks.ModelCheckpoint):
                     )
                 # Re-throw the error for any other causes.
                 raise e
+                
+#%%
+if __name__ == "__main__":
+    dir_name = "test"
+    logging = ExperimentLogging(dir_name)
+    logging.make_dirs()
