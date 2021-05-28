@@ -13,6 +13,8 @@ import csv
 from scipy.signal import fftconvolve
 import math
 
+from .converters.data_converter import DataConverter
+
 try:
     from .peaks import Gauss, Lorentz, Voigt, VacuumExcitation, Tougaard
 except ImportError as e:
@@ -130,6 +132,35 @@ class Spectrum:
             safe_arange_with_edges(self.start, self.stop, self.step)
         )
 
+class MeasuredVamasSpectrum(Spectrum):
+    """
+    NOT WORKING YET!
+    """
+    def __init__(self, x, y, label):  
+        self.type = "measured"  
+        self.label = label
+        self.start = x[0]
+        self.step = x[1] - x[0]
+        self.stop = x[-1]
+        super(MeasuredVamasSpectrum, self).__init__(
+            self.start, self.stop, self.step, self.label
+        )        
+        self.x = x
+        self.lineshape = y
+    
+    def load(self, filepath):        
+        self.converter = DataConverter()
+        self.converter.load(filepath)
+        if filepath.rsplit('.')[-1] == 'vms':
+            for data in self.converter.data:
+                if data['settings']['y_units'] == 'counts':
+                    y = np.array(data['data']['y0'])
+                    dwell = data['settings']['dwell_time']
+                    scans = data['scans']
+                    y = y / dwell / scans
+                    data['data']['y0'] = list(y)
+                    data['settings']['y_units'] = 'counts_per_second'         
+        return len(self.converter.data)
 
 class MeasuredSpectrum(Spectrum):
     """
@@ -154,6 +185,8 @@ class MeasuredSpectrum(Spectrum):
         """
         self.type = "measured"
         self.filepath = filepath
+        
+        
         self.label, data = self.load(self.filepath)
         x = data[:, 0]
 
@@ -189,7 +222,7 @@ class MeasuredSpectrum(Spectrum):
         data : ndarray
             2D numpy array with the x and y values from the file.
 
-        """
+        """        
         lines = []
         with open(filepath, "r") as file:
             for line in file.readlines():
@@ -508,7 +541,7 @@ class SyntheticSpectrum(Spectrum):
             y = np.array([component.function(x) for x in self.x])
             self.lineshape = np.add(self.lineshape, y)
 
-    def addComponent(self, component, rebuild=True):
+    def add_component(self, component, rebuild=True):
         """
         Adding a Peak component to the spectrum. 
 
@@ -728,7 +761,7 @@ class SimulatedSpectrum(Spectrum):
             broadening_spectrum = SyntheticSpectrum(
                 gauss_x[0], gauss_x[-1], step, label="Gauss"
             )
-            broadening_spectrum.addComponent(
+            broadening_spectrum.add_component(
                 Gauss(position=0, width=sigma, intensity=1)
             )
 
@@ -755,7 +788,7 @@ class SimulatedSpectrum(Spectrum):
         self.fwhm = fwhm
 
     def scatter_in_gas(
-        self, filetype="json", label="He", distance=0.8, pressure=1.0
+        self, label="He", distance=0.8, pressure=1.0
     ):
         """
         This method is for the case of scattering though a gas
@@ -767,8 +800,6 @@ class SimulatedSpectrum(Spectrum):
 
         Parameters
         ----------
-        filetype : str, optional
-            Can be 'json' or 'csv. The default is 'json'.
         label : str, optional
             Label of the scatterer. Can be 'He','H2','N2' or 'default'.
             The default is 'He'.
@@ -797,46 +828,19 @@ class SimulatedSpectrum(Spectrum):
             # Calculate ScatteringMedium attributes based on the
             # inputs.
             medium.convert_distance()
-            medium.calcDensity()
+            medium.calc_density()
 
-            if filetype == "json":
-                # Build the loss function using the parameters in a
-                # json file.
-                input_datapath = (
-                    os.path.dirname(os.path.abspath(__file__)).partition(
-                        "augmentation"
+            # Build the loss function using the parameters in a
+            # json file.
+            input_datapath = (
+                os.path.dirname(os.path.abspath(__file__)).partition(
+                    "simulation"
                     )[0]
-                    + "\\data\\scatterers.json"
-                )
-                medium.scatterer.build_loss_from_json(input_datapath)
-                loss_fn = medium.scatterer.loss_function
-                loss_lineshape = loss_fn.lineshape
-
-            elif filetype == "csv":
-                # Build the loss function using xy values in a csv
-                # file.
-                root_dir = (
-                    os.path.abspath(__file__).partition("augmentation")[0]
-                    + "\\data"
-                )
-                data_dir = os.path.join(
-                    root_dir, label + " loss function.csv"
-                )
-                loss_x = []
-                loss_lineshape = []
-
-                with open(data_dir, mode="r") as csv_file:
-                    reader = csv.DictReader(csv_file, fieldnames=["x", "y"])
-                    for row in reader:
-                        d = dict(row)
-                        loss_x.append(float(d["x"]))
-                        loss_lineshape.append(float(d["y"]))
-
-                loss_x = np.array(loss_x)
-                loss_lineshape = np.array(loss_lineshape)
-
-                medium.scatterer.inelastic_xsect = 0.08
-                medium.scatterer.norm_factor = 1
+                + "\\data\\scatterers.json"
+            )
+            medium.scatterer.build_loss_from_json(input_datapath)
+            loss_fn = medium.scatterer.loss_function
+            loss_lineshape = loss_fn.lineshape
 
             if np.sum(loss_lineshape) != 0:
                 # Normalize the lineshape of the loss function.
@@ -902,7 +906,7 @@ if __name__ == "__main__":
 
     label = "Fe2O3"
     datapath = (
-        os.path.dirname(os.path.abspath(__file__)).partition("augmentation")[
+        os.path.dirname(os.path.abspath(__file__)).partition("simulation")[
             0
         ]
         + "data\\references"

@@ -74,7 +74,7 @@ class Scatterer:
 
         for i in scatterer_dict["loss_function"]:
             if i["type"] == "Gauss":
-                self.loss_function.addComponent(
+                self.loss_function.add_component(
                     Gauss(
                         i["params"]["position"],
                         i["params"]["width"],
@@ -83,7 +83,7 @@ class Scatterer:
                     rebuild=False,
                 )
             elif i["type"] == "Lorentz":
-                self.loss_function.addComponent(
+                self.loss_function.add_component(
                     Lorentz(
                         i["params"]["position"],
                         i["params"]["width"],
@@ -92,7 +92,7 @@ class Scatterer:
                     rebuild=False,
                 )
             elif i["type"] == "VacuumExcitation":
-                self.loss_function.addComponent(
+                self.loss_function.add_component(
                     VacuumExcitation(
                         i["params"]["edge"],
                         i["params"]["fermi_width"],
@@ -102,7 +102,7 @@ class Scatterer:
                     rebuild=False,
                 )
             elif i["type"] == "Tougaard":
-                self.loss_function.addComponent(
+                self.loss_function.add_component(
                     Tougaard(
                         i["params"]["B"],
                         i["params"]["C"],
@@ -142,9 +142,9 @@ class ScatteringMedium:
         self.T = 300  # Temperature in Kelvin
         self.pressure = 1  # In mbar
         self.distance = 0.80  # In millimeters
-        self.calcDensity()
+        self.calc_density()
 
-    def calcDensity(self):
+    def calc_density(self):
         """
         Calculate the molecular density in units of particles per nm^3
 

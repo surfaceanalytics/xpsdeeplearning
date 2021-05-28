@@ -40,5 +40,5 @@ print("Labels: " + str(datahandler.labels))
 print("No. of classes: " + str(datahandler.num_classes))
 
 datahandler.plot_random(
-    no_of_spectra=9, dataset="train", with_prediction=False
+    no_of_spectra=15, dataset="train", with_prediction=False
 )

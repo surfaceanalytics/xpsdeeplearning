@@ -1,7 +1,12 @@
 {
    "output_datafolder":"C:\\Users\\pielsticker\\Simulations\\",
-   "no_of_files":5,
-   "run_name":"Fe_linear_combination_small_gas_phase",
+   "name":"test",
+   "labels":[
+      "Fe metal",
+      "FeO",
+      "Fe3O4",
+      "Fe2O3"
+   ],
    "input_filenames":{
       "reference_set_0":[
          "Fe_metal.txt",
@@ -11,10 +16,12 @@
       ],
       "reference_set_1":[
          "Fe_metal_Mark.txt",
-         "Fe3O4_Mark.txt"
+         "FeO_Mark.txt",
+         "Fe3O4_Mark.txt",
+         "Fe2O3_Mark.txt"
       ]
    },
-   "no_of_simulations":5,
+   "no_of_simulations":100,
    "single":false,
    "variable_no_of_inputs":true,
    "broaden":true,
