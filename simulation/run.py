@@ -21,7 +21,7 @@ from creator import Creator, calculate_runtime
 init_param_folder = r"C:\Users\pielsticker\Simulations"
 
 #%% Parameters
-init_param_filepath = os.path.join(init_param_folder, "init_params.json")
+init_param_filepath = os.path.join(init_param_folder, "init_params_Ni.json")
 
 with open(init_param_filepath, "r") as param_file:
     params = json.load(param_file)

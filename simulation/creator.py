@@ -16,18 +16,17 @@ import matplotlib.pyplot as plt
 
 from base_model.spectra import MeasuredSpectrum
 from base_model.figures import Figure
-from simulation import Simulation
-
+from sim import Simulation
 #%%
 class Creator:
     """
     Class for simulating large amounts of XPS spectra based on a 
-    number of input_spectra
+    number of input_spectra.
     """
 
     def __init__(self, params=None):
         """
-        Loading the input spectra and creating the empty augmentation
+        Loading the input spectra and creating the empty simulation
         matrix based on the number of input spectra.
         
         Parameters
@@ -54,7 +53,6 @@ class Creator:
 
         """
         self.timestamp = datetime.datetime.now().strftime("%Y%m%d")
-        self.name = self.timestamp + "_" + params["name"]
 
         default_param_filepath = os.path.join(
             os.path.dirname(os.path.abspath(__file__)), "default_params.json"
@@ -63,6 +61,7 @@ class Creator:
         with open(default_param_filepath, "r") as param_file:
             self.params = json.load(param_file)
             self.sim_ranges = self.params["sim_ranges"]
+
 
         # Replace the default params with the supplied params
         # if available.
@@ -74,6 +73,7 @@ class Creator:
                     for subkey in params["sim_ranges"].keys():
                         self.sim_ranges[subkey] = params["sim_ranges"][subkey]
 
+        self.name = self.timestamp + "_" + self.params["name"]
         self.no_of_simulations = self.params["no_of_simulations"]
         self.labels = self.params["labels"]
 
@@ -88,7 +88,7 @@ class Creator:
         self.no_of_linear_params = len(self.labels)
         no_of_params = 1 + self.no_of_linear_params + 6
 
-        self.augmentation_matrix = np.zeros(
+        self.simulation_matrix = np.zeros(
             (self.no_of_simulations, no_of_params)
         )
 
@@ -122,13 +122,13 @@ class Creator:
         input_datapath = os.path.join(
             *[
                 os.path.dirname(os.path.abspath(__file__)).partition(
-                    "augmentation"
+                    "simulation"
                 )[0],
                 "data",
                 "references",
             ]
         )
-
+        
         input_spectra_list = []
         for set_key, value_list in filenames.items():
             ref_spectra_dict = {}
@@ -144,11 +144,41 @@ class Creator:
             [input_spectra, pd.DataFrame(input_spectra_list)], join="outer"
         )
 
+# =============================================================================
+#         input_spectra_list = []
+#         for set_key, value_list in filenames.items():
+#             ref_spectra_dict = {}
+#             for filename in value_list:
+#                 filepath = os.path.join(input_datapath, filename)
+#                 converter = data_converter.DataConverter()
+#                 converter.load(filepath)
+#                 data = converter.data
+#                 selection = [d for d in data if d["spectrum_type"] == "Fe2p"]
+#                 
+#                 loaded_spectra = []
+#                 for d in converter.data:
+#                     x = d['data']['x']
+#                     y = d['data']['y0']
+#                     species = d['group_name']
+#                     label = {species: 1.0}
+#                     loaded_spectra += [MeasuredVamasSpectrum(x,y,label)]
+#                     del(converter)
+#                     measured_spectrum = MeasuredSpectrum(filepath)
+#                     label = next(iter(measured_spectrum.label.keys()))
+#                     ref_spectra_dict[label] = measured_spectrum
+#  
+#                 input_spectra_list.append(ref_spectra_dict)
+# =============================================================================
+
+        return pd.concat(
+            [input_spectra, pd.DataFrame(input_spectra_list)], join="outer"
+        )
+
     def create_matrix(self, single=False, variable_no_of_inputs=True):
         """
-        Creates the numpy array 'augmentation_matrix' (instance
+        Creates the numpy array 'simulation_matrix' (instance
         variable) that is used to simulate the new spectra.
-        augmentation_matrix has the dimensions (n x p), where:
+        simulation_matrix has the dimensions (n x p), where:
         n: no. of spectra that will be created
         p: number of parameters
             p = no. of input spectra + 3 (resolution,shift,noise)
@@ -174,13 +204,13 @@ class Creator:
         """
         for i in range(self.no_of_simulations):
             key = self.select_reference_set()  # select a set of references
-            self.augmentation_matrix[i, 0] = int(key)
+            self.simulation_matrix[i, 0] = int(key)
 
-            self.augmentation_matrix[
+            self.simulation_matrix[
                 i, 1 : self.no_of_linear_params + 1
             ] = self.select_scaling_params(key, single, variable_no_of_inputs)
 
-            self.augmentation_matrix[
+            self.simulation_matrix[
                 i, self.no_of_linear_params + 1 :
             ] = self.select_sim_params(key)
 
@@ -300,12 +330,12 @@ class Creator:
 
     def select_sim_params(self, row):
         """
-        Select simulation parameters for one row in the augmentation matrix.
+        Select parameters for one row in the simulation matrix.
 
         Parameters
         ----------
         row : int
-            Row in the augmentation matrix to fill.
+            Row in the simulation matrix to fill.
 
         Returns
         -------
@@ -324,7 +354,7 @@ class Creator:
                 self.sim_ranges["FWHM"][0], self.sim_ranges["FWHM"][1]
             )
         else:
-            self.augmentation_matrix[row, -6] = 0
+            self.simulation_matrix[row, -6] = 0
 
         # shift_x
         if self.params["shift_x"] is not False:
@@ -390,8 +420,8 @@ class Creator:
 
     def run(self):
         """
-        The artificial spectra are createad using the simulation
-        class and the augmentation matrix. All data is then stored in 
+        The artificial spectra are createad using the Simulation
+        class and the simulation matrix. All data is then stored in 
         a dataframe.        
 
         Returns
@@ -401,7 +431,7 @@ class Creator:
         """
         dict_list = []
         for i in range(self.no_of_simulations):
-            ref_set_key = int(self.augmentation_matrix[i, 0])
+            ref_set_key = int(self.simulation_matrix[i, 0])
 
             # Only select input spectra and scaling parameter
             # for the references that are avalable.
@@ -412,7 +442,7 @@ class Creator:
             ]
             scaling_params = [
                 p
-                for p in self.augmentation_matrix[i][
+                for p in self.simulation_matrix[i][
                     1 : self.no_of_linear_params + 1
                 ]
                 if str(p) != "nan"
@@ -422,12 +452,12 @@ class Creator:
 
             self.sim.combine_linear(scaling_params=scaling_params)
 
-            fwhm = self.augmentation_matrix[i][-6]
-            shift_x = self.augmentation_matrix[i][-5]
-            signal_to_noise = self.augmentation_matrix[i][-4]
-            scatterer_id = self.augmentation_matrix[i][-3]
-            distance = self.augmentation_matrix[i][-2]
-            pressure = self.augmentation_matrix[i][-1]
+            fwhm = self.simulation_matrix[i][-6]
+            shift_x = self.simulation_matrix[i][-5]
+            signal_to_noise = self.simulation_matrix[i][-4]
+            scatterer_id = self.simulation_matrix[i][-3]
+            distance = self.simulation_matrix[i][-2]
+            pressure = self.simulation_matrix[i][-1]
 
             try:
                 # In order to assign a label, the scatterers are encoded
@@ -504,7 +534,7 @@ class Creator:
     def plot_random(self, no_of_spectra):
         """
         Randomly plots of the generated spetra.
-        Labels and augmentation parameters are added as texts.
+        Labels and simulation parameters are added as texts.
 
         Parameters
         ----------
@@ -777,6 +807,13 @@ class Creator:
     def save_metadata(self):
         self.params["timestamp"] = self.timestamp
         self.params["name"] = self.name
+        self.params["energy_range"] = [
+            np.min(self.df["x"][0]),
+            np.max(self.df["x"][0]),
+            np.round(
+                self.df["x"][0][0] - self.df["x"][0][1], 2
+            ),
+        ]
 
         del self.params["timestamp"]
 
@@ -821,7 +858,7 @@ if __name__ == "__main__":
         params = json.load(param_file)
 
     t0 = time()
-    creator = Creator(params)
+    creator = Creator(params=params)
     creator.run()
     creator.plot_random(10)
     #creator.to_file(filetypes = ['hdf5'], metadata=True)

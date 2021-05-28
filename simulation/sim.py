@@ -174,7 +174,6 @@ class Simulation:
             self.output_spectrum.pressure = scatter_dict["pressure"]
 
             self.output_spectrum.scatter_in_gas(
-                "json",
                 scatter_dict["label"],
                 scatter_dict["distance"],
                 scatter_dict["pressure"],
@@ -218,7 +217,7 @@ class Simulation:
 #%%
 if __name__ == "__main__":
     datapath = (
-        os.path.dirname(os.path.abspath(__file__)).partition("augmentation")[
+        os.path.dirname(os.path.abspath(__file__)).partition("simulation")[
             0
         ]
         + "data\\references"
