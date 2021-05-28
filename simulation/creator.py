@@ -262,7 +262,7 @@ class Creator:
         inputs = self.input_spectra.iloc[[key]]
         indices = [
             self.labels.index(j)
-            for j in inputs.columns[inputs.isnull().any() is False].tolist()
+            for j in inputs.columns[inputs.isnull().any() == False].tolist()
         ]
         indices_empty = [
             self.labels.index(j)
