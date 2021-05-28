@@ -331,11 +331,12 @@ class CustomModelCheckpoint(callbacks.ModelCheckpoint):
         from tensorflow.python.keras.utils import tf_utils
 
         """
-    Saves the model.
-    Arguments:
-        epoch: the epoch this iteration is in.
-        logs: the `logs` dict passed in to `on_batch_end` or `on_epoch_end`.
-    """
+        Saves the model.
+        Arguments:
+            epoch: the epoch this iteration is in.
+            logs: the `logs` dict passed in to `on_batch_end` or
+            `on_epoch_end`.
+        """
         logs = logs or {}
 
         if (
