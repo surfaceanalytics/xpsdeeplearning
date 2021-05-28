@@ -328,8 +328,6 @@ class CustomModelCheckpoint(callbacks.ModelCheckpoint):
   """
 
     def _save_model(self, epoch, logs):
-        from tensorflow.python.keras.utils import tf_utils
-
         """
         Saves the model.
         Arguments:
@@ -337,6 +335,8 @@ class CustomModelCheckpoint(callbacks.ModelCheckpoint):
             logs: the `logs` dict passed in to `on_batch_end` or
             `on_epoch_end`.
         """
+        from tensorflow.python.keras.utils import tf_utils
+
         logs = logs or {}
 
         if (
