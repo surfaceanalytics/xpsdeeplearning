@@ -12,7 +12,7 @@ from xpsdeeplearning.network.data_handling import DataHandler
 
 #%%
 np.random.seed(502)
-input_filepath = r"C:\Users\pielsticker\Simulations\20210222_Fe_linear_combination_small_gas_phase.h5"
+input_filepath = r"C:\Users\pielsticker\Simulations\20210528_Co_linear_combination_small_gas_phase\20210528_Co_linear_combination_small_gas_phase.h5"
 
 datahandler = DataHandler(intensity_only=False)
 train_test_split = 0.2
