@@ -308,9 +308,9 @@ class Report:
 
         # Get the data
         root_dir = os.getcwd()
-        self.model_dir = os.path.join(*[root_dir, "saved_models", dir_name])
-        self.log_dir = os.path.join(*[root_dir, "logs", dir_name])
-        self.fig_dir = os.path.join(*[root_dir, "figures", dir_name])
+        self.model_dir = os.path.join(*[root_dir, "runs", dir_name, "model", ])
+        self.log_dir = os.path.join(*[root_dir, "runs", dir_name, "logs"])
+        self.fig_dir = os.path.join(*[root_dir, "runs", dir_name, "figures"])
 
         (
             self.name_data,

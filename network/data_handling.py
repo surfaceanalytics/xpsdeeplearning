@@ -109,7 +109,10 @@ class DataHandler:
                     + "Default (Fe) was assumed."
                 )
             try:
-                self.labels = [str(label) for label in hf["labels"][:]]
+                try:
+                    self.labels = [label.decode("utf-8") for label in hf["labels"][:]]
+                except AttributeError: 
+                    self.labels = [str(label) for label in hf["labels"][:]]
                 self.num_classes = len(self.labels)
             except KeyError:
                 print(

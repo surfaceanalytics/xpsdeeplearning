@@ -194,7 +194,7 @@ class Classifier:
             Dictionary containing the training results for each epoch.
 
         """
-        self.logging.hyperparameter["batch_size"] = batch_size
+        self.logging.hyperparams["batch_size"] = batch_size
         # In case of refitting, get the new epoch start point.
         epochs_trained = self.logging._count_epochs_trained()
 
@@ -219,7 +219,7 @@ class Classifier:
         train_params = {
             "model_summary": self.model_summary,
             "epochs_trained": epochs_trained,
-            "batch_size": self.logging.hyperparameter["batch_size"],
+            "batch_size": self.logging.hyperparams["batch_size"],
             "loss": type(self.model.loss).__name__,
             "optimizer": type(self.model.optimizer).__name__,
             "learning_rate": str(K.eval(self.model.optimizer.lr)),
@@ -237,7 +237,7 @@ class Classifier:
                     self.datahandler.y_val,
                 ),
                 epochs=epochs + epochs_trained,
-                batch_size=self.logging.hyperparameter["batch_size"],
+                batch_size=self.logging.hyperparams["batch_size"],
                 initial_epoch=epochs_trained,
                 verbose=verbose,
                 callbacks=self.logging.active_cbs,
@@ -712,15 +712,15 @@ class Classifier:
         print("Saved results to file.")
 
 
-def restore_clf_from_logs(logpath):
+def restore_clf_from_logs(runpath):
     """
     Restores a Classifier object from the logs saved in a previous 
     experiment.
 
     Parameters
     ----------
-    logpath : str
-        Path where the logs from a previous experiment are located.
+    runpath : str
+        Path where the files from a previous experiment are located.
 
     Returns
     -------
@@ -728,7 +728,9 @@ def restore_clf_from_logs(logpath):
         Classifier object.
 
     """
-    hyperparam_file_name = os.path.join(logpath, "hyperparameters.json")
+    hyperparam_file_name = os.path.join(runpath,
+                                        "logs",
+                                        "hyperparameters.json")
 
     with open(hyperparam_file_name, "r") as json_file:
         hyperparams = json.load(json_file)
@@ -736,6 +738,7 @@ def restore_clf_from_logs(logpath):
         time = hyperparams["time"]
         task = hyperparams["task"]
         intensity_only = hyperparams["intensity_only"]
+
 
     clf = Classifier(
         time=time, exp_name=exp_name, task=task, intensity_only=intensity_only
