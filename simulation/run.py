@@ -7,7 +7,7 @@ Created on Mon May 18 14:30:00 2020
 This script is used to simulate many spectra using the Creator class
 and save the data to a HDF 5 file, along with the metadata in a JSON
 file.
-
+github
 """
 
 from time import time
@@ -21,7 +21,7 @@ from creator import Creator, calculate_runtime
 init_param_folder = r"C:\Users\pielsticker\Simulations"
 
 #%% Parameters
-init_param_filepath = os.path.join(init_param_folder, "init_params_Ni.json")
+init_param_filepath = os.path.join(init_param_folder, "init_params_NiCoFe.json")
 
 with open(init_param_filepath, "r") as param_file:
     params = json.load(param_file)

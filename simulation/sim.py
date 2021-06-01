@@ -41,8 +41,10 @@ class Simulation:
 
         """
         self.input_spectra = input_spectra
-        for spectrum in input_spectra:
-            spectrum.normalize()
+# =============================================================================
+#         for spectrum in input_spectra:
+#             spectrum.normalize()
+# =============================================================================
 
         # Initilaize the axes and label to the spectrum loaded first.
         start = self.input_spectra[0].start
@@ -99,13 +101,14 @@ class Simulation:
 
                 # Linear combination
                 self.output_spectrum.lineshape = sum(output_list)
-                self.output_spectrum.normalize()
+                #self.output_spectrum.normalize()
 
             else:
                 print("Scaling parameters have to sum to 1!")
                 print("Simulated spectrum was not changed!")
 
     def change_spectrum(self, spectrum=None, **kwargs):
+
         """
         Parameters
         ----------
@@ -178,8 +181,6 @@ class Simulation:
                 scatter_dict["pressure"],
             )
 
-        self.output_spectrum.normalize()
-
     def plot_simulation(self, plot_inputs=False):
         """
         Creates Figure objects for the output spectrum and (optionally)
@@ -220,7 +221,12 @@ if __name__ == "__main__":
         + "data\\references"
     )
 
-    labels = ["Fe_metal", "FeO", "Fe3O4", "Fe2O3"]
+    labels = [
+        "Fe2p_Fe_metal",
+        "Fe2p_FeO",
+        "Fe2p_Fe3O4",
+        "Fe2p_Fe2O3"
+    ]
     input_spectra = []
     for label in labels:
         filename = datapath + "\\" + label + ".txt"
@@ -233,7 +239,7 @@ if __name__ == "__main__":
         shift_x=5,
         signal_to_noise=20,
         fwhm=200,
-        scatterer={"label": "O2", "distance": 0.2, "pressure": 12.0},
+        scatterer={"label": "O2", "distance": 0.2, "pressure": 1.0},
     )
     print("Linear combination parameters: " + str(sim.output_spectrum.label))
     sim.plot_simulation(plot_inputs=False)

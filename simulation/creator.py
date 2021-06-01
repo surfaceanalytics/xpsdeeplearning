@@ -135,6 +135,8 @@ class Creator:
             for filename in value_list:
                 filepath = os.path.join(input_datapath, filename)
                 measured_spectrum = MeasuredSpectrum(filepath)
+                if self.params["normalize_inputs"]:
+                    measured_spectrum.normalize()
                 label = next(iter(measured_spectrum.label.keys()))
                 ref_spectra_dict[label] = measured_spectrum
 
@@ -474,6 +476,9 @@ class Creator:
                     "pressure": pressure,
                 },
             )
+            
+            if self.params["normalize_outputs"]:
+                self.sim.output_spectrum.normalize()
 
             d1 = {"reference_set": ref_set_key}
             d2 = self._dict_from_one_simulation(self.sim)
@@ -847,7 +852,7 @@ def calculate_runtime(start, end):
 
 #%%
 if __name__ == "__main__":
-    init_param_filepath = r"C:\Users\pielsticker\Simulations\init_params.json"
+    init_param_filepath = r"C:\Users\pielsticker\Simulations\init_params_Fe.json"
     with open(init_param_filepath, "r") as param_file:
         params = json.load(param_file)
 

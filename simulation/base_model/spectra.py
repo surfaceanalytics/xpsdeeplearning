@@ -680,12 +680,14 @@ class SimulatedSpectrum(Spectrum):
 
             self.shift_x = shift_x
 
-            # For normalization, take the sum of the original
-            # lineshape.
-            if b != 0:
-                self.lineshape /= b
-            else:
-                print("Simulation was not successful.")
+# =============================================================================
+#             # For normalization, take the sum of the original
+#             # lineshape.
+#             if b != 0:
+#                 self.lineshape /= b
+#             else:
+#                 print("Simulation was not successful.")
+# =============================================================================
 
         else:
             # Return error and repeat input
@@ -722,7 +724,7 @@ class SimulatedSpectrum(Spectrum):
             )
 
             self.lineshape = self.lineshape + poisson_noise
-            self.normalize()
+            #self.normalize()
 
     def change_resolution(self, resolution):
         """
@@ -785,7 +787,7 @@ class SimulatedSpectrum(Spectrum):
             result = result[len_y:-len_y]
 
             self.lineshape = result
-            self.normalize()
+            #self.normalize()
         self.fwhm = fwhm
 
     def scatter_in_gas(self, label="He", distance=0.8, pressure=1.0):
@@ -888,11 +890,12 @@ class SimulatedSpectrum(Spectrum):
             result = total + min_value
 
             self.lineshape = result
-            self.normalize()
+            #self.normalize()
+
             self.scatterer = label
             self.pressure = pressure
             self.distance = distance
-
+            
         elif label is None:
             pass
         else:
@@ -903,7 +906,7 @@ class SimulatedSpectrum(Spectrum):
 if __name__ == "__main__":
     from peaks import Gauss, Lorentz, Voigt, VacuumExcitation, Tougaard
 
-    label = "Fe2O3"
+    label = "Ni2pCo2pFe2p_Co_metal"
     datapath = (
         os.path.dirname(os.path.abspath(__file__)).partition("simulation")[0]
         + "data\\references"
