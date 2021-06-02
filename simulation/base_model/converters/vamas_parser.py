@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Fri Jul 31 17:29:54 2020
+Created on Fri Jul 31 17:29:54 2020.
 
 @author: Mark
 """
@@ -10,7 +10,17 @@ from .vamas import VamasHeader, Block
 
 #%%
 class VamasParser:
+    """Parser for XPS data stored in Vamas files."""
+    
     def __init__(self):
+        """
+        Initialize VamasHeader and blocks list.
+
+        Returns
+        -------
+        None.
+
+        """
         self.header = VamasHeader()
         self.blocks = []
         self.common_header_attr = [
@@ -195,6 +205,19 @@ class VamasParser:
         return self._build_dict()
 
     def _read_lines(self, filepath):
+        """
+        Read all lines in the Vamas file.
+
+        Parameters
+        ----------
+        filepath : str
+            Has to be a .vms file.
+
+        Returns
+        -------
+        None.
+
+        """
         self.data = []
         self.filepath = filepath
 
@@ -205,7 +228,8 @@ class VamasParser:
 
     def _parse_header(self):
         """
-        This parses the vama header into aVamasHeader object.
+        Parse the vamas header into a VamasHeader object.
+        
         The common_header_attr are the header attributes that are common
         to both types of Vama format (NORM and MAP).
 
@@ -214,7 +238,6 @@ class VamasParser:
         None.
 
         """
-
         for attr in self.common_header_attr:
             setattr(self.header, attr, self.data.pop(0).strip())
         n = int(self.header.noCommentLines)
@@ -236,21 +259,56 @@ class VamasParser:
                     self._add_exp_var()
 
     def _add_exp_var(self):
+        """
+        Add the attribute exp_var to the VamasHeader.
+
+        Returns
+        -------
+        None.
+
+        """
         for v in range(int(self.header.nrExpVar)):
             for attr in self.exp_var_attributes:
                 setattr(self.header, attr, self.data.pop(0).strip())
 
     def _parse_blocks(self):
+        """
+        Parse all blocks in the vamas data.
+
+        Returns
+        -------
+        None.
+
+        """
         for b in range(int(self.header.noBlocks)):
             self._parseOneBlock()
 
     def _parseOneBlock(self):
+        """
+        Parse one block of vamas data.
+        
+        Depending on the experimental mode, a differnt method is used.
+
+        Returns
+        -------
+        None.
+
+        """
         if self.header.expMode == "NORM":
             self.blocks += [self._parse_NORM_Block()]
         elif self.header.expMode == "MAP":
             self.blocks += [self._parse_MAP_block()]
 
     def _parse_NORM_Block(self):
+        """
+        Parse a NORM block from Vamas.
+        
+        Returns
+        -------
+        block : vamas.BLOCK
+            A Block object containing all data from one VAMAS block.
+
+        """
 
         # start = time.time()
         block = Block()
@@ -336,6 +394,15 @@ class VamasParser:
         return block
 
     def _parse_MAP_block(self):
+        """
+        Parse a MAP block from Vamas.
+        
+        Returns
+        -------
+        block : vamas.BLOCK
+            A Block object containing all data from one VAMAS block.
+
+        """
         block = Block()
         block.blockID = self.data.pop(0).strip()
         block.sampleID = self.data.pop(0).strip()
@@ -412,6 +479,19 @@ class VamasParser:
         return block
 
     def _add_data_values(self, block):
+        """
+        Add the data from one block to a dictionary.
+
+        Parameters
+        ----------
+        block : vamas.Block
+            Block object with the dictionary as an attribute.
+
+        Returns
+        -------
+        None.
+
+        """
         data_dict = {}
         start = float(block.abscissaStart)
         step = float(block.abscissaStep)
@@ -446,12 +526,13 @@ class VamasParser:
             setattr(block, name, data_dict[name])
 
     def _build_dict(self):
-        """ This method constructs a list of dictionaries where eache 
-        dictionary contains all the data and metadata of a spectrum.
+        """
+        Construct a list of dictionaries.
+        
+        Each dictionary contains all the data and metadata of a spectrum.
         vamas.sampleID -> group['name']
         vamas.
         """
-
         group_id = -1
         temp_group_name = ""
         spectra = []

@@ -1,18 +1,23 @@
 # -*- coding: utf-8 -*-
 """
-Created on Mon Jul 20 11:39:22 2020
+Created on Mon Jul 20 11:39:22 2020.
 
 @author: Mark
 """
 
 #%%
-class Vamas:
-    def __init__(self):
-        pass
-
-
 class VamasHeader:
+    """Class for handling headers in Vamas files."""
+    
     def __init__(self):
+        """
+        Define default values for some parameters in the header.
+
+        Returns
+        -------
+        None.
+
+        """
         self.formatID = "VAMAS Surface Chemical Analysis Standard Data Transfer Format 1988 May 4"
         self.instituteID = "Not Specified"
         self.instriumentModelID = "Not Specified"
@@ -34,7 +39,17 @@ class VamasHeader:
 
 
 class Block:
+    """Class for handling blocks in Vamas files."""
+
     def __init__(self):
+        """
+        Define default values for some parameters of a block.
+
+        Returns
+        -------
+        None.
+
+        """
         self.blockID = ""
         self.sampleID = ""
         self.year = ""

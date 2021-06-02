@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Thu Sep 10 10:43:16 2020
+Created on Thu Sep 10 10:43:16 2020.
 
 @author: pielsticker
 """
@@ -10,14 +10,14 @@ import numpy as np
 
 #%%
 class Figure:
-    """
-    Class for plotting an XPS spectrum.
-    """
+    """Class for plotting an XPS spectrum."""
 
     def __init__(self, x, y, title):
         """
-        Plot the spectrum and set the x limits according to the min/max
-        values of the binding energies.
+        Plot the spectrum.
+        
+        X limits are set according to the min/max values of the
+        binding energies.
 
         Parameters
         ----------

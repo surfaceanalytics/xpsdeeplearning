@@ -1,3 +1,9 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Tue Nov 3 12:37:52 2020.
+
+@author: pielsticker
+"""
 import numpy as np
 import talos
 import os
@@ -10,14 +16,24 @@ import xpsdeeplearning.network.classifier as classifier
 
 #%%
 class Hyperoptimization:
-    """
-    Class for performing optimization of the hyperparameters of a 
-    Keras model using Talos. Handles logging, saving, and loading
-    automatically based on the time and the name of the loaded data
-    set.
-    """
+    """Optimization of the Keras hyperparameters of a using Talos."""
 
     def __init__(self, time, exp_name):
+        """
+        Initialize empty scans list and DataFrame.
+
+        Parameters
+        ----------
+        time : str
+            Time of experiment start.
+        exp_name : str
+            Name of the experimental run.
+
+        Returns
+        -------
+        None.
+
+        """
         self.time = time
         self.exp_name = exp_name
 
@@ -47,8 +63,7 @@ class Hyperoptimization:
 
     def initialize_clf(self, task="regression", intensity_only=True):
         """
-        Initialize a Classifier object that takes care of data
-        handling.
+        Initialize a Classifier object.
 
         Parameters
         ----------
@@ -73,7 +88,9 @@ class Hyperoptimization:
 
     def hyper_opt(self, x_train, y_train, x_val, y_val, params):
         """
-        Model input/output format used in the Talos Scan.
+        Instantiate, compile and call model.
+        
+        Used in the Talos Scan.
 
         Parameters
         ----------
@@ -132,6 +149,7 @@ class Hyperoptimization:
     def scan_parameter_space(self, params, **kwargs):
         """
         Scan the parameter space provided in the params dictionary.
+        
         Keywords can be used to limit the search space.
 
         Parameters
@@ -216,8 +234,10 @@ class Hyperoptimization:
 
     def restore_previous_scans(self):
         """
-        Creates a list of RestoredScan objects containing information
-        about previous results on this data set.
+        Create a list of RestoredScan objects.
+        
+        This is used to restore information about previous results 
+        on this data set.
 
         Returns
         -------
@@ -244,8 +264,9 @@ class Hyperoptimization:
 
     def combine_results(self):
         """
-        Combines the results from all scans in the self.scans list
-        and returns a DataFrame containing all results
+        Combine the results from all scans in the self.scans list.
+        
+        Return a DataFrame containing all results.
 
         Returns
         -------
@@ -265,7 +286,7 @@ class Hyperoptimization:
 
     def save_full_data(self):
         """
-        Saves the full data to CSV and pickle files.
+        Save the full data to CSV and pickle files.
 
         Returns
         -------
@@ -281,7 +302,7 @@ class Hyperoptimization:
 
     def _get_all_weights(self):
         """
-        Combines the weights from all scans into one numpy array
+        Combine the weights from all scans into one numpy array.
 
         Returns
         -------
@@ -313,8 +334,9 @@ class Hyperoptimization:
 
     def get_best_params(self, metric):
         """
-        Get the best params for a certain metric by exploiting the
-        Analyzer object.
+        Get the best params for a certain metric.
+        
+        Exploits the Analyzer object.
 
         Parameters
         ----------
@@ -336,8 +358,9 @@ class Hyperoptimization:
         self, best=False, model_id=None, metric="val_loss"
     ):
         """
-        Reload a model from all scans. Either the best model or a model 
-        from an ID is loaded.
+        Reload a model from all scans.
+        
+        Either the best model or a model from an ID is loaded.
 
         Parameters
         ----------
@@ -376,10 +399,7 @@ class Hyperoptimization:
 
 
 class Scan(talos.Scan):
-    """
-    Class for performing a scan of the parameter space. Very similar to
-    talos.Scan, but with added saving possibilities.
-    """
+    """Class for performing a scan of the parameter space."""
 
     def __init__(
         self,
@@ -411,8 +431,10 @@ class Scan(talos.Scan):
         number=0,
     ):
         """
-        __init__ method taken from talos.Scan (see talos docs),
-        but without scan_round implemented.
+        Overwrite __init__ method taken from talos.Scan.
+        
+        In comparison to original talos.Scan, scan_round is
+        not run on implementation (see talos docs),
         """
         super(Scan, self).__init__(
             x=x,
@@ -445,6 +467,8 @@ class Scan(talos.Scan):
 
     def deploy(self):
         """
+        Save all relevant information from the Scan object.
+
         Method very similar to the Deploy class of Talos.
         Saves all details, the model, information about the rounds 
         and the weights to different files. Needed for restoring of
@@ -496,9 +520,7 @@ class Scan(talos.Scan):
         print("Data was saved to scan archive.")
 
     def interrupt(self):
-        """
-        Method for catching an interruption and still saving the data.
-        """
+        """Catch an interruption and still save the data."""
         self.round_params = self.param_object.round_parameters()
 
         from talos.scan.scan_round import scan_round
@@ -516,19 +538,18 @@ class Scan(talos.Scan):
 
 
 class RestoredScan:
-    """
-    Class for restoring information about previous scans. Can be used
-    if the hyperparamter scan had to be abandoned, but shall be
-    continued in a new Scan object.
+    """Class for restoring information about previous scans."""
     
-    Note: It is not possible (yet) to run the scan in this class,
-    this class is only a container for the results from a previous 
-    scan.
-    """
-
     def __init__(self, folder, number):
         """
         Load all data from a previous scan.
+        
+        This class is to be used if the hyperparamter scan had to 
+        be abandoned, but shall be continued in a new Scan object.
+        
+        Note: It is not possible (yet) to run the scan in this class,
+        this class is only a container for the results from a previous 
+        scan.
 
         Parameters
         ----------
@@ -573,14 +594,14 @@ class RestoredScan:
 
 
 class Analysis:
-    """
-    Class for the analysis of results from one or multiple scans. 
-    Very similar to talos.Reporting, but with added analysis tools.
-    """
-
+    """Class for the analysis of results from one or multiple scans."""
+    
     def __init__(self, df):
         """
-        Needs a results DataFrame as input.
+        Initialize the attribute self.df from an results DataFrame.
+        
+        This class is very similar to talos.Reporting, but with added 
+        analysis tools.
 
         Parameters
         ----------
@@ -615,8 +636,7 @@ class Analysis:
 
     def _get_best_round(self, metric, low=True):
         """
-        Returns the ID of the round that produced the lowest\highest
-        value for a given metric.
+        Return the ID of the round with the best value for a metric.
 
         Parameters
         ----------
@@ -637,16 +657,11 @@ class Analysis:
         return self.df[self.df[metric] == self.df[metric].min()].index[0]
 
     def _minimum_value(self, metric):
-        """
-        Returns the minimum value for a given metric.
-        """
+        """Return the minimum value for a given metric."""
         return min(self.df[metric])
 
     def _exclude_unchanged(self):
-        """
-        Helper to exlude the parameters that were not changed during
-        the scans.
-        """
+        """Exlude the parameters not changed during the scans."""
         exclude = []
         for key, values in self.df.iteritems():
             if values.nunique() == 1:
@@ -655,10 +670,7 @@ class Analysis:
         return exclude
 
     def _cols(self, metric, exclude):
-        """
-        Helper to remove other than desired metric from data table.
-        """
-
+        """Remove other than desired metric from data table."""
         cols = [
             col for col in self.df.columns if col not in exclude + [metric]
         ]
@@ -670,7 +682,7 @@ class Analysis:
 
     def create_line_data(self, metric):
         """
-        Selects the metric column of the df for a line plot.
+        Select the metric column of the df for a line plot.
 
         Parameters
         ----------
@@ -687,8 +699,7 @@ class Analysis:
 
     def correlate(self, metric):
         """
-        Returns a correlation matrix between all parameters and the
-        given metric.
+        Return a correlation matrix between parameters and a metric.
 
         Parameters
         ----------
@@ -712,7 +723,7 @@ class Analysis:
 
     def create_hist_data(self, metric):
         """
-        Selects the metric column of the df for a histogram plot.
+        Select the metric column of the df for a histogram plot.
 
         Parameters
         ----------
@@ -729,8 +740,7 @@ class Analysis:
 
     def create_kde_data(self, x, y=None):
         """
-        Selects one or two columns of the df for a kernel density 
-        estimation plot.
+        Select one or two columns of the df for a KDE plot.
 
         Parameters
         ----------
@@ -752,7 +762,7 @@ class Analysis:
 
     def create_bar_data(self, x, y, hue, col):
         """
-        Selects four columns of the df for a 4d bar plot.
+        Select four columns of the df for a 4d bar plot.
 
         Parameters
         ----------
@@ -774,11 +784,24 @@ class Analysis:
 
 
 class Plot:
-    """
-    Base class for plotting one of the analysis plots.
-    """
+    """Base class for plotting one of the analysis plots."""
 
     def __init__(self, data):
+        """
+        Initialize empty data and figure.
+
+        Fonts and display names are set here.
+
+        Parameters
+        ----------
+        data : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        None.
+
+        """
         self.data = data
         self.name = None
         self.fig = None
@@ -799,13 +822,13 @@ class Plot:
 
         try:
             self.metric = self.data.name
-            self.display_name = display_names[self.metric]
+            self.metric_display_name = display_names[self.metric]
         except AttributeError:
             pass
 
     def to_file(self, filepath):
         """
-        Saves the figure stored in self.fig to a PNG file.
+        Save the figure stored in self.fig to a PNG file.
 
         Parameters
         ----------
@@ -824,16 +847,36 @@ class Plot:
 
 
 class LinePlot(Plot):
-    """
-    Class for a line plot of a chosen metric across all rounds.
-    """
+    """Class for a line plot of a chosen metric across all rounds."""
 
     def __init__(self, data):
+        """
+        Initialize data and name attributes.
+
+        Parameters
+        ----------
+        data : pd.DataFrame
+            Subset of a dataframe containing the relevant data for a 
+            line plot.
+
+        Returns
+        -------
+        None.
+
+        """
         super(LinePlot, self).__init__(data)
         self.data = data
         self.name = "line plot_" + self.metric
 
     def plot(self):
+        """
+        Create a line plot of the data.
+        
+        Returns
+        -------
+        None.
+
+        """
         self.x = range(self.data.shape[0])
 
         self.fig, self.ax = plt.subplots(figsize=(10, 8))
@@ -860,33 +903,59 @@ class LinePlot(Plot):
         self.ax.set_xlabel("Round", self.font_dict)
 
         self.ax.set_title(
-            self.display_name + " across all rounds", self.font_dict
+            self.metric_display_name + " across all rounds", self.font_dict
         )
-        self.ax.set_ylabel(self.display_name, self.font_dict)
+        self.ax.set_ylabel(self.metric_display_name, self.font_dict)
 
 
 class HistPlot(Plot):
-    """
-    Class for a histogram of a chosen metric across all rounds.
-    """
+    """Class for a histogram of a chosen metric across all rounds."""
 
     def __init__(self, data):
+        """
+        Initialize the super-class Plot and the attribute name.
+
+        Parameters
+        ----------
+        data : pd.DataFrame
+            Subset of a dataframe containing the relevant data for a 
+            histogram.
+
+        Returns
+        -------
+        None.
+
+        """
         super(HistPlot, self).__init__(data)
         self.name = "histogram_" + self.metric
 
     def plot(self, bins=10):
+        """
+        Plot a histogram of the data across all rounds.
+
+        Parameters
+        ----------
+        bins : int, optional
+            Number of bins in the histogram.
+            The default is 10.
+
+        Returns
+        -------
+        None.
+
+        """
         self.fig, self.ax = plt.subplots(figsize=(10, 8))
         self.ax.hist(self.data, bins=bins)
 
         self.ax.set_title(
             "Histogram of the {0} across all rounds".format(
-                self.display_name
+                self.metric_display_name
             ),
             self.font_dict,
         )
 
         self.ax.set_xlabel(
-            self.display_name,
+            self.metric_display_name,
             fontdict={"fontsize": 15, "fontweight": 1, "color": "black"},
         )
         self.ax.set_ylabel("Counts", self.font_dict)
@@ -895,16 +964,35 @@ class HistPlot(Plot):
 
 
 class CorrPlot(Plot):
-    """
-    Class for a plot of the correlation matrix between all parameters
-    and the metrics.
-    """
+    """Correlation plot between all parameters and a metric."""
 
     def __init__(self, data):
+        """
+        Initialize the super-class Plot and the attribute name.
+
+        Parameters
+        ----------
+        data : pd.DataFrame
+            Subset of a dataframe containing the relevant data for a 
+            correlation plot.
+
+        Returns
+        -------
+        None.
+
+        """
         super(CorrPlot, self).__init__(data)
         self.name = "correlation_plot"
 
     def plot(self):
+        """
+        Plot the correlation plot between the data and the metric.
+
+        Returns
+        -------
+        None.
+
+        """
         self.fig, self.ax = plt.subplots(
             figsize=(self.data.shape[0] * 2.3, self.data.shape[1] * 2)
         )
@@ -929,11 +1017,27 @@ class CorrPlot(Plot):
 
 
 class KDEPlot(Plot):
-    """
-    Class for a 1d or 2d kernel density estimation plot.
-    """
+    """Class for a 1d or 2d kernel density estimation plot."""
 
     def __init__(self, data, x, y=None):
+        """
+        Initialize the superclass Plot and the attribute name.
+       
+        Parameters
+        ----------
+        data : pd.DataFrame
+            DESCRIPTION.
+        x : str
+            Data to be used on the x-axis of the plot.
+        y : str
+            Column to be used on the y-axis of the plot.
+            The default is None.
+
+        Returns
+        -------
+        None.
+
+        """        
         super(KDEPlot, self).__init__(data)
         self.x = x
         self.y = y
@@ -942,6 +1046,14 @@ class KDEPlot(Plot):
             self.name += "-" + self.y
 
     def plot(self):
+        """
+        Plot the KDE plot.
+        
+        Returns
+        -------
+        None.
+
+        """
         self.fig, self.ax = plt.subplots(figsize=(10, 10))
 
         if self.y is not None:
@@ -949,7 +1061,7 @@ class KDEPlot(Plot):
         else:
             data2 = None
 
-        p = sns.kdeplot(
+        _ = sns.kdeplot(
             data=self.data[self.x],
             data2=data2,
             ax=self.ax,
@@ -975,16 +1087,15 @@ class KDEPlot(Plot):
 
 
 class BarPlot(Plot):
-    """
-    Class for a bar plot of four parameters.
-    """
+    """Class for a bar plot of four parameters."""
 
     def __init__(self, data, x, y, hue, col):
         """
-        
+        Initialize the super-class Plot and the attribute name.
+
         Parameters
         ----------
-        data : pandas.DataFrame
+        data : pd.DataFrame
         x : str
             Data to be used on the x-axis of the plot.
         y : str
@@ -1016,6 +1127,14 @@ class BarPlot(Plot):
         )
 
     def plot(self):
+        """
+        Plot a bar plot (sns.catplot) with four parameters.
+        
+        Returns
+        -------
+        None.
+
+        """
         # self.fig, self.ax = plt.subplots(figsize = (10,10))
 
         self.fig = sns.catplot(

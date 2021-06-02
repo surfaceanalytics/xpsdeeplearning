@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Mon Jul 20 11:32:48 2020
+Created on Mon Jul 20 11:32:48 2020.
 
 @author: Mark
 """
@@ -10,22 +10,29 @@ from .text_parser import TextParser
 
 
 class DataConverter:
-    """ This class parses files of type: 
+    """Class for loading/writing XPS data of different formats."""
+
+    def __init__(self):
+        """
+        Initialize the parser methods.
+        
+        All objects of the Dataset class should have the methods specificed
+        in the attribute 'self.class_methods'
+        
+        This class parses files of type: 
             'ProdigyXY', 'Vamas'
         And writes files of type:
             'JSON', 'Vamas', 'Excel'
-    """
-
-    def __init__(self):
-        """ All objects of the Dataset class should have the methods specificed
-        in the attribute 'self.class_methods'
         """
         self._parser_methods = {"Vamas": VamasParser, "Text": TextParser}
         self._extensions = {"vms": "Vamas", "txt": "Text"}
 
     def load(self, filename, **kwargs):
-        """ This method parses an input file an places it into a nested 
-        dictionary.
+        """
+        Parse an input file.
+        
+        The result is placed into a nested dictionary.
+        
         Parameters
         ----------
         filename: STRING

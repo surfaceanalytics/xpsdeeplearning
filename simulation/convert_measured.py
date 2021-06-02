@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Tue Jul 14 11:06:37 2020
+Created on Tue Jul 14 11:06:37 2020.
 
 @author: pielsticker
 
@@ -70,7 +70,8 @@ from base_model.figures import Figure
 #%% For multiple fitted XPS spectra
 def _get_labels(filepath, label_list):
     """
-    Takes the labels and names from the excel file in the filepath.
+    Take the labels and names from the excel file in the filepath.
+    
     Parameters
     ----------
     filepath : str
@@ -104,9 +105,10 @@ def convert_all_spectra(
     input_datafolder, label_filepath, label_list, plot_all=True
 ):
     """
-    Takes all xy files of measured spectra in the input_datafolder and
-    extracts the features, labels and names. Resizes the spectra if 
-    needed.
+    Take all xy files of measured spectra in the input_datafolder.
+    
+    Features, labels, and names are extracted. If neeeded, the spectra
+    are resized.
 
     Parameters
     ----------

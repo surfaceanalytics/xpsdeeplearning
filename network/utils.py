@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Tue Jun  9 14:10:44 2020
+Created on Tue Jun  9 14:10:44 2020.
 
 @author: pielsticker
 """
@@ -17,9 +17,7 @@ from docx.shared import Cm, Pt
 
 #%%
 class SpectraPlot:
-    """
-    Creates a nx5 array of plots from a given data set.
-    """
+    """A nx5 array of plots from a given data set."""
 
     def __init__(self, data, annots):
         """
@@ -60,7 +58,7 @@ class SpectraPlot:
 
     def plot(self):
         """
-        Populates the plots with the data.
+        Populate the plots with the data.
 
         Returns
         -------
@@ -109,18 +107,21 @@ class SpectraPlot:
 
 
 class ClassDistribution:
+    """Class for the distribution of classes in a dataset."""
+    
     def __init__(self, task, data_list):
         """
-        Calculate the average distibutions of the labels in the 
-        different data sets if the task is 'regression'.
-        Calculate how many examples of each class are in the different
-        data sets  if the task is 'classification'.     
-        Saves it in a attribute called 'cd'
-        cd : dict
-        Dictionary of the format {'all data': dict,
-                                  'training data': dict,
-                                  'validation data': dict,
-                                  'test data': dict}.
+        Calculate the distibutions of the labels.
+        
+        If the task is "regression", the average distributions
+        are calculated. If the task is "classification", calculate how
+        many examples of each class are in the different data ses.
+        
+        Save the distribution in a dict called 'cd'.
+        cd: Dictionary of the format {'all data': dict,
+                                      'training data': dict,
+                                      'validation data': dict,
+                                      'test data': dict}.
         Each of the sub-dicts contains the distribution of the labels
         in the data sub-set.
 
@@ -211,13 +212,11 @@ class ClassDistribution:
 
 
 class TrainingGraphs:
-    """
-    Class for producing graphs with the result of the training in Keras.
-    """
+    """Class for graphs with the result of the training in Keras."""
 
     def __init__(self, history, fig_dir):
         """
-        Takes a dictionary containing the results from training.
+        Take a dictionary containing the results from training.
 
         Parameters
         ----------
@@ -237,7 +236,7 @@ class TrainingGraphs:
 
     def plot_loss(self, to_file=True):
         """
-        Plots the training and validation loss against the epochs.
+        Plot the training and validation loss against the epochs.
 
         Returns
         -------
@@ -258,7 +257,7 @@ class TrainingGraphs:
 
     def plot_accuracy(self, to_file=True):
         """
-        Plots the training and validation accuracy against the epochs.
+        Plot the training and validation accuracy against the epochs.
 
         Returns
         -------
@@ -279,14 +278,13 @@ class TrainingGraphs:
 
 
 class Report:
-    """
-    Report on the results of the training of a neural network in keras.
-    """
+    """Report on the results of the training in keras."""
 
     def __init__(self, dir_name=""):
         """
-        Initialize a docx document and load the data from the 
-        hyperparamters file.
+        Initialize a docx document.
+        
+        Load the data from the hyperparamters file.
 
         Parameters
         ----------
@@ -299,7 +297,6 @@ class Report:
         None.
 
         """
-
         self.document = Document()
         style = self.document.styles["Normal"]
         font = style.font
@@ -435,7 +432,7 @@ class Report:
         run = p.add_run()
         run.text = "Predictions:"
         run.font.underline = True
-        pred_train_table = self.add_result_table(pred_train_5)
+        _ = self.add_result_table(pred_train_5)
 
         p = self.document.add_paragraph()
         p.paragraph_format.space_before = Pt(12)
@@ -443,7 +440,7 @@ class Report:
         run = p.add_run()
         run.text = "Correct labels:"
         run.font.underline = True
-        y_train_table = self.add_result_table(y_train_5)
+        self.add_result_table(y_train_5)
 
         self.document.add_heading("Test data", 2)
         s = np.random.randint(0, self.results["y_test"].shape[0] - 5)
@@ -456,7 +453,7 @@ class Report:
         run = p.add_run()
         run.text = "Predictions:"
         run.font.underline = True
-        pred_test_table = self.add_result_table(pred_test_5)
+        self.add_result_table(pred_test_5)
 
         p = self.document.add_paragraph()
         p.paragraph_format.space_before = Pt(12)
@@ -464,11 +461,11 @@ class Report:
         run = p.add_run()
         run.text = "Correct labels:"
         run.font.underline = True
-        y_test_table = self.add_result_table(y_test_5)
+        self.add_result_table(y_test_5)
 
     def add_result_table(self, data_array):
         """
-        Helper mehthod to store and display the results from training.
+        Store and display the results from training.
 
         Parameters
         ----------
@@ -558,8 +555,9 @@ class Report:
 
     def get_results(self):
         """
-        Load the results (test data, predictions, ...) from the shelf
-        file.
+        Load the results from the pickle file.
+        
+        Results include e.g. the test data and the predictions.
 
         Returns
         -------

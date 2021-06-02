@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Thu Sep 10 10:47:32 2020
+Created on Thu Sep 10 10:47:32 2020.
 
 @author: pielsticker
 """
@@ -21,14 +21,13 @@ except ImportError as e:
 
 
 class Scatterer:
-    """
-    Basic class for creating a scatterer which can be used as part of
-    a ScatteringMedium.
-    """
+    """Basic class for creating a scatterer."""
 
     def __init__(self, label):
         """
-        Create a default loss function going from 0 to 200 eV with a 
+        Create a default loss function.
+        
+        The default goes from 0 to 200 eV with a 
         step size of 0.1 eV.
 
         Parameters
@@ -52,8 +51,10 @@ class Scatterer:
 
     def build_loss_from_json(self, input_datapath):
         """
-        This function builds the spectrum of the loss function from the
-        components in a scatterrer loaded from a json file.             
+        Build the spectrum of the loss function.
+        
+        The components are taken from a scatterer loaded from a json 
+        file.  
 
         Parameters
         ----------
@@ -115,13 +116,13 @@ class Scatterer:
 
 
 class ScatteringMedium:
-    """
-    A ScatteringMedium contains one or more Scatterer object and can be
-    used to simulate scattering of photoelectrons in a medium.
-    """
+    """A scattering medium to simulate scattering of photoelectrons."""
 
     def __init__(self, label):
         """
+        Initialize the medium with one scatterer.
+        
+        A ScatteringMedium contains one or more Scatterer objects.
         In this case, only one Scatterer object is used, 
         depending on the input label.
 
@@ -146,7 +147,7 @@ class ScatteringMedium:
 
     def calc_density(self):
         """
-        Calculate the molecular density in units of particles per nm^3
+        Calculate the molecular density in units of particles per nm^3.
 
         Returns
         -------
@@ -181,7 +182,7 @@ if __name__ == "__main__":
     medium.calcDensity()
 
     input_datapath = (
-        os.path.dirname(os.path.abspath(__file__)).partition("augmentation")[
+        os.path.dirname(os.path.abspath(__file__)).partition("simulation")[
             0
         ]
         + "\\data\\scatterers.json"

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Fri Jun  5 15:47:47 2020
+Created on Fri Jun  5 15:47:47 2020.
 
 @author: pielsticker
 """
@@ -10,6 +10,7 @@ from vis.visualization import visualize_saliency, visualize_cam
 from vis.utils import utils
 from keras import activations
 
+#%%
 
 class AttentiveResonseMap:
     def __init__(self, classifier):

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Thu May  6 17:05:50 2021
+Created on Thu May  6 17:05:50 2021.
 
 @author: pielsticker
 """
@@ -10,11 +10,37 @@ import shutil
 
 #%%
 class Uploader:
+    """Class for preparing the upload of a classifier."""
+    
     def __init__(self, model_path, dataset_metadata_path):
+        """
+        Initialize the two relevant paths.
+
+        Parameters
+        ----------
+        model_path : str
+            Path of the classifier.
+        dataset_metadata_path : str
+            Path of the JSON metadata file for the data set.
+
+        Returns
+        -------
+        None.
+
+        """
         self.model_path = model_path
         self.dataset_metadata_path = dataset_metadata_path
         
     def _get_train_params(self):
+        """
+        Get all relevant parameters from the training log.
+
+        Returns
+        -------
+        train_params : dict
+            Dictionary with all relevant training log data.
+
+        """
         log_path = os.path.join(
             *[
                 self.model_path,
@@ -26,6 +52,7 @@ class Uploader:
         with open(log_path, "r") as param_file:
             train_params = json.load(param_file)
             
+        #Remove unneeded information
         for key in [
             "input_filepath",
             "model_summary",
@@ -42,9 +69,20 @@ class Uploader:
         return train_params
 
     def _get_data_params(self):
+        """
+        Get all relevant parameters from the dataset metadata.
+
+        Returns
+        -------
+        data_params : dict
+            Dictionary with all relevant metadata from the dataset
+            creation.
+
+        """
         with open(self.dataset_metadata_path, "r") as param_file:
             data_params = json.load(param_file)
 
+        #Remove unneeded information
         for key in [
             "single",
             "variable_no_of_inputs",
@@ -57,6 +95,14 @@ class Uploader:
         return data_params
 
     def prepare_upload_params(self,):
+        """
+        Create nested dictionary for the classifier website upload.
+
+        Returns
+        -------
+        None.
+
+        """
         train_params = self._get_train_params()
         data_params = self._get_data_params()
 
@@ -74,6 +120,14 @@ class Uploader:
         }
 
     def save_upload_params(self):
+        """
+        Save the nested dictionary to a new json file.
+
+        Returns
+        -------
+        None.
+
+        """
         upload_param_file = os.path.join(
             self.model_path, "upload_params.json"
         )
@@ -86,10 +140,17 @@ class Uploader:
         print("JSON file was prepared for upload!")
 
     def zip_all(self):
+        """
+        Create a zip file of the complete experiment.
+
+        Returns
+        -------
+        None.
+
+        """
         shutil.make_archive(
             self.model_path, "zip", self.model_path,
         )
-
 
 #%%
 if __name__ == "__main__":

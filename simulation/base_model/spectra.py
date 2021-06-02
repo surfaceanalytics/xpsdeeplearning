@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Thu Feb 27 10:39:34 2020
+Created on Thu Feb 27 10:39:34 2020.
 
 @author: pielsticker
 
@@ -47,14 +47,13 @@ def safe_arange_with_edges(start, stop, step):
 
 
 class Spectrum:
-    """
-    Basic class for a spectrum containing x-values and a lineshape as
-    numpy arrays.
-    """
+    """Basic class for a spectrum."""
 
     def __init__(self, start, stop, step, label):
         """
-        Initialize an array for the x values using the start, stop,
+        Initialize numpy arrays for the x values and lineshape.
+        
+        The x values are defined using the start, stop,
         and step values.
 
         Parameters
@@ -85,8 +84,9 @@ class Spectrum:
 
     def clear_lineshape(self):
         """
-        Set the lineshape to an array of all zeros, with the shape
-        depending on the x axis of the spectrum.
+        Set the lineshape to an array of all zeros.
+        
+        The shape depends on the x axis of the spectrum.
 
         Returns
         -------
@@ -119,8 +119,9 @@ class Spectrum:
 
     def update_range(self):
         """
-        Update the x axis of the spectrum. Can be used when the 
-        start, stop, or stop values were udpated.S
+        Update the x axis of the spectrum.
+        
+        Can be used when the start, stop, or stop values were udpated.
 
         Returns
         -------
@@ -133,9 +134,7 @@ class Spectrum:
 
 
 class MeasuredVamasSpectrum(Spectrum):
-    """
-    NOT WORKING YET!
-    """
+    """NOT WORKING YET."""
 
     def __init__(self, x, y, label):
         self.type = "measured"
@@ -150,6 +149,22 @@ class MeasuredVamasSpectrum(Spectrum):
         self.lineshape = y
 
     def load(self, filepath):
+        """
+        Load the data from a file.
+        
+        Can be either VAMAS or TXT.
+
+        Parameters
+        ----------
+        filepath : str
+            The file should be a .vms or .txt file.
+
+        Returns
+        -------
+        TYPE
+            DESCRIPTION.
+
+        """
         self.converter = DataConverter()
         self.converter.load(filepath)
         if filepath.rsplit(".")[-1] == "vms":
@@ -165,14 +180,14 @@ class MeasuredVamasSpectrum(Spectrum):
 
 
 class MeasuredSpectrum(Spectrum):
-    """
-    Class for loading a measured spectrum from a txt file.
-    """
+    """Class for loading a measured spectrum."""
 
     def __init__(self, filepath):
         """
-        Load the data into a Spectrum object. The step size is
-        automatically determined from the last data points.
+        Load the data into a Spectrum object.
+        
+        The step size is automatically determined from the last data
+        points.
 
         Parameters
         ----------
@@ -207,8 +222,10 @@ class MeasuredSpectrum(Spectrum):
 
     def load(self, filepath):
         """
-        Load the data from the file. The first line of the file needs to 
-        contain the label as a string.
+        Load the data from the file.
+        
+        The first line of the file needs to contain the label as a 
+        string.
 
         Parameters
         ----------
@@ -241,7 +258,8 @@ class MeasuredSpectrum(Spectrum):
 
     def resize(self, start, stop, step):
         """
-        Method to resize the x and lineshape arrays.
+        Resize the x and lineshape arrays.
+        
         First, the points outside the start and stop values are removed
         and, if needed, the lineshape is extrapolated if the initial x
         was shorter than the new x array. After that, the data is scaled
@@ -280,8 +298,7 @@ class MeasuredSpectrum(Spectrum):
 
     def _remove_outside_points(self, start, stop, step):
         """
-        Method to remove points in the lineshape that are outside of 
-        the range of the new start and stop values.
+        Remove points in the lineshape outside of the new range.
 
         Parameters
         ----------
@@ -322,8 +339,11 @@ class MeasuredSpectrum(Spectrum):
 
     def _extrapolate(self, no_of_points, side):
         """
-        Extrapolate the lineshape on the given side by concatenating the 
-        lineshape with an array of the values at either side.
+        Extrapolate the lineshape.
+        
+        The lineshape is extrapolotead on a given side by
+        concatenating the lineshape with an array of the last values
+        at either side.
 
         Parameters
         ----------
@@ -353,7 +373,9 @@ class MeasuredSpectrum(Spectrum):
 
     def _upsample(self, factor):
         """
-        Interpolate the lineshape if the original lineshape has more points
+        Interpolate the lineshape.
+        
+        Can be used if the original lineshape has less points
         than the desired lineshape.
 
         Parameters
@@ -385,7 +407,9 @@ class MeasuredSpectrum(Spectrum):
 
     def _downsample(self, factor):
         """
-        Downsample the lineshape if the original lineshape has more points
+        Downsample the lineshape.
+        
+        Can be used if the original lineshape has more points
         than the desired lineshape.
 
         Parameters
@@ -413,11 +437,22 @@ class MeasuredSpectrum(Spectrum):
 
 
 class ReferenceSpectrum(MeasuredSpectrum):
-    """
-    Class for loading, resizing, and saving a measured reference spectrum.
-    """
+    """Class for a measured reference spectrum."""
 
     def __init__(self, filepath):
+        """
+        Initialize and load the reference spectrum from a file.
+    
+        Parameters
+        ----------
+        filepath : str
+            Path of the file containing the reference spectrum data.
+
+        Returns
+        -------
+        None.
+
+        """
         super(ReferenceSpectrum, self).__init__(filepath)
         self.type = "reference"
 
@@ -454,9 +489,7 @@ class ReferenceSpectrum(MeasuredSpectrum):
 
 
 class FittedSpectrum(MeasuredSpectrum):
-    """
-    Class for loading and resizing a fitted spectrum.
-    """
+    """Class for loading and resizing a fitted spectrum."""
 
     def __init__(self, filepath):
         super(FittedSpectrum, self).__init__(filepath)
@@ -464,9 +497,10 @@ class FittedSpectrum(MeasuredSpectrum):
 
     def load(self, filepath):
         """
-        Load method from the MeasuredSpectrum class is overwritten 
-        to accomodate header of CasaXPS export and associate the
-        spectrum with a number.
+        Overwrite load method from the MeasuredSpectrum class.
+        
+        This is done to accomodate header of CasaXPS export and 
+        associate the spectrum with a number.
 
         Parameters
         ----------
@@ -498,10 +532,7 @@ class FittedSpectrum(MeasuredSpectrum):
 
 
 class SyntheticSpectrum(Spectrum):
-    """
-    Class for simulating a SyntheticSpectrum with multiple peaks
-    forming the lineshape.
-    """
+    """Class for simulating a SyntheticSpectrum."""
 
     def __init__(self, start, stop, step, label):
         """
@@ -529,8 +560,10 @@ class SyntheticSpectrum(Spectrum):
 
     def build_line(self):
         """
-        Build the lineshape by calling the function method on each of
-        the components.
+        Build the lineshape.
+        
+        The lineshape is build by calling the function method on each
+        of the components.
 
         Returns
         -------
@@ -544,7 +577,7 @@ class SyntheticSpectrum(Spectrum):
 
     def add_component(self, component, rebuild=True):
         """
-        Adding a Peak component to the spectrum. 
+        Adding a Peak component to the spectrum.
 
         Parameters
         ----------
@@ -565,8 +598,7 @@ class SyntheticSpectrum(Spectrum):
 
     def remove_component(self, comp_idx):
         """
-        Remove a specific component and rebuild the lineshape 
-        without it.
+        Remove a specific component and rebuild the lineshape.
 
         Parameters
         ----------
@@ -595,17 +627,15 @@ class SyntheticSpectrum(Spectrum):
 
 
 class SimulatedSpectrum(Spectrum):
-    """
-    Class for simulating a spectrum by changes to the resolution,
-    S/N ratio and x-axis of a spectrum as well as by simulation of 
-    gas phase scattering.
+    """Class for simulating a spectrum."""
     
-    """
-
     def __init__(self, start, stop, step, label):
         """
-        Initialize an x array using the start, stop, and step values.
-        Set all change parameters to None.
+        Initialize an x and lineshape array.
+                
+        The simulated spectrum is created by changes to the resolution,
+        S/N ratio and x-axis of a spectrum as well as by simulation of 
+        gas phase scattering. At first, set all change parameters to None.  
 
         Parameters
         ----------
@@ -647,7 +677,7 @@ class SimulatedSpectrum(Spectrum):
         None.
         
         """
-        b = np.nansum(self.lineshape)
+        #b = np.nansum(self.lineshape)
 
         # The shift should not be bigger than +-9 eV.
         acceptable_values = [-9, 9]
@@ -696,7 +726,7 @@ class SimulatedSpectrum(Spectrum):
 
     def add_noise(self, signal_to_noise):
         """
-        Adds noise from a Poisson distribution to the lineshape.
+        Add noise from a Poisson distribution to the lineshape.
         
         Parameters
         ----------
@@ -728,12 +758,13 @@ class SimulatedSpectrum(Spectrum):
 
     def change_resolution(self, resolution):
         """
-        Apply Gaussian instrumental broadening. This methdod broadens
-        a spectrum assuming a Gaussian kernel. The width of the kernel
-        is determined by the resolution. In particular, the function
-        will determine the mean wavelength and set the Full Width at
-        Half Maximum (FWHM) of the Gaussian to
-        (mean wavelength)/resolution. 
+        Apply Gaussian instrumental broadening.
+        
+        This methdod broadens a spectrum assuming a Gaussian kernel. 
+        The width of the kernel is determined by the resolution. 
+        In particular, the function will determine the mean wavelength 
+        and set the Full Width at Half Maximum (FWHM) of the Gaussian
+        to (mean wavelength)/resolution. 
 
         Parameters
         ----------
@@ -792,8 +823,9 @@ class SimulatedSpectrum(Spectrum):
 
     def scatter_in_gas(self, label="He", distance=0.8, pressure=1.0):
         """
-        This method is for the case of scattering though a gas
-        phase/film. First the convolved spectra are dotted with the
+        Simulate scattering through a gas phase/thin film.
+        
+        First the convolved spectra are dotted with the
         factors vector to scale all the inelastic scatterd spectra by
         the Poisson and angular factors. Then the elastically 
         scattered and non-scattered spectra are scaled by their 
