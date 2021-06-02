@@ -539,7 +539,7 @@ class Scan(talos.Scan):
 
 class RestoredScan:
     """Class for restoring information about previous scans."""
-    
+
     def __init__(self, folder, number):
         """
         Load all data from a previous scan.
@@ -595,7 +595,7 @@ class RestoredScan:
 
 class Analysis:
     """Class for the analysis of results from one or multiple scans."""
-    
+
     def __init__(self, df):
         """
         Initialize the attribute self.df from an results DataFrame.
@@ -1037,7 +1037,7 @@ class KDEPlot(Plot):
         -------
         None.
 
-        """        
+        """
         super(KDEPlot, self).__init__(data)
         self.x = x
         self.y = y

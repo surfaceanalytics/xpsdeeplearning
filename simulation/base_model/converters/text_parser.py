@@ -9,7 +9,7 @@ import numpy as np
 #%%
 class TextParser:
     """Parser for XPS data stored in TXT files."""
-    
+
     def __init__(self, **kwargs):
         """
         Initialize empty data dictionary.

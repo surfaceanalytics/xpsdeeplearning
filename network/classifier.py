@@ -733,9 +733,9 @@ def restore_clf_from_logs(runpath):
         Classifier object.
 
     """
-    hyperparam_file_name = os.path.join(runpath,
-                                        "logs",
-                                        "hyperparameters.json")
+    hyperparam_file_name = os.path.join(
+        runpath, "logs", "hyperparameters.json"
+    )
 
     with open(hyperparam_file_name, "r") as json_file:
         hyperparams = json.load(json_file)
@@ -743,7 +743,6 @@ def restore_clf_from_logs(runpath):
         time = hyperparams["time"]
         task = hyperparams["task"]
         intensity_only = hyperparams["intensity_only"]
-
 
     clf = Classifier(
         time=time, exp_name=exp_name, task=task, intensity_only=intensity_only

@@ -11,7 +11,6 @@ from vis.utils import utils
 from keras import activations
 
 #%%
-
 class AttentiveResonseMap:
     def __init__(self, classifier):
         model = classifier.model

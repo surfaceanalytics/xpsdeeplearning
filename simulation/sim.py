@@ -102,7 +102,7 @@ class Simulation:
 
                 # Linear combination
                 self.output_spectrum.lineshape = sum(output_list)
-                #self.output_spectrum.normalize()
+                # self.output_spectrum.normalize()
 
             else:
                 print("Scaling parameters have to sum to 1!")
@@ -224,12 +224,7 @@ if __name__ == "__main__":
         + "data\\references"
     )
 
-    labels = [
-        "Fe2p_Fe_metal",
-        "Fe2p_FeO",
-        "Fe2p_Fe3O4",
-        "Fe2p_Fe2O3"
-    ]
+    labels = ["Fe2p_Fe_metal", "Fe2p_FeO", "Fe2p_Fe3O4", "Fe2p_Fe2O3"]
     input_spectra = []
     for label in labels:
         filename = datapath + "\\" + label + ".txt"

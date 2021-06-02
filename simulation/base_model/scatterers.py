@@ -182,9 +182,7 @@ if __name__ == "__main__":
     medium.calcDensity()
 
     input_datapath = (
-        os.path.dirname(os.path.abspath(__file__)).partition("simulation")[
-            0
-        ]
+        os.path.dirname(os.path.abspath(__file__)).partition("simulation")[0]
         + "\\data\\scatterers.json"
     )
     medium.scatterer.build_loss_from_json(input_datapath)

@@ -8,7 +8,7 @@ Created on Mon Jul 20 11:39:22 2020.
 #%%
 class VamasHeader:
     """Class for handling headers in Vamas files."""
-    
+
     def __init__(self):
         """
         Define default values for some parameters in the header.

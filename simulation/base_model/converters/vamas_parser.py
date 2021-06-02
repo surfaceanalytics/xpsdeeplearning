@@ -11,7 +11,7 @@ from .vamas import VamasHeader, Block
 #%%
 class VamasParser:
     """Parser for XPS data stored in Vamas files."""
-    
+
     def __init__(self):
         """
         Initialize VamasHeader and blocks list.

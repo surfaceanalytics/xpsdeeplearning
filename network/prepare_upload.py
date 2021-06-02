@@ -11,7 +11,7 @@ import shutil
 #%%
 class Uploader:
     """Class for preparing the upload of a classifier."""
-    
+
     def __init__(self, model_path, dataset_metadata_path):
         """
         Initialize the two relevant paths.
@@ -30,7 +30,7 @@ class Uploader:
         """
         self.model_path = model_path
         self.dataset_metadata_path = dataset_metadata_path
-        
+
     def _get_train_params(self):
         """
         Get all relevant parameters from the training log.
@@ -42,17 +42,13 @@ class Uploader:
 
         """
         log_path = os.path.join(
-            *[
-                self.model_path,
-                "logs",
-                "hyperparameters.json",
-            ]
+            *[self.model_path, "logs", "hyperparameters.json",]
         )
 
         with open(log_path, "r") as param_file:
             train_params = json.load(param_file)
-            
-        #Remove unneeded information
+
+        # Remove unneeded information
         for key in [
             "input_filepath",
             "model_summary",
@@ -82,7 +78,7 @@ class Uploader:
         with open(self.dataset_metadata_path, "r") as param_file:
             data_params = json.load(param_file)
 
-        #Remove unneeded information
+        # Remove unneeded information
         for key in [
             "single",
             "variable_no_of_inputs",
@@ -136,7 +132,7 @@ class Uploader:
             json.dump(
                 self.upload_params, json_file, ensure_ascii=False, indent=4
             )
-            
+
         print("JSON file was prepared for upload!")
 
     def zip_all(self):
@@ -152,6 +148,7 @@ class Uploader:
             self.model_path, "zip", self.model_path,
         )
 
+
 #%%
 if __name__ == "__main__":
     model_path = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\runs\20210531_16h27m_Co_3_classes_linear_comb_small_gas_phase"
@@ -159,4 +156,4 @@ if __name__ == "__main__":
     uploader = Uploader(model_path, dataset_path)
     uploader.prepare_upload_params()
     uploader.save_upload_params()
-    #uploader.zip_all()
+    # uploader.zip_all()

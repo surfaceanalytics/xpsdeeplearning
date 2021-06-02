@@ -628,7 +628,7 @@ class SyntheticSpectrum(Spectrum):
 
 class SimulatedSpectrum(Spectrum):
     """Class for simulating a spectrum."""
-    
+
     def __init__(self, start, stop, step, label):
         """
         Initialize an x and lineshape array.
@@ -677,7 +677,7 @@ class SimulatedSpectrum(Spectrum):
         None.
         
         """
-        #b = np.nansum(self.lineshape)
+        # b = np.nansum(self.lineshape)
 
         # The shift should not be bigger than +-9 eV.
         acceptable_values = [-9, 9]
@@ -754,7 +754,7 @@ class SimulatedSpectrum(Spectrum):
             )
 
             self.lineshape = self.lineshape + poisson_noise
-            #self.normalize()
+            # self.normalize()
 
     def change_resolution(self, resolution):
         """
@@ -818,7 +818,7 @@ class SimulatedSpectrum(Spectrum):
             result = result[len_y:-len_y]
 
             self.lineshape = result
-            #self.normalize()
+            # self.normalize()
         self.fwhm = fwhm
 
     def scatter_in_gas(self, label="He", distance=0.8, pressure=1.0):
@@ -922,12 +922,12 @@ class SimulatedSpectrum(Spectrum):
             result = total + min_value
 
             self.lineshape = result
-            #self.normalize()
+            # self.normalize()
 
             self.scatterer = label
             self.pressure = pressure
             self.distance = distance
-            
+
         elif label is None:
             pass
         else:
