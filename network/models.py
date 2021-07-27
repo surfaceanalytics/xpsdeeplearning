@@ -6,6 +6,7 @@ Created on Tue Jun  9 14:10:25 2020
 """
 
 import tensorflow as tf
+import tensorflow_probability as tfp
 from tensorflow.keras import models
 from tensorflow.keras import layers
 from tensorflow.keras.initializers import glorot_uniform
@@ -122,7 +123,10 @@ class ClassificationCNN(EmptyModel):
     last layer.
     """
 
-    def __init__(self, inputshape, num_classes):
+    def __init__(self,
+                 inputshape, 
+                 num_classes):
+
         self.input_1 = layers.Input(shape=inputshape)
 
         self.conv_1_short = layers.Conv1D(
@@ -143,7 +147,7 @@ class ClassificationCNN(EmptyModel):
         )(self.input_1)
         self.conv_1_long = layers.Conv1D(
             filters=4,
-            kernel_size=10,
+            kernel_size=15,
             strides=1,
             padding="same",
             activation="relu",
@@ -154,8 +158,8 @@ class ClassificationCNN(EmptyModel):
         merged_sublayers = layers.concatenate(sublayers)
 
         self.conv_2 = layers.Conv1D(
-            filters=10,
-            kernel_size=5,
+            filters=4,
+            kernel_size=10,
             strides=1,
             padding="valid",
             activation="relu",
@@ -163,7 +167,7 @@ class ClassificationCNN(EmptyModel):
         )(merged_sublayers)
         self.conv_3 = layers.Conv1D(
             filters=10,
-            kernel_size=5,
+            kernel_size=10,
             strides=1,
             padding="valid",
             activation="relu",
@@ -176,12 +180,16 @@ class ClassificationCNN(EmptyModel):
         self.flatten_1 = layers.Flatten(name="flatten1")(self.average_pool_1)
         self.drop_1 = layers.Dropout(rate=0.2, name="drop_1")(self.flatten_1)
         self.dense_1 = layers.Dense(
-            units=1000, activation="relu", name="dense_1"
+            units=1000,
+            activation="relu",
+            name="dense_1"
         )(self.drop_1)
         self.dense_2 = layers.Dense(
-            units=num_classes, activation="softmax", name="dense_2"
+            units=num_classes,
+            activation="softmax", 
+            name="dense_2"
         )(self.dense_1)
-
+    
         no_of_inputs = len(sublayers)
 
         super(ClassificationCNN, self).__init__(
@@ -277,6 +285,84 @@ class RegressionCNN(EmptyModel):
             num_classes=num_classes,
             no_of_inputs=no_of_inputs,
             name="RegressionCNN",
+        )
+
+class ClassificationCNN2D(EmptyModel):
+    """
+    A CNN with three convolutional layers of different kernel size at 
+    the beginning. Works well for learning across scales.
+    
+    This is to be used for classification -> softmax activation in the
+    last layer.
+    
+    2D model for e.g. MNIST.
+    """
+
+    def __init__(self,
+                 inputshape, 
+                 num_classes):
+
+        self.input_1 = layers.Input(shape=inputshape)
+
+        self.conv_1_short = layers.Conv2D(
+            filters=4,
+            kernel_size=5,
+            strides=1,
+            padding="same",
+            activation="relu",
+            name="conv_1_short",
+        )(self.input_1)
+        self.conv_1_medium = layers.Conv2D(
+            filters=4,
+            kernel_size=10,
+            padding="same",
+            activation="relu",
+            name="conv_1_medium",
+        )(self.input_1)
+        self.conv_1_long = layers.Conv2D(
+            filters=4,
+            kernel_size=15,
+            padding="same",
+            activation="relu",
+            name="conv_1_long",
+        )(self.input_1)
+
+        sublayers = [self.conv_1_short, self.conv_1_medium, self.conv_1_long]
+        merged_sublayers = layers.concatenate(sublayers)
+
+        self.conv_2 = layers.Conv2D(
+            filters=4,
+            kernel_size=5,
+            padding="valid",
+            activation="relu",
+            name="conv_2",
+        )(merged_sublayers)
+        self.average_pool_1 = layers.AveragePooling2D(name="average_pool_1")(
+            self.conv_2
+        )
+
+        self.flatten_1 = layers.Flatten(name="flatten1")(self.average_pool_1)
+        self.drop_1 = layers.Dropout(rate=0.2, name="drop_1")(self.flatten_1)
+        self.dense_1 = layers.Dense(
+            units=1000,
+            activation="relu",
+            name="dense_1"
+        )(self.drop_1)
+        self.dense_2 = layers.Dense(
+            units=num_classes,
+            activation="softmax", 
+            name="dense_2"
+        )(self.dense_1)
+        
+        no_of_inputs = len(sublayers)
+
+        super(ClassificationCNN2D, self).__init__(
+            inputs=self.input_1,
+            outputs=self.dense_2,
+            inputshape=inputshape,
+            num_classes=num_classes,
+            no_of_inputs=no_of_inputs,
+            name="ClassificationCNN2D",
         )
 
 
@@ -748,6 +834,102 @@ class ResNet1DSubclassed(models.Model):
 
         # output norm
         return self.output_norm(x)
+        
+
+### Probabilistic implementations ###
+class ProbabilisticClassificationCNN2D(EmptyModel):
+    """
+    A CNN with three convolutional layers of different kernel size at 
+    the beginning. Works well for learning across scales.
+    
+    This is to be used for classification -> softmax activation in the
+    last layer.
+    
+    2D model for e.g. MNIST.
+    Implements Bayes by Backprop.
+    """
+
+    def __init__(self,
+                 inputshape, 
+                 num_classes,
+                 kl_divergence_function,
+                 bias_divergence_fn):
+
+        self.input_1 = layers.Input(shape=inputshape)
+
+        self.conv_1_short = tfp.layers.Convolution2DFlipout(
+            filters=4,
+            kernel_size=5,
+            strides=1,
+            padding="same",
+            kernel_divergence_fn=kl_divergence_function,
+            bias_divergence_fn=bias_divergence_fn,
+            activation="relu",
+            name="conv_1_short",
+        )(self.input_1)
+        self.conv_1_medium = tfp.layers.Convolution2DFlipout(
+            filters=4,
+            kernel_size=10,
+            padding="same",
+            kernel_divergence_fn=kl_divergence_function,
+            bias_divergence_fn=bias_divergence_fn,
+            activation="relu",
+            name="conv_1_medium",
+        )(self.input_1)
+        self.conv_1_long = tfp.layers.Convolution2DFlipout(
+            filters=4,
+            kernel_size=15,
+            kernel_divergence_fn=kl_divergence_function,
+            bias_divergence_fn=bias_divergence_fn,
+            padding="same",
+            activation="relu",
+            name="conv_1_long",
+        )(self.input_1)
+
+        sublayers = [self.conv_1_short, self.conv_1_medium, self.conv_1_long]
+        merged_sublayers = layers.concatenate(sublayers)
+
+        self.conv_2 = tfp.layers.Convolution2DFlipout(
+            filters=4,
+            kernel_size=5,
+            kernel_divergence_fn=kl_divergence_function,
+            bias_divergence_fn=bias_divergence_fn,
+            padding="valid",
+            activation="relu",
+            name="conv_2",
+        )(merged_sublayers)
+
+        self.average_pool_1 = layers.AveragePooling2D(name="average_pool_1")(
+            self.conv_2
+        )
+
+        self.flatten_1 = layers.Flatten(name="flatten1")(self.average_pool_1)
+        self.drop_1 = layers.Dropout(rate=0.2, name="drop_1")(self.flatten_1)
+        self.dense_1 = tfp.layers.DenseFlipout(
+            units=1000,
+            kernel_divergence_fn=kl_divergence_function,
+            bias_divergence_fn=bias_divergence_fn, 
+            activation="relu",
+            name="dense_1"
+        )(self.drop_1)
+        self.dense_2 = tfp.layers.DenseFlipout(
+            units=num_classes,
+            kernel_divergence_fn=kl_divergence_function,
+            bias_divergence_fn=bias_divergence_fn, 
+            activation="softmax", 
+            name="dense_2"
+        )(self.dense_1)
+        
+        no_of_inputs = len(sublayers)
+
+        super(ProbabilisticClassificationCNN2D, self).__init__(
+            inputs=self.input_1,
+            outputs=self.dense_2,
+            inputshape=inputshape,
+            num_classes=num_classes,
+            no_of_inputs=no_of_inputs,
+            name="ProbabilisticClassificationCNN2D",
+        )
 
 
 #%%

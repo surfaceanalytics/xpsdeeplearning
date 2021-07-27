@@ -150,13 +150,6 @@ class Hyperoptimization:
         # Restore all previous scans to the scan list.
         self.scans = self.restore_previous_scans()
 
-        # Allow for multiple inputs.
-        X_train_data = []
-        X_val_data = []
-        for i in range(self.clf.model.no_of_inputs):
-            X_train_data.append(self.clf.datahandler.X_train)
-            X_val_data.append(self.clf.datahandler.X_val)
-
         # Calculate the number of the scan according to the files
         # already in the test directory.
         filenames = next(os.walk(self.test_dir))[2]
@@ -169,12 +162,12 @@ class Hyperoptimization:
         # start runtime
 
         scan = Scan(
-            x=X_train_data,
+            x=self.clf.datahandler.X_train,
             y=self.clf.datahandler.y_train,
             params=params,
             model=self.hyper_opt,
             experiment_name=self.dir_name,
-            x_val=X_val_data,
+            x_val=self.clf.datahandler.X_val,
             y_val=self.clf.datahandler.y_val,
             val_split=0,
             reduction_metric="val_loss",

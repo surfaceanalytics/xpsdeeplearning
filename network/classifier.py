@@ -21,6 +21,7 @@ from tensorflow.keras import backend as K
 
 from .data_handling import DataHandler
 from .exp_logging import ExperimentLogging
+from .utils import WeightDistributions
 
 from . import models
 
@@ -90,6 +91,7 @@ class Classifier:
             "exp_name": self.exp_name,
             "task": self.task,
             "intensity_only": self.intensity_only,
+            "epochs_trained": 0
         }
         self.logging.save_hyperparams()
 
@@ -145,8 +147,11 @@ class Classifier:
         tb_log=False,
         csv_log=True,
         hyperparam_log=True,
+        cb_parameters={},
         verbose=1,
         new_learning_rate=None,
+        *args,
+        **kwargs,
     ):
         """
         Train the keras model. Implements various callbacks during
@@ -213,6 +218,7 @@ class Classifier:
             tb_log=tb_log,
             csv_log=csv_log,
             hyperparam_log=hyperparam_log,
+            **cb_parameters,
         )
 
         # Update json file with hyperparameters.
@@ -241,10 +247,12 @@ class Classifier:
                 initial_epoch=epochs_trained,
                 verbose=verbose,
                 callbacks=self.logging.active_cbs,
+                *args,
+                **kwargs,
             )
 
             self.logging.last_training = training.history
-            self.logging.history = self.logging._get_total_history(self.task)
+            self.logging.history = self.logging._get_total_history()
             print("Training done!")
 
         except KeyboardInterrupt:
@@ -254,7 +262,7 @@ class Classifier:
                 type(cb).__name__ for cb in self.logging.active_cbs
             ]:
                 self.save_model()
-            self.logging.history = self.logging._get_total_history(self.task)
+            self.logging.history = self.logging._get_total_history()
 
         epoch_param = {"epochs_trained": self.logging._count_epochs_trained()}
         self.logging.update_saved_hyperparams(epoch_param)
@@ -349,7 +357,7 @@ class Classifier:
                     self.datahandler.pred_train[i, :], axis=0
                 )
                 pred_train_classes.append(
-                    self.datahandler.label_values[argmax_class]
+                    self.datahandler.labels[argmax_class]
                 )
 
             for i in range(self.datahandler.pred_test.shape[0]):
@@ -357,7 +365,7 @@ class Classifier:
                     self.datahandler.pred_test[i, :], axis=0
                 )
                 pred_test_classes.append(
-                    self.datahandler.label_values[argmax_class]
+                    self.datahandler.labels[argmax_class]
                 )
 
             self.datahandler.pred_train_classes = np.array(
@@ -448,6 +456,7 @@ class Classifier:
         loaded_model = load_model(file_name, custom_objects=custom_objects)
         optimizer = loaded_model.optimizer
         loss = loaded_model.loss
+        metrics = loaded_model.metrics
 
         # Instantiate a new EmptyModel and implement it with the loaded
         # parameters. Needed for dropping the layers while keeping all
@@ -495,7 +504,9 @@ class Classifier:
                 )
 
         if compile_model:
-            self.model.compile(optimizer=optimizer, loss=loss)
+            self.model.compile(optimizer=optimizer,
+                               loss=loss,
+                               metrics=metrics)
 
     def load_data_preprocess(
         self,
@@ -668,6 +679,78 @@ class Classifier:
 
         """
         self.datahandler.class_distribution.plot(self.datahandler.labels)
+        
+    def plot_weight_distribution(
+        self,
+        kind="posterior",
+        to_file=True):
+                                     
+        bayesian_layers = [
+            layer for layer in self.model.layers if ('Flipout'
+            or 'Reparameterization') in str(layer.__class__)]
+    
+        wd = WeightDistributions(bayesian_layers,
+                                 fig_dir=self.logging.fig_dir)
+        
+        if kind=="prior":
+            fig = wd.plot_weight_priors(to_file=to_file)
+        elif kind=="posterior":
+            fig = wd.plot_weight_posteriors(to_file=to_file)
+            
+        if to_file:
+            epoch = self.logging.hyperparams["epochs_trained"]
+            
+            filename = os.path.join(self.logging.fig_dir,
+                        f"weights_{kind}_after_epoch_{epoch}.png")
+                        
+            fig.savefig(filename)
+            print('Saved to {}'.format(filename))
+            
+    def predict_probabilistic(
+        self,
+        dataset="test",
+        no_of_predictions=100):
+        
+        X, y = self.datahandler._select_dataset(
+            dataset_name=dataset)
+        
+        self.prob_preds = np.array(
+            [self.model.predict(X) for i in range(no_of_predictions)]).transpose(1, 0, 2)
+        
+        return self.prob_preds
+
+    def plot_prob_predictions(
+        self,
+        dataset="test",
+        no_of_spectra=10,
+        to_file=True):
+        
+        try:
+            fig = self.datahandler.plot_prob_predictions(
+                prob_preds=self.prob_preds,
+                dataset=dataset,
+                no_of_spectra=no_of_spectra)
+        
+        except AttributeError:
+            self.predict_probabilistic(
+                dataset="test",
+                no_of_predictions=100)
+            
+            fig = self.datahandler.plot_prob_predictions(
+                prob_preds=self.prob_preds,
+                dataset=dataset,
+                no_of_spectra=no_of_spectra)
+                
+        if to_file:
+            epoch = self.logging.hyperparams["epochs_trained"]
+            
+            filename = os.path.join(
+                self.logging.fig_dir,
+                f"probabilistic_predictions_after_epoch_{epoch}.png")
+
+            fig.savefig(filename)
+            print('Saved to {}'.format(filename)) 
+
 
     def pickle_results(self):
         """
@@ -710,6 +793,10 @@ class Classifier:
             )
 
         print("Saved results to file.")
+        
+    def purge_history(self):
+        self.logging._purge_history()
+        print("Training history was deleted.")
 
 
 def restore_clf_from_logs(runpath):
@@ -744,7 +831,7 @@ def restore_clf_from_logs(runpath):
         time=time, exp_name=exp_name, task=task, intensity_only=intensity_only
     )
     clf.logging.hyperparams = hyperparams
-    clf.logging.history = clf.logging._get_total_history(clf.task)
+    clf.logging.history = clf.logging._get_total_history()
     clf.logging.save_hyperparams()
 
     print("Recovered classifier from file.")

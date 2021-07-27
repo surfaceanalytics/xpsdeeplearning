@@ -7,6 +7,7 @@ Created on Tue Feb 23 15:29:41 2021
 import os
 import json
 import csv
+import shutil
 
 import tensorflow as tf
 from tensorflow.keras import callbacks
@@ -58,7 +59,7 @@ class ExperimentLogging:
         self.es_callback = callbacks.EarlyStopping(
             monitor="val_loss",
             min_delta=0,
-            patience=3,
+            patience=20,
             verbose=True,
             mode="auto",
             baseline=None,
@@ -126,6 +127,7 @@ class ExperimentLogging:
         tb_log=False,
         csv_log=True,
         hyperparam_log=True,
+        **cb_kwargs,
     ):
         """
         Method to be used before training. Activates the callbacks and 
@@ -150,16 +152,21 @@ class ExperimentLogging:
             Saving of hyperparameters to JSON.
             Should always be active.
             The default is True.
+        **cb_kwargs: dict
+            Kwargs to pass to the callbacks.
 
         Returns
         -------
         None.
 
         """
+        self.active_cbs = []
 
         if checkpoint:
             self.active_cbs.append(self.checkpoint_callback)
         if early_stopping:
+            if "es_patience" in cb_kwargs.keys():
+                self.es_callback.patience =  cb_kwargs["es_patience"]
             self.active_cbs.append(self.es_callback)
         if tb_log:
             self.active_cbs.append(self.tb_callback)
@@ -192,7 +199,7 @@ class ExperimentLogging:
 
         return epochs
 
-    def _get_total_history(self, task):
+    def _get_total_history(self):
         """
         Loads the previous training history from the CSV log file.
         Useful for retraining.
@@ -204,42 +211,41 @@ class ExperimentLogging:
 
         """
         csv_file = os.path.join(self.log_dir, "log.csv")
-
-        if task == "classification":
-            history = {
-                "accuracy": [],
-                "loss": [],
-                "val_accuracy": [],
-                "val_loss": [],
-            }
-
-            try:
-                with open(csv_file, newline="") as csvfile:
-                    reader = csv.DictReader(csvfile)
-                    for row in reader:
-                        d = dict(row)
-                        history["accuracy"].append(float(d["accuracy"]))
-                        history["loss"].append(float(d["loss"]))
-                        history["val_accuracy"].append(
-                            float(d["val_accuracy"])
-                        )
-                        history["val_loss"].append(float(d["val_loss"]))
-            except FileNotFoundError:
-                pass
-
-        elif task == "regression":
-            history = {"loss": [], "val_loss": []}
-            try:
-                with open(csv_file, newline="") as csvfile:
-                    reader = csv.DictReader(csvfile)
-                    for row in reader:
-                        d = dict(row)
-                        history["loss"].append(float(d["loss"]))
-                        history["val_loss"].append(float(d["val_loss"]))
-            except FileNotFoundError:
-                pass
+        
+        history = {}
+        try:
+          with open(csv_file, newline="") as csvfile:
+              reader = csv.DictReader(csvfile)
+              for row in reader:
+                  for key, item in row.items():
+                      if key not in history.keys():
+                          history[key] = []
+                      history[key].append(float(item))      
+        except FileNotFoundError:
+            pass
 
         return history
+        
+    def _purge_history(self):
+        """
+        Deletes the training history.
+        Useful for resetting the classifier.
+        """
+        try:
+            del(self.history,
+                self.last_training)
+        except AttributeError:
+            pass
+        
+        self.update_saved_hyperparams({"epochs_trained": 0})
+
+        for root, dirs, files in os.walk(self.log_dir):
+            if root != self.log_dir:
+                shutil.rmtree(root)
+            else:
+                for name in files:
+                    if name != "hyperparameters.json":
+                        os.unlink(os.path.join(root, name))
 
     def save_hyperparams(self):
         """
@@ -344,7 +350,11 @@ class CustomModelCheckpoint(callbacks.ModelCheckpoint):
             or self.epochs_since_last_save >= self.period
         ):
             # Block only when saving interval is reached.
-            logs = tf_utils.sync_to_numpy_or_python_type(logs)
+            try:
+                logs = tf_utils.sync_to_numpy_or_python_type(logs)
+            except AttributeError:
+                logs = tf_utils.to_numpy_or_python_type(logs)
+                
             self.epochs_since_last_save = 0
             filepath = self._get_file_path(epoch, logs)
 
@@ -352,6 +362,7 @@ class CustomModelCheckpoint(callbacks.ModelCheckpoint):
                 if self.save_best_only:
                     current = logs.get(self.monitor)
                     if current is None:
+                        from tensorflow.python.platform import tf_logging as logging
                         logging.warning(
                             "Can save best model only with %s available, "
                             "skipping.",

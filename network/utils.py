@@ -9,6 +9,8 @@ import pickle
 import numpy as np
 import json
 from matplotlib import pyplot as plt
+import matplotlib.colors as mcolors
+import seaborn as sns
 
 from docx import Document
 from docx.enum.table import WD_TABLE_ALIGNMENT, WD_ROW_HEIGHT_RULE
@@ -234,6 +236,51 @@ class TrainingGraphs:
         """
         self.history = history
         self.fig_dir = fig_dir
+        
+    def plot_metric(self, 
+                    metric,
+                    title=None,
+                    ylabel=None,
+                    to_file=True):
+        """
+        Plots the training and validation values of a metric
+        against the epochs.
+
+        Returns
+        -------
+        None.
+
+        """                        
+        metric_cap = metric.capitalize()    
+        
+        try:
+            metric_history = self.history[metric]
+            fig, ax = plt.subplots()
+            ax.plot(metric_history, linewidth=3)
+            try:
+                val_key = "val_" + metric
+                ax.plot(self.history[val_key], linewidth=3)
+            except KeyError:
+                print(f"Validation {metric} was not logged.")
+            ax.set_title(metric_cap)
+            ax.set_ylabel(metric_cap)
+            if title:
+                ax.set_title(str(title))
+            if ylabel:
+                ax.set_ylabel(str(ylabel))
+            ax.set_xlabel("Epoch")
+            ax.legend(["Train", "Validation"])
+
+            if to_file:
+                fig_name = os.path.join(
+                    self.fig_dir,
+                    f"{metric}.png")
+                fig.savefig(fig_name)
+
+        except KeyError:
+                print(f"{metric_cap} was not logged during training.")  
+         
+
 
     def plot_loss(self, to_file=True):
         """
@@ -244,17 +291,10 @@ class TrainingGraphs:
         None.
 
         """
-        fig, ax = plt.subplots()
-        ax.plot(self.history["loss"], linewidth=3)
-        ax.plot(self.history["val_loss"], linewidth=3)
-        ax.set_title("Loss")
-        ax.set_ylabel("Loss")
-        ax.set_xlabel("Epoch")
-        ax.legend(["Train", "Validation"])
-        fig_name = os.path.join(self.fig_dir, "loss.png")
-        if to_file:
-            fig.savefig(fig_name)
-        plt.show()
+        self.plot_metric(
+            metric="loss",
+            to_file=to_file
+        )
 
     def plot_accuracy(self, to_file=True):
         """
@@ -265,18 +305,108 @@ class TrainingGraphs:
         None.
 
         """
-        fig, ax = plt.subplots()
-        ax.plot(self.history["accuracy"], linewidth=3)
-        ax.plot(self.history["val_accuracy"], linewidth=3)
-        ax.set_title("Accuracy")
-        ax.set_ylabel("Classification Accuracy")
-        ax.set_xlabel("Epoch")
-        ax.legend(["Train", "Validation"])
-        fig_name = os.path.join(self.fig_dir, "accuracy.png")
-        if to_file:
-            fig.savefig(fig_name)
-        plt.show()
+        self.plot_metric(
+            metric="accuracy",
+            ylabel="Classification accuracy",
+            to_file=to_file
+        )
+        
+    def plot_mse(self, to_file=True):
+        """
+        Plots the training and validation mean squared error against the epochs.
 
+        Returns
+        -------
+        None.
+
+        """
+        self.plot_metric(
+            metric="mse",
+            title="MSE",
+            ylabel="MSE",
+            to_file=to_file
+        )
+
+
+class WeightDistributions:
+    """
+    Class to calculate weight distribution of a Bayesian model in keras.
+    """
+    def __init__(self,
+                 bayesian_layers,
+                 fig_dir):
+        import warnings
+        warnings.filterwarnings('ignore')
+        
+        self.bayesian_layers = bayesian_layers
+        self.names = [layer.name for layer in self.bayesian_layers]
+
+        self.fig_dir = fig_dir
+
+    def plot_weight_priors(self, 
+                           to_file=True):
+        qm_vals = [layer.kernel_prior.mean().numpy()  
+                   for layer in self.bayesian_layers]
+        qs_vals = [layer.kernel_prior.stddev().numpy() 
+                   for layer in self.bayesian_layers]
+        
+        return self.plot_distribution(qm_vals,
+                                      qs_vals,
+                                      kind="prior",
+                                      to_file=to_file)
+
+    def plot_weight_posteriors(self, 
+                               to_file=True):
+        qm_vals = [layer.kernel_posterior.mean().numpy() 
+                   for layer in self.bayesian_layers]
+        qs_vals = [layer.kernel_posterior.stddev().numpy()
+                   for layer in self.bayesian_layers]
+
+        return self.plot_distribution(qm_vals,
+                                      qs_vals,
+                                      kind="posterior",
+                                      to_file=to_file)
+
+    def plot_distribution(self,
+                          qm_vals,
+                          qs_vals,
+                          kind="posterior",
+                          to_file=True):
+       
+        fig, _ = plt.subplots(figsize=(12, 6))
+        colors = iter(mcolors.TABLEAU_COLORS.keys())
+
+        ax1 = fig.add_subplot(1, 2, 1)
+        ax2 = fig.add_subplot(1, 2, 2)
+
+        for n, qm, qs in zip(self.names, qm_vals, qs_vals):
+            c=next(colors)
+            sns.histplot(
+                np.reshape(qm, newshape=[-1]), 
+                ax=ax1, 
+                #bins=50,
+                label=n,
+                color=c,
+                kde=True,
+                stat="density")
+            sns.histplot(
+                np.reshape(qs, newshape=[-1]),
+                ax=ax2,
+                #bins=50,
+                label=n,
+                color=c,
+                kde=True, 
+                stat="density")
+        
+        ax1.set_title(f"{kind.capitalize()}" + " weight means")
+        ax1.legend()
+        ax2.set_title(f"{kind.capitalize()}" + " weight standard deviations")
+
+        fig.tight_layout()
+        #plt.show()
+    
+        return fig
+            
 
 class Report:
     """

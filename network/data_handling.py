@@ -9,6 +9,10 @@ import numpy as np
 import h5py
 from sklearn.utils import shuffle
 
+import seaborn as sns
+import matplotlib.pyplot as plt
+import matplotlib.colors as mcolors
+
 from .utils import ClassDistribution, SpectraPlot
 
 #%%
@@ -219,10 +223,7 @@ class DataHandler:
 
                 # Determine the shape of the training features,
                 # needed for model building in Keras.
-                self.input_shape = (
-                    self.X_train.shape[1],
-                    self.X_train.shape[2],
-                )
+                self.input_shape = self.X_train.shape[1:]
 
                 loaded_data = (
                     self.X_train,
@@ -758,7 +759,7 @@ class DataHandler:
                 labels = self.y_test[index]
                 for j, value in enumerate(labels):
                     if value == 1:
-                        label = str(self.label_values[j])
+                        label = str(self.labels[j])
                         label = "Real label: " + label + "\n"
                 text = real_y + pred_y + label + pred_label
                 try:
@@ -780,6 +781,109 @@ class DataHandler:
 
             graphic = SpectraPlot(data=data, annots=texts)
             fig, axs = graphic.plot()
+            
+
+    def plot_prob_predictions(
+        self,
+        prob_preds,
+        dataset="test",
+        no_of_spectra=10):
+        
+        fig, axs = plt.subplots(
+            nrows=no_of_spectra,
+            ncols=5,
+            figsize=(22, 5*no_of_spectra))
+    
+        X, y = self._select_dataset(dataset_name="test")
+        max_y = np.max(
+            [np.float(np.max(y)),
+            np.max(prob_preds)])
+
+        for i in range(no_of_spectra):
+            ax0 = axs[i, 0]
+            ax1 = axs[i, 1]
+            ax2 = axs[i, 2]
+            ax3 = axs[i, 3]
+            ax4 = axs[i, 4]
+
+            r = np.random.randint(0, X.shape[0])
+ 
+            if len(X.shape) == 4:
+                ax0.imshow(X[r, :, :, 0],
+                           cmap='gist_gray')
+            elif len(X.shape) == 3:
+                ax0.plot(self.energies,
+                         self.X[r])
+                ax0.invert_xaxis()
+                ax0.set_xlim(np.max(self.energies),
+                                 np.min(self.energies))
+                ax0.set_xlabel("Binding energy (eV)")
+                ax0.set_ylabel("Intensity (arb. units)")
+                annot = self.write_text_for_spectrum(
+                    dataset="test",
+                    index=r, 
+                    with_prediction=False,
+                )
+                ax0.set_title("Spectrum no. {}".format(r))
+                ax0.text(0.025,
+                         0.4,
+                         annot,
+                         horizontalalignment="left",
+                         verticalalignment="top",
+                         transform=ax0.transAxes,
+                         fontsize=12,
+                )
+
+            sns.barplot(np.arange(self.num_classes), 
+                        y[r],
+                        ax=ax1)
+            #ax1.set_ylim([0, np.max(y)])
+            ax1.set_title("Ground Truth")
+
+            colors = iter(mcolors.CSS4_COLORS.keys())   
+            for pred in prob_preds[r,:20]:
+                sns.barplot(np.arange(self.num_classes),
+                            pred,
+                            color=next(colors),
+                            alpha=0.2,
+                            ax=ax2)
+            #ax2.set_ylim([0, max_y])
+            ax2.set_title("Posterior Samples")        
+
+            for j, row in enumerate(prob_preds[r,:,:].transpose()):
+               _ = ax3.hist(
+                   row,
+                   bins=25,
+                   #range=(-2.,2.),
+                   orientation="horizontal",
+                   fill=True,
+                   linewidth=1,
+                   label=self.labels[j]
+            )
+
+            ax3.legend()
+            ax3.set_xscale("log")
+            ax3.set_xlabel("Prediction")
+            ax3.set_ylabel("Counts")
+            ax3.set_title("Prediction Histogram")
+            
+            ax4.bar(
+                np.arange(self.num_classes),
+                np.mean(prob_preds[r, :, :], axis=0),
+                yerr=np.std(prob_preds[r, :, :], axis=0),
+                align='center',
+                ecolor='black',
+                capsize=10)
+
+            ax4.set_title("Predictive Probabilities")
+
+            for ax in [ax1, ax2, ax4]:
+                ax.set_xticks(np.arange(self.num_classes))
+                ax.set_xticklabels(self.labels)
+        fig.tight_layout()
+        
+        return fig
+        
 
     def _select_dataset(self, dataset_name):
         """
