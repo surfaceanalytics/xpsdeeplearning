@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Tue Sep 15 15:01:19 2020
+Created on Tue Sep 15 15:01:19 2020.
 
 @author: pielsticker
 """
@@ -9,10 +9,7 @@ import warnings
 
 #%%
 class Peak:
-    """
-    Basic class for a peak that gets a number of parameters and creates a 
-    lineshape based on these parameters.
-    """
+    """Basic class for a peak."""
 
     def __init__(self, position, width, intensity):
         self.position = position
@@ -21,13 +18,11 @@ class Peak:
 
 
 class Gauss(Peak):
-    """
-    Gaussian peak with position, width, and intensity parameters.
-    """
+    """Gaussian peak with position, width, and intensity."""
 
     def __init__(self, position, width, intensity):
         """
-        Initialize basic Peak class. 
+        Initialize basic Peak class.
 
         Parameters
         ----------
@@ -47,8 +42,7 @@ class Gauss(Peak):
 
     def function(self, x):
         """
-        Create a numpy array of a Gaussian peak based on the
-        input x values. 
+        Create a numpy array of a Gaussian peak.
 
         Parameters
         ----------
@@ -71,13 +65,11 @@ class Gauss(Peak):
 
 
 class Lorentz(Peak):
-    """
-    Lorentzian peak with position, width, and intensity parameters.
-    """
+    """Lorentzian peak with position, width, and intensity."""
 
     def __init__(self, position, width, intensity):
         """
-        Initialize basic Peak class. 
+        Initialize basic Peak class.
 
         Parameters
         ----------
@@ -97,8 +89,7 @@ class Lorentz(Peak):
 
     def function(self, x):
         """
-        Create a numpy array of a Lorentzian peak based on the
-        input x values. 
+        Create a numpy array of a Lorentzian peak.
 
         Parameters
         ----------
@@ -121,13 +112,11 @@ class Lorentz(Peak):
 
 
 class Voigt(Peak):
-    """
-    Voigt peak shape with position, width, and intensity parameters.
-    """
+    """Voigt peak shape with position, width, and intensity."""
 
     def __init__(self, position, width, intensity, fraction_gauss=0.5):
         """
-        Initialize basic Peak class. 
+        Initialize basic Peak class.
 
         Parameters
         ----------
@@ -151,8 +140,7 @@ class Voigt(Peak):
 
     def function(self, x):
         """
-        Create a numpy array of a mixed Gaussian/Lorentzian peak
-        based on the input x values. 
+        Create a numpy array of a mixed Gaussian/Lorentzian peak.
 
         Parameters
         ----------
@@ -179,14 +167,15 @@ class Voigt(Peak):
 
 
 class VacuumExcitation:
-    """
-    Class for simulating a broad vacuum excitation starting at the 
-    fermi edge and using a power law to simulate the extended 
-    background shape.
-    """
+    """Class for a broad vacuum excitation."""
 
     def __init__(self, edge, fermi_width, intensity, exponent):
         """
+        Initiliaze the four defining parameters.
+        
+        A vacuum excitation is simulated starting at the fermi edge
+        and using a power law to simulate the extended background
+        shape.
         
         Parameters
         ----------
@@ -248,8 +237,9 @@ class VacuumExcitation:
 
     def function(self, x):
         """
-        Combine the fermi edge and power law lineshapes and scale
-        by the overall intensity.
+        Combine the fermi edge and power law lineshapes.
+        
+        The lineshape is scaled by the overall intensity.
         
         Parameters
         ----------
@@ -268,9 +258,7 @@ class VacuumExcitation:
 
 
 class Tougaard:
-    """
-    Class for simulating a Tougaard background lineshape.
-    """
+    """Class for simulating a Tougaard background lineshape."""
 
     def __init__(self, B, C, D, Eg):
         """
@@ -288,7 +276,6 @@ class Tougaard:
         None.
 
         """
-
         self.B = B
         self.C = C
         self.D = D
@@ -298,7 +285,9 @@ class Tougaard:
 
     def function(self, x):
         """
-        Create the Tougaard lineshape of the form
+        Create the Tougaard lineshape.
+        
+        The lineshape is of the form
         F(x) = B*x/(C-x**2)**2 + D*x**2) if x > Eg
         F(x) = 0 <= Eg
         

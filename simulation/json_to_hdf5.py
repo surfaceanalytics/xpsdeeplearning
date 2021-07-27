@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Thu May 28 12:03:47 2020
+Created on Thu May 28 12:03:47 2020.
 
 @author: pielsticker
 
@@ -19,7 +19,8 @@ from creator import calculate_runtime
 #%%
 def load_data_preprocess(json_datafolder, label_list, start, end):
     """
-    This function loads data from JSON files in the json_datafolder.
+    Load data from JSON files in the json_datafolder.
+    
     Data from the files that start and end with the respective numbers
     is loaded.
 
@@ -166,6 +167,7 @@ def _load_labels(filepath):
 def _one_hot_encode(y, label_list):
     """
     One-hot encode the labels.
+    
     As an example, if the label of a spectrum is Fe metal = 1 and all 
     oxides = 0, then the output will be np.array([1,0,0,0],1).
 
@@ -194,8 +196,7 @@ def _one_hot_encode(y, label_list):
 
 def to_hdf5(json_datafolder, output_file, no_of_files_per_load=50):
     """
-    Function to store all data in an input datafolder in an HDF5
-    file.    
+    Store all data in an input datafolder in an HDF5 file.
 
     Parameters
     ----------

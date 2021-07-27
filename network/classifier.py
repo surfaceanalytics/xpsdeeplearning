@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Mon Jun 15 16:55:44 2020
+Created on Mon Jun 15 16:55:44 202.
 
 @author: pielsticker
 """
@@ -27,11 +27,7 @@ from . import models
 
 #%%
 class Classifier:
-    """
-    Class for training and testing a Keras model. Handles logging,
-    saving, and loading automatically based on the time and the experiment
-    name.
-    """
+    """Class for training and testing a Keras model."""
 
     def __init__(
         self,
@@ -98,6 +94,7 @@ class Classifier:
     def summary(self):
         """
         Print a summary of the keras Model in self.model.
+        
         Save the string value of the summary to the self.model_summary
         attribute.
 
@@ -117,6 +114,7 @@ class Classifier:
     def save_and_print_model_image(self):
         """
         Plot the model using the plot_model method from keras.
+        
         Save the image to a file in the figure directory.
 
         Returns
@@ -154,7 +152,9 @@ class Classifier:
         **kwargs,
     ):
         """
-        Train the keras model. Implements various callbacks during
+        Train the keras model.
+        
+        Implements various callbacks during
         the training. Also checks the csv_log for previous training and
         appends accordingly.
 
@@ -330,9 +330,10 @@ class Classifier:
 
     def predict_classes(self):
         """
-        Predicts the labels of all spectra in the training and test sets
-        by checking which class has the maximum associated prediction
-        value.
+        Predict the labels of all spectra in the training/test sets.
+        
+        This is done by checking which class has the maximum associated
+        prediction value.
 
         Returns
         -------
@@ -342,7 +343,6 @@ class Classifier:
             Array with the predicted classes on the test set.
 
         """
-
         if self.task == "regression":
             print(
                 "Regression was chosen as task. "
@@ -384,10 +384,11 @@ class Classifier:
 
     def save_model(self):
         """
-        Saves the model to the model directory. The model is saved both
-        as a SavedModel object from Keras as well as a JSON file 
-        containing the model parameters and the weights serialized to 
-        HDF5.
+        Save the model to the model directory.
+        
+        The model is saved both as a SavedModel object from Keras as 
+        well as a JSON file containing the model parameters and the 
+        weights serialized to HDF5.
 
         Returns
         -------
@@ -516,8 +517,9 @@ class Classifier:
         train_val_split,
     ):
         """
-        Utilizes load_data_preprocess method
-        from DataHandler to load the data.
+        Load the data.
+        
+        Utilizes load_data_preprocess method from DataHandler. 
         Stores all loading parameters in the 
         hyperparameters.json file.
 
@@ -579,7 +581,8 @@ class Classifier:
         self, no_of_spectra, dataset="train", with_prediction=False
     ):
         """
-        Plots random XPS spectra out of one of the data set.
+        Plot random XPS spectra out of one of the data set.
+        
         The labels and additional information are shown as texts on the
         plots.
         Utilizes the method of the same name in DataHandler.
@@ -620,12 +623,13 @@ class Classifier:
         self, no_of_spectra, kind="all", threshold=0.0
     ):
         """
-        Utilizes the method of the same name in DataHandler.
-        Plots the spectra with the highest losses.
+        Plot the spectra with the highest losses.
+        
         Accepts a threshold parameter. If a threshold other than 0 is
         given, the spectra with losses right above this threshold are
         plotted.
-        
+        Utilizes the method of the same name in DataHandler.
+
         Parameters
         ----------
         no_of_spectra : int
@@ -657,9 +661,9 @@ class Classifier:
 
     def show_wrong_classification(self):
         """
+        Plot all spectra in the test data with a wrong prediction.
+        
         Utilizes the method of the same name in DataHandler.
-        Plots all spectra in the test data set for which a wrong class
-        prediction was produced during training.
 
         Returns
         -------
@@ -670,9 +674,8 @@ class Classifier:
 
     def plot_class_distribution(self):
         """
-        Plots the class distribution of the data stored in the 
-        self.datahandler object.
-
+        Plot the class distribution of the data.
+        
         Returns
         -------
         None.
@@ -754,7 +757,7 @@ class Classifier:
 
     def pickle_results(self):
         """
-        Pickles and saves all outputs.        
+        Pickle and save all outputs.
 
         Returns
         -------
@@ -801,7 +804,9 @@ class Classifier:
 
 def restore_clf_from_logs(runpath):
     """
-    Restores a Classifier object from the logs saved in a previous 
+    Restore a Classifier object.
+    
+    The classifier is created from the logs saved in a previous 
     experiment.
 
     Parameters
@@ -815,9 +820,9 @@ def restore_clf_from_logs(runpath):
         Classifier object.
 
     """
-    hyperparam_file_name = os.path.join(runpath,
-                                        "logs",
-                                        "hyperparameters.json")
+    hyperparam_file_name = os.path.join(
+        runpath, "logs", "hyperparameters.json"
+    )
 
     with open(hyperparam_file_name, "r") as json_file:
         hyperparams = json.load(json_file)
@@ -825,7 +830,6 @@ def restore_clf_from_logs(runpath):
         time = hyperparams["time"]
         task = hyperparams["task"]
         intensity_only = hyperparams["intensity_only"]
-
 
     clf = Classifier(
         time=time, exp_name=exp_name, task=task, intensity_only=intensity_only

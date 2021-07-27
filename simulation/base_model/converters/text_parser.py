@@ -8,7 +8,23 @@ import numpy as np
 
 #%%
 class TextParser:
+    """Parser for XPS data stored in TXT files."""
+
     def __init__(self, **kwargs):
+        """
+        Initialize empty data dictionary.
+
+        Parameters
+        ----------
+        **kwargs : dict
+            If **kwargs contains "n_headerlines", 
+            the first few lines will be stored as a header.
+
+        Returns
+        -------
+        None.
+
+        """
         if "n_headerlines" in kwargs.keys():
             self.n_headerlines = kwargs["n_headerlines"]
         else:
@@ -16,8 +32,9 @@ class TextParser:
         self.data_dict = []
 
     def parse_file(self, filepath):
-        """ The openFile method parses the .xy file into a list of dictionaries 
-        under the attribute 'self.data'.
+        """
+        Parse the .txt file into a list of dictionaries.
+
         Each dictionary is a grouping of related attributes.
         These are later put into a heirarchical nested dictionary that 
         represents the native data structure of the export, and is well 
@@ -35,10 +52,27 @@ class TextParser:
                 self.data += [line]
 
     def _parse_header(self):
+        """
+        Separe the dataset into header and data.
+
+        Returns
+        -------
+        None.
+
+        """
         self.header = self.data[: self.n_headerlines]
         self.data = self.data[self.n_headerlines :]
 
     def _build_dict(self):
+        """
+        Build dictionary from the loaded data.
+
+        Returns
+        -------
+        self.data_dict
+            Nested dictionary.
+
+        """
         lines = np.array([[float(i) for i in d.split()] for d in self.data])
         x = lines[:, 0]
         y = lines[:, 1]
@@ -48,6 +82,24 @@ class TextParser:
         return self.data_dict
 
     def _check_step_width(self, x, y):
+        """
+        Check that the x and y arrays are regular.
+        
+        Parameters
+        ----------
+        x : ndarray
+            X values with original step size.
+        y : ndarray
+            Intensity array.
+
+        Returns
+        -------
+        x : TYPE
+            DESCRIPTION.
+        y : TYPE
+            DESCRIPTION.
+
+        """
         start = x[0]
         stop = x[-1]
         x1 = np.roll(x, -1)
@@ -58,6 +110,29 @@ class TextParser:
         return x, y
 
     def _interpolate(self, x, y, step):
+        """
+        Interpolate intensity array.
+        
+        If the x array is irregular, overwrite it with a regular step 
+        size and interpolate the y values.
+
+        Parameters
+        ----------
+        x : ndarray
+            X values with original step size.
+        y : ndarray
+            Intensity array.
+        step : float
+            New step size.
+
+        Returns
+        -------
+        x : ndarray
+            X values with new step size.
+        y : ndarray
+            Interpolated intensity array.
+
+        """
         new_x = []
         new_y = []
         for i in range(len(x) - 1):

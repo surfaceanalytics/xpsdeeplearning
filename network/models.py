@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Tue Jun  9 14:10:25 2020
+Created on Tue Jun  9 14:10:25 2020.
 
 @author: pielsticker
 """
@@ -14,10 +14,7 @@ from tensorflow.python.keras import backend as K
 
 #%%
 class EmptyModel(models.Model):
-    """
-    Base Model class to be used in the Classifier class of the 
-    classifier module.
-    """
+    """Base Model class."""
 
     def __init__(
         self,
@@ -29,6 +26,8 @@ class EmptyModel(models.Model):
         name="New_Model",
     ):
         """
+        Intialize emppy keras model.
+        
         Aside from the inputs and outputs for the instantion of the 
         Model class from Keras, the EmptyModel class also gets as 
         paramters the input shape of the data, the no. of classes
@@ -67,6 +66,8 @@ class EmptyModel(models.Model):
 
     def get_config(self):
         """
+        Overwrite get_config method.
+        
         For serialization, all input paramters of the model are added to
         the get_config method from the keras.Model class.
 
@@ -86,11 +87,24 @@ class EmptyModel(models.Model):
 
 
 class CustomMLP(EmptyModel):
-    """
-    A vanilla neural net with some hidden layers, but no convolutions.
-    """
+    """A neural net with some hidden layers, but no convolutions."""
 
     def __init__(self, inputshape, num_classes):
+        """
+        Initialize model with dense and batch norm layers.
+        
+        Parameters
+        ----------
+        inputshape : ndarray
+            Shape of the features of the training data set.
+        num_classes : ndarray
+            Shape of the labels of the training data set.
+
+        Returns
+        -------
+        None.
+
+        """
         self.input_1 = layers.Input(shape=inputshape, name="input_1")
 
         self.flatten_1 = layers.Flatten(name="flatten1")(self.input_1)
@@ -115,18 +129,36 @@ class CustomMLP(EmptyModel):
 
 
 class ClassificationCNN(EmptyModel):
-    """
-    A CNN with three convolutional layers of different kernel size at 
-    the beginning. Works well for learning across scales.
-    
-    This is to be used for classification -> softmax activation in the
-    last layer.
-    """
+    """A CNN for XPS data with only one phase."""
 
+<<<<<<< HEAD
     def __init__(self,
                  inputshape, 
                  num_classes):
 
+=======
+    def __init__(self, inputshape, num_classes):
+        """
+        Initialize model with convolutional layers.
+        
+        A CNN with three convolutional layers of different kernel size 
+        at the beginning. Works well for learning across scales.   
+        This is to be used for classification -> softmax activation in
+        the last layer.
+       
+        Parameters
+        ----------
+        inputshape : ndarray
+            Shape of the features of the training data set.
+        num_classes : ndarray
+            Shape of the labels of the training data set.
+
+        Returns
+        -------
+        None.
+
+        """
+>>>>>>> 90f0986f6f1d4a747477cf709d01ee0865d34a8d
         self.input_1 = layers.Input(shape=inputshape)
 
         self.conv_1_short = layers.Conv1D(
@@ -203,15 +235,18 @@ class ClassificationCNN(EmptyModel):
 
 
 class RegressionCNN(EmptyModel):
-    """
-    A CNN with three convolutional layers of different kernel size at 
-    the beginning. Works well for learning across scales.
-    
-    This is to be used for regression on all labels. -> sigmoid 
-    activation in the last layer.
-    """
+    """A CNN for XPS data with mixed phases."""
 
     def __init__(self, inputshape, num_classes):
+        """
+        Initialize model with convolutional layers.
+        
+        A CNN with three convolutional layers of different kernel size 
+        at the beginning. Works well for learning across scales.
+        
+        This is to be used for regression on all labels. -> sigmoid 
+        activation in the last layer.
+        """
         self.input_1 = layers.Input(shape=inputshape)
 
         self.conv_1_short = layers.Conv1D(
@@ -368,12 +403,39 @@ class ClassificationCNN2D(EmptyModel):
 
 ### RESNET50 implementation ###
 class IdentityBlock(models.Model):
-    """
-    Model implementing the IdentityBlock in the ResNet architecture.
-    """
+    """Model implementing the IdentityBlock in ResNets."""
 
     def __init__(self, filters, kernel_size_2, stage, block, strides=1):
+        """
+        Initialize the layers.
+        
+        IdentityBlock contain a main path (3 convolutional layers with 
+        subsequent batch norm layers) and a shortcut path 
+        without convolutional layers.
 
+        Parameters
+        ----------
+        filters : tuple
+            Filter sizes for the 3 convolutional layer at main path.
+            The third filter is used in the shortcut path, too.
+        kernel_size_2 : int
+            The kernel size of the middle convolutional layer at 
+            main path.
+        stage : int
+            Current stage label, used for generating layer names.        
+            1, 2, ...
+        block : str
+            Current block label, used for generating layer names.
+            "a", "b", ...
+        strides : int , optional
+            Strides for the first convolutional layer in the block.
+            The default is 1.
+
+        Returns
+        -------
+        None.
+
+        """
         name = str(stage) + str(block) + "_ID"
         super(IdentityBlock, self).__init__(name=name)
 
@@ -415,6 +477,25 @@ class IdentityBlock(models.Model):
         self.batch_3 = layers.BatchNormalization(axis=1, name=name + "_bn3")
 
     def call(self, x, training=False):
+        """
+        Call the model on new inputs.
+        
+        There is no convolution in the shortcut path.
+
+        Parameters
+        ----------
+        x : A tensor or list of tensors.
+            Inputs for the forward pass.
+        training : bool, optional
+            Boolean or boolean scalar tensor, indicating whether to run
+            the model in training mode or inference mode.
+
+        Returns
+        -------
+        tensor or list of tensors
+            Model output.
+
+        """
         # Intermediate save of the input.
         x_shortcut = x
 
@@ -436,12 +517,39 @@ class IdentityBlock(models.Model):
 
 
 class ConvBlock(models.Model):
-    """
-    Model implementing the ConvBlock in the ResNet architecture.
-    """
+    """Model implementing the ConvBlock in ResNets."""
 
     def __init__(self, filters, kernel_size_2, stage, block, strides=2):
+        """
+        Initialize the layers.
+        
+        ConvBlocks contain a main path (3 convolutional layers with 
+        subsequent batch norm layers) and a shortcut path 
+        (3 convolutional layers with subsequent batch norm layers).
 
+        Parameters
+        ----------
+        filters : tuple
+            Filter sizes for the 3 convolutional layer at main path.
+            The third filter is used in the shortcut path, too.
+        kernel_size_2 : int
+            The kernel size of the middle convolutional layer at 
+            main path.
+        stage : int
+            Current stage label, used for generating layer names.        
+            1, 2, ...
+        block : str
+            Current block label, used for generating layer names.
+            "a", "b", ...
+        strides : int , optional
+            Strides for the first convolutional layer in the block.
+            The default is 2.
+
+        Returns
+        -------
+        None.
+
+        """
         name = str(stage) + str(block) + "_CONV"
         super(ConvBlock, self).__init__(name=name)
 
@@ -496,6 +604,25 @@ class ConvBlock(models.Model):
         )
 
     def call(self, inputs, training=False):
+        """
+        Call the model on new inputs.
+        
+        At shortcut, there is a convolutional layer.
+
+        Parameters
+        ----------
+        x : A tensor or list of tensors.
+            Inputs for the forward pass.
+        training : bool, optional
+            Boolean or boolean scalar tensor, indicating whether to run
+            the model in training mode or inference mode.
+
+        Returns
+        -------
+        tensor or list of tensors
+            Model output.
+
+        """
         # Intermediate save of the input.
         x = inputs
         x_shortcut = inputs
@@ -523,19 +650,20 @@ class ConvBlock(models.Model):
 
 
 class ResNet1D(EmptyModel):
-    """
-    Instantiates the ResNet50 architecture in 1D similar to the original 
-    ResNet paper. Using the functional API in Keras.
-    
-    Implementation of the popular ResNet50 the following architecture:
-    CONV1D -> BATCHNORM -> RELU -> MAXPOOL -> CONVBLOCK -> IDBLOCK*2 ->
-    CONVBLOCK -> IDBLOCK*3 -> CONVBLOCK -> IDBLOCK*5 -> CONVBLOCK -> 
-    IDBLOCK*2 -> AVGPOOL (optional) -> OUTPUTLAYER
-    -> NORMALIZED OUTPUTLAYER
-    """
+    """Class instantiatingthe ResNet50 architecture in 1D."""
 
     def __init__(self, inputshape, num_classes, ap=False, no_of_inputs=1):
         """
+        Instantiate layers.
+        
+        This implementation uses the functional API in Keras.
+        Architecture:
+            CONV1D -> BATCHNORM -> RELU -> MAXPOOL -> CONVBLOCK
+            -> IDBLOCK*2 -> CONVBLOCK -> IDBLOCK*3 -> CONVBLOCK
+            -> IDBLOCK*5 -> CONVBLOCK -> IDBLOCK*2 
+            -> AVGPOOL (optional) -> OUTPUTLAYER 
+            -> NORMALIZED OUTPUTLAYER
+        
         Parameters
         ----------
         num_classes : int
@@ -668,19 +796,19 @@ class ResNet1D(EmptyModel):
 
 
 class ResNet1DSubclassed(models.Model):
-    """
-    Instantiates the ResNet50 architecture in 1D similar to the original 
-    ResNet paper. Using subclassing of models.
-    
-    Implementation of the popular ResNet50 the following architecture:
-    CONV1D -> BATCHNORM -> RELU -> MAXPOOL -> CONVBLOCK -> IDBLOCK*2 ->
-    CONVBLOCK -> IDBLOCK*3 -> CONVBLOCK -> IDBLOCK*5 -> CONVBLOCK -> 
-    IDBLOCK*2 -> AVGPOOL (optional) -> OUTPUTLAYER 
-    -> NORMALIZED OUTPUTLAYER
-    """
+    """Class instantiatingthe ResNet50 architecture in 1D."""
 
     def __init__(self, num_classes, ap=False, no_of_inputs=1):
         """
+        Instantiate layers.
+        
+        This implementation uses subclassing of models.
+        Architecture:
+            CONV1D -> BATCHNORM -> RELU -> MAXPOOL -> CONVBLOCK
+            -> IDBLOCK*2 -> CONVBLOCK -> IDBLOCK*3 -> CONVBLOCK
+            -> IDBLOCK*5 -> CONVBLOCK -> IDBLOCK*2 
+            -> AVGPOOL (optional) -> OUTPUTLAYER 
+            -> NORMALIZED OUTPUTLAYER
         Parameters
         ----------
         num_classes : int
@@ -796,6 +924,23 @@ class ResNet1DSubclassed(models.Model):
         )
 
     def call(self, x, training=True):
+        """
+        Call the model on new inputs.
+
+        Parameters
+        ----------
+        x : A tensor or list of tensors.
+            Inputs for the forward pass.
+        training : bool, optional
+            Boolean or boolean scalar tensor, indicating whether to run
+            the model in training mode or inference mode.
+
+        Returns
+        -------
+        TYPE
+            DESCRIPTION.
+
+        """
         x = self.zero_pad_1(x)
         x = self.conv_1(x)
         x = self.batch_1(x, training=training)

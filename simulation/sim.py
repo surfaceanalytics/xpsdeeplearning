@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Thu May  7 11:25:02 2020
+Created on Thu May  7 11:25:02 2020.
 
 @author: pielsticker
 """
@@ -15,20 +15,20 @@ from base_model.figures import Figure
 
 #%%
 class Simulation:
-    """
-    Basic class for simulating a spectrum from input spectra.
-    The main methods are:
+    """Basic class for simulating a spectrum from input spectra."""
+
+    def __init__(self, input_spectra):
+        """
+        Initialize the input spectra and an empty SimulatedSpectrum.
+        
+        The x-range for the output spectrum is originally the same as
+        the first input spectrum.
+        
+        The main methods for simulation are:
         - Linear combination of the input spectra
         - changes to the resolution, S/N ratio and x-axis of a spectrum
           as well as simulation of gas phase scattering
         - Plotting of the input and the simulated spectrum
-    """
-
-    def __init__(self, input_spectra):
-        """
-        Initialize the input spectra (a list) and an empty 
-        SimulatedSpectrum for the output. The x-range for the output
-        spectrum is originally the same as the first input spectrum.
 
         Parameters
         ----------
@@ -56,9 +56,10 @@ class Simulation:
 
     def combine_linear(self, scaling_params):
         """
-        Performs a linear combination of the input spectra. Each
-        spectrum is scaled by a parameter in the range of [0,1]. All
-        scaling parameter have to add up to 1.
+        Perform a linear combination of the input spectra.
+        
+        Each spectrum is scaled by a parameter in the range of [0,1]. 
+        All scaling parameter have to add up to 1.
 
         Parameters
         ----------
@@ -101,15 +102,16 @@ class Simulation:
 
                 # Linear combination
                 self.output_spectrum.lineshape = sum(output_list)
-                #self.output_spectrum.normalize()
+                # self.output_spectrum.normalize()
 
             else:
                 print("Scaling parameters have to sum to 1!")
                 print("Simulated spectrum was not changed!")
 
     def change_spectrum(self, spectrum=None, **kwargs):
-
         """
+        Simulate artificial changes on a SimulatedSpectrum object.
+        
         Parameters
         ----------
         spectrum : Spectrum, optional
@@ -183,8 +185,9 @@ class Simulation:
 
     def plot_simulation(self, plot_inputs=False):
         """
-        Creates Figure objects for the output spectrum and (optionally)
-        for the input spectra.
+        Create Figure objects for the output spectrum.
+        
+        Optionally, the input spectra can also be plotted.
 
         Parameters
         ----------
@@ -221,12 +224,7 @@ if __name__ == "__main__":
         + "data\\references"
     )
 
-    labels = [
-        "Fe2p_Fe_metal",
-        "Fe2p_FeO",
-        "Fe2p_Fe3O4",
-        "Fe2p_Fe2O3"
-    ]
+    labels = ["Fe2p_Fe_metal", "Fe2p_FeO", "Fe2p_Fe3O4", "Fe2p_Fe2O3"]
     input_spectra = []
     for label in labels:
         filename = datapath + "\\" + label + ".txt"

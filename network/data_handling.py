@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Tue Feb 23 15:29:41 2021
+Created on Tue Feb 23 15:29:41 2021.
 
 @author: pielsticker
 """
@@ -17,15 +17,11 @@ from .utils import ClassDistribution, SpectraPlot
 
 #%%
 class DataHandler:
-    """
-    Class for data treatment during an experiment in tensorflow.
-    Handles data loading and plotting.
-    """
+    """Class for data treatment during an experiment in tensorflow."""
 
     def __init__(self, intensity_only=True):
         """
-        Initialize with either just the intensity or with intensity
-        and energy axis combined.
+        Initialize intenstiy_only parameter.
         
         Parameters
         ----------
@@ -49,8 +45,7 @@ class DataHandler:
         train_val_split,
     ):
         """
-        Load the data from an HDF5 file and preprocess it into three 
-        datasets:
+        Load the data from an HDF5 file and preprocess it.
 
         Parameters
         ----------
@@ -114,8 +109,10 @@ class DataHandler:
                 )
             try:
                 try:
-                    self.labels = [label.decode("utf-8") for label in hf["labels"][:]]
-                except AttributeError: 
+                    self.labels = [
+                        label.decode("utf-8") for label in hf["labels"][:]
+                    ]
+                except AttributeError:
                     self.labels = [str(label) for label in hf["labels"][:]]
                 self.num_classes = len(self.labels)
             except KeyError:
@@ -318,7 +315,8 @@ class DataHandler:
 
     def _split_test_val_train(self, X, y, **kwargs):
         """
-        Helper method for splitting multiple numpy arrays two times:
+        Split multiple numpy arrays into train, val, and test sets.
+        
         First, the whole data is split into the train+val and test sets
         according to the attribute self.train_test_split. Secondly.
         the train+val sets are further split into train and val sets 
@@ -476,7 +474,6 @@ class DataHandler:
         return X_train, X_val, X_test, y_train, y_val, y_test
 
     def check_class_distribution(self, task):
-
         """
         Generate a Class Distribution object based on a given task.
 
@@ -487,6 +484,7 @@ class DataHandler:
             calculated.
             If task == 'classification', the distribution of the labels
             across the different data sets is calculated.
+            
         Returns
         -------
         dict
@@ -498,6 +496,19 @@ class DataHandler:
         return self.class_distribution.cd
 
     def calculate_losses(self, loss_func):
+        """
+        Calculate losses for train and test data.
+
+        Parameters
+        ----------
+        loss_func : keras.losses.Loss
+            A keras loss function.
+
+        Returns
+        -------
+        None.
+
+        """
         print("Calculating loss for each example...")
         self.losses_train = [
             loss_func(self.y_train[i], self.pred_train[i]).numpy()
@@ -559,7 +570,8 @@ class DataHandler:
 
     def plot_random(self, no_of_spectra, dataset, with_prediction):
         """
-        Plots random XPS spectra out of one of the data set.
+        Plot random XPS spectra out of one of the data set.
+        
         The labels and additional information are shown as texts on the
         plots.
         
@@ -598,7 +610,8 @@ class DataHandler:
         self, no_of_spectra, kind="all", threshold=0.0
     ):
         """
-        Plots the spectra with the highest losses.
+        Plot the spectra with the highest losses.
+        
         Accepts a threshold parameter. If a threshold other than 0 is
         given, the spectra with losses right above this threshold are
         plotted.
@@ -714,8 +727,8 @@ class DataHandler:
 
     def show_wrong_classification(self):
         """
-        Plots all spectra in the test data set for which a wrong class
-        prediction was produced during training. 
+        Plot all spectra in the test data with a wrong prediction.
+        
         Only works for classification.
 
         Returns
@@ -887,7 +900,7 @@ class DataHandler:
 
     def _select_dataset(self, dataset_name):
         """
-        Selects a data set (for plotting).
+        Select a data set (for plotting).
 
         Parameters
         ----------
@@ -917,7 +930,8 @@ class DataHandler:
     def _get_predictions(self, dataset_name):
         """
         Get the predictions and losses for one data set.
-        Used for writing the annotations in for plotting.
+        
+        Used for writing the annotations during plotting.
 
         Parameters
         ----------
@@ -991,9 +1005,8 @@ class DataHandler:
 
     def _write_sim_text(self, dataset, index):
         """
-        Helper method for writing information about the parameters used 
-        for data set creation into a figure. 
-
+        Generate a string containing the simulation parameters.
+        
         Parameters
         ----------
         dataset : str
@@ -1051,8 +1064,7 @@ class DataHandler:
 
     def _write_scatter_text(self, dataset, index):
         """
-        Helper method for writing information about the parameters used 
-        for simulation of scattering in a gas phase. 
+        Generate a string containing the scattering parameters.
 
         Parameters
         ----------
@@ -1101,8 +1113,7 @@ class DataHandler:
 
     def _write_measured_text(self, dataset, index):
         """
-        Helper method for writing information about the measured 
-        spectra in a data set into a figure. 
+        Generate information about the measured spectra.
 
         Parameters
         ----------

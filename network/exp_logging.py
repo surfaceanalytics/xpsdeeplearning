@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Tue Feb 23 15:29:41 2021
+Created on Tue Feb 23 15:29:41 2021.
 
 @author: pielsticker
 """
@@ -14,10 +14,7 @@ from tensorflow.keras import callbacks
 
 #%%
 class ExperimentLogging:
-    """
-    Class for logigng during an experiment in tensorflow.
-    Handles keras Callbacks and saving of hyperparamters and results.
-    """
+    """Class for logigng during an experiment in tensorflow."""
 
     def __init__(self, dir_name):
         """
@@ -88,6 +85,7 @@ class ExperimentLogging:
     def make_dirs(self):
         """
         Make folder structure unless it already exists.
+        
         Ensure that the folders are properly created.
 
         Returns
@@ -130,8 +128,9 @@ class ExperimentLogging:
         **cb_kwargs,
     ):
         """
-        Method to be used before training. Activates the callbacks and 
-        stores the active ones in a list.
+        Activate the callbacks and store the active ones in a list.
+        
+        Method to be used before training. 
 
         Parameters
         ----------
@@ -160,8 +159,11 @@ class ExperimentLogging:
         None.
 
         """
+<<<<<<< HEAD
         self.active_cbs = []
 
+=======
+>>>>>>> 90f0986f6f1d4a747477cf709d01ee0865d34a8d
         if checkpoint:
             self.active_cbs.append(self.checkpoint_callback)
         if early_stopping:
@@ -177,8 +179,9 @@ class ExperimentLogging:
 
     def _count_epochs_trained(self):
         """
-        Count the numbers of previously trained epochs by searching the 
-        csv log file
+        Count the numbers of previously trained epochs.
+        
+        Seaches the csv log file.
 
         Returns
         -------
@@ -201,7 +204,8 @@ class ExperimentLogging:
 
     def _get_total_history(self):
         """
-        Loads the previous training history from the CSV log file.
+        Load the previous training history from the CSV log file.
+        
         Useful for retraining.
 
         Returns
@@ -267,7 +271,7 @@ class ExperimentLogging:
 
     def update_saved_hyperparams(self, new_params):
         """
-        Updates already saved hyperparameters with data from a new dict.
+        Update already saved hyperparameters with data from a new dict.
 
         Parameters
         ----------
@@ -285,14 +289,11 @@ class ExperimentLogging:
 
 
 class HyperParamCallback(callbacks.Callback):
-    """
-    A keras Callback that saves the hyperparameter in a logging object at 
-    the end of each epoch.
-    """
+    """A keras Callback saves the hyperparameter in a logging object."""
 
     def __init__(self, logging):
         """
-        Initiates the logging object.
+        Initiate the logging object.
 
         Parameters
         ----------
@@ -308,8 +309,7 @@ class HyperParamCallback(callbacks.Callback):
 
     def on_epoch_end(self, epoch, logs=None):
         """
-        Update the epochs_trained parameter in the logging and saves
-        it to file.
+        Update the epochs_trained parameter in the logging.
 
         Parameters
         ----------
@@ -318,6 +318,7 @@ class HyperParamCallback(callbacks.Callback):
         logs : dict, optional
              Dict, metric results for this training epoch, and for the
              validation epoch if validation is performed.
+             
         Returns
         -------
         None.
@@ -328,15 +329,16 @@ class HyperParamCallback(callbacks.Callback):
 
 
 class CustomModelCheckpoint(callbacks.ModelCheckpoint):
-    """
-  Extends the ModelCheckpoint class from Keras in order to save the
-  model to JSON and the weights to HDF5 as well.
-  """
+    """Extends the ModelCheckpoint class from Keras."""
 
     def _save_model(self, epoch, logs):
         """
-        Saves the model.
-        Arguments:
+        Save the model.
+        
+        Save the model to JSON and the weights to HDF5 as well.
+        
+        Parameters
+        ----------
             epoch: the epoch this iteration is in.
             logs: the `logs` dict passed in to `on_batch_end` or
             `on_epoch_end`.

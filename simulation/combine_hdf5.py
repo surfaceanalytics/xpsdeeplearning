@@ -17,8 +17,6 @@ import h5py
 from sklearn.utils import shuffle
 
 #%%
-
-
 def _load_data(filenames):
     """
     Load data from all HDF5 file and combine them into arrays.
@@ -101,8 +99,9 @@ def _load_data(filenames):
 
 def combine_and_shuffle_measured(filenames, output_file):
     """
-    Loads the data from the given filenames, shuffles them and stores
-    them in a new file.
+    Load the data from the given filenames.
+    
+    The data is shuffled and stored in a new file.
 
     Parameters
     ----------

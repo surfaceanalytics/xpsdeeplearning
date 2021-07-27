@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Thu Jan 23 12:21:27 2020
+Created on Thu Jan 23 12:21:27 2020.
 
 @author: pielsticker
 """
@@ -20,13 +20,12 @@ from sim import Simulation
 
 #%%
 class Creator:
-    """
-    Class for simulating large amounts of XPS spectra based on a 
-    number of input_spectra.
-    """
+    """Class for simulating mixed XPS spectra."""
 
     def __init__(self, params=None):
         """
+        Prepare simulation run.
+        
         Loading the input spectra and creating the empty simulation
         matrix based on the number of input spectra.
         
@@ -51,7 +50,7 @@ class Creator:
         Returns
         -------
         None.
-
+        
         """
         self.timestamp = datetime.datetime.now().strftime("%Y%m%d")
 
@@ -102,6 +101,8 @@ class Creator:
 
     def load_input_spectra(self, filenames):
         """
+        Load input spectra.
+        
         Load input spectra from all reference sets into DataFrame.
         Will store NaN value if no reference is available.        
 
@@ -174,6 +175,8 @@ class Creator:
 
     def create_matrix(self, single=False, variable_no_of_inputs=True):
         """
+        Create matrix for multiple simulations.
+        
         Creates the numpy array 'simulation_matrix' (instance
         variable) that is used to simulate the new spectra.
         simulation_matrix has the dimensions (n x p), where:
@@ -235,6 +238,8 @@ class Creator:
         self, key, single=False, variable_no_of_inputs=True
     ):
         """
+        Randomly select parameters for linear combination.
+        
         Select scaling parameters for a simulation from one set 
         of reference spectra (given by key).
 
@@ -342,7 +347,6 @@ class Creator:
             various processing steps.
 
         """
-
         sim_params = [0.0] * 6
         step = self.input_spectra.iloc[row][0].step
 
@@ -418,6 +422,8 @@ class Creator:
 
     def run(self):
         """
+        Run the simulations.
+        
         The artificial spectra are createad using the Simulation
         class and the simulation matrix. All data is then stored in 
         a dataframe.        
@@ -476,7 +482,7 @@ class Creator:
                     "pressure": pressure,
                 },
             )
-            
+
             if self.params["normalize_outputs"]:
                 self.sim.output_spectrum.normalize()
 
@@ -498,8 +504,7 @@ class Creator:
 
     def _dict_from_one_simulation(self, sim):
         """
-        Creates a dictionary containing all information from one
-        simulation event.
+        Create a dictionary with data from one simulation event.
 
         Parameters
         ----------
@@ -534,7 +539,8 @@ class Creator:
 
     def plot_random(self, no_of_spectra):
         """
-        Randomly plots of the generated spetra.
+        Randomly plot some of the generated spectra.
+        
         Labels and simulation parameters are added as texts.
 
         Parameters
@@ -660,7 +666,7 @@ class Creator:
 
     def _save_to_file(self, df, filename, filetype):
         """
-        Helper method for saving a dataframe to a file.
+        Save a dataframe to a file.
 
         Parameters
         ----------
@@ -669,9 +675,12 @@ class Creator:
         filename : str
             Filename of the new file.
         filetype : str
-            If 'excel', save the data to an Excel file.
-            If 'json', save the data to a JSON file.
-            If 'excel', pickle the data and save it.
+            If "excel", save the data to an Excel file.
+            If "json", save the data to a JSON file.
+            If "excel", pickle the data and save it.
+            If "hdf5", calle the helper method "prepare_hdf5" and store
+            the data in an HDF5 file.
+
 
         Returns
         -------
@@ -718,6 +727,22 @@ class Creator:
                     print("Saved " + key + " to HDF5 file.")
 
     def prepare_hdf5(self, df):
+        """
+        Store the DataFrame from a simulation run in a dictionary.
+
+        Parameters
+        ----------
+        df : pd.DataFrame
+            Dataframe containing the result of a simulation process.
+
+        Returns
+        -------
+        dict
+            Dictionary containing all simulated data. 
+            Items include X, y, shiftx, noise, FWHM, scatterer,
+            distance, and pressure,
+
+        """
         X = []
         y = []
         shiftx = []
@@ -782,6 +807,7 @@ class Creator:
     def _one_hot_encode(self, y):
         """
         One-hot encode the labels.
+        
         As an example, if the label of a spectrum is Fe metal = 1 and all 
         oxides = 0, then the output will be np.array([1,0,0,0],1).
     
@@ -806,6 +832,14 @@ class Creator:
         return new_labels
 
     def save_metadata(self):
+        """
+        Save the metadata from the simulation run in JSON file.
+
+        Returns
+        -------
+        None.
+
+        """
         self.params["timestamp"] = self.timestamp
         self.params["name"] = self.name
         self.params["energy_range"] = [
@@ -824,8 +858,7 @@ class Creator:
 
 def calculate_runtime(start, end):
     """
-    Function to calculate the runtime between two points and return a
-    string of the format hh:mm:ss:ff.
+    Calculate the runtime between two points.
 
     Parameters
     ----------
@@ -852,7 +885,9 @@ def calculate_runtime(start, end):
 
 #%%
 if __name__ == "__main__":
-    init_param_filepath = r"C:\Users\pielsticker\Simulations\init_params_Fe.json"
+    init_param_filepath = (
+        r"C:\Users\pielsticker\Simulations\init_params_Fe.json"
+    )
     with open(init_param_filepath, "r") as param_file:
         params = json.load(param_file)
 
