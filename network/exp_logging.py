@@ -159,11 +159,8 @@ class ExperimentLogging:
         None.
 
         """
-<<<<<<< HEAD
         self.active_cbs = []
 
-=======
->>>>>>> 90f0986f6f1d4a747477cf709d01ee0865d34a8d
         if checkpoint:
             self.active_cbs.append(self.checkpoint_callback)
         if early_stopping:

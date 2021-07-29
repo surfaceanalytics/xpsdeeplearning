@@ -310,6 +310,20 @@ class DataHandler:
                     self.y_val,
                     self.y_test,
                 )
+                
+        print("Data was loaded!")
+        print("Total no. of samples: " + str(self.X.shape[0]))
+        print("No. of training samples: " + str(self.X_train.shape[0]))
+        print("No. of validation samples: " + str(self.X_val.shape[0]))
+        print("No. of test samples: " + str(self.X_test.shape[0]))
+        print(
+            "Shape of each sample : "
+            + str(self.X_train.shape[1])
+            + " features (X)"
+            + " + "
+            + str(self.y_train.shape[1])
+            + " labels (y)"
+        )
 
         return loaded_data
 
@@ -339,7 +353,7 @@ class DataHandler:
         """
         # First split into train+val and test sets
         no_of_train_val = int((1 - self.train_test_split) * X.shape[0])
-
+        
         X_train_val = X[:no_of_train_val, :, :]
         X_test = X[no_of_train_val:, :, :]
         y_train_val = y[:no_of_train_val, :]
@@ -352,20 +366,6 @@ class DataHandler:
         X_val = X_train_val[no_of_train:, :, :]
         y_train = y_train_val[:no_of_train, :]
         y_val = y_train_val[no_of_train:, :]
-
-        print("Data was loaded!")
-        print("Total no. of samples: " + str(self.X.shape[0]))
-        print("No. of training samples: " + str(X_train.shape[0]))
-        print("No. of validation samples: " + str(X_val.shape[0]))
-        print("No. of test samples: " + str(X_test.shape[0]))
-        print(
-            "Shape of each sample : "
-            + str(X_train.shape[1])
-            + " features (X)"
-            + " + "
-            + str(y_train.shape[1])
-            + " labels (y)"
-        )
 
         if "sim_values" in kwargs.keys():
             # Also split the arrays in the 'sim_values' dictionary.
@@ -472,6 +472,103 @@ class DataHandler:
             )
 
         return X_train, X_val, X_test, y_train, y_val, y_test
+        
+    def _only_keep_classification_data(self):
+        """
+        Keep only data with just one species, i.e. with one label of 1.0
+        and the rest of the labels = 0.0.
+        """
+        indices = np.where(self.y == 0.0)[0]
+
+        self.X, self.y = self.X[indices], self.y[indices]
+       
+        if hasattr(self, "sim_values"):
+            new_sim_values = {}
+
+            for key, sim_arrays in self.sim_values.items():
+                new_sim_values[key] = sim_arrays[indices]
+                 
+            self.sim_values = new_sim_values
+
+            (
+                self.X_train,
+                self.X_val,
+                self.X_test,
+                self.y_train,
+                self.y_val,
+                self.y_test,
+                self.sim_values_train,
+                self.sim_values_val,
+                self.sim_values_test,
+                ) = self._split_test_val_train(
+                    self.X, self.y, sim_values=self.sim_values
+                )
+
+            loaded_data = (
+                self.X_train,
+                self.X_val,
+                self.X_test,
+                self.y_train,
+                self.y_val,
+                self.y_test,
+                self.sim_values_train,
+                self.sim_values_val,
+                self.sim_values_test,
+                )
+
+        elif hasattr(self, "names"):
+           print("Hi")
+           self.names = [self.names[i] for i in indices]
+
+           (
+               self.X_train,
+               self.X_val,
+               self.X_test,
+               self.y_train,
+               self.y_val,
+               self.y_test,
+               self.names_train,
+               self.names_val,
+               self.names_test,
+               ) = self._split_test_val_train(
+                   self.X, self.y, names=self.names)
+
+           loaded_data = (
+               self.X_train,
+               self.X_val,
+               self.X_test,
+               self.y_train,
+               self.y_val,
+               self.y_test,
+               self.names_train,
+               self.names_val,
+               self.names_test,
+               )              
+          
+        else:
+            (
+                self.X_train, 
+                self.X_val,
+                self.X_test,
+                self.y_train,
+                self.y_val,
+                self.y_test
+            ) = self._split_test_val_train(self.X, self.y)
+  
+            loaded_data = (
+                self.X_train,
+                self.X_val,
+                self.X_test,
+                self.y_train,
+                self.y_val,
+                self.y_test,
+                )
+        print(f"Only spectra with one species were left in the data set! Test/val/train splits were kept.")
+        print(f"Remaining no. of training examples: {self.y_train.shape[0]}")
+        print(f"Remaining no. of val examples: {self.y_val.shape[0]}")
+        print(f"Remaining no. of test examples: {self.y_test.shape[0]}")
+
+        return loaded_data
 
     def check_class_distribution(self, task):
         """
@@ -801,17 +898,23 @@ class DataHandler:
         prob_preds,
         dataset="test",
         no_of_spectra=10):
+            
+        X, y = self._select_dataset(dataset_name="test")
+        
+        if no_of_spectra > y.shape[0]:
+            print("Provide no. of spectra was bigger than dataset size.")
+            no_of_spectra = y.shape[0]
         
         fig, axs = plt.subplots(
             nrows=no_of_spectra,
             ncols=5,
             figsize=(22, 5*no_of_spectra))
     
-        X, y = self._select_dataset(dataset_name="test")
         max_y = np.max(
             [np.float(np.max(y)),
             np.max(prob_preds)])
 
+        random_numbers = []
         for i in range(no_of_spectra):
             ax0 = axs[i, 0]
             ax1 = axs[i, 1]
@@ -820,6 +923,10 @@ class DataHandler:
             ax4 = axs[i, 4]
 
             r = np.random.randint(0, X.shape[0])
+            
+            while r in random_numbers:
+                r = np.random.randint(0, X.shape[0])
+            random_numbers.append(r)    
  
             if len(X.shape) == 4:
                 ax0.imshow(X[r, :, :, 0],

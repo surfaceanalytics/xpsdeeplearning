@@ -716,11 +716,17 @@ class Classifier:
         
         X, y = self.datahandler._select_dataset(
             dataset_name=dataset)
-        
-        self.prob_preds = np.array(
+
+        prob_preds = np.array(
             [self.model.predict(X) for i in range(no_of_predictions)]).transpose(1, 0, 2)
         
-        return self.prob_preds
+        if dataset == "train":
+            self.datahandler.pred_train = np.mean(prob_preds, axis = 1)
+        
+        elif dataset == "test":
+            self.datahandler.pred_test = np.mean(prob_preds, axis = 1)
+                
+        return prob_preds
 
     def plot_prob_predictions(
         self,
@@ -728,21 +734,14 @@ class Classifier:
         no_of_spectra=10,
         to_file=True):
         
-        try:
-            fig = self.datahandler.plot_prob_predictions(
-                prob_preds=self.prob_preds,
-                dataset=dataset,
-                no_of_spectra=no_of_spectra)
-        
-        except AttributeError:
-            self.predict_probabilistic(
-                dataset="test",
-                no_of_predictions=100)
+        prob_preds = self.predict_probabilistic(
+            dataset=dataset,
+            no_of_predictions=100)
             
-            fig = self.datahandler.plot_prob_predictions(
-                prob_preds=self.prob_preds,
-                dataset=dataset,
-                no_of_spectra=no_of_spectra)
+        fig = self.datahandler.plot_prob_predictions(
+            prob_preds=prob_preds,
+            dataset=dataset,
+            no_of_spectra=no_of_spectra)
                 
         if to_file:
             epoch = self.logging.hyperparams["epochs_trained"]

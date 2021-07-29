@@ -131,12 +131,6 @@ class CustomMLP(EmptyModel):
 class ClassificationCNN(EmptyModel):
     """A CNN for XPS data with only one phase."""
 
-<<<<<<< HEAD
-    def __init__(self,
-                 inputshape, 
-                 num_classes):
-
-=======
     def __init__(self, inputshape, num_classes):
         """
         Initialize model with convolutional layers.
@@ -158,7 +152,6 @@ class ClassificationCNN(EmptyModel):
         None.
 
         """
->>>>>>> 90f0986f6f1d4a747477cf709d01ee0865d34a8d
         self.input_1 = layers.Input(shape=inputshape)
 
         self.conv_1_short = layers.Conv1D(

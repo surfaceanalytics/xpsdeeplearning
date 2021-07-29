@@ -380,22 +380,40 @@ class WeightDistributions:
 
         for n, qm, qs in zip(self.names, qm_vals, qs_vals):
             c=next(colors)
-            sns.histplot(
-                np.reshape(qm, newshape=[-1]), 
-                ax=ax1, 
-                #bins=50,
-                label=n,
-                color=c,
-                kde=True,
-                stat="density")
-            sns.histplot(
-                np.reshape(qs, newshape=[-1]),
-                ax=ax2,
-                #bins=50,
-                label=n,
-                color=c,
-                kde=True, 
-                stat="density")
+            try:
+                sns.histplot(
+                    np.reshape(qm, newshape=[-1]), 
+                    ax=ax1, 
+                    #bins=50,
+                    label=n,
+                    color=c,
+                    kde=True,
+                    stat="density")
+                sns.histplot(
+                    np.reshape(qs, newshape=[-1]),
+                    ax=ax2,
+                    #bins=50,
+                    label=n,
+                    color=c,
+                    kde=True, 
+                    stat="density")
+            except np.linalg.LinAlgError:
+                sns.histplot(
+                    np.reshape(qm, newshape=[-1]), 
+                    ax=ax1, 
+                    #bins=50,
+                    label=n,
+                    color=c,
+                    kde=False,
+                    stat="density")
+                sns.histplot(
+                    np.reshape(qs, newshape=[-1]),
+                    ax=ax2,
+                    #bins=50,
+                    label=n,
+                    color=c,
+                    kde=False, 
+                    stat="density")                
         
         ax1.set_title(f"{kind.capitalize()}" + " weight means")
         ax1.legend()
