@@ -235,12 +235,8 @@ class TrainingGraphs:
         """
         self.history = history
         self.fig_dir = fig_dir
-        
-    def plot_metric(self, 
-                    metric,
-                    title=None,
-                    ylabel=None,
-                    to_file=True):
+
+    def plot_metric(self, metric, title=None, ylabel=None, to_file=True):
         """
         Plots the training and validation values of a metric
         against the epochs.
@@ -249,9 +245,9 @@ class TrainingGraphs:
         -------
         None.
 
-        """                        
-        metric_cap = metric.capitalize()    
-        
+        """
+        metric_cap = metric.capitalize()
+
         try:
             metric_history = self.history[metric]
             fig, ax = plt.subplots()
@@ -271,15 +267,11 @@ class TrainingGraphs:
             ax.legend(["Train", "Validation"])
 
             if to_file:
-                fig_name = os.path.join(
-                    self.fig_dir,
-                    f"{metric}.png")
+                fig_name = os.path.join(self.fig_dir, f"{metric}.png")
                 fig.savefig(fig_name)
 
         except KeyError:
-                print(f"{metric_cap} was not logged during training.")  
-         
-
+            print(f"{metric_cap} was not logged during training.")
 
     def plot_loss(self, to_file=True):
         """
@@ -290,10 +282,7 @@ class TrainingGraphs:
         None.
 
         """
-        self.plot_metric(
-            metric="loss",
-            to_file=to_file
-        )
+        self.plot_metric(metric="loss", to_file=to_file)
 
     def plot_accuracy(self, to_file=True):
         """
@@ -307,9 +296,9 @@ class TrainingGraphs:
         self.plot_metric(
             metric="accuracy",
             ylabel="Classification accuracy",
-            to_file=to_file
+            to_file=to_file,
         )
-        
+
     def plot_mse(self, to_file=True):
         """
         Plots the training and validation mean squared error against the epochs.
@@ -320,10 +309,7 @@ class TrainingGraphs:
 
         """
         self.plot_metric(
-            metric="mse",
-            title="MSE",
-            ylabel="MSE",
-            to_file=to_file
+            metric="mse", title="MSE", ylabel="MSE", to_file=to_file
         )
 
 
@@ -331,47 +317,49 @@ class WeightDistributions:
     """
     Class to calculate weight distribution of a Bayesian model in keras.
     """
-    def __init__(self,
-                 bayesian_layers,
-                 fig_dir):
+
+    def __init__(self, bayesian_layers, fig_dir):
         import warnings
-        warnings.filterwarnings('ignore')
-        
+
+        warnings.filterwarnings("ignore")
+
         self.bayesian_layers = bayesian_layers
         self.names = [layer.name for layer in self.bayesian_layers]
 
         self.fig_dir = fig_dir
 
-    def plot_weight_priors(self, 
-                           to_file=True):
-        qm_vals = [layer.kernel_prior.mean().numpy()  
-                   for layer in self.bayesian_layers]
-        qs_vals = [layer.kernel_prior.stddev().numpy() 
-                   for layer in self.bayesian_layers]
-        
-        return self.plot_distribution(qm_vals,
-                                      qs_vals,
-                                      kind="prior",
-                                      to_file=to_file)
+    def plot_weight_priors(self, to_file=True):
+        qm_vals = [
+            layer.kernel_prior.mean().numpy()
+            for layer in self.bayesian_layers
+        ]
+        qs_vals = [
+            layer.kernel_prior.stddev().numpy()
+            for layer in self.bayesian_layers
+        ]
 
-    def plot_weight_posteriors(self, 
-                               to_file=True):
-        qm_vals = [layer.kernel_posterior.mean().numpy() 
-                   for layer in self.bayesian_layers]
-        qs_vals = [layer.kernel_posterior.stddev().numpy()
-                   for layer in self.bayesian_layers]
+        return self.plot_distribution(
+            qm_vals, qs_vals, kind="prior", to_file=to_file
+        )
 
-        return self.plot_distribution(qm_vals,
-                                      qs_vals,
-                                      kind="posterior",
-                                      to_file=to_file)
+    def plot_weight_posteriors(self, to_file=True):
+        qm_vals = [
+            layer.kernel_posterior.mean().numpy()
+            for layer in self.bayesian_layers
+        ]
+        qs_vals = [
+            layer.kernel_posterior.stddev().numpy()
+            for layer in self.bayesian_layers
+        ]
 
-    def plot_distribution(self,
-                          qm_vals,
-                          qs_vals,
-                          kind="posterior",
-                          to_file=True):
-       
+        return self.plot_distribution(
+            qm_vals, qs_vals, kind="posterior", to_file=to_file
+        )
+
+    def plot_distribution(
+        self, qm_vals, qs_vals, kind="posterior", to_file=True
+    ):
+
         fig, _ = plt.subplots(figsize=(12, 6))
         colors = iter(mcolors.TABLEAU_COLORS.keys())
 
@@ -379,51 +367,55 @@ class WeightDistributions:
         ax2 = fig.add_subplot(1, 2, 2)
 
         for n, qm, qs in zip(self.names, qm_vals, qs_vals):
-            c=next(colors)
+            c = next(colors)
             try:
                 sns.histplot(
-                    np.reshape(qm, newshape=[-1]), 
-                    ax=ax1, 
-                    #bins=50,
+                    np.reshape(qm, newshape=[-1]),
+                    ax=ax1,
+                    # bins=50,
                     label=n,
                     color=c,
                     kde=True,
-                    stat="density")
+                    stat="density",
+                )
                 sns.histplot(
                     np.reshape(qs, newshape=[-1]),
                     ax=ax2,
-                    #bins=50,
+                    # bins=50,
                     label=n,
                     color=c,
-                    kde=True, 
-                    stat="density")
+                    kde=True,
+                    stat="density",
+                )
             except np.linalg.LinAlgError:
                 sns.histplot(
-                    np.reshape(qm, newshape=[-1]), 
-                    ax=ax1, 
-                    #bins=50,
+                    np.reshape(qm, newshape=[-1]),
+                    ax=ax1,
+                    # bins=50,
                     label=n,
                     color=c,
                     kde=False,
-                    stat="density")
+                    stat="density",
+                )
                 sns.histplot(
                     np.reshape(qs, newshape=[-1]),
                     ax=ax2,
-                    #bins=50,
+                    # bins=50,
                     label=n,
                     color=c,
-                    kde=False, 
-                    stat="density")                
-        
+                    kde=False,
+                    stat="density",
+                )
+
         ax1.set_title(f"{kind.capitalize()}" + " weight means")
         ax1.legend()
         ax2.set_title(f"{kind.capitalize()}" + " weight standard deviations")
 
         fig.tight_layout()
-        #plt.show()
-    
+        # plt.show()
+
         return fig
-            
+
 
 class Report:
     """Report on the results of the training in keras."""

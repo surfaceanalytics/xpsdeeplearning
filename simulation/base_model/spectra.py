@@ -664,7 +664,7 @@ class SimulatedSpectrum(Spectrum):
 
     def shift_horizontal(self, shift_x):
         """
-        Shifts the output lineshape by some eV.
+        Shift the output lineshape by some eV.
         
         Parameters
         ----------
@@ -710,14 +710,14 @@ class SimulatedSpectrum(Spectrum):
 
             self.shift_x = shift_x
 
-# =============================================================================
-#             # For normalization, take the sum of the original
-#             # lineshape.
-#             if b != 0:
-#                 self.lineshape /= b
-#             else:
-#                 print("Simulation was not successful.")
-# =============================================================================
+        # =============================================================================
+        #             # For normalization, take the sum of the original
+        #             # lineshape.
+        #             if b != 0:
+        #                 self.lineshape /= b
+        #             else:
+        #                 print("Simulation was not successful.")
+        # =============================================================================
 
         else:
             # Return error and repeat input

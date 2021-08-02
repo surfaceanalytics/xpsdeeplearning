@@ -41,10 +41,10 @@ class Simulation:
 
         """
         self.input_spectra = input_spectra
-# =============================================================================
-#         for spectrum in input_spectra:
-#             spectrum.normalize()
-# =============================================================================
+        # =============================================================================
+        #         for spectrum in input_spectra:
+        #             spectrum.normalize()
+        # =============================================================================
 
         # Initilaize the axes and label to the spectrum loaded first.
         start = self.input_spectra[0].start

@@ -165,7 +165,7 @@ class ExperimentLogging:
             self.active_cbs.append(self.checkpoint_callback)
         if early_stopping:
             if "es_patience" in cb_kwargs.keys():
-                self.es_callback.patience =  cb_kwargs["es_patience"]
+                self.es_callback.patience = cb_kwargs["es_patience"]
             self.active_cbs.append(self.es_callback)
         if tb_log:
             self.active_cbs.append(self.tb_callback)
@@ -212,32 +212,31 @@ class ExperimentLogging:
 
         """
         csv_file = os.path.join(self.log_dir, "log.csv")
-        
+
         history = {}
         try:
-          with open(csv_file, newline="") as csvfile:
-              reader = csv.DictReader(csvfile)
-              for row in reader:
-                  for key, item in row.items():
-                      if key not in history.keys():
-                          history[key] = []
-                      history[key].append(float(item))      
+            with open(csv_file, newline="") as csvfile:
+                reader = csv.DictReader(csvfile)
+                for row in reader:
+                    for key, item in row.items():
+                        if key not in history.keys():
+                            history[key] = []
+                        history[key].append(float(item))
         except FileNotFoundError:
             pass
 
         return history
-        
+
     def _purge_history(self):
         """
         Deletes the training history.
         Useful for resetting the classifier.
         """
         try:
-            del(self.history,
-                self.last_training)
+            del (self.history, self.last_training)
         except AttributeError:
             pass
-        
+
         self.update_saved_hyperparams({"epochs_trained": 0})
 
         for root, dirs, files in os.walk(self.log_dir):
@@ -353,7 +352,7 @@ class CustomModelCheckpoint(callbacks.ModelCheckpoint):
                 logs = tf_utils.sync_to_numpy_or_python_type(logs)
             except AttributeError:
                 logs = tf_utils.to_numpy_or_python_type(logs)
-                
+
             self.epochs_since_last_save = 0
             filepath = self._get_file_path(epoch, logs)
 
@@ -361,7 +360,10 @@ class CustomModelCheckpoint(callbacks.ModelCheckpoint):
                 if self.save_best_only:
                     current = logs.get(self.monitor)
                     if current is None:
-                        from tensorflow.python.platform import tf_logging as logging
+                        from tensorflow.python.platform import (
+                            tf_logging as logging,
+                        )
+
                         logging.warning(
                             "Can save best model only with %s available, "
                             "skipping.",

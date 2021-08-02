@@ -205,16 +205,12 @@ class ClassificationCNN(EmptyModel):
         self.flatten_1 = layers.Flatten(name="flatten1")(self.average_pool_1)
         self.drop_1 = layers.Dropout(rate=0.2, name="drop_1")(self.flatten_1)
         self.dense_1 = layers.Dense(
-            units=1000,
-            activation="relu",
-            name="dense_1"
+            units=1000, activation="relu", name="dense_1"
         )(self.drop_1)
         self.dense_2 = layers.Dense(
-            units=num_classes,
-            activation="softmax", 
-            name="dense_2"
+            units=num_classes, activation="softmax", name="dense_2"
         )(self.dense_1)
-    
+
         no_of_inputs = len(sublayers)
 
         super(ClassificationCNN, self).__init__(
@@ -315,6 +311,7 @@ class RegressionCNN(EmptyModel):
             name="RegressionCNN",
         )
 
+
 class ClassificationCNN2D(EmptyModel):
     """
     A CNN with three convolutional layers of different kernel size at 
@@ -326,9 +323,7 @@ class ClassificationCNN2D(EmptyModel):
     2D model for e.g. MNIST.
     """
 
-    def __init__(self,
-                 inputshape, 
-                 num_classes):
+    def __init__(self, inputshape, num_classes):
 
         self.input_1 = layers.Input(shape=inputshape)
 
@@ -372,16 +367,12 @@ class ClassificationCNN2D(EmptyModel):
         self.flatten_1 = layers.Flatten(name="flatten1")(self.average_pool_1)
         self.drop_1 = layers.Dropout(rate=0.2, name="drop_1")(self.flatten_1)
         self.dense_1 = layers.Dense(
-            units=1000,
-            activation="relu",
-            name="dense_1"
+            units=1000, activation="relu", name="dense_1"
         )(self.drop_1)
         self.dense_2 = layers.Dense(
-            units=num_classes,
-            activation="softmax", 
-            name="dense_2"
+            units=num_classes, activation="softmax", name="dense_2"
         )(self.dense_1)
-        
+
         no_of_inputs = len(sublayers)
 
         super(ClassificationCNN2D, self).__init__(
@@ -972,7 +963,7 @@ class ResNet1DSubclassed(models.Model):
 
         # output norm
         return self.output_norm(x)
-        
+
 
 ### Probabilistic implementations ###
 class ProbabilisticClassificationCNN2D(EmptyModel):
@@ -987,11 +978,13 @@ class ProbabilisticClassificationCNN2D(EmptyModel):
     Implements Bayes by Backprop.
     """
 
-    def __init__(self,
-                 inputshape, 
-                 num_classes,
-                 kl_divergence_function,
-                 bias_divergence_fn):
+    def __init__(
+        self,
+        inputshape,
+        num_classes,
+        kl_divergence_function,
+        bias_divergence_fn,
+    ):
 
         self.input_1 = layers.Input(shape=inputshape)
 
@@ -1046,18 +1039,18 @@ class ProbabilisticClassificationCNN2D(EmptyModel):
         self.dense_1 = tfp.layers.DenseFlipout(
             units=1000,
             kernel_divergence_fn=kl_divergence_function,
-            bias_divergence_fn=bias_divergence_fn, 
+            bias_divergence_fn=bias_divergence_fn,
             activation="relu",
-            name="dense_1"
+            name="dense_1",
         )(self.drop_1)
         self.dense_2 = tfp.layers.DenseFlipout(
             units=num_classes,
             kernel_divergence_fn=kl_divergence_function,
-            bias_divergence_fn=bias_divergence_fn, 
-            activation="softmax", 
-            name="dense_2"
+            bias_divergence_fn=bias_divergence_fn,
+            activation="softmax",
+            name="dense_2",
         )(self.dense_1)
-        
+
         no_of_inputs = len(sublayers)
 
         super(ProbabilisticClassificationCNN2D, self).__init__(

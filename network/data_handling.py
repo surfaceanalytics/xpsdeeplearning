@@ -310,7 +310,7 @@ class DataHandler:
                     self.y_val,
                     self.y_test,
                 )
-                
+
         print("Data was loaded!")
         print("Total no. of samples: " + str(self.X.shape[0]))
         print("No. of training samples: " + str(self.X_train.shape[0]))
@@ -353,7 +353,7 @@ class DataHandler:
         """
         # First split into train+val and test sets
         no_of_train_val = int((1 - self.train_test_split) * X.shape[0])
-        
+
         X_train_val = X[:no_of_train_val, :, :]
         X_test = X[no_of_train_val:, :, :]
         y_train_val = y[:no_of_train_val, :]
@@ -472,7 +472,7 @@ class DataHandler:
             )
 
         return X_train, X_val, X_test, y_train, y_val, y_test
-        
+
     def _only_keep_classification_data(self):
         """
         Keep only data with just one species, i.e. with one label of 1.0
@@ -481,13 +481,13 @@ class DataHandler:
         indices = np.where(self.y == 0.0)[0]
 
         self.X, self.y = self.X[indices], self.y[indices]
-       
+
         if hasattr(self, "sim_values"):
             new_sim_values = {}
 
             for key, sim_arrays in self.sim_values.items():
                 new_sim_values[key] = sim_arrays[indices]
-                 
+
             self.sim_values = new_sim_values
 
             (
@@ -500,9 +500,9 @@ class DataHandler:
                 self.sim_values_train,
                 self.sim_values_val,
                 self.sim_values_test,
-                ) = self._split_test_val_train(
-                    self.X, self.y, sim_values=self.sim_values
-                )
+            ) = self._split_test_val_train(
+                self.X, self.y, sim_values=self.sim_values
+            )
 
             loaded_data = (
                 self.X_train,
@@ -514,47 +514,24 @@ class DataHandler:
                 self.sim_values_train,
                 self.sim_values_val,
                 self.sim_values_test,
-                )
+            )
 
         elif hasattr(self, "names"):
-           print("Hi")
-           self.names = [self.names[i] for i in indices]
+            print("Hi")
+            self.names = [self.names[i] for i in indices]
 
-           (
-               self.X_train,
-               self.X_val,
-               self.X_test,
-               self.y_train,
-               self.y_val,
-               self.y_test,
-               self.names_train,
-               self.names_val,
-               self.names_test,
-               ) = self._split_test_val_train(
-                   self.X, self.y, names=self.names)
-
-           loaded_data = (
-               self.X_train,
-               self.X_val,
-               self.X_test,
-               self.y_train,
-               self.y_val,
-               self.y_test,
-               self.names_train,
-               self.names_val,
-               self.names_test,
-               )              
-          
-        else:
             (
-                self.X_train, 
+                self.X_train,
                 self.X_val,
                 self.X_test,
                 self.y_train,
                 self.y_val,
-                self.y_test
-            ) = self._split_test_val_train(self.X, self.y)
-  
+                self.y_test,
+                self.names_train,
+                self.names_val,
+                self.names_test,
+            ) = self._split_test_val_train(self.X, self.y, names=self.names)
+
             loaded_data = (
                 self.X_train,
                 self.X_val,
@@ -562,8 +539,32 @@ class DataHandler:
                 self.y_train,
                 self.y_val,
                 self.y_test,
-                )
-        print(f"Only spectra with one species were left in the data set! Test/val/train splits were kept.")
+                self.names_train,
+                self.names_val,
+                self.names_test,
+            )
+
+        else:
+            (
+                self.X_train,
+                self.X_val,
+                self.X_test,
+                self.y_train,
+                self.y_val,
+                self.y_test,
+            ) = self._split_test_val_train(self.X, self.y)
+
+            loaded_data = (
+                self.X_train,
+                self.X_val,
+                self.X_test,
+                self.y_train,
+                self.y_val,
+                self.y_test,
+            )
+        print(
+            f"Only spectra with one species were left in the data set! Test/val/train splits were kept."
+        )
         print(f"Remaining no. of training examples: {self.y_train.shape[0]}")
         print(f"Remaining no. of val examples: {self.y_val.shape[0]}")
         print(f"Remaining no. of test examples: {self.y_test.shape[0]}")
@@ -891,28 +892,22 @@ class DataHandler:
 
             graphic = SpectraPlot(data=data, annots=texts)
             fig, axs = graphic.plot()
-            
 
     def plot_prob_predictions(
-        self,
-        prob_preds,
-        dataset="test",
-        no_of_spectra=10):
-            
+        self, prob_preds, dataset="test", no_of_spectra=10
+    ):
+
         X, y = self._select_dataset(dataset_name="test")
-        
+
         if no_of_spectra > y.shape[0]:
             print("Provide no. of spectra was bigger than dataset size.")
             no_of_spectra = y.shape[0]
-        
+
         fig, axs = plt.subplots(
-            nrows=no_of_spectra,
-            ncols=5,
-            figsize=(22, 5*no_of_spectra))
-    
-        max_y = np.max(
-            [np.float(np.max(y)),
-            np.max(prob_preds)])
+            nrows=no_of_spectra, ncols=5, figsize=(22, 5 * no_of_spectra)
+        )
+
+        max_y = np.max([np.float(np.max(y)), np.max(prob_preds)])
 
         random_numbers = []
         for i in range(no_of_spectra):
@@ -923,77 +918,74 @@ class DataHandler:
             ax4 = axs[i, 4]
 
             r = np.random.randint(0, X.shape[0])
-            
+
             while r in random_numbers:
                 r = np.random.randint(0, X.shape[0])
-            random_numbers.append(r)    
- 
+            random_numbers.append(r)
+
             if len(X.shape) == 4:
-                ax0.imshow(X[r, :, :, 0],
-                           cmap='gist_gray')
+                ax0.imshow(X[r, :, :, 0], cmap="gist_gray")
             elif len(X.shape) == 3:
-                ax0.plot(self.energies,
-                         self.X[r])
+                ax0.plot(self.energies, self.X[r])
                 ax0.invert_xaxis()
-                ax0.set_xlim(np.max(self.energies),
-                                 np.min(self.energies))
+                ax0.set_xlim(np.max(self.energies), np.min(self.energies))
                 ax0.set_xlabel("Binding energy (eV)")
                 ax0.set_ylabel("Intensity (arb. units)")
                 annot = self.write_text_for_spectrum(
-                    dataset="test",
-                    index=r, 
-                    with_prediction=False,
+                    dataset="test", index=r, with_prediction=False,
                 )
                 ax0.set_title("Spectrum no. {}".format(r))
-                ax0.text(0.025,
-                         0.4,
-                         annot,
-                         horizontalalignment="left",
-                         verticalalignment="top",
-                         transform=ax0.transAxes,
-                         fontsize=12,
+                ax0.text(
+                    0.025,
+                    0.4,
+                    annot,
+                    horizontalalignment="left",
+                    verticalalignment="top",
+                    transform=ax0.transAxes,
+                    fontsize=12,
                 )
 
-            sns.barplot(np.arange(self.num_classes), 
-                        y[r],
-                        ax=ax1)
-            #ax1.set_ylim([0, np.max(y)])
+            sns.barplot(np.arange(self.num_classes), y[r], ax=ax1)
+            # ax1.set_ylim([0, np.max(y)])
             ax1.set_title("Ground Truth")
 
-            colors = iter(mcolors.CSS4_COLORS.keys())   
-            for pred in prob_preds[r,:20]:
-                sns.barplot(np.arange(self.num_classes),
-                            pred,
-                            color=next(colors),
-                            alpha=0.2,
-                            ax=ax2)
-            #ax2.set_ylim([0, max_y])
-            ax2.set_title("Posterior Samples")        
+            colors = iter(mcolors.CSS4_COLORS.keys())
+            for pred in prob_preds[r, :20]:
+                sns.barplot(
+                    np.arange(self.num_classes),
+                    pred,
+                    color=next(colors),
+                    alpha=0.2,
+                    ax=ax2,
+                )
+            # ax2.set_ylim([0, max_y])
+            ax2.set_title("Posterior Samples")
 
-            for j, row in enumerate(prob_preds[r,:,:].transpose()):
-               _ = ax3.hist(
-                   row,
-                   bins=25,
-                   #range=(-2.,2.),
-                   orientation="horizontal",
-                   fill=True,
-                   linewidth=1,
-                   label=self.labels[j]
-            )
+            for j, row in enumerate(prob_preds[r, :, :].transpose()):
+                _ = ax3.hist(
+                    row,
+                    bins=25,
+                    # range=(-2.,2.),
+                    orientation="horizontal",
+                    fill=True,
+                    linewidth=1,
+                    label=self.labels[j],
+                )
 
             ax3.legend()
             ax3.set_xscale("log")
             ax3.set_xlabel("Prediction")
             ax3.set_ylabel("Counts")
             ax3.set_title("Prediction Histogram")
-            
+
             ax4.bar(
                 np.arange(self.num_classes),
                 np.mean(prob_preds[r, :, :], axis=0),
                 yerr=np.std(prob_preds[r, :, :], axis=0),
-                align='center',
-                ecolor='black',
-                capsize=10)
+                align="center",
+                ecolor="black",
+                capsize=10,
+            )
 
             ax4.set_title("Predictive Probabilities")
 
@@ -1001,9 +993,8 @@ class DataHandler:
                 ax.set_xticks(np.arange(self.num_classes))
                 ax.set_xticklabels(self.labels)
         fig.tight_layout()
-        
+
         return fig
-        
 
     def _select_dataset(self, dataset_name):
         """

@@ -87,7 +87,7 @@ class Classifier:
             "exp_name": self.exp_name,
             "task": self.task,
             "intensity_only": self.intensity_only,
-            "epochs_trained": 0
+            "epochs_trained": 0,
         }
         self.logging.save_hyperparams()
 
@@ -505,9 +505,9 @@ class Classifier:
                 )
 
         if compile_model:
-            self.model.compile(optimizer=optimizer,
-                               loss=loss,
-                               metrics=metrics)
+            self.model.compile(
+                optimizer=optimizer, loss=loss, metrics=metrics
+            )
 
     def load_data_preprocess(
         self,
@@ -682,77 +682,75 @@ class Classifier:
 
         """
         self.datahandler.class_distribution.plot(self.datahandler.labels)
-        
-    def plot_weight_distribution(
-        self,
-        kind="posterior",
-        to_file=True):
-                                     
+
+    def plot_weight_distribution(self, kind="posterior", to_file=True):
+
         bayesian_layers = [
-            layer for layer in self.model.layers if ('Flipout'
-            or 'Reparameterization') in str(layer.__class__)]
-    
-        wd = WeightDistributions(bayesian_layers,
-                                 fig_dir=self.logging.fig_dir)
-        
-        if kind=="prior":
+            layer
+            for layer in self.model.layers
+            if ("Flipout" or "Reparameterization") in str(layer.__class__)
+        ]
+
+        wd = WeightDistributions(
+            bayesian_layers, fig_dir=self.logging.fig_dir
+        )
+
+        if kind == "prior":
             fig = wd.plot_weight_priors(to_file=to_file)
-        elif kind=="posterior":
+        elif kind == "posterior":
             fig = wd.plot_weight_posteriors(to_file=to_file)
-            
+
         if to_file:
             epoch = self.logging.hyperparams["epochs_trained"]
-            
-            filename = os.path.join(self.logging.fig_dir,
-                        f"weights_{kind}_after_epoch_{epoch}.png")
-                        
+
+            filename = os.path.join(
+                self.logging.fig_dir,
+                f"weights_{kind}_after_epoch_{epoch}.png",
+            )
+
             fig.savefig(filename)
-            print('Saved to {}'.format(filename))
-            
-    def predict_probabilistic(
-        self,
-        dataset="test",
-        no_of_predictions=100):
-        
-        X, y = self.datahandler._select_dataset(
-            dataset_name=dataset)
+            print("Saved to {}".format(filename))
+
+    def predict_probabilistic(self, dataset="test", no_of_predictions=100):
+
+        X, y = self.datahandler._select_dataset(dataset_name=dataset)
 
         prob_preds = np.array(
-            [self.model.predict(X) for i in range(no_of_predictions)]).transpose(1, 0, 2)
-        
+            [self.model.predict(X) for i in range(no_of_predictions)]
+        ).transpose(1, 0, 2)
+
         if dataset == "train":
-            self.datahandler.pred_train = np.mean(prob_preds, axis = 1)
-        
+            self.datahandler.pred_train = np.mean(prob_preds, axis=1)
+
         elif dataset == "test":
-            self.datahandler.pred_test = np.mean(prob_preds, axis = 1)
-                
+            self.datahandler.pred_test = np.mean(prob_preds, axis=1)
+
         return prob_preds
 
     def plot_prob_predictions(
-        self,
-        dataset="test",
-        no_of_spectra=10,
-        to_file=True):
-        
+        self, dataset="test", no_of_spectra=10, to_file=True
+    ):
+
         prob_preds = self.predict_probabilistic(
-            dataset=dataset,
-            no_of_predictions=100)
-            
+            dataset=dataset, no_of_predictions=100
+        )
+
         fig = self.datahandler.plot_prob_predictions(
             prob_preds=prob_preds,
             dataset=dataset,
-            no_of_spectra=no_of_spectra)
-                
+            no_of_spectra=no_of_spectra,
+        )
+
         if to_file:
             epoch = self.logging.hyperparams["epochs_trained"]
-            
+
             filename = os.path.join(
                 self.logging.fig_dir,
-                f"probabilistic_predictions_after_epoch_{epoch}.png")
+                f"probabilistic_predictions_after_epoch_{epoch}.png",
+            )
 
             fig.savefig(filename)
-            print('Saved to {}'.format(filename)) 
-
+            print("Saved to {}".format(filename))
 
     def pickle_results(self):
         """
@@ -795,7 +793,7 @@ class Classifier:
             )
 
         print("Saved results to file.")
-        
+
     def purge_history(self):
         self.logging._purge_history()
         print("Training history was deleted.")
