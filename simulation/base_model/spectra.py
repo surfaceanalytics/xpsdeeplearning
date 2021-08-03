@@ -131,7 +131,7 @@ class Spectrum:
         self.x = np.flip(
             safe_arange_with_edges(self.start, self.stop, self.step)
         )
-        
+
     def resample(self, start, stop, step):
         """
         
@@ -159,17 +159,23 @@ class Spectrum:
             array = np.asarray(array)
             idx = (np.abs(array - value)).argmin()
             return idx
-        
+
         self.start = start
         self.stop = stop
         self.step = step
-        
+
         new_x = np.flip(
             safe_arange_with_edges(self.start, self.stop, self.step)
         )
-        
-        self.lineshape = np.array([self.lineshape[find_index_of_nearest_value(self.x, i)] for i in new_x])
+
+        self.lineshape = np.array(
+            [
+                self.lineshape[find_index_of_nearest_value(self.x, i)]
+                for i in new_x
+            ]
+        )
         self.update_range()
+
 
 # =============================================================================
 # class MeasuredVamasSpectrum(Spectrum):
@@ -386,7 +392,7 @@ class ReferenceSpectrum(MeasuredSpectrum):
                     + "\n"
                 )
             file.writelines(lines)
-        
+
         print(f"Spectrum written to {filename_new}")
 
 

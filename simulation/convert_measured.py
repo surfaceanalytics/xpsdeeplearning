@@ -34,16 +34,12 @@ filename = "FeLMM_Fe_metal.txt"
 energies = []
 filepath = os.path.join(input_datafolder, filename)
 ref_spectrum = ReferenceSpectrum(filepath)
-fig_old = Figure(x=ref_spectrum.x,
-                 y=ref_spectrum.lineshape,
-                 title="old")
+fig_old = Figure(x=ref_spectrum.x, y=ref_spectrum.lineshape, title="old")
 energies.append(ref_spectrum.x[np.argmax(ref_spectrum.lineshape)])
 
 ref_spectrum.resample(start=762.0, stop=817.0, step=0.05)
 energies.append(ref_spectrum.x[np.argmax(ref_spectrum.lineshape)])
-fig_new = Figure(x=ref_spectrum.x,
-                 y=ref_spectrum.lineshape,
-                 title='new')
+fig_new = Figure(x=ref_spectrum.x, y=ref_spectrum.lineshape, title="new")
 ref_spectrum.write(input_datafolder)
 
 #%% For one fitted XPS spectrum
@@ -51,14 +47,14 @@ ref_spectrum.write(input_datafolder)
 # input_datafolder = r'C:\Users\pielsticker\Desktop\Mixed Fe spectra\exported'
 # filename = 'measured0001.txt'
 # energies = []
-# 
+#
 # filepath = os.path.join(input_datafolder, filename)
 # fit_spectrum = FittedSpectrum(filepath)
 # fig_old = Figure(x=fit_spectrum.x,
 #                  y=fit_spectrum.lineshape,
 #                  title='old')
 # energies.append(fit_spectrum.x[np.argmax(fit_spectrum.lineshape)])
-# 
+#
 # fit_spectrum.resample(start=694, stop=750, step=0.05)
 # fig_new = Figure(x=fit_spectrum.x,
 #                  y=fit_spectrum.lineshape,
