@@ -174,7 +174,7 @@ class Creator:
         self,
         single=False,
         variable_no_of_inputs=True,
-        always_auger=True,
+        always_auger=False,
         always_core=True,
     ):
         """
@@ -203,7 +203,7 @@ class Creator:
         always_auger : bool, optional
             If always_auger, there will always be at least one
             Auger spectrum in the output spectrum.
-            The default is True.
+            The default is False.
         always_core : bool, optional
             If always_auger, there will always be at least one
             core level spectrum in the output spectrum.
@@ -251,7 +251,7 @@ class Creator:
         key,
         single=False,
         variable_no_of_inputs=True,
-        always_auger=True,
+        always_auger=False,
         always_core=True,
     ):
         """
@@ -275,7 +275,7 @@ class Creator:
         always_auger : bool, optional
             If always_auger, there will always be at least one
             Auger spectrum in the output spectrum.
-            The default is True.
+            The default is False.
         always_core : bool, optional
             If always_auger, there will always be at least one
             core level spectrum in the output spectrum.
@@ -406,6 +406,7 @@ class Creator:
             linear_params[index] = float("NAN")
 
         if always_auger:
+            print("hi")
             # Always use Auger spectra when available.
             if all(
                 p == 0.0
@@ -1133,7 +1134,7 @@ def calculate_runtime(start, end):
 # %%
 if __name__ == "__main__":
     init_param_filepath = (
-        r"C:\Users\pielsticker\Simulations\init_params_Fe_Co_Ni_auger.json"
+        r"C:\Users\pielsticker\Simulations\init_params_Fe.json"
     )
     with open(init_param_filepath, "r") as param_file:
         params = json.load(param_file)

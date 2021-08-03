@@ -62,7 +62,7 @@
    "no_of_simulations":500,
    "single":false,
    "variable_no_of_inputs":true,
-   "always_auger":true,
+   "always_auger":false,
    "always_core":true,
    "ensure_same_length":false,
    "normalize_inputs":false,
