@@ -131,7 +131,45 @@ class Spectrum:
         self.x = np.flip(
             safe_arange_with_edges(self.start, self.stop, self.step)
         )
+        
+    def resample(self, start, stop, step):
+        """
+        
 
+        Parameters
+        ----------
+        start : int
+            New start value for the x array.
+        stop : int
+            New stop value for the x array.
+        step : int
+            New step value for the x array.
+
+        Returns
+        -------
+        TYPE
+            DESCRIPTION.
+
+        """
+
+        # X0 is an array that has the unwanted sampling
+        # X1 is an array that has the target sampling
+        # Y0 is an array with the corresponding y values for X0
+        def find_index_of_nearest_value(array, value):
+            array = np.asarray(array)
+            idx = (np.abs(array - value)).argmin()
+            return idx
+        
+        self.start = start
+        self.stop = stop
+        self.step = step
+        
+        new_x = np.flip(
+            safe_arange_with_edges(self.start, self.stop, self.step)
+        )
+        
+        self.lineshape = np.array([self.lineshape[find_index_of_nearest_value(self.x, i)] for i in new_x])
+        self.update_range()
 
 # =============================================================================
 # class MeasuredVamasSpectrum(Spectrum):
@@ -257,185 +295,6 @@ class MeasuredSpectrum(Spectrum):
 
         return species, data
 
-    def resize(self, start, stop, step):
-        """
-        Resize the x and lineshape arrays.
-        
-        First, the points outside the start and stop values are removed
-        and, if needed, the lineshape is extrapolated if the initial x
-        was shorter than the new x array. After that, the data is scaled
-        using the new step size.
-
-        Parameters
-        ----------
-        start : float
-            New start value.
-        stop : float
-            New end value.
-        step : float
-            New step size.
-
-        Returns
-        -------
-        None.
-
-        """
-        self._remove_outside_points(start, stop, step)
-        self.start, self.stop, self.step = start, stop, step
-
-        initial_shape = self.x.shape
-        self.update_range()
-        factor = self.x.shape[0] / initial_shape[0]
-
-        if not factor == 0.0:
-            if factor > 1:
-                factor = math.ceil(factor)  # int(np.rint(factor))+1
-                self._upsample(factor)
-            elif factor < 1:
-                print(1 / factor)
-                factor = int(np.rint(1 / factor))
-                print(factor)
-                self._downsample(factor)
-
-    def _remove_outside_points(self, start, stop, step):
-        """
-        Remove points in the lineshape outside of the new range.
-
-        Parameters
-        ----------
-        start : float
-            New start value.
-        stop : float
-            New end value.
-
-        Returns
-        -------
-        None.
-
-        """
-        min_x = min(self.x)
-        max_x = max(self.x)
-        high = False
-        low = False
-
-        new_x = np.flip(safe_arange_with_edges(start, stop, self.step))
-
-        if min_x < start:
-            index = np.where(self.x < start)[0][0]
-            self.lineshape = self.lineshape[:index]
-            diff_len_high = new_x.shape[0] - self.lineshape.shape[0]
-            high = True
-
-        if max_x > stop:
-            index = np.where(self.x > stop)[0][-1] + 1
-            self.lineshape = self.lineshape[index:]
-            diff_len_low = new_x.shape[0] - self.lineshape.shape[0]
-            low = True
-
-        if not (high is True and low is True):
-            if high is True:
-                self._extrapolate(diff_len_high, side="high")
-            if low is True:
-                self._extrapolate(diff_len_low, side="low")
-
-    def _extrapolate(self, no_of_points, side):
-        """
-        Extrapolate the lineshape.
-        
-        The lineshape is extrapolotead on a given side by
-        concatenating the lineshape with an array of the last values
-        at either side.
-
-        Parameters
-        ----------
-        no_of_points : int
-            No of points by which to extend the lineshape.
-        side : str
-            If side == 'high', the lineshape is extended on its
-            high energy side.
-            If side == 'low', the lineshape is extended on its
-            low energy side.
-
-        Returns
-        -------
-        None.
-
-        """
-        if side == "low":
-            begin_value = self.lineshape[-1]
-            self.lineshape = np.concatenate(
-                (self.lineshape, np.ones(no_of_points) * begin_value)
-            )
-        elif side == "high":
-            end_value = self.lineshape[0]
-            self.lineshape = np.concatenate(
-                (np.ones(no_of_points) * end_value, self.lineshape)
-            )
-
-    def _upsample(self, factor):
-        """
-        Interpolate the lineshape.
-        
-        Can be used if the original lineshape has less points
-        than the desired lineshape.
-
-        Parameters
-        ----------
-        factor : int
-            Ratio between shapes of old and desired lineshape.
-
-        Returns
-        -------
-        None.
-
-        """
-        new_lineshape = np.zeros(self.x.shape[0])
-
-        for i in range(self.lineshape.shape[0]):
-            try:
-                new_lineshape[i * factor] = self.lineshape[i]
-            except IndexError:
-                pass
-            for j in range(1, factor):
-                try:
-                    new_lineshape[i * factor + j] = np.mean(
-                        (self.lineshape[i], self.lineshape[i + 1])
-                    )
-                except IndexError:
-                    pass
-
-        self.lineshape = new_lineshape
-
-    def _downsample(self, factor):
-        """
-        Downsample the lineshape.
-        
-        Can be used if the original lineshape has more points
-        than the desired lineshape.
-
-        Parameters
-        ----------
-        factor : int
-            Ratio between shapes of desired and old lineshape.
-
-        Returns
-        -------
-        None.
-
-        """
-        new_lineshape = np.zeros(self.x.shape[0])
-
-        for i in range(self.x.shape[0]):
-            index = i * factor
-            if i == 0:
-                new_lineshape[i] = self.lineshape[index]
-            else:
-                new_lineshape[i] = np.mean(
-                    self.lineshape[index - factor : index : factor]
-                )
-
-        self.lineshape = new_lineshape
-
     def _distinguish_core_auger(self, label):
         """
         Check if the spectrum is a core-level or Auger spectrum.
@@ -527,6 +386,8 @@ class ReferenceSpectrum(MeasuredSpectrum):
                     + "\n"
                 )
             file.writelines(lines)
+        
+        print(f"Spectrum written to {filename_new}")
 
 
 class FittedSpectrum(MeasuredSpectrum):
