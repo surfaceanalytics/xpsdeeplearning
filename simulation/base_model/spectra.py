@@ -80,7 +80,7 @@ class Spectrum:
         )
         self.clear_lineshape()
         self.label = label
-        self.type = None
+        self.spectrum_type = None
 
     def clear_lineshape(self):
         """
@@ -132,32 +132,18 @@ class Spectrum:
             safe_arange_with_edges(self.start, self.stop, self.step)
         )
 
-
-class MeasuredVamasSpectrum(Spectrum):
-    """NOT WORKING YET."""
-
-    def __init__(self, x, y, label):
-        self.type = "measured"
-        self.label = label
-        self.start = x[0]
-        self.step = x[1] - x[0]
-        self.stop = x[-1]
-        super(MeasuredVamasSpectrum, self).__init__(
-            self.start, self.stop, self.step, self.label
-        )
-        self.x = x
-        self.lineshape = y
-
-    def load(self, filepath):
+    def resample(self, start, stop, step):
         """
-        Load the data from a file.
         
-        Can be either VAMAS or TXT.
 
         Parameters
         ----------
-        filepath : str
-            The file should be a .vms or .txt file.
+        start : int
+            New start value for the x array.
+        stop : int
+            New stop value for the x array.
+        step : int
+            New step value for the x array.
 
         Returns
         -------
@@ -165,18 +151,78 @@ class MeasuredVamasSpectrum(Spectrum):
             DESCRIPTION.
 
         """
-        self.converter = DataConverter()
-        self.converter.load(filepath)
-        if filepath.rsplit(".")[-1] == "vms":
-            for data in self.converter.data:
-                if data["settings"]["y_units"] == "counts":
-                    y = np.array(data["data"]["y0"])
-                    dwell = data["settings"]["dwell_time"]
-                    scans = data["scans"]
-                    y = y / dwell / scans
-                    data["data"]["y0"] = list(y)
-                    data["settings"]["y_units"] = "counts_per_second"
-        return len(self.converter.data)
+
+        # X0 is an array that has the unwanted sampling
+        # X1 is an array that has the target sampling
+        # Y0 is an array with the corresponding y values for X0
+        def find_index_of_nearest_value(array, value):
+            array = np.asarray(array)
+            idx = (np.abs(array - value)).argmin()
+            return idx
+
+        self.start = start
+        self.stop = stop
+        self.step = step
+
+        new_x = np.flip(
+            safe_arange_with_edges(self.start, self.stop, self.step)
+        )
+
+        self.lineshape = np.array(
+            [
+                self.lineshape[find_index_of_nearest_value(self.x, i)]
+                for i in new_x
+            ]
+        )
+        self.update_range()
+
+
+# =============================================================================
+# class MeasuredVamasSpectrum(Spectrum):
+#     """NOT WORKING YET."""
+#
+#     def __init__(self, x, y, label):
+#         self.spectrum_type = "measured"
+#         self.label = label
+#         self.start = x[0]
+#         self.step = x[1] - x[0]
+#         self.stop = x[-1]
+#         super(MeasuredVamasSpectrum, self).__init__(
+#             self.start, self.stop, self.step, self.label
+#         )
+#         self.x = x
+#         self.lineshape = y
+#
+#     def load(self, filepath):
+#         """
+#         Load the data from a file.
+#
+#         Can be either VAMAS or TXT.
+#
+#         Parameters
+#         ----------
+#         filepath : str
+#             The file should be a .vms or .txt file.
+#
+#         Returns
+#         -------
+#         TYPE
+#             DESCRIPTION.
+#
+#         """
+#         self.converter = DataConverter()
+#         self.converter.load(filepath)
+#         if filepath.rsplit(".")[-1] == "vms":
+#             for data in self.converter.data:
+#                 if data["settings"]["y_units"] == "counts":
+#                     y = np.array(data["data"]["y0"])
+#                     dwell = data["settings"]["dwell_time"]
+#                     scans = data["scans"]
+#                     y = y / dwell / scans
+#                     data["data"]["y0"] = list(y)
+#                     data["settings"]["y_units"] = "counts_per_second"
+#         return len(self.converter.data)
+# =============================================================================
 
 
 class MeasuredSpectrum(Spectrum):
@@ -200,10 +246,10 @@ class MeasuredSpectrum(Spectrum):
         None.
 
         """
-        self.type = "measured"
         self.filepath = filepath
 
-        self.label, data = self.load(self.filepath)
+        species, data = self.load(self.filepath)
+        self.label = {species: 1.0}
         x = data[:, 0]
 
         # Determine the step size from the last two data points.
@@ -218,7 +264,7 @@ class MeasuredSpectrum(Spectrum):
         )
         self.x = x
         self.lineshape = data[:, 1][diff != 0]
-        # self.normalize()
+        self.spectrum_type = self._distinguish_core_auger(species)
 
     def load(self, filepath):
         """
@@ -252,188 +298,49 @@ class MeasuredSpectrum(Spectrum):
         data = np.array(lines)
         # The label is a dictionary of the form
         # {species: concentration}.
-        label = {species: 1.0}
 
-        return label, data
+        return species, data
 
-    def resize(self, start, stop, step):
+    def _distinguish_core_auger(self, label):
         """
-        Resize the x and lineshape arrays.
-        
-        First, the points outside the start and stop values are removed
-        and, if needed, the lineshape is extrapolated if the initial x
-        was shorter than the new x array. After that, the data is scaled
-        using the new step size.
+        Check if the spectrum is a core-level or Auger spectrum.
 
         Parameters
         ----------
-        start : float
-            New start value.
-        stop : float
-            New end value.
-        step : float
-            New step size.
+        label : str
+            Label of a measured spectrum.
 
         Returns
         -------
-        None.
+        str
+            "auger" or "core_level".
 
         """
-        self._remove_outside_points(start, stop, step)
-        self.start, self.stop, self.step = start, stop, step
+        core_levels = [
+            "1s",
+            "2s",
+            "2p",
+            "3s",
+            "3p",
+            "3d",
+            "4s",
+            "4p",
+            "4d",
+            "4f",
+            "5s",
+            "5p",
+            "5d",
+            "5f",
+            "5g",
+            "VB",
+            "Survey",
+            "Fermi level",
+        ]
 
-        initial_shape = self.x.shape
-        self.update_range()
-        factor = self.x.shape[0] / initial_shape[0]
-
-        if not factor == 0.0:
-            if factor > 1:
-                factor = math.ceil(factor)  # int(np.rint(factor))+1
-                self._upsample(factor)
-            elif factor < 1:
-                print(1 / factor)
-                factor = int(np.rint(1 / factor))
-                print(factor)
-                self._downsample(factor)
-
-    def _remove_outside_points(self, start, stop, step):
-        """
-        Remove points in the lineshape outside of the new range.
-
-        Parameters
-        ----------
-        start : float
-            New start value.
-        stop : float
-            New end value.
-
-        Returns
-        -------
-        None.
-
-        """
-        min_x = min(self.x)
-        max_x = max(self.x)
-        high = False
-        low = False
-
-        new_x = np.flip(safe_arange_with_edges(start, stop, self.step))
-
-        if min_x < start:
-            index = np.where(self.x < start)[0][0]
-            self.lineshape = self.lineshape[:index]
-            diff_len_high = new_x.shape[0] - self.lineshape.shape[0]
-            high = True
-
-        if max_x > stop:
-            index = np.where(self.x > stop)[0][-1] + 1
-            self.lineshape = self.lineshape[index:]
-            diff_len_low = new_x.shape[0] - self.lineshape.shape[0]
-            low = True
-
-        if not (high is True and low is True):
-            if high is True:
-                self._extrapolate(diff_len_high, side="high")
-            if low is True:
-                self._extrapolate(diff_len_low, side="low")
-
-    def _extrapolate(self, no_of_points, side):
-        """
-        Extrapolate the lineshape.
-        
-        The lineshape is extrapolotead on a given side by
-        concatenating the lineshape with an array of the last values
-        at either side.
-
-        Parameters
-        ----------
-        no_of_points : int
-            No of points by which to extend the lineshape.
-        side : str
-            If side == 'high', the lineshape is extended on its
-            high energy side.
-            If side == 'low', the lineshape is extended on its
-            low energy side.
-
-        Returns
-        -------
-        None.
-
-        """
-        if side == "low":
-            begin_value = self.lineshape[-1]
-            self.lineshape = np.concatenate(
-                (self.lineshape, np.ones(no_of_points) * begin_value)
-            )
-        elif side == "high":
-            end_value = self.lineshape[0]
-            self.lineshape = np.concatenate(
-                (np.ones(no_of_points) * end_value, self.lineshape)
-            )
-
-    def _upsample(self, factor):
-        """
-        Interpolate the lineshape.
-        
-        Can be used if the original lineshape has less points
-        than the desired lineshape.
-
-        Parameters
-        ----------
-        factor : int
-            Ratio between shapes of old and desired lineshape.
-
-        Returns
-        -------
-        None.
-
-        """
-        new_lineshape = np.zeros(self.x.shape[0])
-
-        for i in range(self.lineshape.shape[0]):
-            try:
-                new_lineshape[i * factor] = self.lineshape[i]
-            except IndexError:
-                pass
-            for j in range(1, factor):
-                try:
-                    new_lineshape[i * factor + j] = np.mean(
-                        (self.lineshape[i], self.lineshape[i + 1])
-                    )
-                except IndexError:
-                    pass
-
-        self.lineshape = new_lineshape
-
-    def _downsample(self, factor):
-        """
-        Downsample the lineshape.
-        
-        Can be used if the original lineshape has more points
-        than the desired lineshape.
-
-        Parameters
-        ----------
-        factor : int
-            Ratio between shapes of desired and old lineshape.
-
-        Returns
-        -------
-        None.
-
-        """
-        new_lineshape = np.zeros(self.x.shape[0])
-
-        for i in range(self.x.shape[0]):
-            index = i * factor
-            if i == 0:
-                new_lineshape[i] = self.lineshape[index]
-            else:
-                new_lineshape[i] = np.mean(
-                    self.lineshape[index - factor : index : factor]
-                )
-
-        self.lineshape = new_lineshape
+        if any(core_level in label for core_level in core_levels):
+            return "core_level"
+        else:
+            return "auger"
 
 
 class ReferenceSpectrum(MeasuredSpectrum):
@@ -442,7 +349,7 @@ class ReferenceSpectrum(MeasuredSpectrum):
     def __init__(self, filepath):
         """
         Initialize and load the reference spectrum from a file.
-    
+
         Parameters
         ----------
         filepath : str
@@ -454,12 +361,11 @@ class ReferenceSpectrum(MeasuredSpectrum):
 
         """
         super(ReferenceSpectrum, self).__init__(filepath)
-        self.type = "reference"
 
     def write(self, output_folder):
         """
         Write the reference spectrum to a new file.
-        
+
         Parameters
         ----------
         output_folder : str
@@ -487,13 +393,14 @@ class ReferenceSpectrum(MeasuredSpectrum):
                 )
             file.writelines(lines)
 
+        print(f"Spectrum written to {filename_new}")
+
 
 class FittedSpectrum(MeasuredSpectrum):
     """Class for loading and resizing a fitted spectrum."""
 
     def __init__(self, filepath):
         super(FittedSpectrum, self).__init__(filepath)
-        self.type = "fitted"
 
     def load(self, filepath):
         """
@@ -555,7 +462,7 @@ class SyntheticSpectrum(Spectrum):
 
         """
         super(SyntheticSpectrum, self).__init__(start, stop, step, label)
-        self.type = "synthetic"
+        self.spectrum_type = "synthetic"
         self.components = []
 
     def build_line(self):
@@ -654,7 +561,7 @@ class SimulatedSpectrum(Spectrum):
 
         """
         super(SimulatedSpectrum, self).__init__(start, stop, step, label)
-        self.type = "simulated"
+        self.spectrum_type = "simulated"
         self.shift_x = None
         self.signal_to_noise = None
         self.resolution = None
@@ -679,8 +586,8 @@ class SimulatedSpectrum(Spectrum):
         """
         # b = np.nansum(self.lineshape)
 
-        # The shift should not be bigger than +-9 eV.
-        acceptable_values = [-9, 9]
+        # The shift should not be bigger than +-50 eV.
+        acceptable_values = [-50, 50]
 
         if shift_x is None:
             pass
@@ -754,7 +661,6 @@ class SimulatedSpectrum(Spectrum):
             )
 
             self.lineshape = self.lineshape + poisson_noise
-            # self.normalize()
 
     def change_resolution(self, resolution):
         """
@@ -818,7 +724,6 @@ class SimulatedSpectrum(Spectrum):
             result = result[len_y:-len_y]
 
             self.lineshape = result
-            # self.normalize()
         self.fwhm = fwhm
 
     def scatter_in_gas(self, label="He", distance=0.8, pressure=1.0):
@@ -922,7 +827,6 @@ class SimulatedSpectrum(Spectrum):
             result = total + min_value
 
             self.lineshape = result
-            # self.normalize()
 
             self.scatterer = label
             self.pressure = pressure
@@ -938,7 +842,7 @@ class SimulatedSpectrum(Spectrum):
 if __name__ == "__main__":
     from peaks import Gauss, Lorentz, Voigt, VacuumExcitation, Tougaard
 
-    label = "Ni2pCo2pFe2p_Co_metal"
+    label = "NiCoFe\\Ni2pCo2pFe2p_Co_metal"
     datapath = (
         os.path.dirname(os.path.abspath(__file__)).partition("simulation")[0]
         + "data\\references"

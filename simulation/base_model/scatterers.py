@@ -179,7 +179,7 @@ if __name__ == "__main__":
     pressure = 2
     medium = ScatteringMedium(label)
     medium.scatterer.step = 0.1
-    medium.calcDensity()
+    medium.calc_density()
 
     input_datapath = (
         os.path.dirname(os.path.abspath(__file__)).partition("simulation")[0]

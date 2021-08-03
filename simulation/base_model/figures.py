@@ -33,13 +33,14 @@ class Figure:
         None.
 
         """
+
         self.x = x
         self.y = y
-        self.fig, self.ax = plt.subplots(figsize=(5, 4), dpi=100)
+        self.fig, self.ax = plt.subplots(figsize=(5, 4), dpi=300)
         self.fig.patch.set_facecolor("0.9411")
         self.ax.plot(x, y)
+        self.ax.set_xlim(left=np.max(x), right=np.min(x))
         self.ax.set_xlabel("Binding energy (eV)")
         self.ax.set_ylabel("Intensity (arb. units)")
-        self.ax.set_xlim(left=np.max(x), right=np.min(x))
         self.ax.set_title(title)
         self.fig.tight_layout()

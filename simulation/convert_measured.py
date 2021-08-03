@@ -5,11 +5,11 @@ Created on Tue Jul 14 11:06:37 2020.
 @author: pielsticker
 
 
-This script can be used to load reference and fitted XPS spectra and 
+This script can be used to load reference and fitted XPS spectra and
 resize them according to new start, stop, and step values.
 
-To do this, the data are stored in ReferenceSpectrum or FittedSpectrum 
-instances, respectively. Then all points outside the interval 
+To do this, the data are stored in ReferenceSpectrum or FittedSpectrum
+instances, respectively. Then all points outside the interval
 (start, stop) are removed and, if needed, the lineshape is extended to
 reach the start and stop values Finally, the x and lineshape values are
 up-/downsampled according to the new step value.
@@ -28,25 +28,19 @@ from base_model.spectra import ReferenceSpectrum, FittedSpectrum
 from base_model.figures import Figure
 
 #%% For one reference spectrum.
-# =============================================================================
-# input_datafolder = r'C:\Users\pielsticker\Downloads\Ti'
-# filename = 'Ti_metal_regular.txt'
-#
-# energies = []
-#
-# filepath = os.path.join(input_datafolder, filename)
-# ref_spectrum = ReferenceSpectrum(filepath)
-# l_old = ref_spectrum.lineshape
-# x_old = ref_spectrum.x
-# Figure(ref_spectrum.x, ref_spectrum.lineshape, title = 'old')
-# energies.append(ref_spectrum.x[np.argmax(ref_spectrum.lineshape)])
-# ref_spectrum.resize(start = 446.2, stop = 499.0, step = 0.05)
-# energies.append(ref_spectrum.x[np.argmax(ref_spectrum.lineshape)])
-# l = ref_spectrum.lineshape
-# x = ref_spectrum.x
-# fig = Figure(ref_spectrum.x, ref_spectrum.lineshape, title = 'new')
-# ref_spectrum.write(input_datafolder)
-# =============================================================================
+input_datafolder = r"C:\Users\pielsticker\Downloads"
+filename = "FeLMM_Fe_metal.txt"
+
+energies = []
+filepath = os.path.join(input_datafolder, filename)
+ref_spectrum = ReferenceSpectrum(filepath)
+fig_old = Figure(x=ref_spectrum.x, y=ref_spectrum.lineshape, title="old")
+energies.append(ref_spectrum.x[np.argmax(ref_spectrum.lineshape)])
+
+ref_spectrum.resample(start=762.0, stop=817.0, step=0.05)
+energies.append(ref_spectrum.x[np.argmax(ref_spectrum.lineshape)])
+fig_new = Figure(x=ref_spectrum.x, y=ref_spectrum.lineshape, title="new")
+ref_spectrum.write(input_datafolder)
 
 #%% For one fitted XPS spectrum
 # =============================================================================
@@ -56,29 +50,31 @@ from base_model.figures import Figure
 #
 # filepath = os.path.join(input_datafolder, filename)
 # fit_spectrum = FittedSpectrum(filepath)
-# Figure(fit_spectrum.x, fit_spectrum.lineshape, title = 'old')
+# fig_old = Figure(x=fit_spectrum.x,
+#                  y=fit_spectrum.lineshape,
+#                  title='old')
 # energies.append(fit_spectrum.x[np.argmax(fit_spectrum.lineshape)])
-# fit_spectrum.resize(start = 694, stop = 750, step = 0.05)
-# fit_spectrum.normalize()
-# Figure(fit_spectrum.x, fit_spectrum.lineshape, title = 'new')
+#
+# fit_spectrum.resample(start=694, stop=750, step=0.05)
+# fig_new = Figure(x=fit_spectrum.x,
+#                  y=fit_spectrum.lineshape,
+#                  title='new')
 # energies.append(fit_spectrum.x[np.argmax(fit_spectrum.lineshape)])
-# a = fit_spectrum.lineshape
-# x = fit_spectrum.x
+# # fit_spectrum.write(input_datafolder)
 # =============================================================================
-
 
 #%% For multiple fitted XPS spectra
 def _get_labels(filepath, label_list):
     """
     Take the labels and names from the excel file in the filepath.
-    
+
     Parameters
     ----------
     filepath : str
         Filepath of the excel file, has to be .xlsx.
         labels: list
     label_list: list
-    A list of labels that needs to match the column names in the 
+        A list of labels that needs to match the column names in the
         Excel file.
 
     Returns
@@ -106,7 +102,7 @@ def convert_all_spectra(
 ):
     """
     Take all xy files of measured spectra in the input_datafolder.
-    
+
     Features, labels, and names are extracted. If neeeded, the spectra
     are resized.
 
@@ -117,7 +113,7 @@ def convert_all_spectra(
     label_filepath : str
         Filepath of the excel file, has to be .xlsx.
     label_list: list
-        A list of labels that needs to match the column names in the 
+        A list of labels that needs to match the column names in the
         Excel file.
     plot_all : bool, optional
         If plot_all, all loadded spectra are plotted. The default is True.
