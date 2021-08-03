@@ -28,8 +28,8 @@ from base_model.spectra import ReferenceSpectrum, FittedSpectrum
 from base_model.figures import Figure
 
 #%% For one reference spectrum.
-input_datafolder = r'C:\Users\pielsticker\Downloads'
-filename = "CoLMM_Co3O4.txt"
+input_datafolder = r"C:\Users\pielsticker\Downloads"
+filename = "FeLMM_Fe_metal.txt"
 
 energies = []
 filepath = os.path.join(input_datafolder, filename)
@@ -39,7 +39,7 @@ fig_old = Figure(x=ref_spectrum.x,
                  title="old")
 energies.append(ref_spectrum.x[np.argmax(ref_spectrum.lineshape)])
 
-ref_spectrum.resample(start=680.0, stop=745.0, step=0.05)
+ref_spectrum.resample(start=762.0, stop=817.0, step=0.05)
 energies.append(ref_spectrum.x[np.argmax(ref_spectrum.lineshape)])
 fig_new = Figure(x=ref_spectrum.x,
                  y=ref_spectrum.lineshape,
