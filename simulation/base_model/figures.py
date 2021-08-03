@@ -36,7 +36,7 @@ class Figure:
 
         self.x = x
         self.y = y
-        self.fig, self.ax = plt.subplots(figsize=(5, 4), dpi=100)
+        self.fig, self.ax = plt.subplots(figsize=(5, 4), dpi=300)
         self.fig.patch.set_facecolor("0.9411")
         self.ax.plot(x, y)
         self.ax.set_xlim(left=np.max(x), right=np.min(x))
