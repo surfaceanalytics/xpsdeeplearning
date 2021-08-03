@@ -311,14 +311,6 @@ if __name__ == "__main__":
     )
 
     filenames = [
-        "Fe2p_Fe_metal",
-        "Fe2p_FeO",
-        "Fe2p_Fe3O4",
-        "Fe2p_Fe2O3",
-        "NiLMM_Ni_metal",
-        "NiLMM_NiO",
-    ]
-    filenames = [
         "Co2p_Co_metal",
         "Co2p_CoO",
         "Co2p_Co3O4",
