@@ -80,7 +80,7 @@ class Spectrum:
         )
         self.clear_lineshape()
         self.label = label
-        self.type = None
+        self.spectrum_type = None
 
     def clear_lineshape(self):
         """
@@ -133,50 +133,52 @@ class Spectrum:
         )
 
 
-class MeasuredVamasSpectrum(Spectrum):
-    """NOT WORKING YET."""
-
-    def __init__(self, x, y, label):
-        self.type = "measured"
-        self.label = label
-        self.start = x[0]
-        self.step = x[1] - x[0]
-        self.stop = x[-1]
-        super(MeasuredVamasSpectrum, self).__init__(
-            self.start, self.stop, self.step, self.label
-        )
-        self.x = x
-        self.lineshape = y
-
-    def load(self, filepath):
-        """
-        Load the data from a file.
-        
-        Can be either VAMAS or TXT.
-
-        Parameters
-        ----------
-        filepath : str
-            The file should be a .vms or .txt file.
-
-        Returns
-        -------
-        TYPE
-            DESCRIPTION.
-
-        """
-        self.converter = DataConverter()
-        self.converter.load(filepath)
-        if filepath.rsplit(".")[-1] == "vms":
-            for data in self.converter.data:
-                if data["settings"]["y_units"] == "counts":
-                    y = np.array(data["data"]["y0"])
-                    dwell = data["settings"]["dwell_time"]
-                    scans = data["scans"]
-                    y = y / dwell / scans
-                    data["data"]["y0"] = list(y)
-                    data["settings"]["y_units"] = "counts_per_second"
-        return len(self.converter.data)
+# =============================================================================
+# class MeasuredVamasSpectrum(Spectrum):
+#     """NOT WORKING YET."""
+# 
+#     def __init__(self, x, y, label):
+#         self.spectrum_type = "measured"
+#         self.label = label
+#         self.start = x[0]
+#         self.step = x[1] - x[0]
+#         self.stop = x[-1]
+#         super(MeasuredVamasSpectrum, self).__init__(
+#             self.start, self.stop, self.step, self.label
+#         )
+#         self.x = x
+#         self.lineshape = y
+# 
+#     def load(self, filepath):
+#         """
+#         Load the data from a file.
+#         
+#         Can be either VAMAS or TXT.
+# 
+#         Parameters
+#         ----------
+#         filepath : str
+#             The file should be a .vms or .txt file.
+# 
+#         Returns
+#         -------
+#         TYPE
+#             DESCRIPTION.
+# 
+#         """
+#         self.converter = DataConverter()
+#         self.converter.load(filepath)
+#         if filepath.rsplit(".")[-1] == "vms":
+#             for data in self.converter.data:
+#                 if data["settings"]["y_units"] == "counts":
+#                     y = np.array(data["data"]["y0"])
+#                     dwell = data["settings"]["dwell_time"]
+#                     scans = data["scans"]
+#                     y = y / dwell / scans
+#                     data["data"]["y0"] = list(y)
+#                     data["settings"]["y_units"] = "counts_per_second"
+#         return len(self.converter.data)
+# =============================================================================
 
 
 class MeasuredSpectrum(Spectrum):
@@ -200,10 +202,10 @@ class MeasuredSpectrum(Spectrum):
         None.
 
         """
-        self.type = "measured"
         self.filepath = filepath
 
-        self.label, data = self.load(self.filepath)
+        species, data = self.load(self.filepath)
+        self.label = {species: 1.0}
         x = data[:, 0]
 
         # Determine the step size from the last two data points.
@@ -218,7 +220,7 @@ class MeasuredSpectrum(Spectrum):
         )
         self.x = x
         self.lineshape = data[:, 1][diff != 0]
-        # self.normalize()
+        self.spectrum_type = self._distinguish_core_auger(species)
 
     def load(self, filepath):
         """
@@ -252,9 +254,8 @@ class MeasuredSpectrum(Spectrum):
         data = np.array(lines)
         # The label is a dictionary of the form
         # {species: concentration}.
-        label = {species: 1.0}
 
-        return label, data
+        return species, data
 
     def resize(self, start, stop, step):
         """
@@ -434,6 +435,47 @@ class MeasuredSpectrum(Spectrum):
                 )
 
         self.lineshape = new_lineshape
+    
+    def _distinguish_core_auger(self, label):
+        """
+        Check if the spectrum is a core-level or Auger spectrum.
+
+        Parameters
+        ----------
+        label : str
+            Label of a measured spectrum.
+
+        Returns
+        -------
+        str
+            "auger" or "core_level".
+
+        """
+        core_levels = [
+            "1s", 
+            "2s",
+            "2p", 
+            "3s", 
+            "3p",
+            "3d", 
+            "4s",
+            "4p",
+            "4d",
+            "4f",
+            "5s",
+            "5p",
+            "5d",
+            "5f",
+            "5g",  
+            "VB",
+            "Survey",
+            "Fermi level"
+            ]
+    
+        if any(core_level in label for core_level in core_levels):
+            return "core_level"
+        else:
+            return "auger"
 
 
 class ReferenceSpectrum(MeasuredSpectrum):
@@ -442,7 +484,7 @@ class ReferenceSpectrum(MeasuredSpectrum):
     def __init__(self, filepath):
         """
         Initialize and load the reference spectrum from a file.
-    
+
         Parameters
         ----------
         filepath : str
@@ -454,12 +496,11 @@ class ReferenceSpectrum(MeasuredSpectrum):
 
         """
         super(ReferenceSpectrum, self).__init__(filepath)
-        self.type = "reference"
 
     def write(self, output_folder):
         """
         Write the reference spectrum to a new file.
-        
+
         Parameters
         ----------
         output_folder : str
@@ -493,7 +534,6 @@ class FittedSpectrum(MeasuredSpectrum):
 
     def __init__(self, filepath):
         super(FittedSpectrum, self).__init__(filepath)
-        self.type = "fitted"
 
     def load(self, filepath):
         """
@@ -555,7 +595,7 @@ class SyntheticSpectrum(Spectrum):
 
         """
         super(SyntheticSpectrum, self).__init__(start, stop, step, label)
-        self.type = "synthetic"
+        self.spectrum_type = "synthetic"
         self.components = []
 
     def build_line(self):
@@ -654,7 +694,7 @@ class SimulatedSpectrum(Spectrum):
 
         """
         super(SimulatedSpectrum, self).__init__(start, stop, step, label)
-        self.type = "simulated"
+        self.spectrum_type = "simulated"
         self.shift_x = None
         self.signal_to_noise = None
         self.resolution = None
@@ -679,8 +719,8 @@ class SimulatedSpectrum(Spectrum):
         """
         # b = np.nansum(self.lineshape)
 
-        # The shift should not be bigger than +-9 eV.
-        acceptable_values = [-9, 9]
+        # The shift should not be bigger than +-50 eV.
+        acceptable_values = [-50, 50]
 
         if shift_x is None:
             pass
@@ -754,7 +794,6 @@ class SimulatedSpectrum(Spectrum):
             )
 
             self.lineshape = self.lineshape + poisson_noise
-            # self.normalize()
 
     def change_resolution(self, resolution):
         """
@@ -818,7 +857,6 @@ class SimulatedSpectrum(Spectrum):
             result = result[len_y:-len_y]
 
             self.lineshape = result
-            # self.normalize()
         self.fwhm = fwhm
 
     def scatter_in_gas(self, label="He", distance=0.8, pressure=1.0):
@@ -922,7 +960,6 @@ class SimulatedSpectrum(Spectrum):
             result = total + min_value
 
             self.lineshape = result
-            # self.normalize()
 
             self.scatterer = label
             self.pressure = pressure
@@ -932,13 +969,13 @@ class SimulatedSpectrum(Spectrum):
             pass
         else:
             print("Please enter a valid scatterer label!")
-
+            
 
 #%%
 if __name__ == "__main__":
     from peaks import Gauss, Lorentz, Voigt, VacuumExcitation, Tougaard
 
-    label = "Ni2pCo2pFe2p_Co_metal"
+    label = "NiCoFe\\Ni2pCo2pFe2p_Co_metal"
     datapath = (
         os.path.dirname(os.path.abspath(__file__)).partition("simulation")[0]
         + "data\\references"

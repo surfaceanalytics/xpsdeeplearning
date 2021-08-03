@@ -14,43 +14,46 @@ from time import time
 import matplotlib.pyplot as plt
 
 
-from base_model.spectra import MeasuredSpectrum
+from base_model.spectra import (
+    safe_arange_with_edges,
+    MeasuredSpectrum,
+    )
 from base_model.figures import Figure
 from sim import Simulation
 
-#%%
+# %%
 class Creator:
     """Class for simulating mixed XPS spectra."""
 
     def __init__(self, params=None):
         """
         Prepare simulation run.
-        
+
         Loading the input spectra and creating the empty simulation
         matrix based on the number of input spectra.
-        
+
         Parameters
         ----------
         no_of_simulations : int
             The number of spectra that will be simulated.
         input_filenames : list
-            List of strings that defines the seed files for the 
+            List of strings that defines the seed files for the
             simulations.
         single : bool, optional
             If single, then only one of the input spectra will be used
-            for creating a single spectrum. If not single, a linear 
+            for creating a single spectrum. If not single, a linear
             combination of all spectra will be used.
             The default is True.
          variable_no_of_inputs : bool, optional
-            If variable_no_of_inputs and if single, then the number of 
+            If variable_no_of_inputs and if single, then the number of
             input spectra used in the linear combination will be randomly
             chosen from the interval (1, No. of input spectra).
-            The default is True.         
+            The default is True.
 
         Returns
         -------
         None.
-        
+
         """
         self.timestamp = datetime.datetime.now().strftime("%Y%m%d")
 
@@ -91,25 +94,24 @@ class Creator:
             (self.no_of_simulations, no_of_params)
         )
 
-        if self.params["single"] is True:
-            self.create_matrix(single=True)
-        else:
-            if self.params["variable_no_of_inputs"] is True:
-                self.create_matrix(single=False, variable_no_of_inputs=True)
-            else:
-                self.create_matrix(single=False, variable_no_of_inputs=False)
+        # Create the parameter matrix for the simulation.
+        self.create_matrix(
+            single=self.params["single"],
+            variable_no_of_inputs=self.params["variable_no_of_inputs"],
+            always_auger=self.params["always_auger"],
+            always_core=self.params["always_core"])
 
     def load_input_spectra(self, filenames):
         """
         Load input spectra.
-        
+
         Load input spectra from all reference sets into DataFrame.
-        Will store NaN value if no reference is available.        
+        Will store NaN value if no reference is available.
 
         Parameters
         ----------
-        filenames : TYPE
-            DESCRIPTION.
+        filenames : dict
+            Dictionary of list with filenames to load.
 
         Returns
         -------
@@ -136,47 +138,45 @@ class Creator:
             for filename in value_list:
                 filepath = os.path.join(input_datapath, filename)
                 measured_spectrum = MeasuredSpectrum(filepath)
+                
                 if self.params["normalize_inputs"]:
                     measured_spectrum.normalize()
                 label = next(iter(measured_spectrum.label.keys()))
                 ref_spectra_dict[label] = measured_spectrum
-
             input_spectra_list.append(ref_spectra_dict)
 
-        # =============================================================================
-        #         input_spectra_list = []
-        #         for set_key, value_list in filenames.items():
-        #             ref_spectra_dict = {}
-        #             for filename in value_list:
-        #                 filepath = os.path.join(input_datapath, filename)
-        #                 converter = data_converter.DataConverter()
-        #                 converter.load(filepath)
-        #                 data = converter.data
-        #                 selection = [d for d in data if d["spectrum_type"] == "Fe2p"]
-        #
-        #                 loaded_spectra = []
-        #                 for d in converter.data:
-        #                     x = d['data']['x']
-        #                     y = d['data']['y0']
-        #                     species = d['group_name']
-        #                     label = {species: 1.0}
-        #                     loaded_spectra += [MeasuredVamasSpectrum(x,y,label)]
-        #                     del(converter)
-        #                     measured_spectrum = MeasuredSpectrum(filepath)
-        #                     label = next(iter(measured_spectrum.label.keys()))
-        #                     ref_spectra_dict[label] = measured_spectrum
-        #
-        #                 input_spectra_list.append(ref_spectra_dict)
-        # =============================================================================
-
+# =============================================================================
+#         input_spectra_list = []
+#         for set_key, value_list in filenames.items():
+#             ref_spectra_dict = {}
+#             for filename in value_list:
+#                 filepath = os.path.join(input_datapath, filename)
+#                 converter = data_converter.DataConverter()
+#                 converter.load(filepath)
+#                 data = converter.data
+#                 selection = [d for d in data if d["spectrum_type"] == "Fe2p"]
+#
+#                 loaded_spectra = []
+#                 for d in converter.data:
+#                     x = d['data']['x']
+#                     y = d['data']['y0']
+#                     species = d['group_name']
+#                     label = {species: 1.0}
+#                     loaded_spectra += [MeasuredVamasSpectrum(x,y,label)]
+#                     del(converter)
+# =============================================================================
         return pd.concat(
             [input_spectra, pd.DataFrame(input_spectra_list)], join="outer"
         )
 
-    def create_matrix(self, single=False, variable_no_of_inputs=True):
+    def create_matrix(self,
+                      single=False,
+                      variable_no_of_inputs=True,
+                      always_auger=True,
+                      always_core=True):
         """
         Create matrix for multiple simulations.
-        
+
         Creates the numpy array 'simulation_matrix' (instance
         variable) that is used to simulate the new spectra.
         simulation_matrix has the dimensions (n x p), where:
@@ -193,11 +193,18 @@ class Creator:
             If single, only one input spectrum is taken.
             The default is False.
         variable_no_of_inputs : bool, optional
-            If variable_no_of_inputs and if single, then the number of 
+            If variable_no_of_inputs and if single, then the number of
             input spectra used in the linear combination will be
             randomly chosen from the interval (1, No. of input spectra).
             The default is True.
-
+        always_auger : bool, optional
+            If always_auger, there will always be at least one
+            Auger spectrum in the output spectrum.
+            The default is True.
+        always_core : bool, optional
+            If always_auger, there will always be at least one
+            core level spectrum in the output spectrum.
+            The default is True.
         Returns
         -------
         None.
@@ -208,11 +215,14 @@ class Creator:
             self.simulation_matrix[i, 0] = int(key)
 
             self.simulation_matrix[
-                i, 1 : self.no_of_linear_params + 1
-            ] = self.select_scaling_params(key, single, variable_no_of_inputs)
+                i, 1: self.no_of_linear_params + 1
+            ] = self.select_scaling_params(key,
+                                           single,
+                                           variable_no_of_inputs,
+                                           always_auger)
 
             self.simulation_matrix[
-                i, self.no_of_linear_params + 1 :
+                i, self.no_of_linear_params + 1:
             ] = self.select_sim_params(key)
 
             print(
@@ -235,12 +245,17 @@ class Creator:
         return np.random.randint(0, self.input_spectra.shape[0])
 
     def select_scaling_params(
-        self, key, single=False, variable_no_of_inputs=True
+        self,
+        key, 
+        single=False, 
+        variable_no_of_inputs=True, 
+        always_auger=True,
+        always_core=True
     ):
         """
         Randomly select parameters for linear combination.
-        
-        Select scaling parameters for a simulation from one set 
+
+        Select scaling parameters for a simulation from one set
         of reference spectra (given by key).
 
         Parameters
@@ -251,11 +266,18 @@ class Creator:
             If single, only one input spectrum is taken.
             The default is False.
         variable_no_of_inputs : bool, optional
-            If variable_no_of_inputs and if single, then the number of 
-            input spectra used in the linear combination will be 
+            If variable_no_of_inputs and if single, then the number of
+            input spectra used in the linear combination will be
             randomly chosen from the interval (1, No. of input spectra).
             The default is True.
-
+        always_auger : bool, optional
+            If always_auger, there will always be at least one
+            Auger spectrum in the output spectrum.
+            The default is True.
+        always_core : bool, optional
+            If always_auger, there will always be at least one
+            core level spectrum in the output spectrum.
+            The default is True.
         Returns
         -------
         linear_params : list
@@ -265,24 +287,56 @@ class Creator:
         """
         linear_params = [0.0] * self.no_of_linear_params
 
-        ### Only select linear params if a reference spectrum is available.
+        # Only select linear params if a reference spectrum is available.
         inputs = self.input_spectra.iloc[[key]]
+
         indices = [
             self.labels.index(j)
             for j in inputs.columns[inputs.isnull().any() == False].tolist()
-        ]
+            ]
+
         indices_empty = [
             self.labels.index(j)
             for j in inputs.columns[inputs.isnull().any()].tolist()
         ]
 
-        if not single:
+        # This ensures that always just one Auger region is used.
+        auger_spectra = []
+        core_spectra = []
+        for s in inputs.iloc[0]:
+            if str(s) != "nan":
+                if s.spectrum_type == "auger":
+                    auger_spectra.append(s)
+                if s.spectrum_type == "core_level":
+                    core_spectra.append(s)   
+        auger_region = self._select_one_auger_region(auger_spectra)
+
+        selected_auger_spectra = [
+            auger_spectrum for auger_spectrum in auger_spectra if (
+                auger_region not in list(auger_spectrum.label.keys())[0])]
+        unselected_auger_spectra = [
+            auger_spectrum for auger_spectrum in auger_spectra if (
+                auger_region in list(auger_spectrum.label.keys())[0])]
+
+        selected_auger_indices = [
+            inputs.columns.get_loc(list(s.label.keys())[0])
+            for s in selected_auger_spectra]
+
+        unselected_auger_indices = [
+            inputs.columns.get_loc(list(s.label.keys())[0])
+            for s in unselected_auger_spectra]
+
+        if single:
+            q = np.random.choice(indices)
+            linear_params[q] = 1.0
+        else:
             if variable_no_of_inputs:
                 # Randomly choose how many spectra shall be combined
                 no_of_spectra = np.random.randint(1, len(indices) + 1)
                 r = [
                     np.random.uniform(0.1, 1.0) for j in range(no_of_spectra)
                 ]
+
                 params = [k / sum(r) for k in r]
 
                 # Don't allow parameters below 0.1.
@@ -314,20 +368,60 @@ class Creator:
 
             # Randomly shuffle so that zeros are equally distributed.
             np.random.shuffle(params)
-
             # Add linear params at the positions where there
-            # are reference spectra available.
+            # are reference spectra available
             param_iter = iter(params)
             for index in indices:
                 linear_params[index] = next(param_iter)
 
-        else:
-            q = np.random.choice(indices)
-            linear_params[q] = 1.0
+            # Making sure that a single spectrum is not moved
+            # to the undesired Auger region.
+            test_indices = [i for i in indices
+                            if i not in unselected_auger_indices]
+            while all(p == 0.0 for p in [
+                    linear_params[i] for i in test_indices]):
+                np.random.shuffle(params)
+                param_iter = iter(params)
+                for index in indices:
+                    linear_params[index] = next(param_iter)
 
-        # If no spectrum is avalable, set the linear param to NaN.
+            # Remove undesired auger spectra
+            for index in unselected_auger_indices:
+                linear_params[index] = 0.0
+
+            linear_params = [k / sum(linear_params) for k in linear_params]
+
+        # If no spectrum is available, set the linear param to NaN.
         for index in indices_empty:
             linear_params[index] = float("NAN")
+
+        if always_auger:
+            # Always use Auger spectra when available.
+            if all(p == 0.0 for p in [
+                    linear_params[i] for i in selected_auger_indices]):
+                linear_params = self.select_scaling_params(
+                    key=key,
+                    single=single,
+                    variable_no_of_inputs=variable_no_of_inputs,
+                    always_auger=always_auger,
+                    always_core=always_core
+                    )
+        if always_core:
+            # Always use Auger spectra when available.
+            core_level_indices = [
+                inputs.columns.get_loc(list(s.label.keys())[0])
+                for s in core_spectra]
+            if all(p == 0.0 for p in [
+                    linear_params[i] for i in core_level_indices]):
+                linear_params = self.select_scaling_params(
+                    key=key,
+                    single=single,
+                    variable_no_of_inputs=variable_no_of_inputs,
+                    always_auger=always_auger,
+                    always_core=always_core
+                    )
+
+
 
         return linear_params
 
@@ -343,12 +437,18 @@ class Creator:
         Returns
         -------
         sim_params : list
-            List of parameters for changing a spectrum using 
+            List of parameters for changing a spectrum using
             various processing steps.
 
         """
         sim_params = [0.0] * 6
-        step = self.input_spectra.iloc[row][0].step
+
+        for spectrum in self.input_spectra.iloc[row]:
+            try:
+                step = spectrum.step
+                break
+            except AttributeError:
+                continue
 
         # FWHM
         if self.params["broaden"] is not False:
@@ -420,13 +520,35 @@ class Creator:
 
         return sim_params
 
+    def _select_one_auger_region(self, auger_spectra):
+        """
+        Select one region of Auger spectra based on the labels.
+
+        Returns
+        -------
+        TYPE
+            DESCRIPTION.
+
+        """
+        labels = [list(s.label.keys())[0] for s in auger_spectra]
+        if not labels:
+            return []
+
+        auger_regions = set([label.split(" ", 1)[0] for label in labels])
+        auger_regions = list(auger_regions)
+
+        r = np.random.randint(0, len(auger_regions))
+        selected_region = auger_regions[r]
+
+        return selected_region
+
     def run(self):
         """
         Run the simulations.
-        
+
         The artificial spectra are createad using the Simulation
-        class and the simulation matrix. All data is then stored in 
-        a dataframe.        
+        class and the simulation matrix. All data is then stored in
+        a dataframe.
 
         Returns
         -------
@@ -444,11 +566,11 @@ class Creator:
                 for spectrum in self.input_spectra.iloc[ref_set_key].tolist()
                 if str(spectrum) != "nan"
             ]
+
             scaling_params = [
                 p
                 for p in self.simulation_matrix[i][
-                    1 : self.no_of_linear_params + 1
-                ]
+                    1: self.no_of_linear_params + 1]
                 if str(p) != "nan"
             ]
 
@@ -498,6 +620,14 @@ class Creator:
             )
 
         self.df = pd.DataFrame(dict_list)
+
+        if self.params["ensure_same_length"]:
+            self.df = self._extend_spectra_in_df(self.df)
+
+        self.df.iloc[0]["y"].shape
+        self.df.iloc[1]["y"].shape
+        self.df.iloc[1]["y"].shape
+
         self.reduced_df = self.df[["x", "y", "label"]]
 
         print("Number of created spectra: " + str(self.no_of_simulations))
@@ -530,17 +660,121 @@ class Creator:
             "x": spectrum.x,
             "y": spectrum.lineshape,
         }
-
         for label_value in self.labels:
             if label_value not in d["label"].keys():
                 d["label"][label_value] = 0.0
 
         return d
 
+    def _extend_spectra_in_df(self, df):
+        """
+        Extend all x and y columns in the dataframe to the same length.
+
+        Parameters
+        ----------
+        df : pd.DataFrame
+            A dataframe with "x" and "y" columns containing 1D numpy
+            arrays.
+
+        Returns
+        -------
+        df : pd.DataFrame
+            The same dataframe as the input, with the arrays in the
+            "x" and "y" columns all having the same shape.
+        """
+        max_length = np.max([y.shape for y in self.df["y"].tolist()])
+
+        data_list = df[["x", "y"]].values.tolist()
+        new_spectra = []
+
+        for (x, y) in data_list:
+            x_new, y_new = self._extend_xy(x, y, max_length)
+            new_data_dict = {
+                "x": x_new,
+                "y": y_new}
+            new_spectra.append(new_data_dict)
+
+        df.update(pd.DataFrame(new_spectra))
+
+        return df
+
+    def _extend_xy(self, X0, Y0, new_length):
+        """
+        Extend two 1D arrays to a new length.
+
+        Parameters
+        ----------
+        X0 : TYPE
+            Regularly spaced 1D array.
+        Y0 : TYPE
+            1D array of the same size as X0.
+        new_length : int
+            Length of new array.
+
+        Returns
+        -------
+        None.
+
+        """
+        """
+
+
+        Returns
+        -------
+        None.
+
+        """
+        def start_stop_step_from_x(x):
+            """
+            Calculcate start, stop, and step from a regular array.
+
+            Parameters
+            ----------
+            x : ndarrray
+                A numpy array with regular spacing,
+                i.e. the same step size between all points.
+
+            Returns
+            -------
+            start : int
+                Minimal value of x.
+            stop : int
+                Maximal value of x.
+            step : float
+                Step size between points in x.
+
+            """
+            start = np.min(x)
+            stop = np.max(x)
+
+            x1 = np.roll(x, -1)
+            diff = np.abs(np.subtract(x, x1))
+            step = np.round(np.min(diff[diff != 0]), 3)
+
+            return start, stop, step
+
+        len_diff = new_length - X0.shape[0]
+
+        if len_diff > 0.0:
+            start0, stop0, step0 = start_stop_step_from_x(X0)
+            start = start0 - int(len_diff/2)*step0
+            stop = stop0 + int(len_diff/2)*step0
+
+            X = np.flip(safe_arange_with_edges(start, stop, step0))
+            Y = np.zeros(X.shape)
+
+            Y[:int(len_diff/2)] = np.mean(Y0[:20])
+            Y[int(len_diff/2):-int(len_diff/2)] = Y0
+            Y[-int(len_diff/2):] = np.mean(Y0[-20])
+
+            return X, Y
+        else:
+            return X0, Y0
+
     def plot_random(self, no_of_spectra):
         """
         Randomly plot some of the generated spectra.
-        
+
         Labels and simulation parameters are added as texts.
 
         Parameters
@@ -618,7 +852,7 @@ class Creator:
 
             fig.ax.text(
                 0.1,
-                0.5,
+                0.9,
                 linear_params_text + params_text + scatter_text,
                 horizontalalignment="left",
                 verticalalignment="top",
@@ -738,7 +972,7 @@ class Creator:
         Returns
         -------
         dict
-            Dictionary containing all simulated data. 
+            Dictionary containing all simulated data.
             Items include X, y, shiftx, noise, FWHM, scatterer,
             distance, and pressure,
 
@@ -807,20 +1041,20 @@ class Creator:
     def _one_hot_encode(self, y):
         """
         One-hot encode the labels.
-        
-        As an example, if the label of a spectrum is Fe metal = 1 and all 
+
+        As an example, if the label of a spectrum is Fe metal = 1 and all
         oxides = 0, then the output will be np.array([1,0,0,0],1).
-    
+
         Parameters
         ----------
         y : list
             List of label strings.
-    
+
         Returns
         -------
         new_labels : arr
             One-hot encoded labels.
-    
+
         """
         new_labels = np.zeros((len(y), len(self.labels)))
 
@@ -883,10 +1117,10 @@ def calculate_runtime(start, end):
     return runtime
 
 
-#%%
+# %%
 if __name__ == "__main__":
     init_param_filepath = (
-        r"C:\Users\pielsticker\Simulations\init_params_Fe.json"
+        r"C:\Users\pielsticker\Simulations\init_params_Fe_Co_Ni_auger.json"
     )
     with open(init_param_filepath, "r") as param_file:
         params = json.load(param_file)
@@ -894,7 +1128,7 @@ if __name__ == "__main__":
     t0 = time()
     creator = Creator(params=params)
     creator.run()
-    creator.plot_random(10)
+    creator.plot_random(20)
     # creator.to_file(filetypes = ['hdf5'], metadata=True)
     t1 = time()
     runtime = calculate_runtime(t0, t1)
