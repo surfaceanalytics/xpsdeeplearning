@@ -136,7 +136,7 @@ class Spectrum:
 # =============================================================================
 # class MeasuredVamasSpectrum(Spectrum):
 #     """NOT WORKING YET."""
-# 
+#
 #     def __init__(self, x, y, label):
 #         self.spectrum_type = "measured"
 #         self.label = label
@@ -148,23 +148,23 @@ class Spectrum:
 #         )
 #         self.x = x
 #         self.lineshape = y
-# 
+#
 #     def load(self, filepath):
 #         """
 #         Load the data from a file.
-#         
+#
 #         Can be either VAMAS or TXT.
-# 
+#
 #         Parameters
 #         ----------
 #         filepath : str
 #             The file should be a .vms or .txt file.
-# 
+#
 #         Returns
 #         -------
 #         TYPE
 #             DESCRIPTION.
-# 
+#
 #         """
 #         self.converter = DataConverter()
 #         self.converter.load(filepath)
@@ -435,7 +435,7 @@ class MeasuredSpectrum(Spectrum):
                 )
 
         self.lineshape = new_lineshape
-    
+
     def _distinguish_core_auger(self, label):
         """
         Check if the spectrum is a core-level or Auger spectrum.
@@ -452,12 +452,12 @@ class MeasuredSpectrum(Spectrum):
 
         """
         core_levels = [
-            "1s", 
+            "1s",
             "2s",
-            "2p", 
-            "3s", 
+            "2p",
+            "3s",
             "3p",
-            "3d", 
+            "3d",
             "4s",
             "4p",
             "4d",
@@ -466,12 +466,12 @@ class MeasuredSpectrum(Spectrum):
             "5p",
             "5d",
             "5f",
-            "5g",  
+            "5g",
             "VB",
             "Survey",
-            "Fermi level"
-            ]
-    
+            "Fermi level",
+        ]
+
         if any(core_level in label for core_level in core_levels):
             return "core_level"
         else:
@@ -969,7 +969,7 @@ class SimulatedSpectrum(Spectrum):
             pass
         else:
             print("Please enter a valid scatterer label!")
-            
+
 
 #%%
 if __name__ == "__main__":

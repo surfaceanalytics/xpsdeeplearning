@@ -38,15 +38,17 @@ class Simulation:
 
         """
         self.input_spectra = input_spectra
-        self.core_spectra = [s for s in self.input_spectra
-                             if s.spectrum_type == "core_level"]
+        self.core_spectra = [
+            s for s in self.input_spectra if s.spectrum_type == "core_level"
+        ]
 
-        self.auger_spectra = [s for s in self.input_spectra
-                              if s.spectrum_type == "auger"]
+        self.auger_spectra = [
+            s for s in self.input_spectra if s.spectrum_type == "auger"
+        ]
 
         # Initialize the axes and label to the spectrum loaded first.
         input_spectrum = input_spectra[0]
-        while(input_spectrum.spectrum_type != "core_level"):
+        while input_spectrum.spectrum_type != "core_level":
             # Only use parameters of core level spectra.
             input_spectrum = next(iter(input_spectra))
 
@@ -79,8 +81,8 @@ class Simulation:
         sim_spectra = self.core_spectra
 
         shifted_auger_spectra = self._position_augers_randomly(
-                    self.output_spectrum.x,
-                    self.auger_spectra)
+            self.output_spectrum.x, self.auger_spectra
+        )
         sim_spectra.extend(shifted_auger_spectra)
 
         # Make sure that the right amount of params is given.
@@ -102,9 +104,7 @@ class Simulation:
                     species = list(sim_spectra[i].label.keys())[0]
                     concentration = scaling_params[i]
 
-                    intensity = (
-                        sim_spectra[i].lineshape * scaling_params[i]
-                    )
+                    intensity = sim_spectra[i].lineshape * scaling_params[i]
                     output_list.append(intensity)
 
                     # For each species, the label gets a new key:value
@@ -119,10 +119,8 @@ class Simulation:
                 print("Simulated spectrum was not changed!")
 
     def _position_augers_randomly(
-            self,
-            x,
-            auger_spectra,
-            shift_x=None,):
+        self, x, auger_spectra, shift_x=None,
+    ):
         """
         Randomly position auger spectra on x.
 
@@ -157,8 +155,7 @@ class Simulation:
         shift_range = np.arange(-max_shift, max_shift, step)
         if not shift_x:
             # Shift by random amount
-            r = np.round(np.random.randint(0, len(shift_range)),
-                         decimals=2)
+            r = np.round(np.random.randint(0, len(shift_range)), decimals=2)
             shift_x = np.round(shift_range[r], 3)
 
         if -step < shift_x < step:
@@ -168,21 +165,29 @@ class Simulation:
 
         for auger_spectrum in auger_spectra:
             shifted_auger_spectrum = SimulatedSpectrum(
-                start,
-                stop,
-                step,
-                auger_spectrum.label)
+                start, stop, step, auger_spectrum.label
+            )
 
             # Position auger spectrum in the middle of the window
-            m = int(np.where(auger_spectrum.x == np.mean(auger_spectrum.x))[0])
+            m = int(
+                np.where(auger_spectrum.x == np.mean(auger_spectrum.x))[0]
+            )
             n = int(np.where(x == np.mean(x))[0])
-            if n>m:
-                shifted_auger_spectrum.lineshape[n-m:n+m] = auger_spectrum.lineshape[:2*m]
-                shifted_auger_spectrum.lineshape[:n-m] = auger_spectrum.lineshape[0]
-                shifted_auger_spectrum.lineshape[n+m:] = auger_spectrum.lineshape[2*m]
-            elif n<m:
-                shifted_auger_spectrum.lineshape = auger_spectrum.lineshape[m-n:n+m+1]          
-            
+            if n > m:
+                shifted_auger_spectrum.lineshape[
+                    n - m : n + m
+                ] = auger_spectrum.lineshape[: 2 * m]
+                shifted_auger_spectrum.lineshape[
+                    : n - m
+                ] = auger_spectrum.lineshape[0]
+                shifted_auger_spectrum.lineshape[
+                    n + m :
+                ] = auger_spectrum.lineshape[2 * m]
+            elif n < m:
+                shifted_auger_spectrum.lineshape = auger_spectrum.lineshape[
+                    m - n : n + m + 1
+                ]
+
             shifted_auger_spectrum.shift_horizontal(shift_x)
             shifted_auger_spectra.append(shifted_auger_spectrum)
 
@@ -312,14 +317,15 @@ if __name__ == "__main__":
         "Fe2p_Fe2O3",
         "NiLMM_Ni_metal",
         "NiLMM_NiO",
-        ]
+    ]
     filenames = [
-         "Co2p_Co_metal",
-         "Co2p_CoO",
-         "Co2p_Co3O4",
-         "NiLMM_Ni_metal",
-         "NiLMM_NiO",
-         "CoLMM_CoO"]
+        "Co2p_Co_metal",
+        "Co2p_CoO",
+        "Co2p_Co3O4",
+        "NiLMM_Ni_metal",
+        "NiLMM_NiO",
+        "CoLMM_CoO",
+    ]
     input_spectra = []
     for filename in filenames:
         filepath = datapath + "\\" + filename + ".txt"
@@ -328,13 +334,13 @@ if __name__ == "__main__":
     sim = Simulation(input_spectra)
 
     sim.combine_linear(scaling_params=[0.4, 0.1, 0.1, 0.1, 0.2, 0.1])
-# =============================================================================
-#     sim.change_spectrum(
-#         shift_x=5,
-#         signal_to_noise=20,
-#         fwhm=200,
-#         scatterer={"label": "O2", "distance": 0.2, "pressure": 1.0},
-#     )
-# =============================================================================
+    # =============================================================================
+    #     sim.change_spectrum(
+    #         shift_x=5,
+    #         signal_to_noise=20,
+    #         fwhm=200,
+    #         scatterer={"label": "O2", "distance": 0.2, "pressure": 1.0},
+    #     )
+    # =============================================================================
     print("Linear combination parameters: " + str(sim.output_spectrum.label))
     sim.plot_simulation(plot_inputs=False)

@@ -17,7 +17,7 @@ import matplotlib.pyplot as plt
 from base_model.spectra import (
     safe_arange_with_edges,
     MeasuredSpectrum,
-    )
+)
 from base_model.figures import Figure
 from sim import Simulation
 
@@ -99,7 +99,8 @@ class Creator:
             single=self.params["single"],
             variable_no_of_inputs=self.params["variable_no_of_inputs"],
             always_auger=self.params["always_auger"],
-            always_core=self.params["always_core"])
+            always_core=self.params["always_core"],
+        )
 
     def load_input_spectra(self, filenames):
         """
@@ -138,7 +139,7 @@ class Creator:
             for filename in value_list:
                 filepath = os.path.join(input_datapath, filename)
                 measured_spectrum = MeasuredSpectrum(filepath)
-                
+
                 if self.params["normalize_inputs"]:
                     measured_spectrum.normalize()
                 label = next(iter(measured_spectrum.label.keys()))
@@ -169,11 +170,13 @@ class Creator:
             [input_spectra, pd.DataFrame(input_spectra_list)], join="outer"
         )
 
-    def create_matrix(self,
-                      single=False,
-                      variable_no_of_inputs=True,
-                      always_auger=True,
-                      always_core=True):
+    def create_matrix(
+        self,
+        single=False,
+        variable_no_of_inputs=True,
+        always_auger=True,
+        always_core=True,
+    ):
         """
         Create matrix for multiple simulations.
 
@@ -215,14 +218,13 @@ class Creator:
             self.simulation_matrix[i, 0] = int(key)
 
             self.simulation_matrix[
-                i, 1: self.no_of_linear_params + 1
-            ] = self.select_scaling_params(key,
-                                           single,
-                                           variable_no_of_inputs,
-                                           always_auger)
+                i, 1 : self.no_of_linear_params + 1
+            ] = self.select_scaling_params(
+                key, single, variable_no_of_inputs, always_auger
+            )
 
             self.simulation_matrix[
-                i, self.no_of_linear_params + 1:
+                i, self.no_of_linear_params + 1 :
             ] = self.select_sim_params(key)
 
             print(
@@ -246,11 +248,11 @@ class Creator:
 
     def select_scaling_params(
         self,
-        key, 
-        single=False, 
-        variable_no_of_inputs=True, 
+        key,
+        single=False,
+        variable_no_of_inputs=True,
         always_auger=True,
-        always_core=True
+        always_core=True,
     ):
         """
         Randomly select parameters for linear combination.
@@ -293,7 +295,7 @@ class Creator:
         indices = [
             self.labels.index(j)
             for j in inputs.columns[inputs.isnull().any() == False].tolist()
-            ]
+        ]
 
         indices_empty = [
             self.labels.index(j)
@@ -308,23 +310,29 @@ class Creator:
                 if s.spectrum_type == "auger":
                     auger_spectra.append(s)
                 if s.spectrum_type == "core_level":
-                    core_spectra.append(s)   
+                    core_spectra.append(s)
         auger_region = self._select_one_auger_region(auger_spectra)
 
         selected_auger_spectra = [
-            auger_spectrum for auger_spectrum in auger_spectra if (
-                auger_region not in list(auger_spectrum.label.keys())[0])]
+            auger_spectrum
+            for auger_spectrum in auger_spectra
+            if (auger_region not in list(auger_spectrum.label.keys())[0])
+        ]
         unselected_auger_spectra = [
-            auger_spectrum for auger_spectrum in auger_spectra if (
-                auger_region in list(auger_spectrum.label.keys())[0])]
+            auger_spectrum
+            for auger_spectrum in auger_spectra
+            if (auger_region in list(auger_spectrum.label.keys())[0])
+        ]
 
         selected_auger_indices = [
             inputs.columns.get_loc(list(s.label.keys())[0])
-            for s in selected_auger_spectra]
+            for s in selected_auger_spectra
+        ]
 
         unselected_auger_indices = [
             inputs.columns.get_loc(list(s.label.keys())[0])
-            for s in unselected_auger_spectra]
+            for s in unselected_auger_spectra
+        ]
 
         if single:
             q = np.random.choice(indices)
@@ -376,10 +384,12 @@ class Creator:
 
             # Making sure that a single spectrum is not moved
             # to the undesired Auger region.
-            test_indices = [i for i in indices
-                            if i not in unselected_auger_indices]
-            while all(p == 0.0 for p in [
-                    linear_params[i] for i in test_indices]):
+            test_indices = [
+                i for i in indices if i not in unselected_auger_indices
+            ]
+            while all(
+                p == 0.0 for p in [linear_params[i] for i in test_indices]
+            ):
                 np.random.shuffle(params)
                 param_iter = iter(params)
                 for index in indices:
@@ -397,31 +407,34 @@ class Creator:
 
         if always_auger:
             # Always use Auger spectra when available.
-            if all(p == 0.0 for p in [
-                    linear_params[i] for i in selected_auger_indices]):
+            if all(
+                p == 0.0
+                for p in [linear_params[i] for i in selected_auger_indices]
+            ):
                 linear_params = self.select_scaling_params(
                     key=key,
                     single=single,
                     variable_no_of_inputs=variable_no_of_inputs,
                     always_auger=always_auger,
-                    always_core=always_core
-                    )
+                    always_core=always_core,
+                )
         if always_core:
             # Always use Auger spectra when available.
             core_level_indices = [
                 inputs.columns.get_loc(list(s.label.keys())[0])
-                for s in core_spectra]
-            if all(p == 0.0 for p in [
-                    linear_params[i] for i in core_level_indices]):
+                for s in core_spectra
+            ]
+            if all(
+                p == 0.0
+                for p in [linear_params[i] for i in core_level_indices]
+            ):
                 linear_params = self.select_scaling_params(
                     key=key,
                     single=single,
                     variable_no_of_inputs=variable_no_of_inputs,
                     always_auger=always_auger,
-                    always_core=always_core
-                    )
-
-
+                    always_core=always_core,
+                )
 
         return linear_params
 
@@ -570,7 +583,8 @@ class Creator:
             scaling_params = [
                 p
                 for p in self.simulation_matrix[i][
-                    1: self.no_of_linear_params + 1]
+                    1 : self.no_of_linear_params + 1
+                ]
                 if str(p) != "nan"
             ]
 
@@ -689,9 +703,7 @@ class Creator:
 
         for (x, y) in data_list:
             x_new, y_new = self._extend_xy(x, y, max_length)
-            new_data_dict = {
-                "x": x_new,
-                "y": y_new}
+            new_data_dict = {"x": x_new, "y": y_new}
             new_spectra.append(new_data_dict)
 
         df.update(pd.DataFrame(new_spectra))
@@ -724,6 +736,7 @@ class Creator:
         None.
 
         """
+
         def start_stop_step_from_x(x):
             """
             Calculcate start, stop, and step from a regular array.
@@ -757,15 +770,15 @@ class Creator:
 
         if len_diff > 0.0:
             start0, stop0, step0 = start_stop_step_from_x(X0)
-            start = start0 - int(len_diff/2)*step0
-            stop = stop0 + int(len_diff/2)*step0
+            start = start0 - int(len_diff / 2) * step0
+            stop = stop0 + int(len_diff / 2) * step0
 
             X = np.flip(safe_arange_with_edges(start, stop, step0))
             Y = np.zeros(X.shape)
 
-            Y[:int(len_diff/2)] = np.mean(Y0[:20])
-            Y[int(len_diff/2):-int(len_diff/2)] = Y0
-            Y[-int(len_diff/2):] = np.mean(Y0[-20])
+            Y[: int(len_diff / 2)] = np.mean(Y0[:20])
+            Y[int(len_diff / 2) : -int(len_diff / 2)] = Y0
+            Y[-int(len_diff / 2) :] = np.mean(Y0[-20])
 
             return X, Y
         else:
