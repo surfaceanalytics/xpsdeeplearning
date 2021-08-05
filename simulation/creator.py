@@ -4,6 +4,7 @@ Created on Thu Jan 23 12:21:27 2020.
 
 @author: pielsticker
 """
+import warnings
 import numpy as np
 import os
 import pandas as pd
@@ -77,7 +78,9 @@ class Creator:
 
         self.name = self.timestamp + "_" + self.params["name"]
         self.no_of_simulations = self.params["no_of_simulations"]
+        
         self.labels = self.params["labels"]
+        self.spectra = self.params["spectra"]
 
         # Load input spectra from all reference sets.
         self.input_spectra = self.load_input_spectra(
@@ -87,7 +90,7 @@ class Creator:
         # No. of parameter = 1 ref_set + no. of linear parameter + 6
         # (one parameter each for resolution, shift_x, signal_to noise,
         # scatterer, distance, pressure)
-        self.no_of_linear_params = len(self.labels)
+        self.no_of_linear_params = len(self.spectra)
         no_of_params = 1 + self.no_of_linear_params + 6
 
         self.simulation_matrix = np.zeros(
@@ -121,7 +124,7 @@ class Creator:
             Each row contains one set of reference spectra.
 
         """
-        input_spectra = pd.DataFrame(columns=self.labels)
+        input_spectra = pd.DataFrame(columns=self.spectra)
 
         input_datapath = os.path.join(
             *[
@@ -241,7 +244,8 @@ class Creator:
         Returns
         -------
         int
-            A number between 0 and the number of input reference sets.
+            A number between 0 and the total number of input 
+            reference sets.
 
         """
         return np.random.randint(0, self.input_spectra.shape[0])
@@ -291,14 +295,15 @@ class Creator:
 
         # Only select linear params if a reference spectrum is available.
         inputs = self.input_spectra.iloc[[key]]
+        
 
         indices = [
-            self.labels.index(j)
+            self.spectra.index(j)
             for j in inputs.columns[inputs.isnull().any() == False].tolist()
         ]
 
         indices_empty = [
-            self.labels.index(j)
+            self.spectra.index(j)
             for j in inputs.columns[inputs.isnull().any()].tolist()
         ]
 
@@ -406,7 +411,6 @@ class Creator:
             linear_params[index] = float("NAN")
 
         if always_auger:
-            print("hi")
             # Always use Auger spectra when available.
             if all(
                 p == 0.0
@@ -622,7 +626,7 @@ class Creator:
 
             if self.params["normalize_outputs"]:
                 self.sim.output_spectrum.normalize()
-
+                
             d1 = {"reference_set": ref_set_key}
             d2 = self._dict_from_one_simulation(self.sim)
             d = {**d1, **d2}
@@ -638,10 +642,6 @@ class Creator:
 
         if self.params["ensure_same_length"]:
             self.df = self._extend_spectra_in_df(self.df)
-
-        self.df.iloc[0]["y"].shape
-        self.df.iloc[1]["y"].shape
-        self.df.iloc[1]["y"].shape
 
         self.reduced_df = self.df[["x", "y", "label"]]
 
@@ -664,6 +664,19 @@ class Creator:
         """
         spectrum = sim.output_spectrum
 
+        if self.params["same_auger_core_percentage"]:
+            new_label = {}
+            out_phases = []
+            for key, value in spectrum.label.items():
+                phase = key.split(" ", 1)[1]
+                if phase not in out_phases:
+                    new_label[phase] = value
+                out_phases.append(phase)
+
+            spectrum.label = new_label
+
+        y = np.reshape(spectrum.lineshape, (spectrum.lineshape.shape[0], -1))
+
         d = {
             "label": spectrum.label,
             "shift_x": spectrum.shift_x,
@@ -673,9 +686,9 @@ class Creator:
             "distance": spectrum.distance,
             "pressure": spectrum.pressure,
             "x": spectrum.x,
-            "y": spectrum.lineshape,
+            "y": y
         }
-        for label_value in self.labels:
+        for label_value in self.params["labels"]:
             if label_value not in d["label"].keys():
                 d["label"][label_value] = 0.0
 
@@ -775,7 +788,7 @@ class Creator:
             stop = stop0 + int(len_diff / 2) * step0
 
             X = np.flip(safe_arange_with_edges(start, stop, step0))
-            Y = np.zeros(X.shape)
+            Y = np.zeros(shape=(X.shape[0],1))
 
             Y[: int(len_diff / 2)] = np.mean(Y0[:20])
             Y[int(len_diff / 2) : -int(len_diff / 2)] = Y0
@@ -813,7 +826,6 @@ class Creator:
             while r in random_numbers:
                 # prevent repeating figures
                 r = np.random.randint(0, self.no_of_simulations)
-
             random_numbers.append(r)
 
             row = self.df.iloc[r]
@@ -1003,6 +1015,19 @@ class Creator:
         energies = df["x"][0]
         for index, row in df.iterrows():
             X_one = row["y"]
+            if self.params["eV_window"]:
+                from pandas.core.common import SettingWithCopyWarning
+                warnings.simplefilter(action="ignore",
+                                      category=SettingWithCopyWarning)
+                # Only select a random window of some eV as output.
+                step = self.sim.output_spectrum.step
+                eV_window = self.params["eV_window"]
+                window = int(eV_window/step)+1
+                r = np.random.randint(0, X_one.shape[0]-window)
+                X_one = X_one[r:r+window]
+                self.df["x"][index] = np.flip(safe_arange_with_edges(
+                    0, eV_window, step))
+                self.df["y"][index] = X_one
             y_one = row["label"]
             shiftx_one = row["shift_x"]
             noise_one = row["noise"]
@@ -1028,8 +1053,8 @@ class Creator:
             print(
                 "Prepare HDF5 upload: " + str(index) + "/" + str(df.shape[0])
             )
-        X = np.array(X)
-        X = np.reshape(X, (X.shape[0], X.shape[1], 1))
+        X = np.array(X, dtype=object)
+        X = np.reshape(X, (X.shape[0], X.shape[1], -1))
         y = self._one_hot_encode(y)
 
         shiftx = np.reshape(np.array(shiftx), (-1, 1))
@@ -1134,7 +1159,7 @@ def calculate_runtime(start, end):
 # %%
 if __name__ == "__main__":
     init_param_filepath = (
-        r"C:\Users\pielsticker\Simulations\init_params_Fe.json"
+        r"C:\Users\pielsticker\Simulations\init_params_Fe_Co_Ni_auger.json"
     )
     with open(init_param_filepath, "r") as param_file:
         params = json.load(param_file)

@@ -22,7 +22,7 @@ init_param_folder = r"C:\Users\pielsticker\Simulations"
 
 #%% Parameters
 init_param_filepath = os.path.join(
-    init_param_folder, "init_params_NiCoFe.json"
+    init_param_folder, "init_params_Fe_Co_Ni_auger.json"
 )
 
 with open(init_param_filepath, "r") as param_file:
@@ -59,5 +59,10 @@ with h5py.File(creator.hdf5_filepath, "r") as hf:
     energies_h5 = hf["energies"][:4000]
     labels_h5 = [str(label) for label in hf["labels"][:4000]]
 
+if creator.params["eV_window"]:
+    creator.plot_random(5)
+    
+
 t1 = time()
 runtimes["h5_load"] = calculate_runtime(t0, t1)
+print(f"HDF5 runtime: {runtimes['h5_load']}.")
