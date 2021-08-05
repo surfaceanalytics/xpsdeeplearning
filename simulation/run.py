@@ -34,7 +34,7 @@ runtimes = {}
 t0 = time()
 creator = Creator(params)
 creator.run()
-creator.plot_random(10)
+creator.plot_random(5)
 t1 = time()
 runtime = calculate_runtime(t0, t1)
 runtimes["dataset_creation"] = runtime

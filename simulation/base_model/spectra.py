@@ -12,7 +12,7 @@ import os
 from scipy.signal import fftconvolve
 import math
 
-from .converters.data_converter import DataConverter
+#from .converters.data_converter import DataConverter
 
 try:
     from .peaks import Gauss, Lorentz, Voigt, VacuumExcitation, Tougaard

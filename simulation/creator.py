@@ -81,6 +81,10 @@ class Creator:
         
         self.labels = self.params["labels"]
         self.spectra = self.params["spectra"]
+        
+        if not self.params["same_auger_core_percentage"]: 
+            warnings.warn('Auger and core spectra of the same species are not scaled together. If you have Auger spectra, you may want to set "same_auger_core_percentage" to True!')
+
 
         # Load input spectra from all reference sets.
         self.input_spectra = self.load_input_spectra(
@@ -104,6 +108,7 @@ class Creator:
             always_auger=self.params["always_auger"],
             always_core=self.params["always_core"],
         )
+        
 
     def load_input_spectra(self, filenames):
         """
@@ -142,7 +147,6 @@ class Creator:
             for filename in value_list:
                 filepath = os.path.join(input_datapath, filename)
                 measured_spectrum = MeasuredSpectrum(filepath)
-
                 if self.params["normalize_inputs"]:
                     measured_spectrum.normalize()
                 label = next(iter(measured_spectrum.label.keys()))
@@ -295,7 +299,6 @@ class Creator:
 
         # Only select linear params if a reference spectrum is available.
         inputs = self.input_spectra.iloc[[key]]
-        
 
         indices = [
             self.spectra.index(j)
@@ -306,7 +309,6 @@ class Creator:
             self.spectra.index(j)
             for j in inputs.columns[inputs.isnull().any()].tolist()
         ]
-
         # This ensures that always just one Auger region is used.
         auger_spectra = []
         core_spectra = []
@@ -321,12 +323,12 @@ class Creator:
         selected_auger_spectra = [
             auger_spectrum
             for auger_spectrum in auger_spectra
-            if (auger_region not in list(auger_spectrum.label.keys())[0])
+            if (auger_region in list(auger_spectrum.label.keys())[0])
         ]
         unselected_auger_spectra = [
             auger_spectrum
             for auger_spectrum in auger_spectra
-            if (auger_region in list(auger_spectrum.label.keys())[0])
+            if (auger_region not in list(auger_spectrum.label.keys())[0])
         ]
 
         selected_auger_indices = [
@@ -338,7 +340,7 @@ class Creator:
             inputs.columns.get_loc(list(s.label.keys())[0])
             for s in unselected_auger_spectra
         ]
-
+                   
         if single:
             q = np.random.choice(indices)
             linear_params[q] = 1.0
@@ -376,9 +378,8 @@ class Creator:
                         np.random.uniform(0.1, 1.0)
                         for j in range(len(indices))
                     ]
-                    s = sum(r)
-                    params = [k / s for k in r]
-
+                    params = [k / sum(r) for k in r]
+                    
             # Randomly shuffle so that zeros are equally distributed.
             np.random.shuffle(params)
             # Add linear params at the positions where there
@@ -386,6 +387,26 @@ class Creator:
             param_iter = iter(params)
             for index in indices:
                 linear_params[index] = next(param_iter)
+                
+            if self.params["same_auger_core_percentage"]: 
+                auger_labels = [list(s.label.keys())[0] for s in selected_auger_spectra]
+                auger_phases = [l.split(" ",1)[1] for l in auger_labels]
+                core_labels = [list(s.label.keys())[0] for s in core_spectra]
+                core_phases = [l.split(" ",1)[1] for l in core_labels]
+                overlapping_species = [p for p in auger_phases if p in core_phases]
+
+                for species in overlapping_species:
+                    label_auger = [l for l in auger_labels if species in l][0]
+                    label_core = [l for l in core_labels if species in l][0]
+                    i_auger = self.spectra.index(label_auger)
+                    i_core = self.spectra.index(label_core)
+
+                    max_value = np.max([linear_params[i_auger], 
+                                       linear_params[i_core]])
+                    linear_params[i_auger] = max_value
+                    linear_params[i_core] = max_value
+                                    
+                linear_params = [k / sum(params) for k in linear_params]
 
             # Making sure that a single spectrum is not moved
             # to the undesired Auger region.
@@ -664,16 +685,19 @@ class Creator:
         """
         spectrum = sim.output_spectrum
 
-        if self.params["same_auger_core_percentage"]:
-            new_label = {}
-            out_phases = []
-            for key, value in spectrum.label.items():
-                phase = key.split(" ", 1)[1]
-                if phase not in out_phases:
-                    new_label[phase] = value
-                out_phases.append(phase)
+        # if self.params["same_auger_core_percentage"]:
+        # Add all percentages of one species together.
+        new_label = {}
+        out_phases = []
+        for key, value in spectrum.label.items():
+            phase = key.split(" ", 1)[1]
+            if phase not in out_phases:
+                new_label[phase] = value
+            else:
+                new_label[phase] += value
+            out_phases.append(phase)
 
-            spectrum.label = new_label
+        spectrum.label = new_label
 
         y = np.reshape(spectrum.lineshape, (spectrum.lineshape.shape[0], -1))
 
@@ -686,7 +710,7 @@ class Creator:
             "distance": spectrum.distance,
             "pressure": spectrum.pressure,
             "x": spectrum.x,
-            "y": y
+            "y": y,
         }
         for label_value in self.params["labels"]:
             if label_value not in d["label"].keys():
@@ -788,7 +812,7 @@ class Creator:
             stop = stop0 + int(len_diff / 2) * step0
 
             X = np.flip(safe_arange_with_edges(start, stop, step0))
-            Y = np.zeros(shape=(X.shape[0],1))
+            Y = np.zeros(shape=(X.shape[0], 1))
 
             Y[: int(len_diff / 2)] = np.mean(Y0[:20])
             Y[int(len_diff / 2) : -int(len_diff / 2)] = Y0
@@ -817,8 +841,6 @@ class Creator:
         if no_of_spectra > self.no_of_simulations:
             # In this case, plot all spectra.
             no_of_spectra = self.no_of_simulations
-        else:
-            pass
 
         random_numbers = []
         for i in range(no_of_spectra):
@@ -1054,7 +1076,13 @@ class Creator:
                 "Prepare HDF5 upload: " + str(index) + "/" + str(df.shape[0])
             )
         X = np.array(X, dtype=object)
-        X = np.reshape(X, (X.shape[0], X.shape[1], -1))
+        try:
+            X = np.reshape(X, (X.shape[0], X.shape[1], -1))
+        except IndexError:
+            raise IndexError(
+                'Could not concatenate individual spectra because their sizes are different.'
+                'Either set "ensure_same_length" to True or "eV_window" to a finite integer!')
+
         y = self._one_hot_encode(y)
 
         shiftx = np.reshape(np.array(shiftx), (-1, 1))
@@ -1096,7 +1124,7 @@ class Creator:
 
         """
         new_labels = np.zeros((len(y), len(self.labels)))
-
+        
         for i, d in enumerate(y):
             for species, value in d.items():
                 number = self.labels.index(species)
