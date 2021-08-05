@@ -61,7 +61,7 @@ class Creator:
         default_param_filename = "default_params.json"
         default_param_filepath = os.path.join(
             os.path.dirname(os.path.abspath(__file__)), default_param_filename
-         )
+        )
 
         with open(default_param_filepath, "r") as param_file:
             self.params = json.load(param_file)
@@ -80,8 +80,10 @@ class Creator:
                         self.sim_ranges[subkey] = params["sim_ranges"][subkey]
 
         # Print parameter file name.
-        print(f"Parameters were taken from {self.params['init_param_filepath']}.")
-        del(self.params["init_param_filepath"])
+        print(
+            f"Parameters were taken from {self.params['init_param_filepath']}."
+        )
+        del self.params["init_param_filepath"]
 
         self.name = self.timestamp + "_" + self.params["name"]
         self.no_of_simulations = self.params["no_of_simulations"]
@@ -92,7 +94,9 @@ class Creator:
         # Warning if core and auger spectra of same species are
         # not scaled together.
         if not self.params["same_auger_core_percentage"]:
-            warnings.warn('Auger and core spectra of the same species are not scaled together. If you have Auger spectra, you may want to set "same_auger_core_percentage" to True!')
+            warnings.warn(
+                'Auger and core spectra of the same species are not scaled together. If you have Auger spectra, you may want to set "same_auger_core_percentage" to True!'
+            )
 
         # Load input spectra from all reference sets.
         self.input_spectra = self.load_input_spectra(
@@ -160,26 +164,26 @@ class Creator:
                 ref_spectra_dict[label] = measured_spectrum
             input_spectra_list.append(ref_spectra_dict)
 
-# =============================================================================
-#         input_spectra_list = []
-#         for set_key, value_list in filenames.items():
-#             ref_spectra_dict = {}
-#             for filename in value_list:
-#                 filepath = os.path.join(input_datapath, filename)
-#                 converter = data_converter.DataConverter()
-#                 converter.load(filepath)
-#                 data = converter.data
-#                 selection = [d for d in data if d["spectrum_type"] == "Fe2p"]
-# 
-#                 loaded_spectra = []
-#                 for d in converter.data:
-#                     x = d['data']['x']
-#                     y = d['data']['y0']
-#                     species = d['group_name']
-#                     label = {species: 1.0}
-#                     loaded_spectra += [MeasuredVamasSpectrum(x,y,label)]
-#                     del(converter)
-# =============================================================================
+        # =============================================================================
+        #         input_spectra_list = []
+        #         for set_key, value_list in filenames.items():
+        #             ref_spectra_dict = {}
+        #             for filename in value_list:
+        #                 filepath = os.path.join(input_datapath, filename)
+        #                 converter = data_converter.DataConverter()
+        #                 converter.load(filepath)
+        #                 data = converter.data
+        #                 selection = [d for d in data if d["spectrum_type"] == "Fe2p"]
+        #
+        #                 loaded_spectra = []
+        #                 for d in converter.data:
+        #                     x = d['data']['x']
+        #                     y = d['data']['y0']
+        #                     species = d['group_name']
+        #                     label = {species: 1.0}
+        #                     loaded_spectra += [MeasuredVamasSpectrum(x,y,label)]
+        #                     del(converter)
+        # =============================================================================
         return pd.concat(
             [input_spectra, pd.DataFrame(input_spectra_list)], join="outer"
         )
@@ -318,7 +322,7 @@ class Creator:
             self.spectra.index(j)
             for j in inputs.columns[inputs.isnull().any()].tolist()
         ]
-        
+
         # This ensures that always just one Auger region is used.
         auger_spectra = []
         core_spectra = []
@@ -329,7 +333,7 @@ class Creator:
                 if s.spectrum_type == "core_level":
                     core_spectra.append(s)
         auger_region = self._select_one_auger_region(auger_spectra)
-        
+
         selected_auger_spectra = [
             auger_spectrum
             for auger_spectrum in auger_spectra
@@ -396,7 +400,7 @@ class Creator:
             param_iter = iter(params)
             for index in indices:
                 linear_params[index] = next(param_iter)
-            
+
             # Making sure that a single spectrum is not moved
             # to the undesired Auger region.
             test_indices = [
@@ -409,19 +413,17 @@ class Creator:
                 param_iter = iter(params)
                 for index in indices:
                     linear_params[index] = next(param_iter)
-                    
 
             # Remove undesired auger spectra
             for index in unselected_auger_indices:
                 linear_params[index] = 0.0
-                
+
             if self.params["same_auger_core_percentage"]:
                 # Set percentage for core and auger spectra of the
                 # same species to the same value.
                 linear_params = self._scale_auger_core_together(
-                    linear_params,
-                    selected_auger_spectra,
-                    core_spectra)
+                    linear_params, selected_auger_spectra, core_spectra
+                )
 
             linear_params = [k / sum(linear_params) for k in linear_params]
 
@@ -584,29 +586,36 @@ class Creator:
         selected_region = auger_regions[r]
 
         return selected_region
-    
+
     def _scale_auger_core_together(
-            self,
-            linear_params,
-            selected_auger_spectra,
-            core_spectra):
-        
-        auger_labels = [list(s.label.keys())[0] for s in selected_auger_spectra]
+        self, linear_params, selected_auger_spectra, core_spectra
+    ):
+
+        auger_labels = [
+            list(s.label.keys())[0] for s in selected_auger_spectra
+        ]
         auger_phases = [label.split(" ", 1)[1] for label in auger_labels]
         core_labels = [list(s.label.keys())[0] for s in core_spectra]
         core_phases = [label.split(" ", 1)[1] for label in core_labels]
-        overlapping_species = [phase for phase in auger_phases if phase in core_phases]
+        overlapping_species = [
+            phase for phase in auger_phases if phase in core_phases
+        ]
 
         for species in overlapping_species:
-            label_auger = [label for label in auger_labels if species in label][0]
-            label_core = [label for label in core_labels if species in label][0]
+            label_auger = [
+                label for label in auger_labels if species in label
+            ][0]
+            label_core = [label for label in core_labels if species in label][
+                0
+            ]
             i_auger = self.spectra.index(label_auger)
             i_core = self.spectra.index(label_core)
-            max_value = np.max([linear_params[i_auger],
-                               linear_params[i_core]])
+            max_value = np.max(
+                [linear_params[i_auger], linear_params[i_core]]
+            )
             linear_params[i_auger] = max_value
             linear_params[i_core] = max_value
-                            
+
         return linear_params
 
     def run(self):
@@ -1066,16 +1075,19 @@ class Creator:
             X_one = row["y"]
             if self.params["eV_window"]:
                 from pandas.core.common import SettingWithCopyWarning
-                warnings.simplefilter(action="ignore",
-                                      category=SettingWithCopyWarning)
+
+                warnings.simplefilter(
+                    action="ignore", category=SettingWithCopyWarning
+                )
                 # Only select a random window of some eV as output.
                 step = self.sim.output_spectrum.step
                 eV_window = self.params["eV_window"]
-                window = int(eV_window/step)+1
-                r = np.random.randint(0, X_one.shape[0]-window)
-                X_one = X_one[r:r+window]
-                self.df["x"][index] = np.flip(safe_arange_with_edges(
-                    0, eV_window, step))
+                window = int(eV_window / step) + 1
+                r = np.random.randint(0, X_one.shape[0] - window)
+                X_one = X_one[r : r + window]
+                self.df["x"][index] = np.flip(
+                    safe_arange_with_edges(0, eV_window, step)
+                )
                 self.df["y"][index] = X_one
                 energies = self.df["x"][index]
             y_one = row["label"]
@@ -1108,7 +1120,8 @@ class Creator:
             X = np.reshape(X, (X.shape[0], X.shape[1], -1))
         except IndexError:
             raise IndexError(
-                'Could not concatenate individual spectra because their sizes are different. Either set "ensure_same_length" to True or "eV_window" to a finite integer!')
+                'Could not concatenate individual spectra because their sizes are different. Either set "ensure_same_length" to True or "eV_window" to a finite integer!'
+            )
 
         y = self._one_hot_encode(y)
 
@@ -1213,9 +1226,7 @@ def calculate_runtime(start, end):
 
 # %%
 if __name__ == "__main__":
-    init_param_filepath = (
-        r"C:\Users\pielsticker\Simulations\init_params_Fe_Co_Ni_core_auger.json"
-    )
+    init_param_filepath = r"C:\Users\pielsticker\Simulations\init_params_Fe_Co_Ni_core_auger.json"
     with open(init_param_filepath, "r") as param_file:
         params = json.load(param_file)
 

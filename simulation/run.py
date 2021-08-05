@@ -21,9 +21,7 @@ from creator import Creator, calculate_runtime
 init_param_folder = r"C:\Users\pielsticker\Simulations"
 init_param_filename = "init_params_Fe_Co_Ni_core_auger.json"
 #%% Parameters
-init_param_filepath = os.path.join(
-    init_param_folder, init_param_filename
-)
+init_param_filepath = os.path.join(init_param_folder, init_param_filename)
 
 with open(init_param_filepath, "r") as param_file:
     params = json.load(param_file)
