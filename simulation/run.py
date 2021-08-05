@@ -17,7 +17,7 @@ import h5py
 from creator import Creator, calculate_runtime
 
 #%% Input parameter
-### Change the following line according to your folder structure ###
+# Change the following line according to your folder structure ###
 init_param_folder = r"C:\Users\pielsticker\Simulations"
 init_param_filename = "init_params_Fe_Co_Ni_core_auger.json"
 #%% Parameters
@@ -60,10 +60,9 @@ with h5py.File(creator.hdf5_filepath, "r") as hf:
     energies_h5 = hf["energies"][:4000]
     labels_h5 = [str(label) for label in hf["labels"][:4000]]
 
-if creator.params["eV_window"]:
-    creator.plot_random(5)
-    
-
 t1 = time()
 runtimes["h5_load"] = calculate_runtime(t0, t1)
 print(f"HDF5 runtime: {runtimes['h5_load']}.")
+
+if creator.params["eV_window"]:
+    creator.plot_random(10)
