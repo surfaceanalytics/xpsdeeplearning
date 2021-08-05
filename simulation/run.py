@@ -19,14 +19,15 @@ from creator import Creator, calculate_runtime
 #%% Input parameter
 ### Change the following line according to your folder structure ###
 init_param_folder = r"C:\Users\pielsticker\Simulations"
-
+init_param_filename = "init_params_Fe_Co_Ni_core_auger.json"
 #%% Parameters
 init_param_filepath = os.path.join(
-    init_param_folder, "init_params_Fe_Co_Ni_auger.json"
+    init_param_folder, init_param_filename
 )
 
 with open(init_param_filepath, "r") as param_file:
     params = json.load(param_file)
+    params["init_param_filepath"] = init_param_filepath
 
 #%% Create multiple sets of similar spectra with the same settings
 runtimes = {}

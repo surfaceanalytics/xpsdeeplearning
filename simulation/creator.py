@@ -58,12 +58,15 @@ class Creator:
         """
         self.timestamp = datetime.datetime.now().strftime("%Y%m%d")
 
+        default_param_filename = "default_params.json"
         default_param_filepath = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)), "default_params.json"
-        )
+            os.path.dirname(os.path.abspath(__file__)), default_param_filename
+         )
 
         with open(default_param_filepath, "r") as param_file:
             self.params = json.load(param_file)
+            self.params["init_param_filepath"] = default_param_filepath
+            
             self.sim_ranges = self.params["sim_ranges"]
 
         # Replace the default params with the supplied params
@@ -75,6 +78,9 @@ class Creator:
                 else:
                     for subkey in params["sim_ranges"].keys():
                         self.sim_ranges[subkey] = params["sim_ranges"][subkey]
+                        
+        print(f"Parameters were taken from {self.params['init_param_filepath']}.")
+        del(self.params["init_param_filepath"])
 
         self.name = self.timestamp + "_" + self.params["name"]
         self.no_of_simulations = self.params["no_of_simulations"]
