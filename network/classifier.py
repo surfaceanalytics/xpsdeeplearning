@@ -783,7 +783,10 @@ class Classifier:
                     cd = getattr(self.datahandler, key)
                     pickle_data[key] = cd.cd
                 else:
-                    pickle_data[key] = getattr(self.datahandler, key)
+                  try:
+                      pickle_data[key] = getattr(self.datahandler, key)
+                  except AttributeError:
+                      print(f"'DataHandler' object has no attribute {key}.")
             except KeyError:
                 pass
 

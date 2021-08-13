@@ -136,6 +136,7 @@ class DataHandler:
                 raise type(e)(error_msg)
 
             X = hf["X"][r : r + self.no_of_examples, :, :]
+            X = X.astype(np.float)
             y = hf["y"][r : r + self.no_of_examples, :]
 
             if not self.intensity_only:
@@ -1096,7 +1097,7 @@ class DataHandler:
             pass
 
         if with_prediction:
-            loss_text = "Loss: " + str(np.around(losses[index], decimals=3))
+            loss_text = "\n" + "Loss: " + str(np.around(losses[index], decimals=3))
             text += loss_text
 
         return text
