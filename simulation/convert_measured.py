@@ -116,7 +116,8 @@ def convert_all_spectra(
         A list of labels that needs to match the column names in the
         Excel file.
     plot_all : bool, optional
-        If plot_all, all loadded spectra are plotted. The default is True.
+        If plot_all, all loadded spectra are plotted. 
+        The default is True.
 
     Returns
     -------
