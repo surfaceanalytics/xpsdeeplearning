@@ -6,68 +6,110 @@ Created on Fri Jun  5 15:47:47 2020.
 """
 import numpy as np
 import matplotlib as plt
-from vis.visualization import visualize_saliency, visualize_cam
-from vis.utils import utils
+import vis
+
 from keras import activations
 
 #%%
-class AttentiveResonseMap:
-    def __init__(self, classifier):
-        model = classifier.model
-        X = classifier.X
-        X_train = classifier.X_train
-        X_val = classifier.X_val
-        X_test = classifier.X_test
-        y = classifier.y
-        y_train = classifier.y_train
-        y_val = classifier.y_val
-        y_test = classifier.y_test
+class AttentiveResponseMap:
+    def __init__(self, model, X, y, energies, labels):
+        self.model = model
+        self.X = X
+        self.y = y
+        self.energies = energies
+        self.labels = labels
 
-        class_idx = 0
-        indices = np.where(y_test[:, class_idx] == 1.0)[0]
+        # Swap softmax with linear in the last layer.
+        self.model.layers[-1].activation = activations.linear
+        self.model = vis.utils.utils.apply_modifications(model)
 
-        # pick some random input from here.
-        idx = indices[0]
-        # =============================================================================
-        #         # Lets sanity check the picked image.
-        #         plt.rcParams['figure.figsize'] = (18, 6)
-        #         plt.imshow(x_test[idx][..., 0])
-        # =============================================================================
+    def plot_saliency_maps(self, no_of_spectra = 10):
+        fig, ax = plt.subplots(self.X.shape[0], self.y.shape[1]+1)
 
-        # Utility to search for layer index by name.
-        # Alternatively we can specify this as -1 since it corresponds to the last layer.
-        layer_idx = utils.find_layer_idx(model, "preds")
+        for i in range(no_of_spectra):
+            intensity = self.X[i]
+            ax[i, 0] = self._plot_spectrum(ax[i, 0], intensity)
 
-        # Swap softmax with linear
-        model.layers[layer_idx].activation = activations.linear
-        model = utils.apply_modifications(model)
+            for j in range(self.labels):
+                grads = vis.visualization.visualize_saliency(
+                    self.model,
+                    layer_idx=-1,
+                    filter_indices=j,
+                    seed_input=intensity,
+                    backprop_modifier="guided"
+                    )
+            ax[i, j+1].set_title(f"guided, label {self.labels[j]}")
+            ax[i, j+1] = ax._plot_spectrum(ax[i, j+1], grads)
 
-        for modifier in ["guided"]:
-            grads = visualize_saliency(
-                model,
-                layer_idx,
-                filter_indices=class_idx,
-                seed_input=X_test[idx],
-                backprop_modifier=modifier,
-            )
-            plt.figure()
-            plt.title(modifier)
-            plt.imshow(grads, cmap="jet")
+        fig.tight_layout()
 
-        for class_idx in np.arange(10):
-            indices = np.where(y_test[:, class_idx] == 1.0)[0]
-            idx = indices[0]
 
-            f, ax = plt.subplots(1, 2)
-            ax[0].imshow(X_test[idx][..., 0])
+    def cam_map(self, no_of_spectra = 10):
+        fig, ax = plt.subplots(self.shape[0], self.y.shape[1]+1)
 
-        for i, modifier in enumerate(["guided"]):
-            grads = visualize_cam(
-                model,
-                layer_idx,
-                filter_indices=class_idx,
-                seed_input=X_test[idx],
-                backprop_modifier=modifier,
-            )
-            ax[i + 1].set_title(modifier)
-            ax[i + 1].imshow(grads, cmap="jet")
+        for i in range(no_of_spectra):
+            intensity = self.X[i]
+            ax[i, 0] = self._plot_spectrum(ax[i, 0], intensity)
+
+            for j in range(self.labels):
+                grads = vis.visualization.visualize_cam(
+                    self.model,
+                    layer_idx=-1,
+                    filter_indices=j,
+                    seed_input=intensity,
+                    backprop_modifier="guided"
+                    )
+            ax[i, j+1].set_title(f"guided, label {self.labels[j]}")
+            ax[i, j+1] = ax._plot_spectrum(ax[i, j+1], grads)
+
+        fig.tight_layout()
+
+    def _plot_spectrum(self, ax, X, y, cmap="jet"):
+        if not isinstance(y, list):
+            y = [y]
+
+        for yi in y:
+            ax.plot(self.energies, yi)
+            ax.set_xlim(left=np.max(self.energies),
+                        right=np.min(self.energies))
+            ax.set_xlabel("Binding energy (eV)")
+            ax.set_ylabel("Intensity (arb. units)")
+
+        return ax
+
+
+# =============================================================================
+# class LayerActivationPlot:
+#     def __init__(self):
+#         pass
+#         
+#     def plot_activations_at_layers(self, model, layer_output, layer_num, num_filters, X_train):
+#         plt.figure(figsize=(4, 12))
+#         label = ['Mn2+', 'Mn3+', 'Mn4+']
+#         valence = label[np.argmax(layer_output[-1])]
+#         name = str(model.layers[layer_num]).split()[0].split('.')[3] + ' Activations- Label: '+str(valence)
+#         save_name = str(name)+'_'+str(valence)+'.png'
+#         if layer_num != 16:
+#             label = ['Filter 1', 'Filter 2', 'Filter 3']
+#             valence = label[np.argmax(layer_output[-1])]
+#             name = f"Convolution Activations (Layer {str(layer_num)}"
+#             save_name = name + '.png'
+#         num_filters = layer_output[layer_num].shape[1]
+#         offset = []
+#         for i in range(num_filters):
+#             offset.append(max(layer_output[layer_num][:,i]))
+#             shift = 2*(sum(offset) - min(layer_output[layer_num][:,i]))
+# 
+#             plt.plot(np.linspace(620, 660, len(layer_output[layer_num][:,i])), layer_output[layer_num][:,i]+shift, 'black', label=str(i), marker='.')
+#             if layer_num != 16:
+#                 plt.axhline(shift, c = 'black')
+#         #plt.legend()
+#         plt.xticks([])
+#         plt.yticks([])
+#         plt.title(name)
+#         #plt.ylabel('Intensity')
+#         #plt.xlabel('Energy (eV)')
+#         plt.tight_layout()
+#         plt.savefig(os.path.join(path_to_output, save_name))
+# 
+# =============================================================================
