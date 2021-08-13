@@ -1084,18 +1084,19 @@ class FileWriter:
 
         """
         if filetype == "excel":
-            file = filename + ".xlsx"
-            with pd.ExcelWriter(file) as writer:
+            self.excel_filepath = filename + ".xlsx"
+            with pd.ExcelWriter(self.excel_filepath) as writer:
                 df.to_excel(writer, sheet_name=filename)
 
-        if filetype == "json":
-            file = filename + ".json"
-            with open(file, "w") as json_file:
+        if filetype == "json":          
+            self.json_filepath = filename + ".json"
+            
+            with open(self.json_filepath, "w") as json_file:
                 df.to_json(json_file, orient="records")
 
         if filetype == "pickle":
-            file = filename + ".pkl"
-            with open(file, "wb") as pickle_file:
+            self.pkl_filepath = filename + ".pkl"
+            with open(self.pkl_filepath, "wb") as pickle_file:
                 df.to_pickle(pickle_file)
 
         if filetype == "hdf5":

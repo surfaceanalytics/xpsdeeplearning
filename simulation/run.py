@@ -14,6 +14,8 @@ from time import time
 import os
 import json
 import h5py
+import pandas as pd
+
 from creator import Creator, FileWriter, calculate_runtime
 
 #%% Input parameter
@@ -42,9 +44,19 @@ print(f"Runtime: {runtime}.")
 #%% Save data and metadata.
 t0 = time()
 writer = FileWriter(creator.df, creator.params)
+writer.to_file(filetypes=["pickle"], metadata=False)
+t1 = time()
+runtimes["pkl_save"] = calculate_runtime(t0, t1)
+print(f"Pickle save runtime: {runtimes['pkl_save']}.")
+
+#%% Save data and metadata.
+t0 = time()
+
 writer.to_file(filetypes=["hdf5"], metadata=True)
 t1 = time()
 runtimes["h5_save"] = calculate_runtime(t0, t1)
+print(f"HDF5 save runtime: {runtimes['h5_save']}.")
+
 
 # Test new file.
 t0 = time()
@@ -61,7 +73,18 @@ with h5py.File(writer.hdf5_filepath, "r") as hf:
 
 t1 = time()
 runtimes["h5_load"] = calculate_runtime(t0, t1)
-print(f"HDF5 runtime: {runtimes['h5_load']}.")
+print(f"HDF5 load runtime: {runtimes['h5_load']}.")
 
 if creator.params["eV_window"]:
     creator.plot_random(10)
+    
+os.remove(writer.pkl_filepath)
+
+#%% Reload pickle file if needed.
+# =============================================================================
+# t0 = time()
+# creator.df = pd.read_pickle(writer.pkl_filepath)
+# t1 = time()
+# runtimes["pkl_load"] = calculate_runtime(t0, t1)
+# print(f"Pickle load runtime: {runtimes['pkl_load']}.")
+# =============================================================================
