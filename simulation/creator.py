@@ -56,7 +56,6 @@ class Creator:
         None.
 
         """
-        self.timestamp = datetime.datetime.now().strftime("%Y%m%d")
 
         default_param_filename = "default_params.json"
         default_param_filepath = os.path.join(
@@ -68,6 +67,9 @@ class Creator:
             self.params["init_param_filepath"] = default_param_filepath
 
             self.sim_ranges = self.params["sim_ranges"]
+
+        timestamp = datetime.datetime.now().strftime("%Y%m%d")
+        self.params["timestamp"] = timestamp
 
         # Replace the default params with the supplied params
         # if available.
@@ -85,7 +87,7 @@ class Creator:
         )
         del self.params["init_param_filepath"]
 
-        self.name = self.timestamp + "_" + self.params["name"]
+        self.name = self.params["timestamp"] + "_" + self.params["name"]
         self.no_of_simulations = self.params["no_of_simulations"]
 
         self.labels = self.params["labels"]
@@ -164,26 +166,6 @@ class Creator:
                 ref_spectra_dict[label] = measured_spectrum
             input_spectra_list.append(ref_spectra_dict)
 
-        # =============================================================================
-        #         input_spectra_list = []
-        #         for set_key, value_list in filenames.items():
-        #             ref_spectra_dict = {}
-        #             for filename in value_list:
-        #                 filepath = os.path.join(input_datapath, filename)
-        #                 converter = data_converter.DataConverter()
-        #                 converter.load(filepath)
-        #                 data = converter.data
-        #                 selection = [d for d in data if d["spectrum_type"] == "Fe2p"]
-        #
-        #                 loaded_spectra = []
-        #                 for d in converter.data:
-        #                     x = d['data']['x']
-        #                     y = d['data']['y0']
-        #                     species = d['group_name']
-        #                     label = {species: 1.0}
-        #                     loaded_spectra += [MeasuredVamasSpectrum(x,y,label)]
-        #                     del(converter)
-        # =============================================================================
         return pd.concat(
             [input_spectra, pd.DataFrame(input_spectra_list)], join="outer"
         )
@@ -307,7 +289,7 @@ class Creator:
             A list of parameters for the linear combination of r
             eference spectra.
 
-        """
+        """                    
         linear_params = [0.0] * self.no_of_linear_params
 
         # Get input spectra from one set of references.
@@ -361,28 +343,28 @@ class Creator:
             if variable_no_of_inputs:
                 # Randomly choose how many spectra shall be combined
                 no_of_spectra = np.random.randint(1, len(indices) + 1)
-                r = [
-                    np.random.uniform(0.1, 1.0) for j in range(no_of_spectra)
-                ]
+                params = [0.0] * no_of_spectra
+                while (sum(params) == 0.0):
+                    params = [
+                        np.random.uniform(0.1, 1.0) for j in range(no_of_spectra)
+                        ]
 
-                params = [k / sum(r) for k in r]
+                    params = self._normalize_float_list(params)
+                    # Don't allow parameters below 0.1.
+                    for p in params:
+                        if p <= 0.1:
+                            params[params.index(p)] = 0.0
 
-                # Don't allow parameters below 0.1.
-                for p in params:
-                    if p <= 0.1:
-                        params[params.index(p)] = 0.0
-
-                params = [k / sum(params) for k in params]
-
-                # Add zeros if no_of_spectra < no_of_linear_params.
-                for _ in range(len(indices) - no_of_spectra):
-                    params.append(0.0)
+                    params = self._normalize_float_list(params)
+        
+                    # Add zeros if no_of_spectra < no_of_linear_params.
+                    for _ in range(len(indices) - no_of_spectra):
+                        params.append(0.0)
 
             else:
                 # Linear parameters
                 r = [np.random.uniform(0.1, 1.0) for j in range(len(indices))]
-                s = sum(r)
-                params = [k / s for k in r]
+                params = self._normalize_float_list(r)
 
                 while all(p >= 0.1 for p in params) is not False:
                     # sample again if one of the parameters is smaller
@@ -391,7 +373,7 @@ class Creator:
                         np.random.uniform(0.1, 1.0)
                         for j in range(len(indices))
                     ]
-                    params = [k / sum(r) for k in r]
+                    params = self._normalize_float_list(r)
 
             # Randomly shuffle so that zeros are equally distributed.
             np.random.shuffle(params)
@@ -425,7 +407,7 @@ class Creator:
                     linear_params, selected_auger_spectra, core_spectra
                 )
 
-            linear_params = [k / sum(linear_params) for k in linear_params]
+            linear_params = self._normalize_float_list(linear_params)
 
         # If no spectrum is available, set the corresponding
         # linear param to NaN.
@@ -485,22 +467,41 @@ class Creator:
         """
         sim_params = [0.0] * 6
 
+        # FWHM
+        sim_params[-6] = self._select_random_fwhm()
+
+        # shift_x
+        # Get step from first existing spectrum
         for spectrum in self.input_spectra.iloc[row]:
             try:
                 step = spectrum.step
                 break
             except AttributeError:
                 continue
+        sim_params[-5] = self._select_random_shift_x(step)
 
-        # FWHM
+        # Signal-to-noise
+        sim_params[-4] = self._select_random_noise()
+
+        # Scattering
+        # Scatterer
+        sim_params[-3] = self._select_random_scatterer()
+        # Pressurex
+        sim_params[-2] = self._select_random_scatter_pressure()
+        # Distance
+        sim_params[-1] = self._select_random_scatter_distance()
+
+        return sim_params
+
+    def _select_random_fwhm(self):
         if self.params["broaden"] is not False:
-            sim_params[-6] = np.random.randint(
-                self.sim_ranges["FWHM"][0], self.sim_ranges["FWHM"][1]
+            return np.random.randint(
+                self.sim_ranges["FWHM"][0],
+                self.sim_ranges["FWHM"][1]
             )
-        else:
-            self.simulation_matrix[row, -6] = 0
+        return 0
 
-        # shift_x
+    def _select_random_shift_x(self, step):
         if self.params["shift_x"] is not False:
             shift_range = np.arange(
                 self.sim_ranges["shift_x"][0],
@@ -511,56 +512,43 @@ class Creator:
             if -step < shift_range[r] < step:
                 shift_range[r] = 0
 
-            sim_params[-5] = shift_range[r]
+            return shift_range[r]
+        return 0
 
-        else:
-            sim_params[-5] = 0
-
-        # Signal-to-noise
+    def _select_random_noise(self):
         if self.params["noise"] is not False:
-            sim_params[-4] = (
+            return (
                 np.random.randint(
                     self.sim_ranges["noise"][0] * 1000,
                     self.sim_ranges["noise"][1] * 1000,
                 )
                 / 1000
             )
+        return 0
 
-        else:
-            sim_params[-4] = 0
-
-        # Scattering
+    def _select_random_scatterer(self):
         if self.params["scatter"] is not False:
             # Scatterer ID
-            sim_params[-3] = np.random.randint(
+            return np.random.randint(
                 0, len(self.sim_ranges["scatterers"].keys())
-            )
-            # Pressure
-            sim_params[-2] = (
-                np.random.randint(
+                )
+        return None
+
+    def _select_random_scatter_pressure(self):
+        if self.params["scatter"] is not False:
+            return np.random.randint(
                     self.sim_ranges["pressure"][0] * 10,
                     self.sim_ranges["pressure"][1] * 10,
-                )
-                / 10
-            )
-            # Distance
-            sim_params[-1] = (
-                np.random.randint(
+                ) / 10
+        return 0
+
+    def _select_random_scatter_distance(self):
+        if self.params["scatter"] is not False:
+            return np.random.randint(
                     self.sim_ranges["distance"][0] * 100,
                     self.sim_ranges["distance"][1] * 100,
-                )
-                / 100
-            )
-
-        else:
-            # Scatterer
-            sim_params[-3] = None
-            # Pressurex
-            sim_params[-2] = 0
-            # Distance
-            sim_params[-1] = 0
-
-        return sim_params
+                    ) / 100
+        return 0
 
     def _select_one_auger_region(self, auger_spectra):
         """
@@ -583,14 +571,31 @@ class Creator:
         auger_regions = list(auger_regions)
 
         r = np.random.randint(0, len(auger_regions))
-        selected_region = auger_regions[r]
 
-        return selected_region
+        return auger_regions[r]
 
     def _scale_auger_core_together(
         self, linear_params, selected_auger_spectra, core_spectra
     ):
+        """
+        Set core/auger percentage of the same species to same value.
 
+        Parameters
+        ----------
+        linear_params : list
+            List of all linear parameters.
+        selected_auger_spectra : list
+            List of all selected Auger spectra.
+        core_spectra : list
+            List of all avialble core level spectra.
+
+        Returns
+        -------
+        linear_params : list
+            New list of linear parameters where core and auger spectra
+            of the same species have the same percentage.
+
+        """
         auger_labels = [
             list(s.label.keys())[0] for s in selected_auger_spectra
         ]
@@ -617,6 +622,28 @@ class Creator:
             linear_params[i_core] = max_value
 
         return linear_params
+
+
+    def _normalize_float_list(self, list_of_floats):
+        """
+        Normalize a list of float by its sum.
+
+        Parameters
+        ----------
+        param_list : list
+            List of floats.
+
+        Returns
+        -------
+        list
+            Normalized list of floats
+            (or original list if all entries are 0.)
+
+        """
+        try:
+            return [k / sum(list_of_floats) for k in list_of_floats]
+        except ZeroDivisionError:
+            return list_of_floats
 
     def run(self):
         """
@@ -695,15 +722,17 @@ class Creator:
                 + "/"
                 + str(self.no_of_simulations)
             )
+        
+        print("Number of created spectra: " + str(self.no_of_simulations))
 
         self.df = pd.DataFrame(dict_list)
 
         if self.params["ensure_same_length"]:
             self.df = self._extend_spectra_in_df(self.df)
+        
+        self._prepare_metadata_after_run()
 
-        self.reduced_df = self.df[["x", "y", "label"]]
-
-        print("Number of created spectra: " + str(self.no_of_simulations))
+        return self.df
 
     def _dict_from_one_simulation(self, sim):
         """
@@ -748,7 +777,7 @@ class Creator:
             "x": spectrum.x,
             "y": y,
         }
-        for label_value in self.params["labels"]:
+        for label_value in self.labels:
             if label_value not in d["label"].keys():
                 d["label"][label_value] = 0.0
 
@@ -891,59 +920,98 @@ class Creator:
             y = row["y"]
             title = "Simulated spectrum no. " + str(r)
             fig = Figure(x, y, title)
-
-            linear_params_text = ""
-            for key in self.labels:
-                linear_params_text += (
-                    str(key)
-                    + ": "
-                    + str(np.round(row["label"][key], decimals=2))
-                    + "\n"
-                )
-
-            params_text = "\n"
-            if row["FWHM"] is not None and row["FWHM"] != 0:
-                params_text += (
-                    "FHWM: " + str(np.round(row["FWHM"], decimals=2)) + "\n"
-                )
-            else:
-                params_text += "FHWM: not changed" + "\n"
-
-            if row["shift_x"] is not None and row["shift_x"] != 0:
-                params_text += (
-                    "X shift: " + "{:.3f}".format(row["shift_x"]) + "\n"
-                )
-            else:
-                params_text += "X shift: none" + "\n"
-
-            if row["noise"] is not None and row["noise"] != 0:
-                params_text += "S/N: " + "{:.1f}".format(row["noise"]) + "\n"
-            else:
-                params_text += "S/N: not changed" + "\n"
-
-            scatter_text = "\n"
-            if row["scatterer"] is not None:
-                scatter_text += "Scatterer: " + str(row["scatterer"]) + "\n"
-                scatter_text += (
-                    "Pressure: " + str(row["pressure"]) + " mbar" + "\n"
-                )
-                scatter_text += (
-                    "Distance: " + str(row["distance"]) + " mm" + "\n"
-                )
-
-            else:
-                scatter_text += "Scattering: none" + "\n"
-
+            spectrum_text = self._write_spectrum_text(row)
             fig.ax.text(
                 0.1,
                 0.9,
-                linear_params_text + params_text + scatter_text,
+                spectrum_text,
                 horizontalalignment="left",
                 verticalalignment="top",
                 transform=fig.ax.transAxes,
                 fontsize=7,
             )
             plt.show()
+            
+    def _write_spectrum_text(self, df_row):
+        """
+        Write the text for a spectrum that is plotted from a df row.
+
+        Parameters
+        ----------
+        df_row : pd.DataFrame
+            Row of a DataFrame created during simulation.
+
+        Returns
+        -------
+        None
+
+        """
+        linear_params_text = ""
+        for key in self.labels:
+            linear_params_text += (
+                    str(key)
+                    + ": "
+                    + str(np.round(df_row["label"][key], decimals=2))
+                    + "\n"
+                )
+
+        params_text = "\n"
+        if df_row["FWHM"] is not None and df_row["FWHM"] != 0:
+            params_text += (
+                "FHWM: " + str(np.round(df_row["FWHM"], decimals=2)) + "\n"
+            )
+        else:
+            params_text += "FHWM: not changed" + "\n"
+
+        if df_row["shift_x"] is not None and df_row["shift_x"] != 0:
+            params_text += (
+                "X shift: " + "{:.3f}".format(df_row["shift_x"]) + "\n"
+            )
+        else:
+            params_text += "X shift: none" + "\n"
+
+        if df_row["noise"] is not None and df_row["noise"] != 0:
+            params_text += "S/N: " + "{:.1f}".format(df_row["noise"]) + "\n"
+        else:
+            params_text += "S/N: not changed" + "\n"
+
+        scatter_text = "\n"
+        if df_row["scatterer"] is not None:
+            scatter_text += "Scatterer: " + str(df_row["scatterer"]) + "\n"
+            scatter_text += (
+                "Pressure: " + str(df_row["pressure"]) + " mbar" + "\n"
+            )
+            scatter_text += (
+                "Distance: " + str(df_row["distance"]) + " mm" + "\n"
+            )
+
+        else:
+            scatter_text += "Scattering: none" + "\n"
+            
+        return linear_params_text + params_text + scatter_text
+    
+    def _prepare_metadata_after_run(self):
+        """
+        Save the metadata from the simulation run in JSON file.
+
+        Returns
+        -------
+        None.
+
+        """
+        self.params["name"] = self.name
+        self.params["energy_range"] = [
+            np.min(self.df["x"][0]),
+            np.max(self.df["x"][0]),
+            np.round(self.df["x"][0][0] - self.df["x"][0][1], 2),
+        ]        
+
+class FileWriter:
+    def __init__(self, df, params):
+        self.df = df
+        self.params = params
+        self.name = self.params["name"]
+        self.labels = self.params["labels"]
 
     def to_file(self, filetypes, metadata=True):
         """
@@ -1080,7 +1148,7 @@ class Creator:
                     action="ignore", category=SettingWithCopyWarning
                 )
                 # Only select a random window of some eV as output.
-                step = self.sim.output_spectrum.step
+                step = self.params["energy_range"][-1]
                 eV_window = self.params["eV_window"]
                 window = int(eV_window / step) + 1
                 r = np.random.randint(0, X_one.shape[0] - window)
@@ -1174,23 +1242,13 @@ class Creator:
 
     def save_metadata(self):
         """
-        Save the metadata from the simulation run in JSON file.
+        Save simulation parameters to JSON file.
 
         Returns
         -------
         None.
 
         """
-        self.params["timestamp"] = self.timestamp
-        self.params["name"] = self.name
-        self.params["energy_range"] = [
-            np.min(self.df["x"][0]),
-            np.max(self.df["x"][0]),
-            np.round(self.df["x"][0][0] - self.df["x"][0][1], 2),
-        ]
-
-        del self.params["timestamp"]
-
         json_filepath = self.filepath + "_metadata.json"
 
         with open(json_filepath, "w") as out_file:
@@ -1232,7 +1290,7 @@ if __name__ == "__main__":
 
     t0 = time()
     creator = Creator(params=params)
-    creator.run()
+    df = creator.run()
     creator.plot_random(20)
     # creator.to_file(filetypes = ['hdf5'], metadata=True)
     t1 = time()

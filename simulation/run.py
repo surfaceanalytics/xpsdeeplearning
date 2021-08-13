@@ -14,7 +14,7 @@ from time import time
 import os
 import json
 import h5py
-from creator import Creator, calculate_runtime
+from creator import Creator, FileWriter, calculate_runtime
 
 #%% Input parameter
 # Change the following line according to your folder structure ###
@@ -32,8 +32,8 @@ runtimes = {}
 
 t0 = time()
 creator = Creator(params)
-creator.run()
-creator.plot_random(5)
+df = creator.run()
+creator.plot_random(10)
 t1 = time()
 runtime = calculate_runtime(t0, t1)
 runtimes["dataset_creation"] = runtime
@@ -41,13 +41,14 @@ print(f"Runtime: {runtime}.")
 
 #%% Save data and metadata.
 t0 = time()
-creator.to_file(filetypes=["hdf5"], metadata=True)
+writer = FileWriter(creator.df, creator.params)
+writer.to_file(filetypes=["hdf5"], metadata=True)
 t1 = time()
 runtimes["h5_save"] = calculate_runtime(t0, t1)
 
 # Test new file.
 t0 = time()
-with h5py.File(creator.hdf5_filepath, "r") as hf:
+with h5py.File(writer.hdf5_filepath, "r") as hf:
     size = hf["X"].shape
     X_h5 = hf["X"][:4000, :, :]
     y_h5 = hf["y"][:4000, :]
