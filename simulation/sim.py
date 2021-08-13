@@ -99,12 +99,12 @@ class Simulation:
             if np.round(sum(scaling_params), decimals=1) == 1.0:
                 output_list = []
 
-                for i in range(len(sim_spectra)):
+                for i, sim_spectrum in enumerate(sim_spectra):
                     # Species = List of input spectra names
-                    species = list(sim_spectra[i].label.keys())[0]
+                    species = list(sim_spectrum.label.keys())[0]
                     concentration = scaling_params[i]
 
-                    intensity = sim_spectra[i].lineshape * scaling_params[i]
+                    intensity = sim_spectrum.lineshape * scaling_params[i]
                     output_list.append(intensity)
 
                     # For each species, the label gets a new key:value

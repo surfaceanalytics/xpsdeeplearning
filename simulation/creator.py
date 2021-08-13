@@ -850,7 +850,6 @@ class Creator:
         None.
 
         """
-
         def start_stop_step_from_x(x):
             """
             Calculcate start, stop, and step from a regular array.
@@ -895,8 +894,7 @@ class Creator:
             Y[-int(len_diff / 2) :] = np.mean(Y0[-20])
 
             return X, Y
-        else:
-            return X0, Y0
+        return X0, Y0
 
     def plot_random(self, no_of_spectra):
         """

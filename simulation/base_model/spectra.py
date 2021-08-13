@@ -339,8 +339,7 @@ class MeasuredSpectrum(Spectrum):
 
         if any(core_level in label for core_level in core_levels):
             return "core_level"
-        else:
-            return "auger"
+        return "auger"
 
 
 class ReferenceSpectrum(MeasuredSpectrum):
@@ -384,9 +383,9 @@ class ReferenceSpectrum(MeasuredSpectrum):
         with open(filepath_new, "w") as file:
             species = list(self.label.keys())[0]
             lines = [species + "\n"]
-            for i in range(len(self.x)):
+            for i, x_i in enumerate(self.x):
                 lines.append(
-                    str("{:e}".format(self.x[i]))
+                    str("{:e}".format(x_i))
                     + " "
                     + str("{:e}".format(self.lineshape[i]))
                     + "\n"

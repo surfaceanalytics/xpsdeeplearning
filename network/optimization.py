@@ -244,14 +244,14 @@ class Hyperoptimization:
             for filename in next(os.walk(self.test_dir))[2]
             if (filename.startswith("test_log") and filename.endswith("pkl"))
         ]
-
-        try:
-            for filename in filenames:
-                scan_number = int(filename.split(".")[0][-1])
-                restored_scan = RestoredScan(self.test_dir, scan_number)
-                scans.append(restored_scan)
-        except:
-            print("Previous scans could not be restored.")
+        
+        for filename in filenames:
+            scan_number = int(filename.split(".")[0][-1])
+            restored_scan = RestoredScan(self.test_dir, scan_number)
+            scans.append(restored_scan)
+        
+        if not scans:
+            print("There were no previous scans.")
 
         return scans
 
