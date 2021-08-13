@@ -47,8 +47,9 @@ class Creator:
             The default is True.
          variable_no_of_inputs : bool, optional
             If variable_no_of_inputs and if single, then the number of
-            input spectra used in the linear combination will be randomly
-            chosen from the interval (1, No. of input spectra).
+            input spectra used in the linear combination will be
+            randomly chosen from the interval 
+            (1, No. of input spectra).
             The default is True.
 
         Returns
@@ -83,7 +84,8 @@ class Creator:
 
         # Print parameter file name.
         print(
-            f"Parameters were taken from {self.params['init_param_filepath']}."
+            "Parameters were taken from "
+            f"{self.params['init_param_filepath']}."
         )
         del self.params["init_param_filepath"]
 
@@ -97,7 +99,9 @@ class Creator:
         # not scaled together.
         if not self.params["same_auger_core_percentage"]:
             warnings.warn(
-                'Auger and core spectra of the same species are not scaled together. If you have Auger spectra, you may want to set "same_auger_core_percentage" to True!'
+                'Auger and core spectra of the same species are not scaled'
+                ' together. If you have Auger spectra, you may want to set'
+                ' "same_auger_core_percentage" to True!'
             )
 
         # Load input spectra from all reference sets.
@@ -198,7 +202,8 @@ class Creator:
         variable_no_of_inputs : bool, optional
             If variable_no_of_inputs and if single, then the number of
             input spectra used in the linear combination will be
-            randomly chosen from the interval (1, No. of input spectra).
+            randomly chosen from the interval
+            (1, No. of input spectra).
             The default is True.
         always_auger : bool, optional
             If always_auger, there will always be at least one
@@ -272,7 +277,8 @@ class Creator:
         variable_no_of_inputs : bool, optional
             If variable_no_of_inputs and if single, then the number of
             input spectra used in the linear combination will be
-            randomly chosen from the interval (1, No. of input spectra).
+            randomly chosen from the interval
+            (1, No. of input spectra).
             The default is True.
         always_auger : bool, optional
             If always_auger, there will always be at least one
@@ -289,7 +295,7 @@ class Creator:
             A list of parameters for the linear combination of r
             eference spectra.
 
-        """                    
+        """
         linear_params = [0.0] * self.no_of_linear_params
 
         # Get input spectra from one set of references.
@@ -344,10 +350,11 @@ class Creator:
                 # Randomly choose how many spectra shall be combined
                 no_of_spectra = np.random.randint(1, len(indices) + 1)
                 params = [0.0] * no_of_spectra
-                while (sum(params) == 0.0):
+                while sum(params) == 0.0:
                     params = [
-                        np.random.uniform(0.1, 1.0) for j in range(no_of_spectra)
-                        ]
+                        np.random.uniform(0.1, 1.0)
+                        for j in range(no_of_spectra)
+                    ]
 
                     params = self._normalize_float_list(params)
                     # Don't allow parameters below 0.1.
@@ -356,7 +363,7 @@ class Creator:
                             params[params.index(p)] = 0.0
 
                     params = self._normalize_float_list(params)
-        
+
                     # Add zeros if no_of_spectra < no_of_linear_params.
                     for _ in range(len(indices) - no_of_spectra):
                         params.append(0.0)
@@ -496,8 +503,7 @@ class Creator:
     def _select_random_fwhm(self):
         if self.params["broaden"] is not False:
             return np.random.randint(
-                self.sim_ranges["FWHM"][0],
-                self.sim_ranges["FWHM"][1]
+                self.sim_ranges["FWHM"][0], self.sim_ranges["FWHM"][1]
             )
         return 0
 
@@ -531,23 +537,29 @@ class Creator:
             # Scatterer ID
             return np.random.randint(
                 0, len(self.sim_ranges["scatterers"].keys())
-                )
+            )
         return None
 
     def _select_random_scatter_pressure(self):
         if self.params["scatter"] is not False:
-            return np.random.randint(
+            return (
+                np.random.randint(
                     self.sim_ranges["pressure"][0] * 10,
                     self.sim_ranges["pressure"][1] * 10,
-                ) / 10
+                )
+                / 10
+            )
         return 0
 
     def _select_random_scatter_distance(self):
         if self.params["scatter"] is not False:
-            return np.random.randint(
+            return (
+                np.random.randint(
                     self.sim_ranges["distance"][0] * 100,
                     self.sim_ranges["distance"][1] * 100,
-                    ) / 100
+                )
+                / 100
+            )
         return 0
 
     def _select_one_auger_region(self, auger_spectra):
@@ -608,11 +620,11 @@ class Creator:
 
         for species in overlapping_species:
             label_auger = [
-                label for label in auger_labels if species in label
-            ][0]
-            label_core = [label for label in core_labels if species in label][
-                0
-            ]
+                label for label in auger_labels
+                if species in label][0]
+            label_core = [
+                label for label in core_labels
+                if species in label][0]
             i_auger = self.spectra.index(label_auger)
             i_core = self.spectra.index(label_core)
             max_value = np.max(
@@ -622,7 +634,6 @@ class Creator:
             linear_params[i_core] = max_value
 
         return linear_params
-
 
     def _normalize_float_list(self, list_of_floats):
         """
@@ -722,14 +733,14 @@ class Creator:
                 + "/"
                 + str(self.no_of_simulations)
             )
-        
+
         print("Number of created spectra: " + str(self.no_of_simulations))
 
         self.df = pd.DataFrame(dict_list)
 
         if self.params["ensure_same_length"]:
             self.df = self._extend_spectra_in_df(self.df)
-        
+
         self._prepare_metadata_after_run()
 
         return self.df
@@ -931,7 +942,7 @@ class Creator:
                 fontsize=7,
             )
             plt.show()
-            
+
     def _write_spectrum_text(self, df_row):
         """
         Write the text for a spectrum that is plotted from a df row.
@@ -949,11 +960,11 @@ class Creator:
         linear_params_text = ""
         for key in self.labels:
             linear_params_text += (
-                    str(key)
-                    + ": "
-                    + str(np.round(df_row["label"][key], decimals=2))
-                    + "\n"
-                )
+                str(key)
+                + ": "
+                + str(np.round(df_row["label"][key], decimals=2))
+                + "\n"
+            )
 
         params_text = "\n"
         if df_row["FWHM"] is not None and df_row["FWHM"] != 0:
@@ -987,9 +998,9 @@ class Creator:
 
         else:
             scatter_text += "Scattering: none" + "\n"
-            
+
         return linear_params_text + params_text + scatter_text
-    
+
     def _prepare_metadata_after_run(self):
         """
         Save the metadata from the simulation run in JSON file.
@@ -1004,7 +1015,8 @@ class Creator:
             np.min(self.df["x"][0]),
             np.max(self.df["x"][0]),
             np.round(self.df["x"][0][0] - self.df["x"][0][1], 2),
-        ]        
+        ]
+
 
 class FileWriter:
     def __init__(self, df, params):
@@ -1045,7 +1057,7 @@ class FileWriter:
                 print("Saving was not successful. Choose a valid filetype!")
             else:
                 self._save_to_file(self.df, self.filepath, filetype)
-                print("Data was saved to {0} file.".format(filetype.upper()))
+                print(f"Data was saved to {filetype.upper()} file.")
 
         if metadata:
             self.save_metadata()
@@ -1188,7 +1200,9 @@ class FileWriter:
             X = np.reshape(X, (X.shape[0], X.shape[1], -1))
         except IndexError:
             raise IndexError(
-                'Could not concatenate individual spectra because their sizes are different. Either set "ensure_same_length" to True or "eV_window" to a finite integer!'
+                'Could not concatenate individual spectra because their'
+                'sizes are different. Either set "ensure_same_length"'
+                'to True or "eV_window" to a finite integer!'
             )
 
         y = self._one_hot_encode(y)

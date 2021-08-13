@@ -18,7 +18,9 @@ class VamasHeader:
         None.
 
         """
-        self.formatID = "VAMAS Surface Chemical Analysis Standard Data Transfer Format 1988 May 4"
+        self.formatID = (
+            "VAMAS Surface Chemical Analysis Standard "
+            "Data Transfer Format 1988 May 4")
         self.instituteID = "Not Specified"
         self.instriumentModelID = "Not Specified"
         self.operatorID = "Not Specified"
@@ -60,7 +62,9 @@ class Block:
         self.second = ""
         self.noHrsInAdvanceOfGMT = "0"
         self.noCommentLines = ""
-        self.commentLines = ""  # This list should contain one element per for each line in the comment block
+        # This list should contain one element per
+        # for each line in the comment block.
+        self.commentLines = ""
         self.technique = ""
         self.expVarValue = ""
         self.sourceLabel = ""

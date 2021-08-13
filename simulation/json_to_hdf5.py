@@ -41,7 +41,10 @@ def safe_arange_with_edges(start, stop, step):
     """
     return step * np.arange(start / step, (stop + step) / step)
 
-def load_data_preprocess(json_datafolder, label_list, start, end, window=None):
+
+def load_data_preprocess(
+    json_datafolder, label_list, start, end, window=None
+):
     """
     Load data from JSON files in the json_datafolder.
     
@@ -62,7 +65,8 @@ def load_data_preprocess(json_datafolder, label_list, start, end, window=None):
     Returns
     -------
     X : arr
-        3D numpy array in the format (no_of_spectra, len of 1 spectrum, 1).
+        3D numpy array in the format
+        (no_of_spectra, len of 1 spectrum, 1).
     y : arr
         One-hot encoded labels. Label values need to be given/changed
         in the first line of this method.        
@@ -103,6 +107,7 @@ def load_data_preprocess(json_datafolder, label_list, start, end, window=None):
             X_one = spec_data["y"]
             if window:
                 from pandas.core.common import SettingWithCopyWarning
+
                 warnings.simplefilter(
                     action="ignore", category=SettingWithCopyWarning
                 )
@@ -229,6 +234,7 @@ def _one_hot_encode(y, label_list):
 
     return new_labels
 
+
 def step_from_x(x):
     """
     Calculcate step from a regular array.
@@ -252,7 +258,9 @@ def step_from_x(x):
     return step
 
 
-def to_hdf5(json_datafolder, output_file, no_of_files_per_load=50, window=None):
+def to_hdf5(
+    json_datafolder, output_file, no_of_files_per_load=50, window=None
+):
     """
     Store all data in an input datafolder in an HDF5 file.
 
@@ -282,9 +290,7 @@ def to_hdf5(json_datafolder, output_file, no_of_files_per_load=50, window=None):
         energies = _load_energies(filepath)
         if window:
             step = step_from_x(energies)
-            energies = np.flip(
-                safe_arange_with_edges(0, window, step)
-                )
+            energies = np.flip(safe_arange_with_edges(0, window, step))
         hf.create_dataset(
             "energies", data=energies, compression="gzip", chunks=True
         )
@@ -311,7 +317,9 @@ def to_hdf5(json_datafolder, output_file, no_of_files_per_load=50, window=None):
             scatterer,
             distance,
             pressure,
-        ) = load_data_preprocess(json_datafolder, label_list, start, end, window)
+        ) = load_data_preprocess(
+            json_datafolder, label_list, start, end, window
+        )
         hf.create_dataset(
             "X",
             data=X,
@@ -382,7 +390,9 @@ def to_hdf5(json_datafolder, output_file, no_of_files_per_load=50, window=None):
                 scatterer_new,
                 distance_new,
                 pressure_new,
-            ) = load_data_preprocess(json_datafolder, label_list, start, end, window)
+            ) = load_data_preprocess(
+                json_datafolder, label_list, start, end, window
+            )
 
             hf["X"].resize((hf["X"].shape[0] + X_new.shape[0]), axis=0)
             hf["X"][-X_new.shape[0] :] = X_new

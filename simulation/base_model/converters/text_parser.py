@@ -17,7 +17,7 @@ class TextParser:
         Parameters
         ----------
         **kwargs : dict
-            If **kwargs contains "n_headerlines", 
+            If **kwargs contains "n_headerlines",
             the first few lines will be stored as a header.
 
         Returns
@@ -36,8 +36,8 @@ class TextParser:
         Parse the .txt file into a list of dictionaries.
 
         Each dictionary is a grouping of related attributes.
-        These are later put into a heirarchical nested dictionary that 
-        represents the native data structure of the export, and is well 
+        These are later put into a heirarchical nested dictionary that
+        represents the native data structure of the export, and is well
         represented by JSON.
         """
         self._read_lines(filepath)
@@ -53,7 +53,7 @@ class TextParser:
 
     def _parse_header(self):
         """
-        Separe the dataset into header and data.
+        Separate the dataset into header and data.
 
         Returns
         -------
@@ -84,7 +84,7 @@ class TextParser:
     def _check_step_width(self, x, y):
         """
         Check that the x and y arrays are regular.
-        
+
         Parameters
         ----------
         x : ndarray
@@ -94,10 +94,10 @@ class TextParser:
 
         Returns
         -------
-        x : TYPE
-            DESCRIPTION.
-        y : TYPE
-            DESCRIPTION.
+        x : array
+            Regular X array.
+        y : array
+            Regular y array.
 
         """
         start = x[0]
@@ -112,8 +112,8 @@ class TextParser:
     def _interpolate(self, x, y, step):
         """
         Interpolate intensity array.
-        
-        If the x array is irregular, overwrite it with a regular step 
+
+        If the x array is irregular, overwrite it with a regular step
         size and interpolate the y values.
 
         Parameters
