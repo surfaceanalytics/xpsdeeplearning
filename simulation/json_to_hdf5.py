@@ -14,10 +14,37 @@ import json
 import h5py
 from time import time
 
+import warnings
+
 from creator import calculate_runtime
 
 #%%
-def load_data_preprocess(json_datafolder, label_list, start, end):
+def safe_arange_with_edges(start, stop, step):
+    """
+    In order to avoid float point errors in the division by step.
+
+    Parameters
+    ----------
+    start : float
+        Smallest value.
+    stop : float
+        Biggest value.
+    step : float
+        Step size between points.
+
+    Returns
+    -------
+    ndarray
+        1D array with values in the interval (start, stop), 
+        incremented by step.
+
+    """
+    return step * np.arange(start / step, (stop + step) / step)
+
+
+def load_data_preprocess(
+    json_datafolder, label_list, start, end, window=None
+):
     """
     Load data from JSON files in the json_datafolder.
     
@@ -38,7 +65,8 @@ def load_data_preprocess(json_datafolder, label_list, start, end):
     Returns
     -------
     X : arr
-        3D numpy array in the format (no_of_spectra, len of 1 spectrum, 1).
+        3D numpy array in the format
+        (no_of_spectra, len of 1 spectrum, 1).
     y : arr
         One-hot encoded labels. Label values need to be given/changed
         in the first line of this method.        
@@ -77,6 +105,19 @@ def load_data_preprocess(json_datafolder, label_list, start, end):
             test = json.load(json_file)
         for j, spec_data in enumerate(test):
             X_one = spec_data["y"]
+            if window:
+                from pandas.core.common import SettingWithCopyWarning
+
+                warnings.simplefilter(
+                    action="ignore", category=SettingWithCopyWarning
+                )
+                # Only select a random window of some eV as output.
+                energies = np.array(spec_data["y"])
+                step = step_from_x(energies)
+                eV_window = window
+                array_window = int(eV_window / step) + 1
+                r = np.random.randint(0, X_one.shape[0] - window)
+                X_one = X_one[r : r + array_window]
             y_one = spec_data["label"]
             shiftx_one = spec_data["shift_x"]
             noise_one = spec_data["noise"]
@@ -194,7 +235,32 @@ def _one_hot_encode(y, label_list):
     return new_labels
 
 
-def to_hdf5(json_datafolder, output_file, no_of_files_per_load=50):
+def step_from_x(x):
+    """
+    Calculcate step from a regular array.
+
+    Parameters
+    ----------
+    x : ndarrray
+        A numpy array with regular spacing,
+        i.e. the same step size between all points.
+
+    Returns
+    -------
+    step : float
+        Step size between points in x.
+
+    """
+    x1 = np.roll(x, -1)
+    diff = np.abs(np.subtract(x, x1))
+    step = np.round(np.min(diff[diff != 0]), 3)
+
+    return step
+
+
+def to_hdf5(
+    json_datafolder, output_file, no_of_files_per_load=50, window=None
+):
     """
     Store all data in an input datafolder in an HDF5 file.
 
@@ -222,6 +288,9 @@ def to_hdf5(json_datafolder, output_file, no_of_files_per_load=50):
         # Store energies and labels in separate dataset.
         filepath = os.path.join(json_datafolder, filenames[0])
         energies = _load_energies(filepath)
+        if window:
+            step = step_from_x(energies)
+            energies = np.flip(safe_arange_with_edges(0, window, step))
         hf.create_dataset(
             "energies", data=energies, compression="gzip", chunks=True
         )
@@ -248,7 +317,9 @@ def to_hdf5(json_datafolder, output_file, no_of_files_per_load=50):
             scatterer,
             distance,
             pressure,
-        ) = load_data_preprocess(json_datafolder, label_list, start, end)
+        ) = load_data_preprocess(
+            json_datafolder, label_list, start, end, window
+        )
         hf.create_dataset(
             "X",
             data=X,
@@ -319,7 +390,9 @@ def to_hdf5(json_datafolder, output_file, no_of_files_per_load=50):
                 scatterer_new,
                 distance_new,
                 pressure_new,
-            ) = load_data_preprocess(json_datafolder, label_list, start, end)
+            ) = load_data_preprocess(
+                json_datafolder, label_list, start, end, window
+            )
 
             hf["X"].resize((hf["X"].shape[0] + X_new.shape[0]), axis=0)
             hf["X"][-X_new.shape[0] :] = X_new

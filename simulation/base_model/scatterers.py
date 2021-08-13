@@ -26,15 +26,15 @@ class Scatterer:
     def __init__(self, label):
         """
         Create a default loss function.
-        
-        The default goes from 0 to 200 eV with a 
+
+        The default goes from 0 to 200 eV with a
         step size of 0.1 eV.
 
         Parameters
         ----------
         label : str
             String value for labeling the scatterer.
-            Allowed values: 'default', 'He', 'H2', 'O2', 'N2', 
+            Allowed values: 'default', 'He', 'H2', 'O2', 'N2'.
 
         Returns
         -------
@@ -52,9 +52,9 @@ class Scatterer:
     def build_loss_from_json(self, input_datapath):
         """
         Build the spectrum of the loss function.
-        
-        The components are taken from a scatterer loaded from a json 
-        file.  
+
+        The components are taken from a scatterer loaded from a JSON
+        file.
 
         Parameters
         ----------
@@ -121,9 +121,9 @@ class ScatteringMedium:
     def __init__(self, label):
         """
         Initialize the medium with one scatterer.
-        
+
         A ScatteringMedium contains one or more Scatterer objects.
-        In this case, only one Scatterer object is used, 
+        In this case, only one Scatterer object is used,
         depending on the input label.
 
         Parameters

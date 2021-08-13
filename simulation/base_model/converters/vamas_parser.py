@@ -192,12 +192,13 @@ class VamasParser:
         ]
 
     def parse_file(self, filepath):
-        """ The openFile method parses the .xy file into a list of dictionaries 
-        under the attribute 'self.data'.
+        """
+        Parse .xy into a list of dictionaries caleld 'self.data'.
+
         Each dictionary is a grouping of related attributes.
-        These are later put into a heirarchical nested dictionary that 
-        represents the native data structure of the export, and is well 
-        represented by JSON.
+        These are later put into a heirarchical nested dictionary that
+        represents the native data structure of the export, and is
+        well represented by JSON.
         """
         self._read_lines(filepath)
         self._parse_header()
@@ -229,7 +230,7 @@ class VamasParser:
     def _parse_header(self):
         """
         Parse the vamas header into a VamasHeader object.
-        
+
         The common_header_attr are the header attributes that are common
         to both types of Vama format (NORM and MAP).
 
@@ -242,7 +243,7 @@ class VamasParser:
             setattr(self.header, attr, self.data.pop(0).strip())
         n = int(self.header.noCommentLines)
         comments = ""
-        for l in range(n):
+        for line_no in range(n):
             comments += self.data.pop(0)
         self.header.commentLines = comments
         self.header.expMode = self.data.pop(0).strip()
@@ -286,7 +287,7 @@ class VamasParser:
     def _parseOneBlock(self):
         """
         Parse one block of vamas data.
-        
+
         Depending on the experimental mode, a differnt method is used.
 
         Returns
@@ -302,14 +303,13 @@ class VamasParser:
     def _parse_NORM_Block(self):
         """
         Parse a NORM block from Vamas.
-        
+
         Returns
         -------
         block : vamas.BLOCK
             A Block object containing all data from one VAMAS block.
 
         """
-
         # start = time.time()
         block = Block()
         # stop = time.time()
@@ -396,7 +396,7 @@ class VamasParser:
     def _parse_MAP_block(self):
         """
         Parse a MAP block from Vamas.
-        
+
         Returns
         -------
         block : vamas.BLOCK
@@ -511,12 +511,12 @@ class VamasParser:
 
         self.data = self.data[block.numOrdValues :]
 
-        # =============================================================================
-        #         for r in range(int(block.numOrdValues / block.noVariables)):
-        #             for v in range(block.noVariables):
-        #                 name = 'y' + str(v)
-        #                 data_dict[name] += [float(self.data.pop(0).strip())]
-        # =============================================================================
+# =============================================================================
+#         for r in range(int(block.numOrdValues / block.noVariables)):
+#             for v in range(block.noVariables):
+#                 name = 'y' + str(v)
+#                 data_dict[name] += [float(self.data.pop(0).strip())]
+# =============================================================================
 
         for v in range(block.noVariables):
             n = block.noVariables
@@ -528,7 +528,7 @@ class VamasParser:
     def _build_dict(self):
         """
         Construct a list of dictionaries.
-        
+
         Each dictionary contains all the data and metadata of a spectrum.
         vamas.sampleID -> group['name']
         vamas.

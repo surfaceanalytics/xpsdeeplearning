@@ -41,7 +41,8 @@ def _load_data(filenames):
     scatterer : ndarray
         Names of the scatterer. Encoded by integers.
     distance : ndarray
-        Distances (in mm) the electrons travel in the scattering medium.
+        Distances (in mm) the electrons travel in the scattering 
+        medium.
     pressure : ndarray
         Pressure of the scattering medium in mbar.
     """

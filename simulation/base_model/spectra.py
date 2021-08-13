@@ -12,7 +12,7 @@ import os
 from scipy.signal import fftconvolve
 import math
 
-from .converters.data_converter import DataConverter
+# from .converters.data_converter import DataConverter
 
 try:
     from .peaks import Gauss, Lorentz, Voigt, VacuumExcitation, Tougaard
@@ -269,8 +269,8 @@ class MeasuredSpectrum(Spectrum):
     def load(self, filepath):
         """
         Load the data from the file.
-        
-        The first line of the file needs to contain the label as a 
+
+        The first line of the file needs to contain the label as a
         string.
 
         Parameters
@@ -405,8 +405,8 @@ class FittedSpectrum(MeasuredSpectrum):
     def load(self, filepath):
         """
         Overwrite load method from the MeasuredSpectrum class.
-        
-        This is done to accomodate header of CasaXPS export and 
+
+        This is done to accomodate header of CasaXPS export and
         associate the spectrum with a number.
 
         Parameters
@@ -468,7 +468,7 @@ class SyntheticSpectrum(Spectrum):
     def build_line(self):
         """
         Build the lineshape.
-        
+
         The lineshape is build by calling the function method on each
         of the components.
 
@@ -491,7 +491,7 @@ class SyntheticSpectrum(Spectrum):
         component : Peak
             A peak object that needs to have a method 'function'.
         rebuild : bool, optional
-            If rebuild, the lineshape is rebuild including the 
+            If rebuild, the lineshape is rebuild including the
             new component. The default is True.
 
         Returns
@@ -539,10 +539,11 @@ class SimulatedSpectrum(Spectrum):
     def __init__(self, start, stop, step, label):
         """
         Initialize an x and lineshape array.
-                
+
         The simulated spectrum is created by changes to the resolution,
-        S/N ratio and x-axis of a spectrum as well as by simulation of 
-        gas phase scattering. At first, set all change parameters to None.  
+        S/N ratio and x-axis of a spectrum as well as by simulation of
+        gas phase scattering. At first, set all change parameters to
+        None.
 
         Parameters
         ----------
@@ -572,7 +573,7 @@ class SimulatedSpectrum(Spectrum):
     def shift_horizontal(self, shift_x):
         """
         Shift the output lineshape by some eV.
-        
+
         Parameters
         ----------
         shift_x : int
@@ -582,7 +583,7 @@ class SimulatedSpectrum(Spectrum):
         Returns
         -------
         None.
-        
+
         """
         # b = np.nansum(self.lineshape)
 
@@ -617,15 +618,6 @@ class SimulatedSpectrum(Spectrum):
 
             self.shift_x = shift_x
 
-        # =============================================================================
-        #             # For normalization, take the sum of the original
-        #             # lineshape.
-        #             if b != 0:
-        #                 self.lineshape /= b
-        #             else:
-        #                 print("Simulation was not successful.")
-        # =============================================================================
-
         else:
             # Return error and repeat input
             print("Shift value too big.")
@@ -634,12 +626,12 @@ class SimulatedSpectrum(Spectrum):
     def add_noise(self, signal_to_noise):
         """
         Add noise from a Poisson distribution to the lineshape.
-        
+
         Parameters
         ----------
         signal_to_noise : int
-            Integer value for the amount of noise to be added.   
-            
+            Integer value for the amount of noise to be added.
+
         Returns
         -------
         None.
@@ -665,12 +657,12 @@ class SimulatedSpectrum(Spectrum):
     def change_resolution(self, resolution):
         """
         Apply Gaussian instrumental broadening.
-        
-        This methdod broadens a spectrum assuming a Gaussian kernel. 
-        The width of the kernel is determined by the resolution. 
-        In particular, the function will determine the mean wavelength 
+
+        This methdod broadens a spectrum assuming a Gaussian kernel.
+        The width of the kernel is determined by the resolution.
+        In particular, the function will determine the mean wavelength
         and set the Full Width at Half Maximum (FWHM) of the Gaussian
-        to (mean wavelength)/resolution. 
+        to (mean wavelength)/resolution.
 
         Parameters
         ----------
@@ -729,12 +721,12 @@ class SimulatedSpectrum(Spectrum):
     def scatter_in_gas(self, label="He", distance=0.8, pressure=1.0):
         """
         Simulate scattering through a gas phase/thin film.
-        
+
         First the convolved spectra are dotted with the
         factors vector to scale all the inelastic scatterd spectra by
-        the Poisson and angular factors. Then the elastically 
-        scattered and non-scattered spectra are scaled by their 
-        respective factors.        
+        the Poisson and angular factors. Then the elastically
+        scattered and non-scattered spectra are scaled by their
+        respective factors.
 
         Parameters
         ----------

@@ -32,7 +32,7 @@ class Gauss(Peak):
             FWHM of the main peak.
         intensity : float
             Intensity of the main peak.
-            
+
         Returns
         -------
         None.
@@ -56,12 +56,12 @@ class Gauss(Peak):
 
         """
         if self.width != 0:
-            g = (
+            gaussian = (
                 self.intensity
                 / (self.width * np.sqrt(2 * np.pi))
                 * np.exp(-0.5 * ((x - self.position) / self.width) ** 2)
             )
-            return g
+            return gaussian
 
 
 class Lorentz(Peak):
@@ -103,12 +103,12 @@ class Lorentz(Peak):
 
         """
         if self.width != 0:
-            l = (
+            lorentzian = (
                 self.intensity
                 * 1
                 / (1 + ((self.position - x) / (self.width / 2)) ** 2)
             )
-            return l
+            return lorentzian
 
 
 class Voigt(Peak):
@@ -154,7 +154,7 @@ class Voigt(Peak):
 
         """
         if self.width != 0:
-            v = (
+            voigt = (
                 self.fraction_gauss
                 * Gauss(self.position, self.width, self.intensity).function(x)
             ) + (
@@ -163,7 +163,7 @@ class Voigt(Peak):
                     x
                 )
             )
-            return v
+            return voigt
 
 
 class VacuumExcitation:
@@ -172,11 +172,11 @@ class VacuumExcitation:
     def __init__(self, edge, fermi_width, intensity, exponent):
         """
         Initiliaze the four defining parameters.
-        
+
         A vacuum excitation is simulated starting at the fermi edge
         and using a power law to simulate the extended background
         shape.
-        
+
         Parameters
         ----------
         edge : float
@@ -201,7 +201,7 @@ class VacuumExcitation:
     def fermi_edge(self, x):
         """
         Create the FE lineshape.
-        
+
         Parameters
         ----------
         x : arr
@@ -214,13 +214,13 @@ class VacuumExcitation:
 
         """
         k = 0.1
-        f = 1 / (np.exp((self.edge - x) / (k * self.fermi_width)) + 1)
-        return f
+        fermi = 1 / (np.exp((self.edge - x) / (k * self.fermi_width)) + 1)
+        return fermi
 
     def power_law(self, x):
         """
         Create the lineshape away from the FE following a power law.
-        
+
         Parameters
         ----------
         x : arr
@@ -232,15 +232,15 @@ class VacuumExcitation:
             Power law lineshape.
 
         """
-        p = np.exp(-1 * (x + self.edge) * self.exponent)
-        return p
+        power_law = np.exp(-1 * (x + self.edge) * self.exponent)
+        return power_law
 
     def function(self, x):
         """
         Combine the fermi edge and power law lineshapes.
-        
+
         The lineshape is scaled by the overall intensity.
-        
+
         Parameters
         ----------
         x : arr
@@ -253,8 +253,8 @@ class VacuumExcitation:
 
         """
         if self.fermi_width != 0:
-            f = (self.fermi_edge(x)) * self.power_law(x) * self.intensity
-            return f
+            vac_exc = (self.fermi_edge(x)) * self.power_law(x) * self.intensity
+            return vac_exc
 
 
 class Tougaard:
@@ -286,11 +286,11 @@ class Tougaard:
     def function(self, x):
         """
         Create the Tougaard lineshape.
-        
+
         The lineshape is of the form
         F(x) = B*x/(C-x**2)**2 + D*x**2) if x > Eg
         F(x) = 0 <= Eg
-        
+
         Parameters
         ----------
         x : arr
@@ -304,11 +304,11 @@ class Tougaard:
         """
         warnings.simplefilter("ignore")
         C = self.C * 20
-        f = (
+        tougaard = (
             (self.B * x)
             / ((C - x ** 2) ** 2 + self.D * x ** 2)
             * 1
             / (np.exp((self.Eg - x) / (self.t * self.kb)) + 1)
         )
 
-        return f
+        return tougaard

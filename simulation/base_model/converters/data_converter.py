@@ -15,11 +15,11 @@ class DataConverter:
     def __init__(self):
         """
         Initialize the parser methods.
-        
-        All objects of the Dataset class should have the methods specificed
-        in the attribute 'self.class_methods'
-        
-        This class parses files of type: 
+
+        All objects of the Dataset class should have the methods
+        specificed in the attribute 'self.class_methods'.
+
+        This class parses files of type:
             'ProdigyXY', 'Vamas'
         And writes files of type:
             'JSON', 'Vamas', 'Excel'
@@ -30,14 +30,14 @@ class DataConverter:
     def load(self, filename, **kwargs):
         """
         Parse an input file.
-        
+
         The result is placed into a nested dictionary.
-        
+
         Parameters
         ----------
         filename: STRING
             The location and name of the file you wish to parse.
-        **kwargs: 
+        **kwargs:
             in_format: The file format of the loaded file.
         """
         if "in_format" not in kwargs.keys():

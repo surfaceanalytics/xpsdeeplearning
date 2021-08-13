@@ -15,7 +15,7 @@ class Figure:
     def __init__(self, x, y, title):
         """
         Plot the spectrum.
-        
+
         X limits are set according to the min/max values of the
         binding energies.
 
@@ -33,7 +33,6 @@ class Figure:
         None.
 
         """
-
         self.x = x
         self.y = y
         self.fig, self.ax = plt.subplots(figsize=(5, 4), dpi=300)
