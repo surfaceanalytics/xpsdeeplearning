@@ -258,9 +258,10 @@ class Classifier:
         except KeyboardInterrupt:
             # Save the model and the history in case of interruption.
             print("Training interrupted!")
-            if "ModelCheckpoint" not in [
-                type(cb).__name__ for cb in self.logging.active_cbs
-            ]:
+            if any(
+                checkpoint not in [type(cb).__name__ for cb in self.logging.active_cbs]
+                for checkpoint in ("ModelCheckpoint", "CustomModelCheckpoint")
+            ):
                 self.save_model()
             self.logging.history = self.logging._get_total_history()
 
@@ -457,8 +458,8 @@ class Classifier:
         loaded_model = load_model(file_name, custom_objects=custom_objects)
         optimizer = loaded_model.optimizer
         loss = loaded_model.loss
-        metrics = loaded_model.metrics
-
+        metrics  = [metric.name for metric in loaded_model.metrics if metric.name != "loss"]
+        
         # Instantiate a new EmptyModel and implement it with the loaded
         # parameters. Needed for dropping the layers while keeping all
         # parameters.
@@ -506,9 +507,8 @@ class Classifier:
 
         if compile_model:
             self.model.compile(
-                optimizer=optimizer, loss=loss, metrics=metrics
-            )
-
+                optimizer=optimizer, loss=loss, metrics=metrics)
+                
     def load_data_preprocess(
         self,
         input_filepath,
