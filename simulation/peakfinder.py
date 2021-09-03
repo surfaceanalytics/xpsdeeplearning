@@ -17,7 +17,7 @@ class Peakfinder:
 
     def __init__(self, X, y):
         """
-        
+        Initialize data and labels.
 
         Parameters
         ----------
@@ -45,7 +45,7 @@ class Peakfinder:
         prominence: number or ndarray or sequence, optional
             Required prominence of peaks.
             Either a number, None, an array matching x or a 2-element
-            sequence of the former. The first element is always 
+            sequence of the former. The first element is always
             interpreted as the minimal and the second, if supplied, as
             the maximal required prominence.
 
@@ -79,7 +79,7 @@ class Peakfinder:
 
     def distinguish_arrays(self, array_dict):
         """
-        
+        Distinguish between array with and without peaks.
 
         Parameters
         ----------
@@ -139,16 +139,19 @@ class Peakfinder:
                 p = self.peakfull_indices[0][
                     np.random.randint(0, self.peakfull_indices[0].shape[0])
                 ]
+                peaks = self.all_peaks[p]
                 spectrum_text = "With peaks"
             else:
                 p = self.peakless_indices[0][
                     np.random.randint(0, self.peakless_indices[0].shape[0])
                 ]
                 spectrum_text = "No peaks"
+                peaks = []
 
             title = "Simulated spectrum no. " + str(p)
             y = self.X[p]
             fig = Figure(x, y, title)
+            fig.ax.scatter(x=energies[peaks], y=y[peaks], s=25, c="red")
             fig.ax.text(
                 0.1,
                 0.9,
@@ -221,8 +224,8 @@ with h5py.File(hdf5_filepath, "r") as hf:
 peakfinder = Peakfinder(X_h5, y_h5)
 all_peaks = peakfinder.get_peak_positions(prominence=0.0001)
 peakfinder.get_indices()
-print(f"With peaks: {len(peakfinder.peakfull_indices[0])}")
-print(f"Without peaks: {len(peakfinder.peakless_indices[0])}")
+print(f"Spectra with peaks: {len(peakfinder.peakfull_indices[0])}")
+print(f"Spectra without peaks: {len(peakfinder.peakless_indices[0])}")
 peakfinder.plot_random_spectra(energies_h5, no_of_spectra=5, with_peaks=True)
 peakfinder.plot_random_spectra(energies_h5, no_of_spectra=5, with_peaks=True)
 
