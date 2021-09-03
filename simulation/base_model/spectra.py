@@ -585,16 +585,10 @@ class SimulatedSpectrum(Spectrum):
 
         """
         # b = np.nansum(self.lineshape)
-
-        # The shift should not be bigger than +-50 eV.
-        acceptable_values = [-50, 50]
-
+        
         if shift_x is None:
             pass
-        elif (
-            shift_x >= acceptable_values[0]
-            and shift_x <= acceptable_values[1]
-        ):
+        else:
             # scale the shift by the step size
             shift = int(np.round(shift_x / self.step, 1))
 
@@ -617,10 +611,6 @@ class SimulatedSpectrum(Spectrum):
 
             self.shift_x = shift_x
 
-        else:
-            # Return error and repeat input
-            print("Shift value too big.")
-            print("Simulated spectrum was not changed!")
 
     def add_noise(self, signal_to_noise):
         """
