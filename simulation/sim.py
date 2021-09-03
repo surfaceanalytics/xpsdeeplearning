@@ -130,7 +130,7 @@ class Simulation:
             A list of MeasuredSpectrum objects of
             spectrum_type "auger".
         shift_x : float, optional
-            Integer desribing by how many eV the spectrum shall
+            Integer describing by how many eV the spectrum shall
             be shifted. If None, then the spectrum is shifted by
             a random amount. The default is None.
         max_shift : float, optional

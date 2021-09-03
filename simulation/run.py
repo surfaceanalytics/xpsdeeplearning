@@ -21,7 +21,7 @@ from creator import Creator, FileWriter, calculate_runtime
 #%% Input parameter
 # Change the following line according to your folder structure ###
 init_param_folder = r"C:\Users\pielsticker\Simulations"
-init_param_filename = "init_params_Fe_Co_Ni_core_auger.json"
+init_param_filename = "init_params_Fe_Co_core.json"
 #%% Parameters
 init_param_filepath = os.path.join(init_param_folder, init_param_filename)
 
@@ -69,7 +69,7 @@ with h5py.File(writer.hdf5_filepath, "r") as hf:
     fwhm_h5 = hf["FWHM"][:4000, :]
     scatterers_h5 = hf["scatterer"][:4000, :]
     energies_h5 = hf["energies"][:4000]
-    labels_h5 = [str(label) for label in hf["labels"][:4000]]
+    labels_h5 = [str(label) for label in hf["labels"]]
 
 t1 = time()
 runtimes["h5_load"] = calculate_runtime(t0, t1)
