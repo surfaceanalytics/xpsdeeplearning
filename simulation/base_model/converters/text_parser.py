@@ -10,25 +10,18 @@ import numpy as np
 class TextParser:
     """Parser for XPS data stored in TXT files."""
 
-    def __init__(self, **kwargs):
+    def __init__(self):
         """
         Initialize empty data dictionary.
 
         Parameters
         ----------
-        **kwargs : dict
-            If **kwargs contains "n_headerlines",
-            the first few lines will be stored as a header.
 
         Returns
         -------
         None.
 
         """
-        if "n_headerlines" in kwargs.keys():
-            self.n_headerlines = kwargs["n_headerlines"]
-        else:
-            self.n_headerlines = 8
         self.data_dict = []
 
     def parse_file(self, filepath):
@@ -40,6 +33,7 @@ class TextParser:
         represents the native data structure of the export, and is well
         represented by JSON.
         """
+        self.filepath = filepath
         self._read_lines(filepath)
         self._parse_header()
         return self._build_dict()
@@ -60,8 +54,8 @@ class TextParser:
         None.
 
         """
-        self.header = self.data[: self.n_headerlines]
-        self.data = self.data[self.n_headerlines :]
+        self.header = str(self.data[0]).split("\n")[0]
+        self.data = self.data[1:]
 
     def _build_dict(self):
         """
@@ -69,16 +63,27 @@ class TextParser:
 
         Returns
         -------
-        self.data_dict
-            Nested dictionary.
+        data_dict
+            Data dictionary.
 
         """
         lines = np.array([[float(i) for i in d.split()] for d in self.data])
         x = lines[:, 0]
         y = lines[:, 1]
         x, y = self._check_step_width(x, y)
-        spect = {"data": {"x": list(x), "y0": list(y)}}
-        self.data_dict += [spect]
+
+        spectrum_type, group_name = self.header.split(" ", 1)
+        data = {
+            "data": {
+                "x": list(x),
+                "y0": list(y),
+                },
+            "spectrum_type" : spectrum_type,
+            "group_name": group_name
+            }
+
+        self.data_dict.append(data)
+
         return self.data_dict
 
     def _check_step_width(self, x, y):

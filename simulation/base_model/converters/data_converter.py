@@ -7,7 +7,9 @@ Created on Mon Jul 20 11:32:48 2020.
 
 from .vamas_parser import VamasParser
 from .text_parser import TextParser
+from .writers import TextWriter, VamasWriter
 
+#%%
 
 class DataConverter:
     """Class for loading/writing XPS data of different formats."""
@@ -20,11 +22,12 @@ class DataConverter:
         specificed in the attribute 'self.class_methods'.
 
         This class parses files of type:
-            'ProdigyXY', 'Vamas'
+            'Text', 'Vamas'
         And writes files of type:
-            'JSON', 'Vamas', 'Excel'
+            'Text', 'Vamas', ''
         """
-        self._parser_methods = {"Vamas": VamasParser, "Text": TextParser}
+        self._parsers = {"Vamas": VamasParser, "Text": TextParser}
+        self._writers = {'Text': TextWriter, 'Vamas': VamasWriter}
         self._extensions = {"vms": "Vamas", "txt": "Text"}
 
     def load(self, filename, **kwargs):
@@ -35,7 +38,7 @@ class DataConverter:
 
         Parameters
         ----------
-        filename: STRING
+        filename: str
             The location and name of the file you wish to parse.
         **kwargs:
             in_format: The file format of the loaded file.
@@ -44,6 +47,38 @@ class DataConverter:
             in_format = self._extensions[filename.rsplit(".", 1)[-1].lower()]
         else:
             in_format = kwargs["in_format"]
-
-        self.parser = self._parser_methods[in_format]()
+            
+        self.parser = self._parsers[in_format]()
         self.data = self.parser.parse_file(filename)
+        
+    def write(self, filename, **kwargs):
+        """
+        Write data to new file.        
+
+        Parameters
+        ----------
+        filename: str
+            The name of the new file..
+        **kwargs:
+            out_format: The file format of the output file.
+
+        Returns
+        -------
+        None.
+
+        """
+        if "out_format" not in kwargs.keys():
+            out_format = self._extensions[filename.rsplit(".", 1)[-1].lower()]
+        else:
+            out_format = kwargs["out_format"]   
+            
+        self.writer = self._writers[out_format]()
+        data = self.data
+        self.writer.write(data, filename)
+        '''try:
+            self.writer = self._write_methods[out_format]()
+            data = self.data
+            self.writer.write(data, filename)
+        except:
+            print("output format not supported")'''
+        

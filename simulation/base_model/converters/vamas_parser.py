@@ -257,7 +257,8 @@ class VamasParser:
             for attr in self.map_header_attr:
                 setattr(self.header, attr, self.data.pop(0).strip())
                 if attr == "nrExpVar":
-                    self._add_exp_var()
+                    self._add_exp_var()            
+        
 
     def _add_exp_var(self):
         """
@@ -387,7 +388,7 @@ class VamasParser:
         # print('Block metadata added in time: ' + str(stop-start))
 
         # start = time.time()
-        self._addDataValues(block)
+        self._add_data_values(block)
         # stop = time.time()
         # print('Block data added in time: ' + str(stop-start))
 
@@ -600,9 +601,9 @@ class VamasParser:
 
 #%%
 if __name__ == "__main__":
-    filepath = r"C:\Users\Mark\ownCloud\Muelheim Group\Projects\Gas phase background\EX391_CEC356_O2 test without sample 1.vms"
+    filepath = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\xpsdeeplearning\data\references\NiCoFe\Fe2p_Fe_metal.vms"
     v = VamasParser()
-    v.parseFile(filepath)
+    v.parse_file(filepath)
     h = v.header
     n = h.noBlocks
     header = h.__dict__

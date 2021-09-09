@@ -12,7 +12,7 @@ import os
 from scipy.signal import fftconvolve
 import math
 
-# from .converters.data_converter import DataConverter
+from .converters.data_converter import DataConverter
 
 try:
     from .peaks import Gauss, Lorentz, Voigt, VacuumExcitation, Tougaard
@@ -131,10 +131,10 @@ class Spectrum:
         self.x = np.flip(
             safe_arange_with_edges(self.start, self.stop, self.step)
         )
-
+        
     def resample(self, start, stop, step):
         """
-        
+        Resample the x and lineshape arrays.
 
         Parameters
         ----------
@@ -147,82 +147,46 @@ class Spectrum:
 
         Returns
         -------
-        TYPE
-            DESCRIPTION.
+        None
 
         """
+        self.start = start
+        self.stop = stop
+        self.step = step
+        
+        self.lineshape = self._resample_array(self.lineshape, start, stop, step)
+        self.update_range()       
 
-        # X0 is an array that has the unwanted sampling
-        # X1 is an array that has the target sampling
-        # Y0 is an array with the corresponding y values for X0
+    def _resample_array(self, y, start, stop, step):
+        """
+        Resample the x and lineshape arrays.
+
+        Parameters
+        ----------
+        start : int
+            New start value for the x array.
+        stop : int
+            New stop value for the x array.
+        step : int
+            New step value for the x array.
+
+        Returns
+        -------
+        None
+
+        """
         def find_index_of_nearest_value(array, value):
             array = np.asarray(array)
             idx = (np.abs(array - value)).argmin()
             return idx
 
-        self.start = start
-        self.stop = stop
-        self.step = step
-
         new_x = np.flip(
             safe_arange_with_edges(self.start, self.stop, self.step)
         )
 
-        self.lineshape = np.array(
-            [
-                self.lineshape[find_index_of_nearest_value(self.x, i)]
-                for i in new_x
-            ]
-        )
-        self.update_range()
+        new_y = np.array([y[find_index_of_nearest_value(self.x, i)] for i in new_x])
 
-
-# =============================================================================
-# class MeasuredVamasSpectrum(Spectrum):
-#     """NOT WORKING YET."""
-#
-#     def __init__(self, x, y, label):
-#         self.spectrum_type = "measured"
-#         self.label = label
-#         self.start = x[0]
-#         self.step = x[1] - x[0]
-#         self.stop = x[-1]
-#         super(MeasuredVamasSpectrum, self).__init__(
-#             self.start, self.stop, self.step, self.label
-#         )
-#         self.x = x
-#         self.lineshape = y
-#
-#     def load(self, filepath):
-#         """
-#         Load the data from a file.
-#
-#         Can be either VAMAS or TXT.
-#
-#         Parameters
-#         ----------
-#         filepath : str
-#             The file should be a .vms or .txt file.
-#
-#         Returns
-#         -------
-#         TYPE
-#             DESCRIPTION.
-#
-#         """
-#         self.converter = DataConverter()
-#         self.converter.load(filepath)
-#         if filepath.rsplit(".")[-1] == "vms":
-#             for data in self.converter.data:
-#                 if data["settings"]["y_units"] == "counts":
-#                     y = np.array(data["data"]["y0"])
-#                     dwell = data["settings"]["dwell_time"]
-#                     scans = data["scans"]
-#                     y = y / dwell / scans
-#                     data["data"]["y0"] = list(y)
-#                     data["settings"]["y_units"] = "counts_per_second"
-#         return len(self.converter.data)
-# =============================================================================
+        return new_y
 
 
 class MeasuredSpectrum(Spectrum):
@@ -238,69 +202,116 @@ class MeasuredSpectrum(Spectrum):
         Parameters
         ----------
         filepath : str
-            Filepath of the .txt file with the data in the format of
-            x and y values.
+            Filepath of the .txt or .vms file with the data in the
+            format of x and y values.
+
+        Returns
+        -------
+        None.
+
+        """    
+        self.filepath = filepath
+        data = self.load(filepath)[0]
+               
+        x = np.array(data["data"]["x"])
+        x1 = np.roll(x, -1)
+        diff = np.abs(np.subtract(x, x1))
+        self.step = np.round(np.min(diff[diff != 0]), 3)
+        x = x[diff != 0]
+        y = np.array(data["data"]["y0"])[diff != 0]
+        
+        self.start = np.round(np.min(x), 3)
+        self.stop = np.round(np.max(x), 3)
+        species = data["spectrum_type"] + " " + data["group_name"]
+        if not hasattr(self, "label"):
+            self.label = {species: 1.0}
+        
+        super(MeasuredSpectrum, self).__init__(
+            self.start, self.stop, self.step, self.label
+        )
+        self.x = np.round(x, 3)
+        self.lineshape = y
+                        
+        self.spectrum_type = self._distinguish_core_auger(species)
+            
+        print(self.label, self.spectrum_type)
+
+    def load(self, filepath):
+        """
+        Load the data from a file.
+
+        Can be either VAMAS or TXT.
+
+        Parameters
+        ----------
+        filepath : str
+            The file should be a .vms or .txt file.
+
+        Returns
+        -------
+        TYPE
+            DESCRIPTION.
+
+        """
+        self.converter = DataConverter()
+        self.converter.load(filepath)
+        if filepath.rsplit(".")[-1] == "vms":
+            for data in self.converter.data:
+                if data["settings"]["y_units"] == "counts":
+                    y = np.array(data["data"]["y0"])
+                    dwell = data["settings"]["dwell_time"]
+                    scans = data["scans"]
+                    y = y / dwell / scans
+                    data["data"]["y0"] = list(y)
+                    data["settings"]["y_units"] = "counts_per_second"
+                if data["settings"]["x_units"] == "kinetic energy":
+                    data["settings"]["x_units"] = "binding energy"
+                    excitation_energy =  data["settings"]["excitation_energy"]
+                    data["data"]["x"] = [excitation_energy - x for x in data["data"]["x"]]
+         
+        return self.converter.data
+    
+    def write(self, output_folder, new_filename):
+        """
+        Write the spectrum to a new file.
+
+        Parameters
+        ----------
+        output_folder : str
+            Folder path to store the new reference spectrum.
+        new_filename : str
+            Filename of the new file.
+            Can have suffix .txt or .vms.
 
         Returns
         -------
         None.
 
         """
-        self.filepath = filepath
+        if new_filename.rsplit(".")[-1] == "vms":
+            if self.filepath.rsplit(".")[-1] == "txt":
+                raise TypeError('Cannot write a TXT spectrum to VAMAS.')
+            else:
+                self.converter.data[0]["settings"]["nr_values"] = self.x.shape[0]
+                if self.converter.data[0]["settings"]["x_units"] == "binding energy":
+                    self.converter.data[0]["settings"]["x_units"] = "kinetic energy"
+                    excitation_energy = self.converter.data[0]["settings"]["excitation_energy"]
+                    self.converter.data[0]["data"]["x"] = [np.round(excitation_energy - x, 3) for x in self.x]
+                    self.converter.data[0]["data"]["y1"] = self._resample_array(
+                    self.converter.data[0]["data"]["y1"],
+                        self.start, 
+                        self.stop, 
+                        self.step)
+        else:
+            self.converter.data[0]["data"]["x"] = self.x
 
-        species, data = self.load(self.filepath)
-        self.label = {species: 1.0}
-        x = data[:, 0]
+        self.converter.data[0]["data"]["y0"] = self.lineshape
 
-        # Determine the step size from the last two data points.
-        x1 = np.roll(x, -1)
-        diff = np.abs(np.subtract(x, x1))
-        self.step = np.round(np.min(diff[diff != 0]), 3)
-        x = x[diff != 0]
-        self.start = np.min(x)
-        self.stop = np.max(x)
-        super(MeasuredSpectrum, self).__init__(
-            self.start, self.stop, self.step, self.label
-        )
-        self.x = x
-        self.lineshape = data[:, 1][diff != 0]
-        self.spectrum_type = self._distinguish_core_auger(species)
+        filepath_new = os.path.join(output_folder, new_filename)
+        self.converter.write(filepath_new)
 
-    def load(self, filepath):
-        """
-        Load the data from the file.
-
-        The first line of the file needs to contain the label as a
-        string.
-
-        Parameters
-        ----------
-        filepath : str
-            Filepath of the .txt file with the data in the format of
-            x and y values.
-
-        Returns
-        -------
-        label : dict
-            Dictionary of the form {species: concentration}.
-        data : ndarray
-            2D numpy array with the x and y values from the file.
-
-        """
-        lines = []
-        with open(filepath, "r") as file:
-            for line in file.readlines():
-                lines += [line]
-        # This takes the species given in the first line.
-        species = str(lines[0]).split("\n")[0]
-        lines = lines[1:]
-        lines = [[float(i) for i in line.split()] for line in lines]
-        data = np.array(lines)
-        # The label is a dictionary of the form
-        # {species: concentration}.
-
-        return species, data
-
+        print(f"Spectrum written to {new_filename}")
+        
     def _distinguish_core_auger(self, label):
         """
         Check if the spectrum is a core-level or Auger spectrum.
@@ -342,59 +353,6 @@ class MeasuredSpectrum(Spectrum):
         return "auger"
 
 
-class ReferenceSpectrum(MeasuredSpectrum):
-    """Class for a measured reference spectrum."""
-
-    def __init__(self, filepath):
-        """
-        Initialize and load the reference spectrum from a file.
-
-        Parameters
-        ----------
-        filepath : str
-            Path of the file containing the reference spectrum data.
-
-        Returns
-        -------
-        None.
-
-        """
-        super(ReferenceSpectrum, self).__init__(filepath)
-
-    def write(self, output_folder):
-        """
-        Write the reference spectrum to a new file.
-
-        Parameters
-        ----------
-        output_folder : str
-            Folder path to store the new reference spectrum.
-
-        Returns
-        -------
-        None.
-
-        """
-        path = os.path.normpath(self.filepath)
-        filename = path.split(os.sep)[-1]
-        filename_new = filename.split(".")[0] + "_new.txt"
-
-        filepath_new = os.path.join(output_folder, filename_new)
-        with open(filepath_new, "w") as file:
-            species = list(self.label.keys())[0]
-            lines = [species + "\n"]
-            for i, x_i in enumerate(self.x):
-                lines.append(
-                    str("{:e}".format(x_i))
-                    + " "
-                    + str("{:e}".format(self.lineshape[i]))
-                    + "\n"
-                )
-            file.writelines(lines)
-
-        print(f"Spectrum written to {filename_new}")
-
-
 class FittedSpectrum(MeasuredSpectrum):
     """Class for loading and resizing a fitted spectrum."""
 
@@ -427,14 +385,23 @@ class FittedSpectrum(MeasuredSpectrum):
             for line in file.readlines():
                 lines += [line]
         # This takes the species given in the first line
-        label = str(lines[0]).split(" ", maxsplit=2)[2].split(":")[0]
-        number = int(str(lines[0]).split(" ", maxsplit=2)[1].split(":")[1])
-        lines = lines[8:]
-        lines = [[float(i) for i in line.split()] for line in lines]
-        data = np.array(lines)[:, 2:]
-        self.number = number
+        self.label = str(lines[0]).split(" ", maxsplit=2)[2].split(":")[0]
+        species = str(lines[0]).split(":")[-1].split("\n")[0]
+        self.number = int(str(lines[0]).split(" ", maxsplit=2)[1].split(":")[1])
+        lines = [[float(i) for i in line.split()] for line in lines[8:]]
+        xy_data = np.array(lines)[:, 2:]
 
-        return label, data
+        data = [
+            {
+                "data": {
+                    "x": list(xy_data[:, 0]),
+                    "y0": list(xy_data[:, 1]),
+                    },
+                "spectrum_type": species,
+                "group_name": "mixed",
+                }
+            ]
+        return data
 
 
 class SyntheticSpectrum(Spectrum):
@@ -584,8 +551,6 @@ class SimulatedSpectrum(Spectrum):
         None.
 
         """
-        # b = np.nansum(self.lineshape)
-        
         if shift_x is None:
             pass
         else:
@@ -610,7 +575,6 @@ class SimulatedSpectrum(Spectrum):
                 pass
 
             self.shift_x = shift_x
-
 
     def add_noise(self, signal_to_noise):
         """
@@ -818,20 +782,21 @@ class SimulatedSpectrum(Spectrum):
         else:
             print("Please enter a valid scatterer label!")
 
-
 #%%
 if __name__ == "__main__":
     from peaks import Gauss, Lorentz, Voigt, VacuumExcitation, Tougaard
 
-    label = "NiCoFe\\Ni2pCo2pFe2p_Co_metal"
+    #label = "NiCoFe\\Ni2pCo2pFe2p_Co_metal"
+    label = "NiCoFe\\Fe2p_Fe_metal"
     datapath = (
         os.path.dirname(os.path.abspath(__file__)).partition("simulation")[0]
         + "data\\references"
     )
 
-    filepath = datapath + "\\" + label + ".txt"
+    filepath = datapath + "\\" + label + ".vms"
 
     measured_spectrum = MeasuredSpectrum(filepath)
+
 
     from figures import Figure
 

@@ -21,7 +21,7 @@ from creator import Creator, FileWriter, calculate_runtime
 #%% Input parameter
 # Change the following line according to your folder structure ###
 init_param_folder = r"C:\Users\pielsticker\Simulations"
-init_param_filename = "init_params_Fe_Co_core.json"
+init_param_filename = "init_params_Fe_Co_core_auger.json"
 #%% Parameters
 init_param_filepath = os.path.join(init_param_folder, init_param_filename)
 

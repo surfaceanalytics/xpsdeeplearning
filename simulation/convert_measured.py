@@ -24,23 +24,24 @@ import os
 import h5py
 import pandas as pd
 
-from base_model.spectra import ReferenceSpectrum, FittedSpectrum
+from base_model.spectra import MeasuredSpectrum, FittedSpectrum
 from base_model.figures import Figure
 
 #%% For one reference spectrum.
 input_datafolder = r"C:\Users\pielsticker\Downloads"
-filename = "FeLMM_Fe_metal.txt"
+filename = "Fe2p_Fe_metal.vms"
 
 energies = []
 filepath = os.path.join(input_datafolder, filename)
-ref_spectrum = ReferenceSpectrum(filepath)
+ref_spectrum = MeasuredSpectrum(filepath)
 fig_old = Figure(x=ref_spectrum.x, y=ref_spectrum.lineshape, title="old")
 energies.append(ref_spectrum.x[np.argmax(ref_spectrum.lineshape)])
 
-ref_spectrum.resample(start=762.0, stop=817.0, step=0.05)
+ref_spectrum.resample(start=685.0, stop=770.0, step=0.2)
 energies.append(ref_spectrum.x[np.argmax(ref_spectrum.lineshape)])
 fig_new = Figure(x=ref_spectrum.x, y=ref_spectrum.lineshape, title="new")
-ref_spectrum.write(input_datafolder)
+new_filename = filename.split(".")[0] + "_new.vms"
+ref_spectrum.write(input_datafolder, new_filename)
 
 #%% For one fitted XPS spectrum
 # =============================================================================
@@ -144,7 +145,7 @@ def convert_all_spectra(
         filepath = os.path.join(input_datafolder, name)
         spectrum = FittedSpectrum(filepath)
         index = filenames.index(name)
-        spectrum.resize(start=331, stop=350, step=0.05)
+        spectrum.resample(start=331, stop=350, step=0.05)
         # spectrum.resize(start = 694, stop = 750, step = 0.05)
         spectrum.normalize()
         spectra.append(spectrum)
@@ -163,10 +164,9 @@ def convert_all_spectra(
 
     return X, y, names, energies
 
-
 # Load the data into numpy arrays and save to hdf5 file.
-input_datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\Ammonia Synthesis\Data\NAP-XPS\analyzed data\Mixed Pd spectra\exported"
-label_filepath = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\Ammonia Synthesis\Data\NAP-XPS\analyzed data\Mixed Pd spectra\analysis_20210122\peak fits_20210122.xlsx"
+input_datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Data\NAP-XPS\analyzed data\Pd spectra\exported"
+label_filepath = r"C:\Users\pielsticker\Lukas\MPI-CEC\Data\NAP-XPS\analyzed data\Pd spectra\analysis_20210122\peak fits_20210122.xlsx"
 label_list = ["Pd metal", "PdO"]
 X, y, names, energies = convert_all_spectra(
     input_datafolder, label_filepath, label_list, plot_all=False
