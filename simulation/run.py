@@ -77,7 +77,7 @@ print(f"HDF5 load runtime: {runtimes['h5_load']}.")
 
 if creator.params["eV_window"]:
     creator.plot_random(10)
-    
+
 os.remove(writer.pkl_filepath)
 
 #%% Reload pickle file if needed.

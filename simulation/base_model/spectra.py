@@ -131,7 +131,7 @@ class Spectrum:
         self.x = np.flip(
             safe_arange_with_edges(self.start, self.stop, self.step)
         )
-        
+
     def resample(self, start, stop, step):
         """
         Resample the x and lineshape arrays.
@@ -153,9 +153,11 @@ class Spectrum:
         self.start = start
         self.stop = stop
         self.step = step
-        
-        self.lineshape = self._resample_array(self.lineshape, start, stop, step)
-        self.update_range()       
+
+        self.lineshape = self._resample_array(
+            self.lineshape, start, stop, step
+        )
+        self.update_range()
 
     def _resample_array(self, y, start, stop, step):
         """
@@ -175,6 +177,7 @@ class Spectrum:
         None
 
         """
+
         def find_index_of_nearest_value(array, value):
             array = np.asarray(array)
             idx = (np.abs(array - value)).argmin()
@@ -184,7 +187,9 @@ class Spectrum:
             safe_arange_with_edges(self.start, self.stop, self.step)
         )
 
-        new_y = np.array([y[find_index_of_nearest_value(self.x, i)] for i in new_x])
+        new_y = np.array(
+            [y[find_index_of_nearest_value(self.x, i)] for i in new_x]
+        )
 
         return new_y
 
@@ -209,31 +214,31 @@ class MeasuredSpectrum(Spectrum):
         -------
         None.
 
-        """    
+        """
         self.filepath = filepath
         data = self.load(filepath)[0]
-               
+
         x = np.array(data["data"]["x"])
         x1 = np.roll(x, -1)
         diff = np.abs(np.subtract(x, x1))
         self.step = np.round(np.min(diff[diff != 0]), 3)
         x = x[diff != 0]
         y = np.array(data["data"]["y0"])[diff != 0]
-        
+
         self.start = np.round(np.min(x), 3)
         self.stop = np.round(np.max(x), 3)
         species = data["spectrum_type"] + " " + data["group_name"]
         if not hasattr(self, "label"):
             self.label = {species: 1.0}
-        
+
         super(MeasuredSpectrum, self).__init__(
             self.start, self.stop, self.step, self.label
         )
         self.x = np.round(x, 3)
         self.lineshape = y
-                        
+
         self.spectrum_type = self._distinguish_core_auger(species)
-            
+
         print(self.label, self.spectrum_type)
 
     def load(self, filepath):
@@ -266,11 +271,13 @@ class MeasuredSpectrum(Spectrum):
                     data["settings"]["y_units"] = "counts_per_second"
                 if data["settings"]["x_units"] == "kinetic energy":
                     data["settings"]["x_units"] = "binding energy"
-                    excitation_energy =  data["settings"]["excitation_energy"]
-                    data["data"]["x"] = [excitation_energy - x for x in data["data"]["x"]]
-         
+                    excitation_energy = data["settings"]["excitation_energy"]
+                    data["data"]["x"] = [
+                        excitation_energy - x for x in data["data"]["x"]
+                    ]
+
         return self.converter.data
-    
+
     def write(self, output_folder, new_filename):
         """
         Write the spectrum to a new file.
@@ -290,18 +297,32 @@ class MeasuredSpectrum(Spectrum):
         """
         if new_filename.rsplit(".")[-1] == "vms":
             if self.filepath.rsplit(".")[-1] == "txt":
-                raise TypeError('Cannot write a TXT spectrum to VAMAS.')
+                raise TypeError("Cannot write a TXT spectrum to VAMAS.")
             else:
-                self.converter.data[0]["settings"]["nr_values"] = self.x.shape[0]
-                if self.converter.data[0]["settings"]["x_units"] == "binding energy":
-                    self.converter.data[0]["settings"]["x_units"] = "kinetic energy"
-                    excitation_energy = self.converter.data[0]["settings"]["excitation_energy"]
-                    self.converter.data[0]["data"]["x"] = [np.round(excitation_energy - x, 3) for x in self.x]
-                    self.converter.data[0]["data"]["y1"] = self._resample_array(
-                    self.converter.data[0]["data"]["y1"],
-                        self.start, 
-                        self.stop, 
-                        self.step)
+                self.converter.data[0]["settings"][
+                    "nr_values"
+                ] = self.x.shape[0]
+                if (
+                    self.converter.data[0]["settings"]["x_units"]
+                    == "binding energy"
+                ):
+                    self.converter.data[0]["settings"][
+                        "x_units"
+                    ] = "kinetic energy"
+                    excitation_energy = self.converter.data[0]["settings"][
+                        "excitation_energy"
+                    ]
+                    self.converter.data[0]["data"]["x"] = [
+                        np.round(excitation_energy - x, 3) for x in self.x
+                    ]
+                    self.converter.data[0]["data"][
+                        "y1"
+                    ] = self._resample_array(
+                        self.converter.data[0]["data"]["y1"],
+                        self.start,
+                        self.stop,
+                        self.step,
+                    )
         else:
             self.converter.data[0]["data"]["x"] = self.x
 
@@ -311,7 +332,7 @@ class MeasuredSpectrum(Spectrum):
         self.converter.write(filepath_new)
 
         print(f"Spectrum written to {new_filename}")
-        
+
     def _distinguish_core_auger(self, label):
         """
         Check if the spectrum is a core-level or Auger spectrum.
@@ -387,7 +408,9 @@ class FittedSpectrum(MeasuredSpectrum):
         # This takes the species given in the first line
         self.label = str(lines[0]).split(" ", maxsplit=2)[2].split(":")[0]
         species = str(lines[0]).split(":")[-1].split("\n")[0]
-        self.number = int(str(lines[0]).split(" ", maxsplit=2)[1].split(":")[1])
+        self.number = int(
+            str(lines[0]).split(" ", maxsplit=2)[1].split(":")[1]
+        )
         lines = [[float(i) for i in line.split()] for line in lines[8:]]
         xy_data = np.array(lines)[:, 2:]
 
@@ -396,11 +419,11 @@ class FittedSpectrum(MeasuredSpectrum):
                 "data": {
                     "x": list(xy_data[:, 0]),
                     "y0": list(xy_data[:, 1]),
-                    },
+                },
                 "spectrum_type": species,
                 "group_name": "mixed",
-                }
-            ]
+            }
+        ]
         return data
 
 
@@ -782,11 +805,12 @@ class SimulatedSpectrum(Spectrum):
         else:
             print("Please enter a valid scatterer label!")
 
+
 #%%
 if __name__ == "__main__":
     from peaks import Gauss, Lorentz, Voigt, VacuumExcitation, Tougaard
 
-    #label = "NiCoFe\\Ni2pCo2pFe2p_Co_metal"
+    # label = "NiCoFe\\Ni2pCo2pFe2p_Co_metal"
     label = "NiCoFe\\Fe2p_Fe_metal"
     datapath = (
         os.path.dirname(os.path.abspath(__file__)).partition("simulation")[0]
@@ -796,7 +820,6 @@ if __name__ == "__main__":
     filepath = datapath + "\\" + label + ".vms"
 
     measured_spectrum = MeasuredSpectrum(filepath)
-
 
     from figures import Figure
 

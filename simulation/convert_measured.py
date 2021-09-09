@@ -164,6 +164,7 @@ def convert_all_spectra(
 
     return X, y, names, energies
 
+
 # Load the data into numpy arrays and save to hdf5 file.
 input_datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Data\NAP-XPS\analyzed data\Pd spectra\exported"
 label_filepath = r"C:\Users\pielsticker\Lukas\MPI-CEC\Data\NAP-XPS\analyzed data\Pd spectra\analysis_20210122\peak fits_20210122.xlsx"

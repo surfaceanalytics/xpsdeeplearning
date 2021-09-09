@@ -99,8 +99,8 @@ class Creator:
         # not scaled together.
         if not self.params["same_auger_core_percentage"]:
             warnings.warn(
-                'Auger and core spectra of the same species are not scaled'
-                ' together. If you have Auger spectra, you may want to set'
+                "Auger and core spectra of the same species are not scaled"
+                " together. If you have Auger spectra, you may want to set"
                 ' "same_auger_core_percentage" to True!'
             )
 
@@ -620,11 +620,11 @@ class Creator:
 
         for species in overlapping_species:
             label_auger = [
-                label for label in auger_labels
-                if species in label][0]
-            label_core = [
-                label for label in core_labels
-                if species in label][0]
+                label for label in auger_labels if species in label
+            ][0]
+            label_core = [label for label in core_labels if species in label][
+                0
+            ]
             i_auger = self.spectra.index(label_auger)
             i_core = self.spectra.index(label_core)
             max_value = np.max(
@@ -850,6 +850,7 @@ class Creator:
         None.
 
         """
+
         def start_stop_step_from_x(x):
             """
             Calculcate start, stop, and step from a regular array.
@@ -1088,9 +1089,9 @@ class FileWriter:
             with pd.ExcelWriter(self.excel_filepath) as writer:
                 df.to_excel(writer, sheet_name=filename)
 
-        if filetype == "json":          
+        if filetype == "json":
             self.json_filepath = filename + ".json"
-            
+
             with open(self.json_filepath, "w") as json_file:
                 df.to_json(json_file, orient="records")
 
@@ -1200,7 +1201,7 @@ class FileWriter:
             X = np.reshape(X, (X.shape[0], X.shape[1], -1))
         except IndexError:
             raise IndexError(
-                'Could not concatenate individual spectra because their'
+                "Could not concatenate individual spectra because their"
                 'sizes are different. Either set "ensure_same_length"'
                 'to True or "eV_window" to a finite integer!'
             )

@@ -74,13 +74,10 @@ class TextParser:
 
         spectrum_type, group_name = self.header.split(" ", 1)
         data = {
-            "data": {
-                "x": list(x),
-                "y0": list(y),
-                },
-            "spectrum_type" : spectrum_type,
-            "group_name": group_name
-            }
+            "data": {"x": list(x), "y0": list(y),},
+            "spectrum_type": spectrum_type,
+            "group_name": group_name,
+        }
 
         self.data_dict.append(data)
 

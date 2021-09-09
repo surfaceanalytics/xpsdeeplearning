@@ -23,8 +23,8 @@ class AttentiveResponseMap:
         self.model.layers[-1].activation = activations.linear
         self.model = vis.utils.utils.apply_modifications(model)
 
-    def plot_saliency_maps(self, no_of_spectra = 10):
-        fig, ax = plt.subplots(self.X.shape[0], self.y.shape[1]+1)
+    def plot_saliency_maps(self, no_of_spectra=10):
+        fig, ax = plt.subplots(self.X.shape[0], self.y.shape[1] + 1)
 
         for i in range(no_of_spectra):
             intensity = self.X[i]
@@ -36,16 +36,15 @@ class AttentiveResponseMap:
                     layer_idx=-1,
                     filter_indices=j,
                     seed_input=intensity,
-                    backprop_modifier="guided"
-                    )
-            ax[i, j+1].set_title(f"guided, label {self.labels[j]}")
-            ax[i, j+1] = ax._plot_spectrum(ax[i, j+1], grads)
+                    backprop_modifier="guided",
+                )
+            ax[i, j + 1].set_title(f"guided, label {self.labels[j]}")
+            ax[i, j + 1] = ax._plot_spectrum(ax[i, j + 1], grads)
 
         fig.tight_layout()
 
-
-    def cam_map(self, no_of_spectra = 10):
-        fig, ax = plt.subplots(self.shape[0], self.y.shape[1]+1)
+    def cam_map(self, no_of_spectra=10):
+        fig, ax = plt.subplots(self.shape[0], self.y.shape[1] + 1)
 
         for i in range(no_of_spectra):
             intensity = self.X[i]
@@ -57,10 +56,10 @@ class AttentiveResponseMap:
                     layer_idx=-1,
                     filter_indices=j,
                     seed_input=intensity,
-                    backprop_modifier="guided"
-                    )
-            ax[i, j+1].set_title(f"guided, label {self.labels[j]}")
-            ax[i, j+1] = ax._plot_spectrum(ax[i, j+1], grads)
+                    backprop_modifier="guided",
+                )
+            ax[i, j + 1].set_title(f"guided, label {self.labels[j]}")
+            ax[i, j + 1] = ax._plot_spectrum(ax[i, j + 1], grads)
 
         fig.tight_layout()
 
@@ -70,8 +69,9 @@ class AttentiveResponseMap:
 
         for yi in y:
             ax.plot(self.energies, yi)
-            ax.set_xlim(left=np.max(self.energies),
-                        right=np.min(self.energies))
+            ax.set_xlim(
+                left=np.max(self.energies), right=np.min(self.energies)
+            )
             ax.set_xlabel("Binding energy (eV)")
             ax.set_ylabel("Intensity (arb. units)")
 
@@ -82,7 +82,7 @@ class AttentiveResponseMap:
 # class LayerActivationPlot:
 #     def __init__(self):
 #         pass
-#         
+#
 #     def plot_activations_at_layers(self, model, layer_output, layer_num, num_filters, X_train):
 #         plt.figure(figsize=(4, 12))
 #         label = ['Mn2+', 'Mn3+', 'Mn4+']
@@ -99,7 +99,7 @@ class AttentiveResponseMap:
 #         for i in range(num_filters):
 #             offset.append(max(layer_output[layer_num][:,i]))
 #             shift = 2*(sum(offset) - min(layer_output[layer_num][:,i]))
-# 
+#
 #             plt.plot(np.linspace(620, 660, len(layer_output[layer_num][:,i])), layer_output[layer_num][:,i]+shift, 'black', label=str(i), marker='.')
 #             if layer_num != 16:
 #                 plt.axhline(shift, c = 'black')
@@ -111,5 +111,5 @@ class AttentiveResponseMap:
 #         #plt.xlabel('Energy (eV)')
 #         plt.tight_layout()
 #         plt.savefig(os.path.join(path_to_output, save_name))
-# 
+#
 # =============================================================================

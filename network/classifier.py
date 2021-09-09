@@ -259,7 +259,8 @@ class Classifier:
             # Save the model and the history in case of interruption.
             print("Training interrupted!")
             if any(
-                checkpoint not in [type(cb).__name__ for cb in self.logging.active_cbs]
+                checkpoint
+                not in [type(cb).__name__ for cb in self.logging.active_cbs]
                 for checkpoint in ("ModelCheckpoint", "CustomModelCheckpoint")
             ):
                 self.save_model()
@@ -458,8 +459,12 @@ class Classifier:
         loaded_model = load_model(file_name, custom_objects=custom_objects)
         optimizer = loaded_model.optimizer
         loss = loaded_model.loss
-        metrics  = [metric.name for metric in loaded_model.metrics if metric.name != "loss"]
-        
+        metrics = [
+            metric.name
+            for metric in loaded_model.metrics
+            if metric.name != "loss"
+        ]
+
         # Instantiate a new EmptyModel and implement it with the loaded
         # parameters. Needed for dropping the layers while keeping all
         # parameters.
@@ -507,8 +512,9 @@ class Classifier:
 
         if compile_model:
             self.model.compile(
-                optimizer=optimizer, loss=loss, metrics=metrics)
-                
+                optimizer=optimizer, loss=loss, metrics=metrics
+            )
+
     def load_data_preprocess(
         self,
         input_filepath,
@@ -783,10 +789,10 @@ class Classifier:
                     cd = getattr(self.datahandler, key)
                     pickle_data[key] = cd.cd
                 else:
-                  try:
-                      pickle_data[key] = getattr(self.datahandler, key)
-                  except AttributeError:
-                      print(f"'DataHandler' object has no attribute {key}.")
+                    try:
+                        pickle_data[key] = getattr(self.datahandler, key)
+                    except AttributeError:
+                        print(f"'DataHandler' object has no attribute {key}.")
             except KeyError:
                 pass
 

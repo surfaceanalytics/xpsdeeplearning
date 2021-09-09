@@ -257,8 +257,7 @@ class VamasParser:
             for attr in self.map_header_attr:
                 setattr(self.header, attr, self.data.pop(0).strip())
                 if attr == "nrExpVar":
-                    self._add_exp_var()            
-        
+                    self._add_exp_var()
 
     def _add_exp_var(self):
         """
@@ -512,12 +511,12 @@ class VamasParser:
 
         self.data = self.data[block.numOrdValues :]
 
-# =============================================================================
-#         for r in range(int(block.numOrdValues / block.noVariables)):
-#             for v in range(block.noVariables):
-#                 name = 'y' + str(v)
-#                 data_dict[name] += [float(self.data.pop(0).strip())]
-# =============================================================================
+        # =============================================================================
+        #         for r in range(int(block.numOrdValues / block.noVariables)):
+        #             for v in range(block.noVariables):
+        #                 name = 'y' + str(v)
+        #                 data_dict[name] += [float(self.data.pop(0).strip())]
+        # =============================================================================
 
         for v in range(block.noVariables):
             n = block.noVariables

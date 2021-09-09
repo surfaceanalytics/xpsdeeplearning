@@ -11,6 +11,7 @@ from .writers import TextWriter, VamasWriter
 
 #%%
 
+
 class DataConverter:
     """Class for loading/writing XPS data of different formats."""
 
@@ -27,7 +28,7 @@ class DataConverter:
             'Text', 'Vamas', ''
         """
         self._parsers = {"Vamas": VamasParser, "Text": TextParser}
-        self._writers = {'Text': TextWriter, 'Vamas': VamasWriter}
+        self._writers = {"Text": TextWriter, "Vamas": VamasWriter}
         self._extensions = {"vms": "Vamas", "txt": "Text"}
 
     def load(self, filename, **kwargs):
@@ -47,10 +48,10 @@ class DataConverter:
             in_format = self._extensions[filename.rsplit(".", 1)[-1].lower()]
         else:
             in_format = kwargs["in_format"]
-            
+
         self.parser = self._parsers[in_format]()
         self.data = self.parser.parse_file(filename)
-        
+
     def write(self, filename, **kwargs):
         """
         Write data to new file.        
@@ -70,15 +71,14 @@ class DataConverter:
         if "out_format" not in kwargs.keys():
             out_format = self._extensions[filename.rsplit(".", 1)[-1].lower()]
         else:
-            out_format = kwargs["out_format"]   
-            
+            out_format = kwargs["out_format"]
+
         self.writer = self._writers[out_format]()
         data = self.data
         self.writer.write(data, filename)
-        '''try:
+        """try:
             self.writer = self._write_methods[out_format]()
             data = self.data
             self.writer.write(data, filename)
         except:
-            print("output format not supported")'''
-        
+            print("output format not supported")"""

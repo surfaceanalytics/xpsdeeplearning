@@ -342,6 +342,7 @@ class CustomModelCheckpoint(callbacks.ModelCheckpoint):
             `on_epoch_end`.
         """
         from tensorflow.python.keras.utils import tf_utils
+
         logs = logs or {}
 
         if (
@@ -423,7 +424,7 @@ class CustomModelCheckpoint(callbacks.ModelCheckpoint):
                             json_file.write(self.model.to_json())
                         self.model.save_weights(
                             os.path.join(filepath, "weights.h5")
-                            )                        
+                        )
                         self.model.save(
                             filepath, overwrite=True, options=self._options
                         )

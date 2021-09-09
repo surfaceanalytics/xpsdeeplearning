@@ -1097,7 +1097,9 @@ class DataHandler:
             pass
 
         if with_prediction:
-            loss_text = "\n" + "Loss: " + str(np.around(losses[index], decimals=3))
+            loss_text = (
+                "\n" + "Loss: " + str(np.around(losses[index], decimals=3))
+            )
             text += loss_text
 
         return text
