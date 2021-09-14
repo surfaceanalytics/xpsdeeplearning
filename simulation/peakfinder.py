@@ -207,7 +207,7 @@ class Peakfinder:
 
 #%%
 # Data loading
-hdf5_filepath = r"C:\Users\pielsticker\Simulations\20210816_FeCoNi_with_auger_peaks_40ev_window\20210816_FeCoNi_with_auger_peaks_40ev_window.h5"
+hdf5_filepath = r"C:\Users\pielsticker\Simulations\20210914_FeCo_individual_without_auger_peaks_35eV_window\20210914_FeCo_individual_without_auger_peaks_35eV_window.h5"
 with h5py.File(hdf5_filepath, "r") as hf:
     size = hf["X"].shape
     X_h5 = hf["X"][:, :, :]
@@ -222,12 +222,12 @@ with h5py.File(hdf5_filepath, "r") as hf:
     labels_h5 = [str(label) for label in hf["labels"]]
 
 peakfinder = Peakfinder(X_h5, y_h5)
-all_peaks = peakfinder.get_peak_positions(prominence=0.0001)
+all_peaks = peakfinder.get_peak_positions(prominence=0.00014)
 peakfinder.get_indices()
 print(f"Spectra with peaks: {len(peakfinder.peakfull_indices[0])}")
 print(f"Spectra without peaks: {len(peakfinder.peakless_indices[0])}")
-peakfinder.plot_random_spectra(energies_h5, no_of_spectra=5, with_peaks=True)
-peakfinder.plot_random_spectra(energies_h5, no_of_spectra=5, with_peaks=True)
+peakfinder.plot_random_spectra(energies_h5, no_of_spectra=10, with_peaks=True)
+peakfinder.plot_random_spectra(energies_h5, no_of_spectra=10, with_peaks=False)
 
 array_dict = {
     "shift_x": shiftx_h5,
