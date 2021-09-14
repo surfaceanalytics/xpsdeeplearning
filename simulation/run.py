@@ -20,8 +20,8 @@ from creator import Creator, FileWriter, calculate_runtime
 
 #%% Input parameter
 # Change the following line according to your folder structure ###
-init_param_folder = r"C:\Users\pielsticker\Simulations"
-init_param_filename = "init_params_CoFe_combined_core_auger.json"
+init_param_folder = r"C:\Users\pielsticker\Simulations\params_CoFe"
+init_param_filename = "init_params_CoFe_individual_core_35ev_window.json"
 #%% Parameters
 init_param_filepath = os.path.join(init_param_folder, init_param_filename)
 
@@ -56,7 +56,6 @@ writer.to_file(filetypes=["hdf5"], metadata=True)
 t1 = time()
 runtimes["h5_save"] = calculate_runtime(t0, t1)
 print(f"HDF5 save runtime: {runtimes['h5_save']}.")
-
 
 # Test new file.
 t0 = time()
