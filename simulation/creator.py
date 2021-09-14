@@ -1265,6 +1265,13 @@ class FileWriter:
 
         """
         json_filepath = self.filepath + "_metadata.json"
+        
+        if self.params["eV_window"]:
+            self.params["energy_range"] = [
+                np.min(self.df["x"][0]),
+                np.max(self.df["x"][0]),
+                np.round(self.df["x"][0][0] - self.df["x"][0][1], 2),
+                ]
 
         with open(json_filepath, "w") as out_file:
             json.dump(self.params, out_file, indent=4)

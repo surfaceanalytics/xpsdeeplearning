@@ -239,8 +239,6 @@ class MeasuredSpectrum(Spectrum):
 
         self.spectrum_type = self._distinguish_core_auger(species)
 
-        print(self.label, self.spectrum_type)
-
     def load(self, filepath):
         """
         Load the data from a file.
