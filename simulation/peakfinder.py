@@ -207,15 +207,15 @@ class Peakfinder:
 
 #%%
 # Data loading
-hdf5_filepath = r"C:\Users\pielsticker\Simulations\20210914_FeCo_individual_without_auger_peaks_35eV_window\20210914_FeCo_individual_without_auger_peaks_35eV_window.h5"
+hdf5_filepath = r"C:\Users\pielsticker\Simulations\20210914_CoFe_individual_without_auger_peaks_35eV_window\20210914_CoFe_individual_without_auger_peaks_35eV_window.h5"
 with h5py.File(hdf5_filepath, "r") as hf:
-    size = hf["X"].shape
+    sizes_h5 = [(key, hf[key].shape) for key in list(hf.keys())]
     X_h5 = hf["X"][:, :, :]
     y_h5 = hf["y"][:, :]
     shiftx_h5 = hf["shiftx"][:, :]
     noise_h5 = hf["noise"][:, :]
-    fwhm_h5 = hf["FWHM"][:, :]
-    scatterers_h5 = hf["scatterer"][:, :]
+    FWHM_h5 = hf["FWHM"][:, :]
+    scatterer_h5 = hf["scatterer"][:, :]
     pressure_h5 = hf["pressure"][:, :]
     distance_h5 = hf["distance"][:, :]
     energies_h5 = hf["energies"][:]
@@ -230,10 +230,10 @@ peakfinder.plot_random_spectra(energies_h5, no_of_spectra=10, with_peaks=True)
 peakfinder.plot_random_spectra(energies_h5, no_of_spectra=10, with_peaks=False)
 
 array_dict = {
-    "shift_x": shiftx_h5,
+    "shiftx": shiftx_h5,
     "noise": noise_h5,
-    "fwhm": fwhm_h5,
-    "scatterers": scatterers_h5,
+    "FWHM": FWHM_h5,
+    "scatterer": scatterer_h5,
     "pressure": pressure_h5,
     "distance": shiftx_h5,
 }
@@ -242,3 +242,18 @@ arrays_with_peaks, arrays_without_peak = peakfinder.distinguish_arrays(
     array_dict
 )
 peakfinder.write_new_file(original_filepath=hdf5_filepath)
+
+new_filepath = r"C:\Users\pielsticker\Simulations\20210914_CoFe_individual_without_auger_peaks_35eV_window\20210914_CoFe_individual_without_auger_peaks_35eV_window_peaks_only.h5"
+with h5py.File(new_filepath, "r") as hf:
+    sizes_peaks = [(key, hf[key].shape) for key in list(hf.keys())]
+    X_peaks = hf["X"][:20, :, :]
+    y_peaks = hf["y"][:20, :]
+    shiftx_peaks = hf["shiftx"][:20, :]
+    noise_peaks = hf["noise"][:20, :]
+    FWHM_peaks = hf["FWHM"][:20, :]
+    scatterer_peaks = hf["scatterer"][:20, :]
+    pressure_peaks = hf["pressure"][:20, :]
+    distance_peaks = hf["distance"][:20, :]
+    energies_peaks = hf["energies"][:20]
+    labels_peaks = [str(label) for label in hf["labels"]]
+
