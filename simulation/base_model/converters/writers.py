@@ -28,11 +28,11 @@ class TextWriter:
 
     def build_lines(self, data):
         lines = []
-        for data in data:
-            header_line = data["spectrum_type"] + " " + data["group_name"]
+        for d in data:
+            header_line = d["spectrum_type"] + " " + d["group_name"]
             data_lines = [
                 str(np.round(x, 3)) + " " + str(y)
-                for x, y in zip(data["data"]["x"], data["data"]["y0"])
+                for x, y in zip(d["data"]["x"], d["data"]["y0"])
             ]
             lines.append(
                 {"header_line": header_line, "data_lines": data_lines}

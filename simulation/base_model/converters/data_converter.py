@@ -76,9 +76,3 @@ class DataConverter:
         self.writer = self._writers[out_format]()
         data = self.data
         self.writer.write(data, filename)
-        """try:
-            self.writer = self._write_methods[out_format]()
-            data = self.data
-            self.writer.write(data, filename)
-        except:
-            print("output format not supported")"""

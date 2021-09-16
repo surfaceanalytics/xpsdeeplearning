@@ -296,31 +296,27 @@ class MeasuredSpectrum(Spectrum):
         if new_filename.rsplit(".")[-1] == "vms":
             if self.filepath.rsplit(".")[-1] == "txt":
                 raise TypeError("Cannot write a TXT spectrum to VAMAS.")
-            else:
+
+            self.converter.data[0]["settings"]["nr_values"] = self.x.shape[0]
+            if (
+                self.converter.data[0]["settings"]["x_units"]
+                == "binding energy"
+            ):
                 self.converter.data[0]["settings"][
-                    "nr_values"
-                ] = self.x.shape[0]
-                if (
-                    self.converter.data[0]["settings"]["x_units"]
-                    == "binding energy"
-                ):
-                    self.converter.data[0]["settings"][
-                        "x_units"
-                    ] = "kinetic energy"
-                    excitation_energy = self.converter.data[0]["settings"][
-                        "excitation_energy"
-                    ]
-                    self.converter.data[0]["data"]["x"] = [
-                        np.round(excitation_energy - x, 3) for x in self.x
-                    ]
-                    self.converter.data[0]["data"][
-                        "y1"
-                    ] = self._resample_array(
-                        self.converter.data[0]["data"]["y1"],
-                        self.start,
-                        self.stop,
-                        self.step,
-                    )
+                    "x_units"
+                ] = "kinetic energy"
+                excitation_energy = self.converter.data[0]["settings"][
+                    "excitation_energy"
+                ]
+                self.converter.data[0]["data"]["x"] = [
+                    np.round(excitation_energy - x, 3) for x in self.x
+                ]
+                self.converter.data[0]["data"]["y1"] = self._resample_array(
+                    self.converter.data[0]["data"]["y1"],
+                    self.start,
+                    self.stop,
+                    self.step,
+                )
         else:
             self.converter.data[0]["data"]["x"] = self.x
 
