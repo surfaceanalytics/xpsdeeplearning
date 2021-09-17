@@ -207,22 +207,22 @@ class Peakfinder:
 
 #%%
 # Data loading
-hdf5_filepath = r"C:\Users\pielsticker\Simulations\20210915_CoFe_combined_with_auger_peaks\20210915_CoFe_combined_with_auger_peaks.h5"
+hdf5_filepath = r"C:\Users\pielsticker\Simulations\20210915_CoFe_combined_with_auger_peaks_100eV_window\20210915_CoFe_combined_with_auger_peaks_100eV_window.h5"
 with h5py.File(hdf5_filepath, "r") as hf:
     sizes_h5 = [(key, hf[key].shape) for key in list(hf.keys())]
-    X_h5 = hf["X"][:2000, :, :]
-    y_h5 = hf["y"][:2000, :]
-    shiftx_h5 = hf["shiftx"][:2000, :]
-    noise_h5 = hf["noise"][:2000, :]
-    FWHM_h5 = hf["FWHM"][2000:, :]
-    scatterer_h5 = hf["scatterer"][:2000, :]
-    pressure_h5 = hf["pressure"][2000:, :]
-    distance_h5 = hf["distance"][:2000, :]
+    X_h5 = hf["X"][:200000, :, :]
+    y_h5 = hf["y"][:200000, :]
+    shiftx_h5 = hf["shiftx"][:200000, :]
+    noise_h5 = hf["noise"][:200000, :]
+    FWHM_h5 = hf["FWHM"][200000:, :]
+    scatterer_h5 = hf["scatterer"][:200000, :]
+    pressure_h5 = hf["pressure"][200000:, :]
+    distance_h5 = hf["distance"][:200000, :]
     energies_h5 = hf["energies"][:]
     labels_h5 = [str(label) for label in hf["labels"]]
 
 peakfinder = Peakfinder(X_h5, y_h5)
-all_peaks = peakfinder.get_peak_positions(prominence=0.000055)
+all_peaks = peakfinder.get_peak_positions(prominence=0.000025)
 peakfinder.get_indices()
 print(f"Spectra with peaks: {len(peakfinder.peakfull_indices[0])}")
 print(f"Spectra without peaks: {len(peakfinder.peakless_indices[0])}")
@@ -256,4 +256,3 @@ with h5py.File(new_filepath, "r") as hf:
     distance_peaks = hf["distance"][:20, :]
     energies_peaks = hf["energies"][:20]
     labels_peaks = [str(label) for label in hf["labels"]]
-
