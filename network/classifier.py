@@ -258,7 +258,7 @@ class Classifier:
         except KeyboardInterrupt:
             # Save the model and the history in case of interruption.
             print("Training interrupted!")
-            if any(
+            if all(
                 checkpoint
                 not in [type(cb).__name__ for cb in self.logging.active_cbs]
                 for checkpoint in ("ModelCheckpoint", "CustomModelCheckpoint")
