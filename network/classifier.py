@@ -721,17 +721,19 @@ class Classifier:
 
         X, y = self.datahandler._select_dataset(dataset_name=dataset)
 
-        prob_preds = np.array(
+        prob_pred = np.array(
             [self.model.predict(X) for i in range(no_of_predictions)]
         ).transpose(1, 0, 2)
 
         if dataset == "train":
-            self.datahandler.pred_train = np.mean(prob_preds, axis=1)
+            self.datahandler.prob_pred_train = prob_pred
+            self.datahandler.pred_train = np.mean(prob_pred, axis=1)
 
         elif dataset == "test":
-            self.datahandler.pred_test = np.mean(prob_preds, axis=1)
+            self.datahandler.prob_pred_test = prob_pred
+            self.datahandler.pred_test = np.mean(prob_pred, axis=1)
 
-        return prob_preds
+        return prob_pred
 
     def plot_prob_predictions(
         self, dataset="test", no_of_spectra=10, to_file=True

@@ -966,7 +966,7 @@ class ResNet1DSubclassed(models.Model):
 
 
 ### Probabilistic implementations ###
-class ProbabilisticClassificationCNN2D(EmptyModel):
+class BayesianClassificationCNN2D(EmptyModel):
     """
     A CNN with three convolutional layers of different kernel size at 
     the beginning. Works well for learning across scales.
@@ -1053,14 +1053,131 @@ class ProbabilisticClassificationCNN2D(EmptyModel):
 
         no_of_inputs = len(sublayers)
 
-        super(ProbabilisticClassificationCNN2D, self).__init__(
+        super(BayesianClassificationCNN2D, self).__init__(
             inputs=self.input_1,
             outputs=self.dense_2,
             inputshape=inputshape,
             num_classes=num_classes,
             no_of_inputs=no_of_inputs,
-            name="ProbabilisticClassificationCNN2D",
+            name="BayesianClassificationCNN2D",
         )
+        
+class BayesianCNN(models.EmptyModel):
+    """
+    A CNN with three convolutional layers of different kernel size at 
+    the beginning. Works well for learning across scales.
+    
+    This is to be used for regression on all labels. -> sigmoid 
+    activation in the last layer.
+    """
+    def __init__(
+        self, 
+        inputshape,
+        num_classes,
+        kl_divergence_fn,
+        task,
+        ):
+        if len(inputshape) == 2:
+            conv_layer = tfp.layers.Convolution1DFlipout
+            strides = 1
+            average_pool_layer = layers.AveragePooling1D
+        elif len(inputshape) == 3:
+            conv_layer = tfp.layers.Convolution2DFlipout
+            strides = (1,1)
+            average_pool_layer =  layers.AveragePooling2D
+
+        if task == "regression":
+            if num_classes == 1:
+                output_act = None
+            else:
+                output_act = None#"sigmoid"
+        elif task == "classification":
+            output_act = "softmax"
+
+        prob_act = "softplus"
+
+        self.input_1 = layers.Input(
+            shape = inputshape,
+            name="input_1")   
+        self.conv_1_short = conv_layer(
+            filters=12,
+            kernel_size=5,
+            strides=strides,
+            padding='same',
+            kernel_divergence_fn=kl_divergence_fn,
+            bias_divergence_fn=kl_divergence_fn,
+            activation=prob_act,
+            name='conv_1_short')(self.input_1)
+        self.conv_1_medium = conv_layer(
+            filters=12,
+            kernel_size=10,
+            strides=strides,
+            padding='same',
+            kernel_divergence_fn=kl_divergence_fn,
+            bias_divergence_fn=kl_divergence_fn,            
+            activation=prob_act,
+            name='conv_1_medium')(self.input_1)
+        self.conv_1_long = conv_layer(
+            filters=12,
+            kernel_size=15,
+            strides=strides,
+            padding='same',
+            kernel_divergence_fn=kl_divergence_fn,
+            bias_divergence_fn=kl_divergence_fn,
+            activation=prob_act,
+            name='conv_1_long')(self.input_1)
+        
+        sublayers = [self.conv_1_short, self.conv_1_medium, self.conv_1_long]
+        merged_sublayers = layers.concatenate(sublayers)
+
+        self.conv_2 = conv_layer(
+            filters=10,
+            kernel_size=5,
+            strides=strides,
+            padding='valid',
+            kernel_divergence_fn=kl_divergence_fn,
+            bias_divergence_fn=kl_divergence_fn,
+            activation=prob_act,
+            name='conv_2')(merged_sublayers)
+        self.conv_3 = conv_layer(
+            filters=10,
+            kernel_size=5,
+            strides=strides,
+            padding='valid',
+            kernel_divergence_fn=kl_divergence_fn,
+            bias_divergence_fn=kl_divergence_fn,
+            activation=prob_act,
+            name="conv_3")(self.conv_2)
+        self.average_pool_1 = average_pool_layer(
+            name='average_pool_1')(self.conv_3)
+        
+        self.flatten_1 = layers.Flatten(name='flatten1')(self.average_pool_1)
+        self.drop_1 = layers.Dropout(
+            rate=0.2,
+            name='drop_1')(self.flatten_1)
+        self.dense_1 = tfp.layers.DenseFlipout(
+            units=4000,
+            kernel_divergence_fn=kl_divergence_fn,
+            bias_divergence_fn=kl_divergence_fn,
+            activation=prob_act,
+            name='dense_1')(self.flatten_1)
+                           
+        self.dense_2 = tfp.layers.DenseFlipout(
+            units=num_classes,
+            kernel_divergence_fn=kl_divergence_fn,
+            bias_divergence_fn=kl_divergence_fn,
+            activation=output_act,
+            name='dense_2')(self.dense_1)
+
+        no_of_inputs = len(sublayers)
+
+        super(BayesianCNN, self).__init__(
+            inputs=self.input_1,
+            outputs=self.dense_2,
+            inputshape=inputshape,
+            num_classes=num_classes,
+            no_of_inputs=no_of_inputs,
+            name='BayesianCNN')
 
 
 #%%
