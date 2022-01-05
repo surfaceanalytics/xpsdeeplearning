@@ -1062,7 +1062,7 @@ class BayesianClassificationCNN2D(EmptyModel):
             name="BayesianClassificationCNN2D",
         )
         
-class BayesianCNN(models.EmptyModel):
+class BayesianCNN(EmptyModel):
     """
     A CNN with three convolutional layers of different kernel size at 
     the beginning. Works well for learning across scales.
