@@ -1083,9 +1083,9 @@ class DataHandler:
             
             # Round prediction and sum to 1
             tmp_array = np.around(pred[index], decimals=4)
-            row_sums = tmp_array.sum()
-            tmp_array = tmp_array / row_sums
-            tmp_array = np.around(tmp_array, decimals=3)
+            #row_sums = tmp_array.sum()
+            #tmp_array = tmp_array / row_sums
+            #tmp_array = np.around(tmp_array, decimals=3)
             pred_text = "Prediction: " + str(list(tmp_array)) + "\n"
             text += pred_text
 
