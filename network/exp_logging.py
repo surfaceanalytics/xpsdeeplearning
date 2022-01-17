@@ -329,9 +329,9 @@ class CustomModelCheckpoint(callbacks.ModelCheckpoint):
 
     def _save_model(self, epoch, batch, logs):
         """
-        Save the model.
+        Saves the model.
         
-        Save the model to JSON and the weights to HDF5 as well.
+        Saves the model to JSON and the weights to HDF5 as well.
         
         Parameters
         ----------
@@ -342,6 +342,7 @@ class CustomModelCheckpoint(callbacks.ModelCheckpoint):
             `on_epoch_end`.
         """
         from tensorflow.python.keras.utils import tf_utils
+        from tensorflow.python.platform import tf_logging as logging
 
         logs = logs or {}
 
