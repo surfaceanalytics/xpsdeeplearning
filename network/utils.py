@@ -132,8 +132,9 @@ class ClassDistribution:
         task : str
             If task == 'regression', an average distribution is 
             calculated.
-            If task == 'classification', the distribution of the labels
-            across the different data sets is calculated.
+            If task == 'classification' or 'multi_class_detection',
+            the distribution of the labels across the different data
+            sets is calculated.
         data_list : list
             List of numpy arrays containing labels.
 
@@ -160,8 +161,8 @@ class ClassDistribution:
         if self.task == "classification":
             for i, dataset in enumerate(data_list):
                 key = list(self.cd.keys())[i]
-                for j in range(dataset.shape[0]):
-                    argmax_class = np.argmax(dataset[j, :], axis=0)
+                for j, datapoint in enumerate(dataset):
+                    argmax_class = np.argmax(datapoint, axis=0)
                     self.cd[key][str(argmax_class)] += 1
 
         elif self.task == "regression":
@@ -169,6 +170,15 @@ class ClassDistribution:
                 key = list(self.cd.keys())[i]
                 average = list(np.mean(dataset, axis=0))
                 self.cd[key] = average
+                
+        elif self.task == "multi_class_detection":
+            for i, dataset in enumerate(data_list):
+                key = list(self.cd.keys())[i]
+                for j, datapoint in enumerate(dataset):
+                    non_zero_classes_args = np.where(datapoint > 0.0)[0]
+                    for n in non_zero_classes_args:
+                        self.cd[key][str(n)] += 1
+
 
     def plot(self, labels):
         """
@@ -189,22 +199,22 @@ class ClassDistribution:
         x = np.arange(len(self.cd.keys())) * 1.5
         data = []
 
-        if self.task == "classification":
-            plt.title("Class distribution")
-            for k, v in self.cd.items():
-                data_list = []
-                for key, value in v.items():
-                    data_list.append(value)
-            data.append(data_list)
-            data = np.transpose(np.array(data))
-
-        elif self.task == "regression":
+        if self.task == "regression":
             plt.title("Average distribution across the classes")
             # Plot of the average label distribution in the different
             # data sets.
             for k, v in self.cd.items():
                 data.append(v)
             data = np.transpose(np.array(data))
+
+        else:
+            plt.title("Class distribution")
+            for k, v in self.cd.items():
+                data_list = []
+                for key, value in v.items():
+                    data_list.append(value)
+            data.append(data_list)
+            data = np.transpose(np.array(data))            
 
         for i in range(data.shape[0]):
             ax.bar(x + i * 0.25, data[i], align="edge", width=0.2)

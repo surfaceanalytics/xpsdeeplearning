@@ -49,7 +49,8 @@ class Classifier:
             for distinguishing runs on different data on the same day.
             The default is ''.
         task : str, optional
-            Task to perform. Either 'classification' or 'regression'.
+            Task to perform. Either 'classification', 
+            "multi_class_detection or 'regression'.
             The default is 'regression'.
         intensity_only : boolean, optional
             If True, then only the intensity scale is loaded into X.
@@ -350,22 +351,39 @@ class Classifier:
                 "Regression was chosen as task. "
                 + "No prediction of classes possible!"
             )
+        if self.task == "multi_class_detection":
+            self.datahandler.pred_train_classes = []
+            self.datahandler.pred_test_classes = []
+                           
+            for i, pred in enumerate(clf.datahandler.pred_train):
+                arg_max = list(np.where(pred > 0.05)[0])
+                classes = [clf.datahandler.labels[arg] for arg in arg_max]
+                self.datahandler.pred_train_classes.append(classes)
+ 
+            for i, pred in enumerate(clf.datahandler.pred_test):
+                arg_max = list(np.where(pred > 0.05)[0])
+                classes = [clf.datahandler.labels[arg] for arg in arg_max]
+                self.datahandler.pred_test_classes.append(classes)
+            
+            print("Class prediction done!") 
+            
+            return (
+                self.datahandler.pred_train_classes,
+                self.datahandler.pred_test_classes,
+            )
+        
         else:
             pred_train_classes = []
             pred_test_classes = []
 
-            for i in range(self.datahandler.pred_train.shape[0]):
-                argmax_class = np.argmax(
-                    self.datahandler.pred_train[i, :], axis=0
-                )
+            for i, pred in enumerate(clf.datahandler.pred_train):
+                argmax_class = np.argmax(pred, axis=0)
                 pred_train_classes.append(
                     self.datahandler.labels[argmax_class]
                 )
 
-            for i in range(self.datahandler.pred_test.shape[0]):
-                argmax_class = np.argmax(
-                    self.datahandler.pred_test[i, :], axis=0
-                )
+            for i, pred in enumerate(clf.datahandler.pred_test):
+                argmax_class = np.argmax(pred, axis=0)
                 pred_test_classes.append(
                     self.datahandler.labels[argmax_class]
                 )
@@ -779,7 +797,7 @@ class Classifier:
             "test_loss",
             "class_distribution",
         ]
-        if self.task == "classification":
+        if self.task != "regression":
             key_list.extend(
                 ["test_accuracy", "pred_train_classes", "pred_test_classes"]
             )

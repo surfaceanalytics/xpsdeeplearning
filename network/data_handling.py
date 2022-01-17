@@ -581,8 +581,9 @@ class DataHandler:
         task : str
             If task == 'regression', an average distribution is 
             calculated.
-            If task == 'classification', the distribution of the labels
-            across the different data sets is calculated.
+            If task == 'classification' or 'multi_class_detection',
+            the distribution of the labels across the different data
+            sets is calculated.
             
         Returns
         -------
@@ -859,9 +860,9 @@ class DataHandler:
                 real_y = "Real: " + str(self.y_test[index]) + "\n"
                 # Round prediction and sum to 1
                 tmp_array = np.around(self.pred_test[index], decimals=4)
-                row_sums = tmp_array.sum()
-                tmp_array = tmp_array / row_sums
-                tmp_array = np.around(tmp_array, decimals=2)
+                #row_sums = tmp_array.sum()
+                #tmp_array = tmp_array / row_sums
+                #tmp_array = np.around(tmp_array, decimals=2)
                 pred_y = "Prediction: " + str(tmp_array) + "\n"
                 pred_label = (
                     "Predicted label: "
@@ -1079,6 +1080,7 @@ class DataHandler:
 
         if with_prediction:
             pred, losses = self._get_predictions(dataset)
+            
             # Round prediction and sum to 1
             tmp_array = np.around(pred[index], decimals=4)
             row_sums = tmp_array.sum()
