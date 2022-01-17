@@ -355,14 +355,14 @@ class Classifier:
             self.datahandler.pred_train_classes = []
             self.datahandler.pred_test_classes = []
                            
-            for i, pred in enumerate(clf.datahandler.pred_train):
+            for i, pred in enumerate(self.datahandler.pred_train):
                 arg_max = list(np.where(pred > 0.05)[0])
-                classes = [clf.datahandler.labels[arg] for arg in arg_max]
+                classes = [self.datahandler.labels[arg] for arg in arg_max]
                 self.datahandler.pred_train_classes.append(classes)
  
-            for i, pred in enumerate(clf.datahandler.pred_test):
+            for i, pred in enumerate(self.datahandler.pred_test):
                 arg_max = list(np.where(pred > 0.05)[0])
-                classes = [clf.datahandler.labels[arg] for arg in arg_max]
+                classes = [self.datahandler.labels[arg] for arg in arg_max]
                 self.datahandler.pred_test_classes.append(classes)
             
             print("Class prediction done!") 
