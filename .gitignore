@@ -112,8 +112,3 @@ venv.bak/
 
 # mypy
 .mypy_cache/
-
-logs
-figures
-saved_models
-param_tests
