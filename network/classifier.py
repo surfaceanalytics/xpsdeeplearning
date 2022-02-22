@@ -601,6 +601,56 @@ class Classifier:
 
         return loaded_data
 
+    def plot_spectra_by_indices(
+        self, indices, dataset="train", with_prediction=False
+    ):
+        """
+        Plot XPS spectra out of one of the data set by indices.
+        
+        The labels and additional information are shown as texts on the
+        plots.
+        Utilizes the method of the same name in DataHandler.
+        
+        Parameters
+        ----------
+        no_of_spectra : int
+            No. of plots to create.
+        dataset : str, optional
+            Either 'train', 'val', or 'test'.
+            The default is 'train'.
+        with_prediction : bool, optional
+            If True, information about the predicted values are also 
+            shown in the plot. 
+            The default is False.
+
+        Returns
+        -------
+        None.
+
+        """
+        no_of_spectra = len(indices)
+
+        if with_prediction:
+            try:
+                self.datahandler.plot_spectra(
+                    no_of_spectra=no_of_spectra,
+                    dataset=dataset,
+                    indices=indices, 
+                    with_prediction=True)
+                
+            except AttributeError:
+                self.datahandler.calculate_losses(self.model.loss)
+                self.datahandler.plot_spectra(
+                    no_of_spectra=no_of_spectra,
+                    dataset=dataset,
+                    indices=indices, 
+                    with_prediction=True)
+        else:
+            self.datahandler.plot_random(
+                no_of_spectra, dataset, with_prediction=False
+            )
+
+
     def plot_random(
         self, no_of_spectra, dataset="train", with_prediction=False
     ):

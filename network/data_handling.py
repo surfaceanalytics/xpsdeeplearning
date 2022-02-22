@@ -954,8 +954,8 @@ class DataHandler:
             colors = iter(mcolors.CSS4_COLORS.keys())
             for pred in prob_preds[r, :20]:
                 sns.barplot(
-                    np.arange(self.num_classes),
-                    pred,
+                    x=np.arange(self.num_classes),
+                    y=pred,
                     color=next(colors),
                     alpha=0.2,
                     ax=ax2,
