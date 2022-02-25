@@ -947,7 +947,7 @@ class DataHandler:
                     fontsize=12,
                 )
 
-            sns.barplot(np.arange(self.num_classes), y[r], ax=ax1)
+            sns.barplot(x=np.arange(self.num_classes), y=y[r], ax=ax1)
             # ax1.set_ylim([0, np.max(y)])
             ax1.set_title("Ground Truth")
 
