@@ -10,7 +10,6 @@ Basic definition of classes and peak shapes for simulating spectra.
 import numpy as np
 import os
 from scipy.signal import fftconvolve
-import math
 
 from .converters.data_converter import DataConverter
 
