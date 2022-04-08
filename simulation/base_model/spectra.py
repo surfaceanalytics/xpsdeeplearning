@@ -10,6 +10,8 @@ Basic definition of classes and peak shapes for simulating spectra.
 import numpy as np
 import os
 from scipy.signal import fftconvolve
+from scipy.interpolate import interp1d
+
 
 from .converters.data_converter import DataConverter
 
@@ -43,6 +45,30 @@ def safe_arange_with_edges(start, stop, step):
 
     """
     return step * np.arange(start / step, (stop + step) / step)
+
+def _resample_array(y, x0, x1):
+    """
+    Resample an array (y) which has the same initial spacing 
+    of another array(x_old), based on the spacing of a new
+    array(x_new).
+
+    Parameters
+    ----------
+    y : array
+        Lineshape array.
+    x0 : array
+        x array with old spacing.
+    x1 : array
+        x array with new spacing.
+
+    Returns
+    -------
+    TYPE
+        DESCRIPTION.
+
+    """
+    fn = interp1d(x0, y, axis=0)
+    return fn(x1)
 
 
 class Spectrum:
@@ -148,49 +174,19 @@ class Spectrum:
         -------
         None
 
-        """
+        """        
+        new_x = np.flip(
+            safe_arange_with_edges(start, stop, step)
+        )
+        
+        self.lineshape = _resample_array(
+            self.lineshape, self.x, new_x
+        )
+        
         self.start = start
         self.stop = stop
         self.step = step
-
-        self.lineshape = self._resample_array(
-            self.lineshape, start, stop, step
-        )
         self.update_range()
-
-    def _resample_array(self, y, start, stop, step):
-        """
-        Resample the x and lineshape arrays.
-
-        Parameters
-        ----------
-        start : int
-            New start value for the x array.
-        stop : int
-            New stop value for the x array.
-        step : int
-            New step value for the x array.
-
-        Returns
-        -------
-        None
-
-        """
-
-        def find_index_of_nearest_value(array, value):
-            array = np.asarray(array)
-            idx = (np.abs(array - value)).argmin()
-            return idx
-
-        new_x = np.flip(
-            safe_arange_with_edges(self.start, self.stop, self.step)
-        )
-
-        new_y = np.array(
-            [y[find_index_of_nearest_value(self.x, i)] for i in new_x]
-        )
-
-        return new_y
 
 
 class MeasuredSpectrum(Spectrum):
@@ -261,9 +257,9 @@ class MeasuredSpectrum(Spectrum):
             for data in self.converter.data:
                 if data["settings"]["y_units"] == "counts":
                     y = np.array(data["data"]["y0"])
-                    dwell = data["settings"]["dwell_time"]
-                    scans = data["scans"]
-                    y = y / dwell / scans
+                    #dwell = data["settings"]["dwell_time"]
+                    #scans = data["scans"]
+                    #y = y / dwell / scans
                     data["data"]["y0"] = list(y)
                     data["settings"]["y_units"] = "counts_per_second"
                 if data["settings"]["x_units"] == "kinetic energy":
@@ -297,6 +293,14 @@ class MeasuredSpectrum(Spectrum):
                 raise TypeError("Cannot write a TXT spectrum to VAMAS.")
 
             self.converter.data[0]["settings"]["nr_values"] = self.x.shape[0]
+
+            self.converter.data[0]["data"]["y0"] = self.lineshape
+            self.converter.data[0]["data"]["y1"] = _resample_array(
+                self.converter.data[0]["data"]["y1"],
+                self.converter.data[0]["data"]["x"],
+                self.x
+                )
+            
             if (
                 self.converter.data[0]["settings"]["x_units"]
                 == "binding energy"
@@ -310,17 +314,9 @@ class MeasuredSpectrum(Spectrum):
                 self.converter.data[0]["data"]["x"] = [
                     np.round(excitation_energy - x, 3) for x in self.x
                 ]
-                self.converter.data[0]["data"]["y1"] = self._resample_array(
-                    self.converter.data[0]["data"]["y1"],
-                    self.start,
-                    self.stop,
-                    self.step,
-                )
         else:
             self.converter.data[0]["data"]["x"] = self.x
-
-        self.converter.data[0]["data"]["y0"] = self.lineshape
-
+            
         filepath_new = os.path.join(output_folder, new_filename)
         self.converter.write(filepath_new)
 
