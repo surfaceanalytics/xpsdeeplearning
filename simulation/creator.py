@@ -48,7 +48,7 @@ class Creator:
          variable_no_of_inputs : bool, optional
             If variable_no_of_inputs and if single, then the number of
             input spectra used in the linear combination will be
-            randomly chosen from the interval 
+            randomly chosen from the interval
             (1, No. of input spectra).
             The default is True.
 
@@ -58,7 +58,7 @@ class Creator:
 
         """
 
-        default_param_filename = "default_params.json"
+        default_param_filename = "params/default_params.json"
         default_param_filepath = os.path.join(
             os.path.dirname(os.path.abspath(__file__)), default_param_filename
         )
@@ -1265,7 +1265,7 @@ class FileWriter:
 
         """
         json_filepath = self.filepath + "_metadata.json"
-        
+
         if self.params["eV_window"]:
             self.params["energy_range"] = [
                 np.min(self.df["x"][0]),
@@ -1306,12 +1306,12 @@ def calculate_runtime(start, end):
 
 # %%
 if __name__ == "__main__":
-    init_param_filepath = r"C:\Users\pielsticker\Simulations\init_params_Fe_Co_Ni_core_auger.json"
+    init_param_filepath = r"C:\Users\pielsticker\Simulations\init_params_NiCoFe_combined_core.json"
     with open(init_param_filepath, "r") as param_file:
         params = json.load(param_file)
 
     t0 = time()
-    creator = Creator(params=params)
+    creator = Creator(params=None)
     df = creator.run()
     creator.plot_random(20)
     # creator.to_file(filetypes = ['hdf5'], metadata=True)

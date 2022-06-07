@@ -7,8 +7,8 @@ Created on Thu May  7 11:25:02 2020.
 
 import numpy as np
 import os
-from base_model.spectra import MeasuredSpectrum, SimulatedSpectrum
-from base_model.figures import Figure
+from .base_model.spectra import MeasuredSpectrum, SimulatedSpectrum
+from .base_model.figures import Figure
 
 #%%
 class Simulation:

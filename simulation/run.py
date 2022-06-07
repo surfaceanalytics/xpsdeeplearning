@@ -20,8 +20,8 @@ from creator import Creator, FileWriter, calculate_runtime
 
 #%% Input parameter
 # Change the following line according to your folder structure ###
-init_param_folder = r"C:\Users\pielsticker\Simulations\params_CoFe"
-init_param_filename = "init_params_CoFe_combined_core_auger_100eV_window.json"
+init_param_folder = r"C:\Users\pielsticker\Simulations"#"\params_CoFe"
+init_param_filename = "init_params_Fe_core.json"
 #%% Parameters
 init_param_filepath = os.path.join(init_param_folder, init_param_filename)
 
