@@ -40,7 +40,7 @@ def safe_arange_with_edges(start, stop, step):
     Returns
     -------
     ndarray
-        1D array with values in the interval (start, stop), 
+        1D array with values in the interval (start, stop),
         incremented by step.
 
     """
@@ -48,9 +48,9 @@ def safe_arange_with_edges(start, stop, step):
 
 def _resample_array(y, x0, x1):
     """
-    Resample an array (y) which has the same initial spacing 
-    of another array(x_old), based on the spacing of a new
-    array(x_new).
+    Resample an array (y) which has the same initial spacing
+    of another array(x0), based on the spacing of a new
+    array(x1).
 
     Parameters
     ----------
@@ -77,7 +77,7 @@ class Spectrum:
     def __init__(self, start, stop, step, label):
         """
         Initialize numpy arrays for the x values and lineshape.
-        
+
         The x values are defined using the start, stop,
         and step values.
 
@@ -110,7 +110,7 @@ class Spectrum:
     def clear_lineshape(self):
         """
         Set the lineshape to an array of all zeros.
-        
+
         The shape depends on the x axis of the spectrum.
 
         Returns
@@ -145,7 +145,7 @@ class Spectrum:
     def update_range(self):
         """
         Update the x axis of the spectrum.
-        
+
         Can be used when the start, stop, or stop values were udpated.
 
         Returns
@@ -174,15 +174,15 @@ class Spectrum:
         -------
         None
 
-        """        
+        """
         new_x = np.flip(
             safe_arange_with_edges(start, stop, step)
         )
-        
+
         self.lineshape = _resample_array(
             self.lineshape, self.x, new_x
         )
-        
+
         self.start = start
         self.stop = stop
         self.step = step
@@ -195,7 +195,7 @@ class MeasuredSpectrum(Spectrum):
     def __init__(self, filepath):
         """
         Load the data into a Spectrum object.
-        
+
         The step size is automatically determined from the last data
         points.
 
@@ -300,7 +300,7 @@ class MeasuredSpectrum(Spectrum):
                 self.converter.data[0]["data"]["x"],
                 self.x
                 )
-            
+
             if (
                 self.converter.data[0]["settings"]["x_units"]
                 == "binding energy"
@@ -316,7 +316,7 @@ class MeasuredSpectrum(Spectrum):
                 ]
         else:
             self.converter.data[0]["data"]["x"] = self.x
-            
+
         filepath_new = os.path.join(output_folder, new_filename)
         self.converter.write(filepath_new)
 

@@ -24,7 +24,7 @@ import os
 import h5py
 import pandas as pd
 
-from base_model.spectra import MeasuredSpectrum, FittedSpectrum
+from base_model.spectra import Spectrum, MeasuredSpectrum, FittedSpectrum
 from base_model.figures import Figure
 
 #%% For one reference spectrum.
@@ -117,7 +117,7 @@ def convert_all_spectra(
         A list of labels that needs to match the column names in the
         Excel file.
     plot_all : bool, optional
-        If plot_all, all loadded spectra are plotted. 
+        If plot_all, all loadded spectra are plotted.
         The default is True.
 
     Returns
@@ -138,7 +138,7 @@ def convert_all_spectra(
 
     X = np.zeros((len(filenames), 381, 1))
 
-    y, names = _get_labels(label_filepath, label_list)
+    #y, names = _get_labels(label_filepath, label_list)
     spectra = []
 
     for name in filenames:
@@ -146,7 +146,6 @@ def convert_all_spectra(
         spectrum = FittedSpectrum(filepath)
         index = filenames.index(name)
         spectrum.resample(start=331, stop=350, step=0.05)
-        # spectrum.resize(start = 694, stop = 750, step = 0.05)
         spectrum.normalize()
         spectra.append(spectrum)
         X[index] = np.reshape(spectrum.lineshape, (-1, 1))
@@ -162,7 +161,8 @@ def convert_all_spectra(
 
     energies = spectrum.x
 
-    return X, y, names, energies
+    #return X, y, names, energies
+    return X, names, energies
 
 
 # Load the data into numpy arrays and save to hdf5 file.
@@ -217,3 +217,153 @@ with h5py.File(output_file, "r") as hf:
     names_h5 = hf["names"][:]
     energies_h5 = hf["energies"][:]
     labels_h5 = [str(label) for label in hf["labels"][:]]
+
+#%% For converting spectra where the composition is unknown.
+def load_data(filepath):
+    """
+    Overwrite load method from the MeasuredSpectrum class.
+
+    This is done to accomodate header of CasaXPS export and
+    associate the spectrum with a number.
+
+    Parameters
+    ----------
+    filepath: str
+        Filepath of the .txt file with the data in the format of
+        x and y values.
+
+    Returns
+    -------
+    label : dict
+        Name of the spectrum given in the first row of the xy file.
+    data : ndarray
+        2D array with the x and y values from the file.
+
+    """
+    lines = []
+    with open(filepath, "r") as file:
+        for line in file.readlines():
+            lines += [line]
+    # This takes the species given in the first line
+    name = lines[0].split(":")[1]
+    species = str(lines[0]).split(":")[-1].split("\n")[0]
+    lines = [[float(i) for i in line.split()] for line in lines[8:]]
+    xy_data = np.array(lines)[:, 2:]
+
+    data = {
+            "data": {
+                "x": list(xy_data[:, 0]),
+                "y0": list(xy_data[:, 1]),
+            },
+            "spectrum_type": species,
+            "name": name,
+        }
+    return data
+
+
+def convert_all_spectra(
+    input_datafolder, plot_all=True
+):
+    """
+    Take all xy files of measured spectra in the input_datafolder.
+
+    Features, labels, and names are extracted. If neeeded, the spectra
+    are resized.
+
+    Parameters
+    ----------
+    input_datafolder : str
+        Folder of the exported XPS spectra.
+    plot_all : bool, optional
+        If plot_all, all loadded spectra are plotted.
+        The default is True.
+
+    Returns
+    -------
+    X : ndarray
+        3D array of XPS data.
+    y : ndarray
+        2D array of labels.
+    names : ndarray
+        Spectra names.
+    energies: ndarray
+        1D array of binding energies
+    """
+    import warnings
+
+    warnings.filterwarnings("ignore")
+    filenames = next(os.walk(input_datafolder))[2]
+
+    X = np.zeros((len(filenames), 1121, 1))
+
+    spectra = []
+    names = []
+
+    for filename in filenames:
+        filepath = os.path.join(input_datafolder, filename)
+        data = load_data(filepath)
+
+        x = np.array(data["data"]["x"])
+        x -= 0.808
+        x1 = np.roll(x, -1)
+        diff = np.abs(np.subtract(x, x1))
+        step = np.round(np.min(diff[diff != 0]), 3)
+        x = x[diff != 0]
+        y = np.array(data["data"]["y0"])[diff != 0]
+
+        start = np.round(np.min(x), 3)
+        stop = np.round(np.max(x), 3)
+        name = data["name"]
+        names.append(name)
+
+        spectrum = Spectrum(start, stop, step, name)
+        spectrum.x = np.round(x, 3)
+        spectrum.lineshape = y
+
+        index = filenames.index(filename)
+
+        spectrum.resample(start=694, stop=750, step=0.05)
+        spectrum.normalize()
+        spectra.append(spectrum)
+        X[index] = np.reshape(spectrum.lineshape, (-1, 1))
+
+        if plot_all:
+            Figure(spectrum.x, spectrum.lineshape, title=spectrum.label)
+
+        energies = spectrum.x
+
+    return X, names, energies
+
+# Load the data into numpy arrays and save to hdf5 file.
+input_datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Data\NAP-XPS\analyzed data\AmmoMaxRef\exports"
+X, names, energies = convert_all_spectra(
+    input_datafolder, plot_all=True
+)
+output_file = r"C:\Users\pielsticker\Simulations\20220609_AmmoMax_spectra.h5"
+
+with h5py.File(output_file, "w") as hf:
+    hf.create_dataset(
+        "X",
+        data=X,
+        compression="gzip",
+        chunks=True,
+        maxshape=(None, X.shape[1], X.shape[2]),
+    )
+    hf.create_dataset(
+        "energies", data=energies, compression="gzip", chunks=True
+    )
+    string_dt = h5py.special_dtype(vlen=str)
+    hf.create_dataset(
+        "names",
+        data=names,
+        dtype=string_dt,
+        compression="gzip",
+        chunks=True,
+    )
+
+# Test the new file
+with h5py.File(output_file, "r") as hf:
+    size = hf["X"].shape
+    X_h5 = hf["X"][:, :, :]
+    energies_h5 = hf["energies"][:]
+    names_h5 = [str(name.decode('utf-8')) for name in hf["names"][:]]
