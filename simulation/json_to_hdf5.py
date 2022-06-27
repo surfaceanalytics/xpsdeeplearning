@@ -142,7 +142,9 @@ def load_data_preprocess(
             number = j
         print(
             "Load: "
-            + str((filenames.index(file) - start) * len(test) + number + 1)
+            + str(
+                (filenames.index(file) - start) * len(test) + number + 1
+            )
             + "/"
             + str(len(filenames[start:end]) * len(test))
         )
@@ -413,16 +415,19 @@ def to_hdf5(
             hf["FWHM"][-X_new.shape[0] :] = FWHM_new
 
             hf["scatterer"].resize(
-                (hf["scatterer"].shape[0] + scatterer_new.shape[0]), axis=0
+                (hf["scatterer"].shape[0] + scatterer_new.shape[0]),
+                axis=0,
             )
             hf["scatterer"][-scatterer_new.shape[0] :] = scatterer_new
             hf["distance"].resize(
-                (hf["distance"].shape[0] + distance_new.shape[0]), axis=0
+                (hf["distance"].shape[0] + distance_new.shape[0]),
+                axis=0,
             )
             hf["distance"][-distance_new.shape[0] :] = distance_new
 
             hf["pressure"].resize(
-                (hf["pressure"].shape[0] + pressure_new.shape[0]), axis=0
+                (hf["pressure"].shape[0] + pressure_new.shape[0]),
+                axis=0,
             )
             hf["pressure"][-pressure_new.shape[0] :] = pressure_new
 
@@ -436,7 +441,9 @@ if __name__ == "__main__":
     with open(param_filepath, "r") as param_file:
         params = json.load(param_file)
 
-    output_filepath = params["output_datafolder"] + params["h5_filename"]
+    output_filepath = (
+        params["output_datafolder"] + params["h5_filename"]
+    )
 
     runtimes = {}
     t0 = time()

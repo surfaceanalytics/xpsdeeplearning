@@ -173,7 +173,9 @@ class Hyperoptimization:
         filenames = next(os.walk(self.test_dir))[2]
         number = 0
         for filename in filenames:
-            if filename.startswith("test_log") and filename.endswith(".pkl"):
+            if filename.startswith("test_log") and filename.endswith(
+                ".pkl"
+            ):
                 number += 1
 
         # Initialize Scan object (based on talos.Scan)
@@ -242,7 +244,10 @@ class Hyperoptimization:
         filenames = [
             filename
             for filename in next(os.walk(self.test_dir))[2]
-            if (filename.startswith("test_log") and filename.endswith("pkl"))
+            if (
+                filename.startswith("test_log")
+                and filename.endswith("pkl")
+            )
         ]
 
         for filename in filenames:
@@ -270,10 +275,14 @@ class Hyperoptimization:
         filenames = next(os.walk(self.test_dir))[2]
         full_data = pd.DataFrame()
         for filename in filenames:
-            if filename.startswith("test_log") and filename.endswith("pkl"):
+            if filename.startswith("test_log") and filename.endswith(
+                "pkl"
+            ):
                 results_file = os.path.join(self.test_dir, filename)
                 new_df = pd.read_pickle(results_file)
-                full_data = pd.concat([full_data, new_df], ignore_index=True)
+                full_data = pd.concat(
+                    [full_data, new_df], ignore_index=True
+                )
 
         return full_data
 
@@ -289,7 +298,9 @@ class Hyperoptimization:
         new_csv_filepath = os.path.join(self.test_dir, "all_tests.csv")
         new_pkl_filepath = os.path.join(self.test_dir, "all_tests.pkl")
 
-        np.savetxt(new_csv_filepath, self.full_data, fmt="%s", delimiter=",")
+        np.savetxt(
+            new_csv_filepath, self.full_data, fmt="%s", delimiter=","
+        )
 
         self.full_data.to_pickle(new_pkl_filepath)
 
@@ -583,7 +594,9 @@ class RestoredScan:
             for line in modelfile.readlines():
                 self.saved_models.append(line[:-1])
 
-        print("Previous data for Scan {} was loaded!".format(self.number))
+        print(
+            "Previous data for Scan {} was loaded!".format(self.number)
+        )
 
 
 class Analysis:
@@ -647,7 +660,9 @@ class Analysis:
             ID of the best round.
 
         """
-        return self.df[self.df[metric] == self.df[metric].min()].index[0]
+        return self.df[self.df[metric] == self.df[metric].min()].index[
+            0
+        ]
 
     def _minimum_value(self, metric):
         """Return the minimum value for a given metric."""
@@ -665,7 +680,9 @@ class Analysis:
     def _cols(self, metric, exclude):
         """Remove other than desired metric from data table."""
         cols = [
-            col for col in self.df.columns if col not in exclude + [metric]
+            col
+            for col in self.df.columns
+            if col not in exclude + [metric]
         ]
 
         # make sure only unique values in col list
@@ -896,7 +913,8 @@ class LinePlot(Plot):
         self.ax.set_xlabel("Round", self.font_dict)
 
         self.ax.set_title(
-            self.metric_display_name + " across all rounds", self.font_dict
+            self.metric_display_name + " across all rounds",
+            self.font_dict,
         )
         self.ax.set_ylabel(self.metric_display_name, self.font_dict)
 
@@ -949,11 +967,17 @@ class HistPlot(Plot):
 
         self.ax.set_xlabel(
             self.metric_display_name,
-            fontdict={"fontsize": 15, "fontweight": 1, "color": "black"},
+            fontdict={
+                "fontsize": 15,
+                "fontweight": 1,
+                "color": "black",
+            },
         )
         self.ax.set_ylabel("Counts", self.font_dict)
 
-        self.ax.yaxis.set_major_locator(ticker.MaxNLocator(integer=True))
+        self.ax.yaxis.set_major_locator(
+            ticker.MaxNLocator(integer=True)
+        )
 
 
 class CorrPlot(Plot):
@@ -998,7 +1022,8 @@ class CorrPlot(Plot):
             cmap="YlOrRd",
         )
         self.ax.set_title(
-            "Correlation matrix of the scanned parameters", self.font_dict
+            "Correlation matrix of the scanned parameters",
+            self.font_dict,
         )
         p.set_xticklabels(self.data, rotation=90)
         p.set_yticklabels(self.data, rotation=0)
@@ -1067,7 +1092,9 @@ class KDEPlot(Plot):
         )
 
         self.ax.set_title(
-            "Kernel density estimator for {0} and {1}".format(self.x, self.y),
+            "Kernel density estimator for {0} and {1}".format(
+                self.x, self.y
+            ),
             self.font_dict,
         )
 

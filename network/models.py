@@ -108,13 +108,15 @@ class CustomMLP(EmptyModel):
         self.input_1 = layers.Input(shape=inputshape, name="input_1")
 
         self.flatten_1 = layers.Flatten(name="flatten1")(self.input_1)
-        self.drop_1 = layers.Dropout(rate=0.5, name="drop_1")(self.flatten_1)
+        self.drop_1 = layers.Dropout(rate=0.5, name="drop_1")(
+            self.flatten_1
+        )
         self.dense_1 = layers.Dense(
             units=64, activation="relu", name="dense1"
         )(self.drop_1)
-        self.batch_norm_1 = layers.BatchNormalization(name="batch_norm_1")(
-            self.dense_1
-        )
+        self.batch_norm_1 = layers.BatchNormalization(
+            name="batch_norm_1"
+        )(self.dense_1)
         self.dense_2 = layers.Dense(
             units=num_classes, activation="softmax", name="dense2"
         )(self.batch_norm_1)
@@ -179,7 +181,11 @@ class ClassificationCNN(EmptyModel):
             name="conv_1_long",
         )(self.input_1)
 
-        sublayers = [self.conv_1_short, self.conv_1_medium, self.conv_1_long]
+        sublayers = [
+            self.conv_1_short,
+            self.conv_1_medium,
+            self.conv_1_long,
+        ]
         merged_sublayers = layers.concatenate(sublayers)
 
         self.conv_2 = layers.Conv1D(
@@ -198,12 +204,16 @@ class ClassificationCNN(EmptyModel):
             activation="relu",
             name="conv_3",
         )(self.conv_2)
-        self.average_pool_1 = layers.AveragePooling1D(name="average_pool_1")(
-            self.conv_3
-        )
+        self.average_pool_1 = layers.AveragePooling1D(
+            name="average_pool_1"
+        )(self.conv_3)
 
-        self.flatten_1 = layers.Flatten(name="flatten1")(self.average_pool_1)
-        self.drop_1 = layers.Dropout(rate=0.2, name="drop_1")(self.flatten_1)
+        self.flatten_1 = layers.Flatten(name="flatten1")(
+            self.average_pool_1
+        )
+        self.drop_1 = layers.Dropout(rate=0.2, name="drop_1")(
+            self.flatten_1
+        )
         self.dense_1 = layers.Dense(
             units=1000, activation="relu", name="dense_1"
         )(self.drop_1)
@@ -263,7 +273,11 @@ class RegressionCNN(EmptyModel):
             name="conv_1_long",
         )(self.input_1)
 
-        sublayers = [self.conv_1_short, self.conv_1_medium, self.conv_1_long]
+        sublayers = [
+            self.conv_1_short,
+            self.conv_1_medium,
+            self.conv_1_long,
+        ]
         merged_sublayers = layers.concatenate(sublayers)
 
         self.conv_2 = layers.Conv1D(
@@ -282,12 +296,16 @@ class RegressionCNN(EmptyModel):
             activation="relu",
             name="conv_3",
         )(self.conv_2)
-        self.average_pool_1 = layers.AveragePooling1D(name="average_pool_1")(
-            self.conv_3
-        )
+        self.average_pool_1 = layers.AveragePooling1D(
+            name="average_pool_1"
+        )(self.conv_3)
 
-        self.flatten_1 = layers.Flatten(name="flatten1")(self.average_pool_1)
-        self.drop_1 = layers.Dropout(rate=0.2, name="drop_1")(self.flatten_1)
+        self.flatten_1 = layers.Flatten(name="flatten1")(
+            self.average_pool_1
+        )
+        self.drop_1 = layers.Dropout(rate=0.2, name="drop_1")(
+            self.flatten_1
+        )
         self.dense_1 = layers.Dense(
             units=4000, activation="relu", name="dense_1"
         )(self.drop_1)
@@ -350,7 +368,11 @@ class ClassificationCNN2D(EmptyModel):
             name="conv_1_long",
         )(self.input_1)
 
-        sublayers = [self.conv_1_short, self.conv_1_medium, self.conv_1_long]
+        sublayers = [
+            self.conv_1_short,
+            self.conv_1_medium,
+            self.conv_1_long,
+        ]
         merged_sublayers = layers.concatenate(sublayers)
 
         self.conv_2 = layers.Conv2D(
@@ -360,12 +382,16 @@ class ClassificationCNN2D(EmptyModel):
             activation="relu",
             name="conv_2",
         )(merged_sublayers)
-        self.average_pool_1 = layers.AveragePooling2D(name="average_pool_1")(
-            self.conv_2
-        )
+        self.average_pool_1 = layers.AveragePooling2D(
+            name="average_pool_1"
+        )(self.conv_2)
 
-        self.flatten_1 = layers.Flatten(name="flatten1")(self.average_pool_1)
-        self.drop_1 = layers.Dropout(rate=0.2, name="drop_1")(self.flatten_1)
+        self.flatten_1 = layers.Flatten(name="flatten1")(
+            self.average_pool_1
+        )
+        self.drop_1 = layers.Dropout(rate=0.2, name="drop_1")(
+            self.flatten_1
+        )
         self.dense_1 = layers.Dense(
             units=1000, activation="relu", name="dense_1"
         )(self.drop_1)
@@ -436,7 +462,9 @@ class IdentityBlock(models.Model):
             kernel_initializer=glorot_uniform(seed=0),
             name=name + "_conv1",
         )
-        self.batch_1 = layers.BatchNormalization(axis=1, name=name + "_bn1")
+        self.batch_1 = layers.BatchNormalization(
+            axis=1, name=name + "_bn1"
+        )
         # Component 2
         self.conv_2 = layers.Conv1D(
             filters=filter2,
@@ -447,7 +475,9 @@ class IdentityBlock(models.Model):
             name=name + "_conv2",
         )
 
-        self.batch_2 = layers.BatchNormalization(axis=1, name=name + "_bn2")
+        self.batch_2 = layers.BatchNormalization(
+            axis=1, name=name + "_bn2"
+        )
 
         # Component 3
         self.conv_3 = layers.Conv1D(
@@ -458,7 +488,9 @@ class IdentityBlock(models.Model):
             kernel_initializer=glorot_uniform(seed=0),
             name=name + "_conv3",
         )
-        self.batch_3 = layers.BatchNormalization(axis=1, name=name + "_bn3")
+        self.batch_3 = layers.BatchNormalization(
+            axis=1, name=name + "_bn3"
+        )
 
     def call(self, x, training=False):
         """
@@ -550,7 +582,9 @@ class ConvBlock(models.Model):
             kernel_initializer=glorot_uniform(seed=0),
             name=name + "_conv1",
         )
-        self.batch_1 = layers.BatchNormalization(axis=1, name=name + "_bn1")
+        self.batch_1 = layers.BatchNormalization(
+            axis=1, name=name + "_bn1"
+        )
         # Component 2
         self.conv_2 = layers.Conv1D(
             filters=filter2,
@@ -561,7 +595,9 @@ class ConvBlock(models.Model):
             name=name + "_conv2",
         )
 
-        self.batch_2 = layers.BatchNormalization(axis=1, name=name + "_bn2")
+        self.batch_2 = layers.BatchNormalization(
+            axis=1, name=name + "_bn2"
+        )
 
         # Component 3
         self.conv_3 = layers.Conv1D(
@@ -572,7 +608,9 @@ class ConvBlock(models.Model):
             kernel_initializer=glorot_uniform(seed=0),
             name=name + "_conv3",
         )
-        self.batch_3 = layers.BatchNormalization(axis=1, name=name + "_bn3")
+        self.batch_3 = layers.BatchNormalization(
+            axis=1, name=name + "_bn3"
+        )
 
         ### Shortcut Path ###
         self.conv_short = layers.Conv1D(
@@ -636,7 +674,9 @@ class ConvBlock(models.Model):
 class ResNet1D(EmptyModel):
     """Class instantiatingthe ResNet50 architecture in 1D."""
 
-    def __init__(self, inputshape, num_classes, ap=False, no_of_inputs=1):
+    def __init__(
+        self, inputshape, num_classes, ap=False, no_of_inputs=1
+    ):
         """
         Instantiate layers.
         
@@ -679,12 +719,12 @@ class ResNet1D(EmptyModel):
             kernel_initializer=glorot_uniform(seed=0),
             name="stage1_conv",
         )(self.zero_pad_1)
-        self.batch_1 = layers.BatchNormalization(axis=1, name="stage1_bn")(
-            self.conv_1
-        )
-        self.act_1 = layers.Activation(activation="relu", name="stage1_act")(
-            self.batch_1
-        )
+        self.batch_1 = layers.BatchNormalization(
+            axis=1, name="stage1_bn"
+        )(self.conv_1)
+        self.act_1 = layers.Activation(
+            activation="relu", name="stage1_act"
+        )(self.batch_1)
         self.max_pool_1 = layers.MaxPooling1D(
             pool_size=1, strides=1, name="stage1_max_pool"
         )(self.act_1)
@@ -716,22 +756,40 @@ class ResNet1D(EmptyModel):
 
         # Stage 4
         self.conv_block_4a = ConvBlock(
-            filters=[128, 128, 1024], kernel_size_2=3, stage=4, block="a"
+            filters=[128, 128, 1024],
+            kernel_size_2=3,
+            stage=4,
+            block="a",
         )(self.id_block_3d)
         self.id_block_4b = IdentityBlock(
-            filters=[128, 128, 1024], kernel_size_2=3, stage=4, block="b"
+            filters=[128, 128, 1024],
+            kernel_size_2=3,
+            stage=4,
+            block="b",
         )(self.conv_block_4a)
         self.id_block_4c = IdentityBlock(
-            filters=[128, 128, 1024], kernel_size_2=3, stage=4, block="c"
+            filters=[128, 128, 1024],
+            kernel_size_2=3,
+            stage=4,
+            block="c",
         )(self.id_block_4b)
         self.id_block_4d = IdentityBlock(
-            filters=[128, 128, 1024], kernel_size_2=3, stage=4, block="d"
+            filters=[128, 128, 1024],
+            kernel_size_2=3,
+            stage=4,
+            block="d",
         )(self.id_block_4c)
         self.id_block_4e = IdentityBlock(
-            filters=[128, 128, 1024], kernel_size_2=3, stage=4, block="e"
+            filters=[128, 128, 1024],
+            kernel_size_2=3,
+            stage=4,
+            block="e",
         )(self.id_block_4d)
         self.id_block_4f = IdentityBlock(
-            filters=[128, 128, 1024], kernel_size_2=3, stage=4, block="f"
+            filters=[128, 128, 1024],
+            kernel_size_2=3,
+            stage=4,
+            block="f",
         )(self.id_block_4e)
 
         # Stage 5
@@ -753,7 +811,9 @@ class ResNet1D(EmptyModel):
             self.flatten = layers.Flatten(name="flatten")(self.avg_pool)
 
         else:
-            self.flatten = layers.Flatten(name="flatten")(self.id_block_5c)
+            self.flatten = layers.Flatten(name="flatten")(
+                self.id_block_5c
+            )
 
         # output layer
         self.dense = layers.Dense(
@@ -824,8 +884,12 @@ class ResNet1DSubclassed(models.Model):
             kernel_initializer=glorot_uniform(seed=0),
             name="stage1_conv",
         )
-        self.batch_1 = layers.BatchNormalization(axis=1, name="stage1_bn")
-        self.act_1 = layers.Activation(activation="relu", name="stage1_act")
+        self.batch_1 = layers.BatchNormalization(
+            axis=1, name="stage1_bn"
+        )
+        self.act_1 = layers.Activation(
+            activation="relu", name="stage1_act"
+        )
         self.max_pool_1 = layers.MaxPooling1D(
             pool_size=1, strides=1, name="stage1_max_pool"
         )
@@ -857,22 +921,40 @@ class ResNet1DSubclassed(models.Model):
 
         # Stage 4
         self.conv_block_4a = ConvBlock(
-            filters=[128, 128, 1024], kernel_size_2=3, stage=4, block="a"
+            filters=[128, 128, 1024],
+            kernel_size_2=3,
+            stage=4,
+            block="a",
         )
         self.id_block_4b = IdentityBlock(
-            filters=[128, 128, 1024], kernel_size_2=3, stage=4, block="b"
+            filters=[128, 128, 1024],
+            kernel_size_2=3,
+            stage=4,
+            block="b",
         )
         self.id_block_4c = IdentityBlock(
-            filters=[128, 128, 1024], kernel_size_2=3, stage=4, block="c"
+            filters=[128, 128, 1024],
+            kernel_size_2=3,
+            stage=4,
+            block="c",
         )
         self.id_block_4d = IdentityBlock(
-            filters=[128, 128, 1024], kernel_size_2=3, stage=4, block="d"
+            filters=[128, 128, 1024],
+            kernel_size_2=3,
+            stage=4,
+            block="d",
         )
         self.id_block_4e = IdentityBlock(
-            filters=[128, 128, 1024], kernel_size_2=3, stage=4, block="e"
+            filters=[128, 128, 1024],
+            kernel_size_2=3,
+            stage=4,
+            block="e",
         )
         self.id_block_4f = IdentityBlock(
-            filters=[128, 128, 1024], kernel_size_2=3, stage=4, block="f"
+            filters=[128, 128, 1024],
+            kernel_size_2=3,
+            stage=4,
+            block="f",
         )
 
         # Stage 5
@@ -1017,7 +1099,11 @@ class BayesianClassificationCNN2D(EmptyModel):
             name="conv_1_long",
         )(self.input_1)
 
-        sublayers = [self.conv_1_short, self.conv_1_medium, self.conv_1_long]
+        sublayers = [
+            self.conv_1_short,
+            self.conv_1_medium,
+            self.conv_1_long,
+        ]
         merged_sublayers = layers.concatenate(sublayers)
 
         self.conv_2 = tfp.layers.Convolution2DFlipout(
@@ -1030,12 +1116,16 @@ class BayesianClassificationCNN2D(EmptyModel):
             name="conv_2",
         )(merged_sublayers)
 
-        self.average_pool_1 = layers.AveragePooling2D(name="average_pool_1")(
-            self.conv_2
-        )
+        self.average_pool_1 = layers.AveragePooling2D(
+            name="average_pool_1"
+        )(self.conv_2)
 
-        self.flatten_1 = layers.Flatten(name="flatten1")(self.average_pool_1)
-        self.drop_1 = layers.Dropout(rate=0.2, name="drop_1")(self.flatten_1)
+        self.flatten_1 = layers.Flatten(name="flatten1")(
+            self.average_pool_1
+        )
+        self.drop_1 = layers.Dropout(rate=0.2, name="drop_1")(
+            self.flatten_1
+        )
         self.dense_1 = tfp.layers.DenseFlipout(
             units=1000,
             kernel_divergence_fn=kl_divergence_function,
@@ -1061,7 +1151,8 @@ class BayesianClassificationCNN2D(EmptyModel):
             no_of_inputs=no_of_inputs,
             name="BayesianClassificationCNN2D",
         )
-        
+
+
 class BayesianCNN(EmptyModel):
     """
     A CNN with three convolutional layers of different kernel size at 
@@ -1070,104 +1161,113 @@ class BayesianCNN(EmptyModel):
     This is to be used for regression on all labels. -> sigmoid 
     activation in the last layer.
     """
+
     def __init__(
-        self, 
-        inputshape,
-        num_classes,
-        kl_divergence_fn,
-        task,
-        ):
+        self, inputshape, num_classes, kl_divergence_fn, task,
+    ):
         if len(inputshape) == 2:
             conv_layer = tfp.layers.Convolution1DFlipout
             strides = 1
             average_pool_layer = layers.AveragePooling1D
         elif len(inputshape) == 3:
             conv_layer = tfp.layers.Convolution2DFlipout
-            strides = (1,1)
-            average_pool_layer =  layers.AveragePooling2D
+            strides = (1, 1)
+            average_pool_layer = layers.AveragePooling2D
 
         if task == "regression":
             if num_classes == 1:
                 output_act = None
             else:
-                output_act = None#"sigmoid"
+                output_act = None  # "sigmoid"
         elif task == "classification":
             output_act = "softmax"
 
         prob_act = "softplus"
 
-        self.input_1 = layers.Input(
-            shape = inputshape,
-            name="input_1")   
+        self.input_1 = layers.Input(shape=inputshape, name="input_1")
         self.conv_1_short = conv_layer(
             filters=12,
             kernel_size=5,
             strides=strides,
-            padding='same',
+            padding="same",
             kernel_divergence_fn=kl_divergence_fn,
             bias_divergence_fn=kl_divergence_fn,
             activation=prob_act,
-            name='conv_1_short')(self.input_1)
+            name="conv_1_short",
+        )(self.input_1)
         self.conv_1_medium = conv_layer(
             filters=12,
             kernel_size=10,
             strides=strides,
-            padding='same',
+            padding="same",
             kernel_divergence_fn=kl_divergence_fn,
-            bias_divergence_fn=kl_divergence_fn,            
+            bias_divergence_fn=kl_divergence_fn,
             activation=prob_act,
-            name='conv_1_medium')(self.input_1)
+            name="conv_1_medium",
+        )(self.input_1)
         self.conv_1_long = conv_layer(
             filters=12,
             kernel_size=15,
             strides=strides,
-            padding='same',
+            padding="same",
             kernel_divergence_fn=kl_divergence_fn,
             bias_divergence_fn=kl_divergence_fn,
             activation=prob_act,
-            name='conv_1_long')(self.input_1)
-        
-        sublayers = [self.conv_1_short, self.conv_1_medium, self.conv_1_long]
+            name="conv_1_long",
+        )(self.input_1)
+
+        sublayers = [
+            self.conv_1_short,
+            self.conv_1_medium,
+            self.conv_1_long,
+        ]
         merged_sublayers = layers.concatenate(sublayers)
 
         self.conv_2 = conv_layer(
             filters=10,
             kernel_size=5,
             strides=strides,
-            padding='valid',
+            padding="valid",
             kernel_divergence_fn=kl_divergence_fn,
             bias_divergence_fn=kl_divergence_fn,
             activation=prob_act,
-            name='conv_2')(merged_sublayers)
+            name="conv_2",
+        )(merged_sublayers)
         self.conv_3 = conv_layer(
             filters=10,
             kernel_size=5,
             strides=strides,
-            padding='valid',
+            padding="valid",
             kernel_divergence_fn=kl_divergence_fn,
             bias_divergence_fn=kl_divergence_fn,
             activation=prob_act,
-            name="conv_3")(self.conv_2)
-        self.average_pool_1 = average_pool_layer(
-            name='average_pool_1')(self.conv_3)
-        
-        self.flatten_1 = layers.Flatten(name='flatten1')(self.average_pool_1)
-        self.drop_1 = layers.Dropout(
-            rate=0.2,
-            name='drop_1')(self.flatten_1)
+            name="conv_3",
+        )(self.conv_2)
+        self.average_pool_1 = average_pool_layer(name="average_pool_1")(
+            self.conv_3
+        )
+
+        self.flatten_1 = layers.Flatten(name="flatten1")(
+            self.average_pool_1
+        )
+        self.drop_1 = layers.Dropout(rate=0.2, name="drop_1")(
+            self.flatten_1
+        )
         self.dense_1 = tfp.layers.DenseFlipout(
             units=4000,
             kernel_divergence_fn=kl_divergence_fn,
             bias_divergence_fn=kl_divergence_fn,
             activation=prob_act,
-            name='dense_1')(self.flatten_1)
-                           
+            name="dense_1",
+        )(self.flatten_1)
+
         self.dense_2 = tfp.layers.DenseFlipout(
             units=num_classes,
             kernel_divergence_fn=kl_divergence_fn,
             bias_divergence_fn=kl_divergence_fn,
             activation=output_act,
-            name='dense_2')(self.dense_1)
+            name="dense_2",
+        )(self.dense_1)
 
         no_of_inputs = len(sublayers)
 
@@ -1177,7 +1277,8 @@ class BayesianCNN(EmptyModel):
             inputshape=inputshape,
             num_classes=num_classes,
             no_of_inputs=no_of_inputs,
-            name='BayesianCNN')
+            name="BayesianCNN",
+        )
 
 
 #%%

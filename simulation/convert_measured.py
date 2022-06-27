@@ -24,7 +24,11 @@ import os
 import h5py
 import pandas as pd
 
-from base_model.spectra import Spectrum, MeasuredSpectrum, FittedSpectrum
+from base_model.spectra import (
+    Spectrum,
+    MeasuredSpectrum,
+    FittedSpectrum,
+)
 from base_model.figures import Figure
 
 #%% For one reference spectrum.
@@ -34,12 +38,16 @@ filename = "Fe2p_Fe_metal.vms"
 energies = []
 filepath = os.path.join(input_datafolder, filename)
 ref_spectrum = MeasuredSpectrum(filepath)
-fig_old = Figure(x=ref_spectrum.x, y=ref_spectrum.lineshape, title="old")
+fig_old = Figure(
+    x=ref_spectrum.x, y=ref_spectrum.lineshape, title="old"
+)
 energies.append(ref_spectrum.x[np.argmax(ref_spectrum.lineshape)])
 
 ref_spectrum.resample(start=685.0, stop=770.0, step=0.2)
 energies.append(ref_spectrum.x[np.argmax(ref_spectrum.lineshape)])
-fig_new = Figure(x=ref_spectrum.x, y=ref_spectrum.lineshape, title="new")
+fig_new = Figure(
+    x=ref_spectrum.x, y=ref_spectrum.lineshape, title="new"
+)
 new_filename = filename.split(".")[0] + "_new.vms"
 ref_spectrum.write(input_datafolder, new_filename)
 
@@ -138,7 +146,7 @@ def convert_all_spectra(
 
     X = np.zeros((len(filenames), 381, 1))
 
-    #y, names = _get_labels(label_filepath, label_list)
+    # y, names = _get_labels(label_filepath, label_list)
     spectra = []
 
     for name in filenames:
@@ -161,7 +169,7 @@ def convert_all_spectra(
 
     energies = spectrum.x
 
-    #return X, y, names, energies
+    # return X, y, names, energies
     return X, names, energies
 
 
@@ -251,19 +259,14 @@ def load_data(filepath):
     xy_data = np.array(lines)[:, 2:]
 
     data = {
-            "data": {
-                "x": list(xy_data[:, 0]),
-                "y0": list(xy_data[:, 1]),
-            },
-            "spectrum_type": species,
-            "name": name,
-        }
+        "data": {"x": list(xy_data[:, 0]), "y0": list(xy_data[:, 1]),},
+        "spectrum_type": species,
+        "name": name,
+    }
     return data
 
 
-def convert_all_spectra(
-    input_datafolder, plot_all=True
-):
+def convert_all_spectra(input_datafolder, plot_all=True):
     """
     Take all xy files of measured spectra in the input_datafolder.
 
@@ -334,12 +337,15 @@ def convert_all_spectra(
 
     return X, names, energies
 
+
 # Load the data into numpy arrays and save to hdf5 file.
 input_datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Data\NAP-XPS\analyzed data\AmmoMaxRef\exports"
 X, names, energies = convert_all_spectra(
     input_datafolder, plot_all=True
 )
-output_file = r"C:\Users\pielsticker\Simulations\20220609_AmmoMax_spectra.h5"
+output_file = (
+    r"C:\Users\pielsticker\Simulations\20220609_AmmoMax_spectra.h5"
+)
 
 with h5py.File(output_file, "w") as hf:
     hf.create_dataset(
@@ -366,4 +372,4 @@ with h5py.File(output_file, "r") as hf:
     size = hf["X"].shape
     X_h5 = hf["X"][:, :, :]
     energies_h5 = hf["energies"][:]
-    names_h5 = [str(name.decode('utf-8')) for name in hf["names"][:]]
+    names_h5 = [str(name.decode("utf-8")) for name in hf["names"][:]]

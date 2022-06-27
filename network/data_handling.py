@@ -110,10 +110,13 @@ class DataHandler:
             try:
                 try:
                     self.labels = [
-                        label.decode("utf-8") for label in hf["labels"][:]
+                        label.decode("utf-8")
+                        for label in hf["labels"][:]
                     ]
                 except AttributeError:
-                    self.labels = [str(label) for label in hf["labels"][:]]
+                    self.labels = [
+                        str(label) for label in hf["labels"][:]
+                    ]
                 self.num_classes = len(self.labels)
             except KeyError:
                 print(
@@ -124,7 +127,9 @@ class DataHandler:
             dataset_size = hf["X"].shape[0]
             # Randomly choose a subset of the whole data set.
             try:
-                r = np.random.randint(0, dataset_size - self.no_of_examples)
+                r = np.random.randint(
+                    0, dataset_size - self.no_of_examples
+                )
             except ValueError as e:
                 error_msg = (
                     "There are not enough spectra in this data set. "
@@ -158,8 +163,12 @@ class DataHandler:
                     scatterer = hf["scatterer"][
                         r : r + self.no_of_examples, :
                     ]
-                    distance = hf["distance"][r : r + self.no_of_examples, :]
-                    pressure = hf["pressure"][r : r + self.no_of_examples, :]
+                    distance = hf["distance"][
+                        r : r + self.no_of_examples, :
+                    ]
+                    pressure = hf["pressure"][
+                        r : r + self.no_of_examples, :
+                    ]
 
                     (
                         self.X,
@@ -240,7 +249,9 @@ class DataHandler:
             elif "names" in hf.keys():
                 names_load_list = [
                     name[0].decode("utf-8")
-                    for name in hf["names"][r : r + self.no_of_examples, :]
+                    for name in hf["names"][
+                        r : r + self.no_of_examples, :
+                    ]
                 ]
                 names = np.reshape(np.array(names_load_list), (-1, 1))
 
@@ -361,7 +372,9 @@ class DataHandler:
         y_test = y[no_of_train_val:, :]
 
         # Then create val subset from train set
-        no_of_train = int((1 - self.train_val_split) * X_train_val.shape[0])
+        no_of_train = int(
+            (1 - self.train_val_split) * X_train_val.shape[0]
+        )
 
         X_train = X_train_val[:no_of_train, :, :]
         X_val = X_train_val[no_of_train:, :, :]
@@ -531,7 +544,9 @@ class DataHandler:
                 self.names_train,
                 self.names_val,
                 self.names_test,
-            ) = self._split_test_val_train(self.X, self.y, names=self.names)
+            ) = self._split_test_val_train(
+                self.X, self.y, names=self.names
+            )
 
             loaded_data = (
                 self.X_train,
@@ -566,7 +581,9 @@ class DataHandler:
         print(
             f"Only spectra with one species were left in the data set! Test/val/train splits were kept."
         )
-        print(f"Remaining no. of training examples: {self.y_train.shape[0]}")
+        print(
+            f"Remaining no. of training examples: {self.y_train.shape[0]}"
+        )
         print(f"Remaining no. of val examples: {self.y_val.shape[0]}")
         print(f"Remaining no. of test examples: {self.y_test.shape[0]}")
 
@@ -621,7 +638,9 @@ class DataHandler:
         ]
         print("Done!")
 
-    def plot_spectra(self, no_of_spectra, dataset, indices, with_prediction):
+    def plot_spectra(
+        self, no_of_spectra, dataset, indices, with_prediction
+    ):
         """
         Generate spectra plot for a given data set.
 
@@ -652,13 +671,17 @@ class DataHandler:
         for i in range(no_of_spectra):
             index = indices[i]
             if self.intensity_only:
-                new_energies = np.reshape(np.array(self.energies), (-1, 1))
+                new_energies = np.reshape(
+                    np.array(self.energies), (-1, 1)
+                )
                 data.append(np.hstack((new_energies, X[index])))
             else:
                 data.append(X[index])
 
             text = self.write_text_for_spectrum(
-                dataset=dataset, index=index, with_prediction=with_prediction
+                dataset=dataset,
+                index=index,
+                with_prediction=with_prediction,
             )
 
             texts.append(text)
@@ -807,11 +830,18 @@ class DataHandler:
                     str(len(indices)),
                     str(len_all),
                     str(
-                        100 * (np.around(len(indices) / len_all, decimals=3))
+                        100
+                        * (
+                            np.around(
+                                len(indices) / len_all, decimals=3
+                            )
+                        )
                     ),
                     print_statement,
                 )
-                + "absolute error of of at least {0}.".format(str(threshold))
+                + "absolute error of of at least {0}.".format(
+                    str(threshold)
+                )
             )
             indices = indices[-no_of_spectra:]
 
@@ -860,9 +890,9 @@ class DataHandler:
                 real_y = "Real: " + str(self.y_test[index]) + "\n"
                 # Round prediction and sum to 1
                 tmp_array = np.around(self.pred_test[index], decimals=4)
-                #row_sums = tmp_array.sum()
-                #tmp_array = tmp_array / row_sums
-                #tmp_array = np.around(tmp_array, decimals=2)
+                # row_sums = tmp_array.sum()
+                # tmp_array = tmp_array / row_sums
+                # tmp_array = np.around(tmp_array, decimals=2)
                 pred_y = "Prediction: " + str(tmp_array) + "\n"
                 pred_label = (
                     "Predicted label: "
@@ -876,7 +906,9 @@ class DataHandler:
                         label = "Real label: " + label + "\n"
                 text = real_y + pred_y + label + pred_label
                 try:
-                    sim = self._write_sim_text(dataset="test", index=index)
+                    sim = self._write_sim_text(
+                        dataset="test", index=index
+                    )
                     text += sim
                 except AttributeError:
                     pass
@@ -902,11 +934,15 @@ class DataHandler:
         X, y = self._select_dataset(dataset_name="test")
 
         if no_of_spectra > y.shape[0]:
-            print("Provide no. of spectra was bigger than dataset size.")
+            print(
+                "Provide no. of spectra was bigger than dataset size."
+            )
             no_of_spectra = y.shape[0]
 
         fig, axs = plt.subplots(
-            nrows=no_of_spectra, ncols=5, figsize=(22, 5 * no_of_spectra)
+            nrows=no_of_spectra,
+            ncols=5,
+            figsize=(22, 5 * no_of_spectra),
         )
 
         max_y = np.max([np.float(np.max(y)), np.max(prob_preds)])
@@ -930,7 +966,9 @@ class DataHandler:
             elif len(X.shape) == 3:
                 ax0.plot(self.energies, self.X[r])
                 ax0.invert_xaxis()
-                ax0.set_xlim(np.max(self.energies), np.min(self.energies))
+                ax0.set_xlim(
+                    np.max(self.energies), np.min(self.energies)
+                )
                 ax0.set_xlabel("Binding energy (eV)")
                 ax0.set_ylabel("Intensity (arb. units)")
                 annot = self.write_text_for_spectrum(
@@ -1054,7 +1092,9 @@ class DataHandler:
 
         return pred, losses
 
-    def write_text_for_spectrum(self, dataset, index, with_prediction=True):
+    def write_text_for_spectrum(
+        self, dataset, index, with_prediction=True
+    ):
         """
         Create the annotation for a plot of one spectrum.
 
@@ -1080,12 +1120,12 @@ class DataHandler:
 
         if with_prediction:
             pred, losses = self._get_predictions(dataset)
-            
+
             # Round prediction and sum to 1
             tmp_array = np.around(pred[index], decimals=4)
-            #row_sums = tmp_array.sum()
-            #tmp_array = tmp_array / row_sums
-            #tmp_array = np.around(tmp_array, decimals=3)
+            # row_sums = tmp_array.sum()
+            # tmp_array = tmp_array / row_sums
+            # tmp_array = np.around(tmp_array, decimals=3)
             pred_text = "Prediction: " + str(list(tmp_array)) + "\n"
             text += pred_text
 
@@ -1094,13 +1134,17 @@ class DataHandler:
         except AttributeError:
             pass
         try:
-            text += self._write_measured_text(dataset=dataset, index=index)
+            text += self._write_measured_text(
+                dataset=dataset, index=index
+            )
         except AttributeError:
             pass
 
         if with_prediction:
             loss_text = (
-                "\n" + "Loss: " + str(np.around(losses[index], decimals=3))
+                "\n"
+                + "Loss: "
+                + str(np.around(losses[index], decimals=3))
             )
             text += loss_text
 
@@ -1147,7 +1191,9 @@ class DataHandler:
             fwhm_text = "FHWM: not changed" + ", "
 
         if shift_x is not None and shift_x != 0:
-            shift_text = " Shift: " + "{:.2f}".format(float(shift_x)) + ", "
+            shift_text = (
+                " Shift: " + "{:.2f}".format(float(shift_x)) + ", "
+            )
         else:
             shift_text = " Shift: none" + ", "
 
@@ -1208,7 +1254,9 @@ class DataHandler:
 
         pressure_text = "{:.1f}".format(float(pressure)) + " mbar, "
 
-        distance_text = "d = " + "{:.1f}".format(float(distance)) + " mm"
+        distance_text = (
+            "d = " + "{:.1f}".format(float(distance)) + " mm"
+        )
 
         scatter_text = name_text + pressure_text + distance_text + "\n"
 
@@ -1241,7 +1289,9 @@ class DataHandler:
         elif dataset == "test":
             name = self.names_test[index][0]
 
-        measured_text = "Spectrum no. " + str(index) + "\n" + str(name) + "\n"
+        measured_text = (
+            "Spectrum no. " + str(index) + "\n" + str(name) + "\n"
+        )
 
         return measured_text
 

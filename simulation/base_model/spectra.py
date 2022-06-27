@@ -18,7 +18,10 @@ from .converters.data_converter import DataConverter
 try:
     from .peaks import Gauss, Lorentz, Voigt, VacuumExcitation, Tougaard
 except ImportError as e:
-    if str(e) == "attempted relative import with no known parent package":
+    if (
+        str(e)
+        == "attempted relative import with no known parent package"
+    ):
         pass
     else:
         raise
@@ -45,6 +48,7 @@ def safe_arange_with_edges(start, stop, step):
 
     """
     return step * np.arange(start / step, (stop + step) / step)
+
 
 def _resample_array(y, x0, x1):
     """
@@ -175,13 +179,9 @@ class Spectrum:
         None
 
         """
-        new_x = np.flip(
-            safe_arange_with_edges(start, stop, step)
-        )
+        new_x = np.flip(safe_arange_with_edges(start, stop, step))
 
-        self.lineshape = _resample_array(
-            self.lineshape, self.x, new_x
-        )
+        self.lineshape = _resample_array(self.lineshape, self.x, new_x)
 
         self.start = start
         self.stop = stop
@@ -257,14 +257,16 @@ class MeasuredSpectrum(Spectrum):
             for data in self.converter.data:
                 if data["settings"]["y_units"] == "counts":
                     y = np.array(data["data"]["y0"])
-                    #dwell = data["settings"]["dwell_time"]
-                    #scans = data["scans"]
-                    #y = y / dwell / scans
+                    # dwell = data["settings"]["dwell_time"]
+                    # scans = data["scans"]
+                    # y = y / dwell / scans
                     data["data"]["y0"] = list(y)
                     data["settings"]["y_units"] = "counts_per_second"
                 if data["settings"]["x_units"] == "kinetic energy":
                     data["settings"]["x_units"] = "binding energy"
-                    excitation_energy = data["settings"]["excitation_energy"]
+                    excitation_energy = data["settings"][
+                        "excitation_energy"
+                    ]
                     data["data"]["x"] = [
                         excitation_energy - x for x in data["data"]["x"]
                     ]
@@ -292,14 +294,16 @@ class MeasuredSpectrum(Spectrum):
             if self.filepath.rsplit(".")[-1] == "txt":
                 raise TypeError("Cannot write a TXT spectrum to VAMAS.")
 
-            self.converter.data[0]["settings"]["nr_values"] = self.x.shape[0]
+            self.converter.data[0]["settings"][
+                "nr_values"
+            ] = self.x.shape[0]
 
             self.converter.data[0]["data"]["y0"] = self.lineshape
             self.converter.data[0]["data"]["y1"] = _resample_array(
                 self.converter.data[0]["data"]["y1"],
                 self.converter.data[0]["data"]["x"],
-                self.x
-                )
+                self.x,
+            )
 
             if (
                 self.converter.data[0]["settings"]["x_units"]
@@ -395,7 +399,9 @@ class FittedSpectrum(MeasuredSpectrum):
             for line in file.readlines():
                 lines += [line]
         # This takes the species given in the first line
-        self.label = str(lines[0]).split(" ", maxsplit=2)[2].split(":")[0]
+        self.label = (
+            str(lines[0]).split(" ", maxsplit=2)[2].split(":")[0]
+        )
         species = str(lines[0]).split(":")[-1].split("\n")[0]
         self.number = int(
             str(lines[0]).split(" ", maxsplit=2)[1].split(":")[1]
@@ -439,7 +445,9 @@ class SyntheticSpectrum(Spectrum):
         None.
 
         """
-        super(SyntheticSpectrum, self).__init__(start, stop, step, label)
+        super(SyntheticSpectrum, self).__init__(
+            start, stop, step, label
+        )
         self.spectrum_type = "synthetic"
         self.components = []
 
@@ -539,7 +547,9 @@ class SimulatedSpectrum(Spectrum):
         None.
 
         """
-        super(SimulatedSpectrum, self).__init__(start, stop, step, label)
+        super(SimulatedSpectrum, self).__init__(
+            start, stop, step, label
+        )
         self.spectrum_type = "simulated"
         self.shift_x = None
         self.signal_to_noise = None
@@ -576,7 +586,10 @@ class SimulatedSpectrum(Spectrum):
             # so that the lineshape shape is conserved.
             if shift_x < 0:
                 self.lineshape = np.concatenate(
-                    (np.full(-shift, begin_value), self.lineshape[:shift])
+                    (
+                        np.full(-shift, begin_value),
+                        self.lineshape[:shift],
+                    )
                 )
 
             elif shift_x > 0:
@@ -614,7 +627,9 @@ class SimulatedSpectrum(Spectrum):
             # factor and added to the lineshape.
             lamb = 1000
             poisson_noise = (
-                noise * np.random.poisson(lamb, self.lineshape.shape) / lamb
+                noise
+                * np.random.poisson(lamb, self.lineshape.shape)
+                / lamb
             )
 
             self.lineshape = self.lineshape + poisson_noise
@@ -651,7 +666,9 @@ class SimulatedSpectrum(Spectrum):
             len_x = len(self.x)
             step = self.step
             gauss_x = (
-                np.arange(len_x, dtype=np.int) - sum(divmod(len_x, 2)) + 1
+                np.arange(len_x, dtype=np.int)
+                - sum(divmod(len_x, 2))
+                + 1
             ) * step
 
             # The broadening spectrum is a synthetic spectrum.
@@ -802,7 +819,9 @@ if __name__ == "__main__":
     # label = "NiCoFe\\Ni2pCo2pFe2p_Co_metal"
     label = "NiCoFe\\Fe2p_Fe_metal"
     datapath = (
-        os.path.dirname(os.path.abspath(__file__)).partition("simulation")[0]
+        os.path.dirname(os.path.abspath(__file__)).partition(
+            "simulation"
+        )[0]
         + "data\\references"
     )
 

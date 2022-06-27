@@ -20,10 +20,16 @@ from creator import Creator, FileWriter, calculate_runtime
 
 #%% Input parameter
 # Change the following line according to your folder structure ###
-init_param_folder = r"C:\Users\pielsticker\Simulations"#"\params_CoFe"
-init_param_filename = "init_params_Fe_core.json"
+init_param_folder = (
+    r"C:\Users\pielsticker\Simulations\paper"  # "\params_CoFe"
+)
+init_param_filename = "init_params_Ti_core_no_scattering.json"
+#init_param_filename = "init_params_Mn_core_small_gas_phase.json"
+
 #%% Parameters
-init_param_filepath = os.path.join(init_param_folder, init_param_filename)
+init_param_filepath = os.path.join(
+    init_param_folder, init_param_filename
+)
 
 with open(init_param_filepath, "r") as param_file:
     params = json.load(param_file)
@@ -40,6 +46,10 @@ t1 = time()
 runtime = calculate_runtime(t0, t1)
 runtimes["dataset_creation"] = runtime
 print(f"Runtime: {runtime}.")
+
+import numpy as np
+high_fwhm = np.max(df["FWHM"])
+low_fwhm = np.min(df["FWHM"])
 
 #%% Save data and metadata.
 t0 = time()
@@ -86,36 +96,36 @@ os.remove(writer.pkl_filepath)
 # t1 = time()
 # runtimes["pkl_load"] = calculate_runtime(t0, t1)
 # print(f"Pickle load runtime: {runtimes['pkl_load']}.")
-# 
+#
 # =============================================================================
 #%% If run was interrupted
 # =============================================================================
 # runtimes = {}
 # datafolder = r"C:\Users\pielsticker\Simulations"
 # dataset_name = "20210910_FeCo_combined_without_auger_peaks_100_eV_window"
-# 
+#
 # # Reload pickle file.
 # pkl_filename = dataset_name + ".pkl"
 # pkl_filepath = os.path.join(*[datafolder, dataset_name, pkl_filename])
-# 
+#
 # t0 = time()
 # df = pd.read_pickle(pkl_filepath)
 # t1 = time()
 # runtimes["pkl_load"] = calculate_runtime(t0, t1)
 # print(f"Pickle load runtime: {runtimes['pkl_load']}.")
-# 
+#
 # # Reload parameters .
 # param_filename = dataset_name + "_metadata.json"
 # param_filepath = os.path.join(*[datafolder, dataset_name, param_filename])
-# 
+#
 # with open(param_filepath, "r") as param_file:
 #     params = json.load(param_file)
-# 
+#
 # writer = FileWriter(df, params)
 # writer.to_file(filetypes=["hdf5"], metadata=True)
 # t1 = time()
 # runtimes["h5_save"] = calculate_runtime(t0, t1)
 # print(f"HDF5 save runtime: {runtimes['h5_save']}.")
-# 
+#
 # os.remove(pkl_filepath)
 # =============================================================================

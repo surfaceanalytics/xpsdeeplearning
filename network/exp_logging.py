@@ -260,9 +260,14 @@ class ExperimentLogging:
             self.log_dir, "hyperparameters.json"
         )
 
-        with open(hyperparam_file_name, "w", encoding="utf-8") as json_file:
+        with open(
+            hyperparam_file_name, "w", encoding="utf-8"
+        ) as json_file:
             json.dump(
-                self.hyperparams, json_file, ensure_ascii=False, indent=4
+                self.hyperparams,
+                json_file,
+                ensure_ascii=False,
+                indent=4,
             )
 
     def update_saved_hyperparams(self, new_params):
@@ -320,7 +325,9 @@ class HyperParamCallback(callbacks.Callback):
         None.
 
         """
-        epoch_param = {"epochs_trained": self.logging._count_epochs_trained()}
+        epoch_param = {
+            "epochs_trained": self.logging._count_epochs_trained()
+        }
         self.logging.update_saved_hyperparams(epoch_param)
 
 
@@ -387,11 +394,15 @@ class CustomModelCheckpoint(callbacks.ModelCheckpoint):
                                 )
                             else:
                                 with open(
-                                    os.path.join(filepath, "model.json"),
+                                    os.path.join(
+                                        filepath, "model.json"
+                                    ),
                                     "w",
                                     encoding="utf-8",
                                 ) as json_file:
-                                    json_file.write(self.model.to_json())
+                                    json_file.write(
+                                        self.model.to_json()
+                                    )
                                 self.model.save_weights(
                                     os.path.join(filepath, "weights.h5")
                                 )
@@ -404,7 +415,11 @@ class CustomModelCheckpoint(callbacks.ModelCheckpoint):
                             if self.verbose > 0:
                                 print(
                                     "\nEpoch %05d: %s did not improve from %0.5f"
-                                    % (epoch + 1, self.monitor, self.best)
+                                    % (
+                                        epoch + 1,
+                                        self.monitor,
+                                        self.best,
+                                    )
                                 )
                 else:
                     if self.verbose > 0:
@@ -414,7 +429,9 @@ class CustomModelCheckpoint(callbacks.ModelCheckpoint):
                         )
                     if self.save_weights_only:
                         self.model.save_weights(
-                            filepath, overwrite=True, options=self._options
+                            filepath,
+                            overwrite=True,
+                            options=self._options,
                         )
                     else:
                         with open(
@@ -427,7 +444,9 @@ class CustomModelCheckpoint(callbacks.ModelCheckpoint):
                             os.path.join(filepath, "weights.h5")
                         )
                         self.model.save(
-                            filepath, overwrite=True, options=self._options
+                            filepath,
+                            overwrite=True,
+                            options=self._options,
                         )
 
                 self._maybe_remove_file()

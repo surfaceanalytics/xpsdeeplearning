@@ -507,7 +507,9 @@ class VamasParser:
             name = "y" + str(v)
             data_dict[name] = []
 
-        d = list(np.array(self.data[: block.numOrdValues], dtype=np.float32))
+        d = list(
+            np.array(self.data[: block.numOrdValues], dtype=np.float32)
+        )
 
         self.data = self.data[block.numOrdValues :]
 

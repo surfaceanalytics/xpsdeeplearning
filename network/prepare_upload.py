@@ -128,9 +128,14 @@ class Uploader:
             self.model_path, "upload_params.json"
         )
 
-        with open(upload_param_file, "w", encoding="utf-8") as json_file:
+        with open(
+            upload_param_file, "w", encoding="utf-8"
+        ) as json_file:
             json.dump(
-                self.upload_params, json_file, ensure_ascii=False, indent=4
+                self.upload_params,
+                json_file,
+                ensure_ascii=False,
+                indent=4,
             )
 
         print("JSON file was prepared for upload!")

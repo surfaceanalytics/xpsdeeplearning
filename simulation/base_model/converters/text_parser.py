@@ -67,7 +67,9 @@ class TextParser:
             Data dictionary.
 
         """
-        lines = np.array([[float(i) for i in d.split()] for d in self.data])
+        lines = np.array(
+            [[float(i) for i in d.split()] for d in self.data]
+        )
         x = lines[:, 0]
         y = lines[:, 1]
         x, y = self._check_step_width(x, y)

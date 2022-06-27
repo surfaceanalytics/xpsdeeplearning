@@ -13,7 +13,10 @@ try:
     from .spectra import SyntheticSpectrum
     from .peaks import Gauss, Lorentz, VacuumExcitation, Tougaard
 except ImportError as e:
-    if str(e) == "attempted relative import with no known parent package":
+    if (
+        str(e)
+        == "attempted relative import with no known parent package"
+    ):
         pass
     else:
         raise
@@ -42,7 +45,9 @@ class Scatterer:
 
         """
         self.label = label
-        self.loss_function = SyntheticSpectrum(0, 200, 0.1, label="loss_fn")
+        self.loss_function = SyntheticSpectrum(
+            0, 200, 0.1, label="loss_fn"
+        )
 
         self.gas_diameter = 0.2  # In nanometers
         self.gas_cross_section = np.pi * (self.gas_diameter / 2) ** 2
@@ -182,7 +187,9 @@ if __name__ == "__main__":
     medium.calc_density()
 
     input_datapath = (
-        os.path.dirname(os.path.abspath(__file__)).partition("simulation")[0]
+        os.path.dirname(os.path.abspath(__file__)).partition(
+            "simulation"
+        )[0]
         + "\\data\\scatterers.json"
     )
     medium.scatterer.build_loss_from_json(input_datapath)

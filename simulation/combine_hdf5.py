@@ -79,7 +79,9 @@ def _load_data(filenames):
             shiftx = np.concatenate((shiftx, shiftx_new), axis=0)
             noise = np.concatenate((noise, noise_new), axis=0)
             fwhm = np.concatenate((fwhm, fhwm_new), axis=0)
-            scatterer = np.concatenate((scatterer, scatterer_new), axis=0)
+            scatterer = np.concatenate(
+                (scatterer, scatterer_new), axis=0
+            )
             distance = np.concatenate((distance, distance_new), axis=0)
             pressure = np.concatenate((pressure, pressure_new), axis=0)
             print("File {0} loaded".format(filenames.index(filename)))
@@ -139,7 +141,9 @@ def combine_and_shuffle_measured(filenames, output_file):
         scatterer_shuff,
         distance_shuff,
         pressure_shuff,
-    ) = shuffle(X, y, shiftx, noise, fwhm, scatterer, distance, pressure)
+    ) = shuffle(
+        X, y, shiftx, noise, fwhm, scatterer, distance, pressure
+    )
 
     with h5py.File(output_file, "w") as hf:
         hf.create_dataset(

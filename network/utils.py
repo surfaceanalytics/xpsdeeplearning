@@ -170,7 +170,7 @@ class ClassDistribution:
                 key = list(self.cd.keys())[i]
                 average = list(np.mean(dataset, axis=0))
                 self.cd[key] = average
-                
+
         elif self.task == "multi_class_detection":
             for i, dataset in enumerate(data_list):
                 key = list(self.cd.keys())[i]
@@ -178,7 +178,6 @@ class ClassDistribution:
                     non_zero_classes_args = np.where(datapoint > 0.0)[0]
                     for n in non_zero_classes_args:
                         self.cd[key][str(n)] += 1
-
 
     def plot(self, labels):
         """
@@ -214,7 +213,7 @@ class ClassDistribution:
                 for key, value in v.items():
                     data_list.append(value)
             data.append(data_list)
-            data = np.transpose(np.array(data))            
+            data = np.transpose(np.array(data))
 
         for i in range(data.shape[0]):
             ax.bar(x + i * 0.25, data[i], align="edge", width=0.2)
@@ -246,7 +245,9 @@ class TrainingGraphs:
         self.history = history
         self.fig_dir = fig_dir
 
-    def plot_metric(self, metric, title=None, ylabel=None, to_file=True):
+    def plot_metric(
+        self, metric, title=None, ylabel=None, to_file=True
+    ):
         """
         Plots the training and validation values of a metric
         against the epochs.
@@ -419,7 +420,9 @@ class WeightDistributions:
 
         ax1.set_title(f"{kind.capitalize()}" + " weight means")
         ax1.legend()
-        ax2.set_title(f"{kind.capitalize()}" + " weight standard deviations")
+        ax2.set_title(
+            f"{kind.capitalize()}" + " weight standard deviations"
+        )
 
         fig.tight_layout()
         # plt.show()
@@ -455,9 +458,15 @@ class Report:
 
         # Get the data
         root_dir = os.getcwd()
-        self.model_dir = os.path.join(*[root_dir, "runs", dir_name, "model",])
-        self.log_dir = os.path.join(*[root_dir, "runs", dir_name, "logs"])
-        self.fig_dir = os.path.join(*[root_dir, "runs", dir_name, "figures"])
+        self.model_dir = os.path.join(
+            *[root_dir, "runs", dir_name, "model",]
+        )
+        self.log_dir = os.path.join(
+            *[root_dir, "runs", dir_name, "logs"]
+        )
+        self.fig_dir = os.path.join(
+            *[root_dir, "runs", dir_name, "figures"]
+        )
 
         (
             self.name_data,
@@ -561,14 +570,18 @@ class Report:
 
             for row in result_table.rows:
                 for cell in row.cells:
-                    cell.paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
+                    cell.paragraphs[
+                        0
+                    ].alignment = WD_ALIGN_PARAGRAPH.CENTER
         except KeyError:
             pass
 
         self.document.add_page_break()
 
         # Add predictions on random data.
-        self.document.add_heading("Predictions for 5 random examples", 1)
+        self.document.add_heading(
+            "Predictions for 5 random examples", 1
+        )
 
         self.document.add_heading("Training data", 2)
 
@@ -683,7 +696,9 @@ class Report:
             "Total no. of samples": data_dict["no_of_examples"],
             "Train-test-split": data_dict["train_test_split"],
             "Train-val-split": data_dict["train_val_split"],
-            "No. of training samples": data_dict["No. of training samples"],
+            "No. of training samples": data_dict[
+                "No. of training samples"
+            ],
             "No. of validation samples": data_dict[
                 "No. of validation samples"
             ],

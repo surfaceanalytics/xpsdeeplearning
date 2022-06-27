@@ -207,9 +207,12 @@ class Classifier:
         if new_learning_rate is not None:
             # Overwrite the previus optimizer learning rate using the
             # backend of keras.
-            K.set_value(self.model.optimizer.learning_rate, new_learning_rate)
+            K.set_value(
+                self.model.optimizer.learning_rate, new_learning_rate
+            )
             print(
-                "New learning rate: " + str(K.eval(self.model.optimizer.lr))
+                "New learning rate: "
+                + str(K.eval(self.model.optimizer.lr))
             )
 
         # Activate callbacks in experiment logging.
@@ -261,13 +264,20 @@ class Classifier:
             print("Training interrupted!")
             if all(
                 checkpoint
-                not in [type(cb).__name__ for cb in self.logging.active_cbs]
-                for checkpoint in ("ModelCheckpoint", "CustomModelCheckpoint")
+                not in [
+                    type(cb).__name__ for cb in self.logging.active_cbs
+                ]
+                for checkpoint in (
+                    "ModelCheckpoint",
+                    "CustomModelCheckpoint",
+                )
             ):
                 self.save_model()
             self.logging.history = self.logging._get_total_history()
 
-        epoch_param = {"epochs_trained": self.logging._count_epochs_trained()}
+        epoch_param = {
+            "epochs_trained": self.logging._count_epochs_trained()
+        }
         self.logging.update_saved_hyperparams(epoch_param)
 
         return self.logging.history
@@ -292,7 +302,10 @@ class Classifier:
         print("Evaluation done! \n")
 
         try:
-            self.datahandler.test_loss, self.datahandler.test_accuracy = (
+            (
+                self.datahandler.test_loss,
+                self.datahandler.test_accuracy,
+            ) = (
                 score[0],
                 score[1],
             )
@@ -354,24 +367,28 @@ class Classifier:
         if self.task == "multi_class_detection":
             self.datahandler.pred_train_classes = []
             self.datahandler.pred_test_classes = []
-                           
+
             for i, pred in enumerate(self.datahandler.pred_train):
                 arg_max = list(np.where(pred > 0.05)[0])
-                classes = [self.datahandler.labels[arg] for arg in arg_max]
+                classes = [
+                    self.datahandler.labels[arg] for arg in arg_max
+                ]
                 self.datahandler.pred_train_classes.append(classes)
- 
+
             for i, pred in enumerate(self.datahandler.pred_test):
                 arg_max = list(np.where(pred > 0.05)[0])
-                classes = [self.datahandler.labels[arg] for arg in arg_max]
+                classes = [
+                    self.datahandler.labels[arg] for arg in arg_max
+                ]
                 self.datahandler.pred_test_classes.append(classes)
-            
-            print("Class prediction done!") 
-            
+
+            print("Class prediction done!")
+
             return (
                 self.datahandler.pred_train_classes,
                 self.datahandler.pred_test_classes,
             )
-        
+
         else:
             pred_train_classes = []
             pred_test_classes = []
@@ -415,8 +432,12 @@ class Classifier:
         None.
 
         """
-        model_file_name = os.path.join(self.logging.model_dir, "model.json")
-        weights_file_name = os.path.join(self.logging.model_dir, "weights.h5")
+        model_file_name = os.path.join(
+            self.logging.model_dir, "model.json"
+        )
+        weights_file_name = os.path.join(
+            self.logging.model_dir, "weights.h5"
+        )
 
         model_json = self.model.to_json()
         with open(model_file_name, "w", encoding="utf-8") as json_file:
@@ -465,16 +486,22 @@ class Classifier:
         import inspect
 
         custom_objects = {}
-        custom_objects[str(type(self.model).__name__)] = self.model.__class__
+        custom_objects[
+            str(type(self.model).__name__)
+        ] = self.model.__class__
         for name, obj in inspect.getmembers(models):
             if inspect.isclass(obj):
                 if obj.__module__.startswith(
                     "xpsdeeplearning.network.models"
                 ):
-                    custom_objects[obj.__module__ + "." + obj.__name__] = obj
+                    custom_objects[
+                        obj.__module__ + "." + obj.__name__
+                    ] = obj
 
         # Load from file.
-        loaded_model = load_model(file_name, custom_objects=custom_objects)
+        loaded_model = load_model(
+            file_name, custom_objects=custom_objects
+        )
         optimizer = loaded_model.optimizer
         loss = loaded_model.loss
         metrics = [
@@ -491,9 +518,9 @@ class Classifier:
             outputs=loaded_model.layers[-1].output,
             inputshape=self.datahandler.input_shape,
             num_classes=self.datahandler.num_classes,
-            no_of_inputs=loaded_model._serialized_attributes["metadata"][
-                "config"
-            ]["no_of_inputs"],
+            no_of_inputs=loaded_model._serialized_attributes[
+                "metadata"
+            ]["config"]["no_of_inputs"],
             name="Loaded_Model",
         )
 
@@ -568,14 +595,19 @@ class Classifier:
 
         """
         loaded_data = self.datahandler.load_data_preprocess(
-            input_filepath, no_of_examples, train_test_split, train_val_split
+            input_filepath,
+            no_of_examples,
+            train_test_split,
+            train_val_split,
         )
 
         energy_range = [
             np.min(self.datahandler.energies),
             np.max(self.datahandler.energies),
             np.round(
-                self.datahandler.energies[0] - self.datahandler.energies[1], 2
+                self.datahandler.energies[0]
+                - self.datahandler.energies[1],
+                2,
             ),
         ]
 
@@ -587,10 +619,18 @@ class Classifier:
             "num_of_classes": self.datahandler.num_classes,
             "no_of_examples": self.datahandler.no_of_examples,
             "energy_range": energy_range,
-            "No. of training samples": str(self.datahandler.X_train.shape[0]),
-            "No. of validation samples": str(self.datahandler.X_val.shape[0]),
-            "No. of test samples": str(self.datahandler.X_test.shape[0]),
-            "Shape of each sample": str(self.datahandler.X_train.shape[1])
+            "No. of training samples": str(
+                self.datahandler.X_train.shape[0]
+            ),
+            "No. of validation samples": str(
+                self.datahandler.X_val.shape[0]
+            ),
+            "No. of test samples": str(
+                self.datahandler.X_test.shape[0]
+            ),
+            "Shape of each sample": str(
+                self.datahandler.X_train.shape[1]
+            )
             + " features (X)"
             + " + "
             + str(self.datahandler.y_train.shape[1])
@@ -635,21 +675,22 @@ class Classifier:
                 self.datahandler.plot_spectra(
                     no_of_spectra=no_of_spectra,
                     dataset=dataset,
-                    indices=indices, 
-                    with_prediction=True)
-                
+                    indices=indices,
+                    with_prediction=True,
+                )
+
             except AttributeError:
                 self.datahandler.calculate_losses(self.model.loss)
                 self.datahandler.plot_spectra(
                     no_of_spectra=no_of_spectra,
                     dataset=dataset,
-                    indices=indices, 
-                    with_prediction=True)
+                    indices=indices,
+                    with_prediction=True,
+                )
         else:
             self.datahandler.plot_random(
                 no_of_spectra, dataset, with_prediction=False
             )
-
 
     def plot_random(
         self, no_of_spectra, dataset="train", with_prediction=False
@@ -755,14 +796,17 @@ class Classifier:
         None.
 
         """
-        self.datahandler.class_distribution.plot(self.datahandler.labels)
+        self.datahandler.class_distribution.plot(
+            self.datahandler.labels
+        )
 
     def plot_weight_distribution(self, kind="posterior", to_file=True):
 
         bayesian_layers = [
             layer
             for layer in self.model.layers
-            if ("Flipout" or "Reparameterization") in str(layer.__class__)
+            if ("Flipout" or "Reparameterization")
+            in str(layer.__class__)
         ]
 
         wd = WeightDistributions(
@@ -785,7 +829,9 @@ class Classifier:
             fig.savefig(filename)
             print("Saved to {}".format(filename))
 
-    def predict_probabilistic(self, dataset="test", no_of_predictions=100):
+    def predict_probabilistic(
+        self, dataset="test", no_of_predictions=100
+    ):
 
         X, y = self.datahandler._select_dataset(dataset_name=dataset)
 
@@ -849,7 +895,11 @@ class Classifier:
         ]
         if self.task != "regression":
             key_list.extend(
-                ["test_accuracy", "pred_train_classes", "pred_test_classes"]
+                [
+                    "test_accuracy",
+                    "pred_train_classes",
+                    "pred_test_classes",
+                ]
             )
 
         pickle_data = {}
@@ -860,15 +910,21 @@ class Classifier:
                     pickle_data[key] = cd.cd
                 else:
                     try:
-                        pickle_data[key] = getattr(self.datahandler, key)
+                        pickle_data[key] = getattr(
+                            self.datahandler, key
+                        )
                     except AttributeError:
-                        print(f"'DataHandler' object has no attribute {key}.")
+                        print(
+                            f"'DataHandler' object has no attribute {key}."
+                        )
             except KeyError:
                 pass
 
         with open(filename, "wb") as pickle_file:
             pickle.dump(
-                pickle_data, pickle_file, protocol=pickle.HIGHEST_PROTOCOL
+                pickle_data,
+                pickle_file,
+                protocol=pickle.HIGHEST_PROTOCOL,
             )
 
         print("Saved results to file.")
@@ -908,7 +964,10 @@ def restore_clf_from_logs(runpath):
         intensity_only = hyperparams["intensity_only"]
 
     clf = Classifier(
-        time=time, exp_name=exp_name, task=task, intensity_only=intensity_only
+        time=time,
+        exp_name=exp_name,
+        task=task,
+        intensity_only=intensity_only,
     )
     clf.logging.hyperparams = hyperparams
     clf.logging.history = clf.logging._get_total_history()
