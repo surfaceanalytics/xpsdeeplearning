@@ -4,13 +4,13 @@ Not Specified
 Not Specified
 Not Specified
 7
-Casa Info Follows CasaXPS Version 2.3.24rev1.1H
+Casa Info Follows CasaXPS Version 2.3.20rev1.2G
 0
 SourceAnalyserAngle: Not Specified
-CasaRowLabel:afer reduction, 100 C, H2, gas-bg removed
+CasaRowLabel:afer reduction, 100 C, H2, gas-bg removed (MnO)
 CasaRowLabel:550 C, 0.1 mbar O2
-CasaRowLabel:750 C, 0.1 mbar O2
-CasaRowLabel:Heating 100 C in vacuum
+CasaRowLabel:750 C, 0.1 mbar O2 (Mn2O3)
+CasaRowLabel:Heating 100 C in vacuum (MnO2)
 NORM
 REGULAR
 1
@@ -23,7 +23,7 @@ d
 0
 4
 Mn 2p
-afer reduction, 100 C, H2, gas-bg removed
+afer reduction, 100 C, H2, gas-bg removed (MnO)
 2026
 2021
 1
@@ -1764,7 +1764,7 @@ d
 189.197
 1
 Mn 2p
-750 C, 0.1 mbar O2
+750 C, 0.1 mbar O2 (Mn2O3)
 2026
 2021
 1
@@ -2635,7 +2635,7 @@ d
 146.724
 1
 Mn 2p
-Heating 100 C in vacuum
+Heating 100 C in vacuum (MnO2)
 2018
 2
 3
