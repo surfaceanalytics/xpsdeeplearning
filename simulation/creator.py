@@ -721,8 +721,8 @@ class Creator:
             shift_x = self.simulation_matrix[i][-5]
             signal_to_noise = self.simulation_matrix[i][-4]
             scatterer_id = self.simulation_matrix[i][-3]
-            distance = self.simulation_matrix[i][-2]
-            pressure = self.simulation_matrix[i][-1]
+            pressure = self.simulation_matrix[i][-2]
+            distance = self.simulation_matrix[i][-1]
 
             try:
                 # In order to assign a label, the scatterers are encoded
