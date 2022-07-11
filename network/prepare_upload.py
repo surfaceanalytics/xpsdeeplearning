@@ -42,7 +42,11 @@ class Uploader:
 
         """
         log_path = os.path.join(
-            *[self.model_path, "logs", "hyperparameters.json",]
+            *[
+                self.model_path,
+                "logs",
+                "hyperparameters.json",
+            ]
         )
 
         with open(log_path, "r") as param_file:
@@ -90,7 +94,9 @@ class Uploader:
 
         return data_params
 
-    def prepare_upload_params(self,):
+    def prepare_upload_params(
+        self,
+    ):
         """
         Create nested dictionary for the classifier website upload.
 
@@ -128,9 +134,7 @@ class Uploader:
             self.model_path, "upload_params.json"
         )
 
-        with open(
-            upload_param_file, "w", encoding="utf-8"
-        ) as json_file:
+        with open(upload_param_file, "w", encoding="utf-8") as json_file:
             json.dump(
                 self.upload_params,
                 json_file,
@@ -150,7 +154,9 @@ class Uploader:
 
         """
         shutil.make_archive(
-            self.model_path, "zip", self.model_path,
+            self.model_path,
+            "zip",
+            self.model_path,
         )
 
 

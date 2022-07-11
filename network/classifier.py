@@ -49,7 +49,7 @@ class Classifier:
             for distinguishing runs on different data on the same day.
             The default is ''.
         task : str, optional
-            Task to perform. Either 'classification', 
+            Task to perform. Either 'classification',
             "multi_class_detection or 'regression'.
             The default is 'regression'.
         intensity_only : boolean, optional
@@ -59,7 +59,7 @@ class Classifier:
         labels : list
             List of strings of the labels of the XPS spectra.
             Can also be loaded from file.
-            Example: 
+            Example:
                 labels = ['Fe metal', 'FeO', 'Fe3O4', 'Fe2O3']
             Can be empty if the labels are stored in the data file.
 
@@ -95,7 +95,7 @@ class Classifier:
     def summary(self):
         """
         Print a summary of the keras Model in self.model.
-        
+
         Save the string value of the summary to the self.model_summary
         attribute.
 
@@ -115,7 +115,7 @@ class Classifier:
     def save_and_print_model_image(self):
         """
         Plot the model using the plot_model method from keras.
-        
+
         Save the image to a file in the figure directory.
 
         Returns
@@ -154,7 +154,7 @@ class Classifier:
     ):
         """
         Train the keras model.
-        
+
         Implements various callbacks during
         the training. Also checks the csv_log for previous training and
         appends accordingly.
@@ -187,7 +187,7 @@ class Classifier:
             The default is True.
         verbose : int, optional
             Controls the verbose parameter of the keras output.
-            If 1, a progress log bar is shown in the output. 
+            If 1, a progress log bar is shown in the output.
             The default is 1.
         new_learning_rate : float, optional
             In case of retraining, the learning rate of the optimizer can
@@ -207,12 +207,9 @@ class Classifier:
         if new_learning_rate is not None:
             # Overwrite the previus optimizer learning rate using the
             # backend of keras.
-            K.set_value(
-                self.model.optimizer.learning_rate, new_learning_rate
-            )
+            K.set_value(self.model.optimizer.learning_rate, new_learning_rate)
             print(
-                "New learning rate: "
-                + str(K.eval(self.model.optimizer.lr))
+                "New learning rate: " + str(K.eval(self.model.optimizer.lr))
             )
 
         # Activate callbacks in experiment logging.
@@ -264,9 +261,7 @@ class Classifier:
             print("Training interrupted!")
             if all(
                 checkpoint
-                not in [
-                    type(cb).__name__ for cb in self.logging.active_cbs
-                ]
+                not in [type(cb).__name__ for cb in self.logging.active_cbs]
                 for checkpoint in (
                     "ModelCheckpoint",
                     "CustomModelCheckpoint",
@@ -275,9 +270,7 @@ class Classifier:
                 self.save_model()
             self.logging.history = self.logging._get_total_history()
 
-        epoch_param = {
-            "epochs_trained": self.logging._count_epochs_trained()
-        }
+        epoch_param = {"epochs_trained": self.logging._count_epochs_trained()}
         self.logging.update_saved_hyperparams(epoch_param)
 
         return self.logging.history
@@ -290,7 +283,7 @@ class Classifier:
         -------
         score: dict or float
             If the accuracy is calculated, both the test loss and the
-            test accuracy are returned. If not, only the test loss 
+            test accuracy are returned. If not, only the test loss
             is returned.
         """
         score = self.model.evaluate(
@@ -302,10 +295,7 @@ class Classifier:
         print("Evaluation done! \n")
 
         try:
-            (
-                self.datahandler.test_loss,
-                self.datahandler.test_accuracy,
-            ) = (
+            (self.datahandler.test_loss, self.datahandler.test_accuracy,) = (
                 score[0],
                 score[1],
             )
@@ -347,7 +337,7 @@ class Classifier:
     def predict_classes(self):
         """
         Predict the labels of all spectra in the training/test sets.
-        
+
         This is done by checking which class has the maximum associated
         prediction value.
 
@@ -370,16 +360,12 @@ class Classifier:
 
             for i, pred in enumerate(self.datahandler.pred_train):
                 arg_max = list(np.where(pred > 0.05)[0])
-                classes = [
-                    self.datahandler.labels[arg] for arg in arg_max
-                ]
+                classes = [self.datahandler.labels[arg] for arg in arg_max]
                 self.datahandler.pred_train_classes.append(classes)
 
             for i, pred in enumerate(self.datahandler.pred_test):
                 arg_max = list(np.where(pred > 0.05)[0])
-                classes = [
-                    self.datahandler.labels[arg] for arg in arg_max
-                ]
+                classes = [self.datahandler.labels[arg] for arg in arg_max]
                 self.datahandler.pred_test_classes.append(classes)
 
             print("Class prediction done!")
@@ -422,9 +408,9 @@ class Classifier:
     def save_model(self):
         """
         Save the model to the model directory.
-        
-        The model is saved both as a SavedModel object from Keras as 
-        well as a JSON file containing the model parameters and the 
+
+        The model is saved both as a SavedModel object from Keras as
+        well as a JSON file containing the model parameters and the
         weights serialized to HDF5.
 
         Returns
@@ -432,12 +418,8 @@ class Classifier:
         None.
 
         """
-        model_file_name = os.path.join(
-            self.logging.model_dir, "model.json"
-        )
-        weights_file_name = os.path.join(
-            self.logging.model_dir, "weights.h5"
-        )
+        model_file_name = os.path.join(self.logging.model_dir, "model.json")
+        weights_file_name = os.path.join(self.logging.model_dir, "weights.h5")
 
         model_json = self.model.to_json()
         with open(model_file_name, "w", encoding="utf-8") as json_file:
@@ -467,7 +449,7 @@ class Classifier:
             The default is None.
         compile_model: bool, optional
             Whether to compile the model after loading, using the
-            saved optimizer and loss.            
+            saved optimizer and loss.
 
         Returns
         -------
@@ -486,22 +468,16 @@ class Classifier:
         import inspect
 
         custom_objects = {}
-        custom_objects[
-            str(type(self.model).__name__)
-        ] = self.model.__class__
+        custom_objects[str(type(self.model).__name__)] = self.model.__class__
         for name, obj in inspect.getmembers(models):
             if inspect.isclass(obj):
                 if obj.__module__.startswith(
                     "xpsdeeplearning.network.models"
                 ):
-                    custom_objects[
-                        obj.__module__ + "." + obj.__name__
-                    ] = obj
+                    custom_objects[obj.__module__ + "." + obj.__name__] = obj
 
         # Load from file.
-        loaded_model = load_model(
-            file_name, custom_objects=custom_objects
-        )
+        loaded_model = load_model(file_name, custom_objects=custom_objects)
         optimizer = loaded_model.optimizer
         loss = loaded_model.loss
         metrics = [
@@ -518,9 +494,9 @@ class Classifier:
             outputs=loaded_model.layers[-1].output,
             inputshape=self.datahandler.input_shape,
             num_classes=self.datahandler.num_classes,
-            no_of_inputs=loaded_model._serialized_attributes[
-                "metadata"
-            ]["config"]["no_of_inputs"],
+            no_of_inputs=loaded_model._serialized_attributes["metadata"][
+                "config"
+            ]["no_of_inputs"],
             name="Loaded_Model",
         )
 
@@ -569,9 +545,9 @@ class Classifier:
     ):
         """
         Load the data.
-        
-        Utilizes load_data_preprocess method from DataHandler. 
-        Stores all loading parameters in the 
+
+        Utilizes load_data_preprocess method from DataHandler.
+        Stores all loading parameters in the
         hyperparameters.json file.
 
         Parameters
@@ -605,8 +581,7 @@ class Classifier:
             np.min(self.datahandler.energies),
             np.max(self.datahandler.energies),
             np.round(
-                self.datahandler.energies[0]
-                - self.datahandler.energies[1],
+                self.datahandler.energies[0] - self.datahandler.energies[1],
                 2,
             ),
         ]
@@ -619,18 +594,10 @@ class Classifier:
             "num_of_classes": self.datahandler.num_classes,
             "no_of_examples": self.datahandler.no_of_examples,
             "energy_range": energy_range,
-            "No. of training samples": str(
-                self.datahandler.X_train.shape[0]
-            ),
-            "No. of validation samples": str(
-                self.datahandler.X_val.shape[0]
-            ),
-            "No. of test samples": str(
-                self.datahandler.X_test.shape[0]
-            ),
-            "Shape of each sample": str(
-                self.datahandler.X_train.shape[1]
-            )
+            "No. of training samples": str(self.datahandler.X_train.shape[0]),
+            "No. of validation samples": str(self.datahandler.X_val.shape[0]),
+            "No. of test samples": str(self.datahandler.X_test.shape[0]),
+            "Shape of each sample": str(self.datahandler.X_train.shape[1])
             + " features (X)"
             + " + "
             + str(self.datahandler.y_train.shape[1])
@@ -646,11 +613,11 @@ class Classifier:
     ):
         """
         Plot XPS spectra out of one of the data set by indices.
-        
+
         The labels and additional information are shown as texts on the
         plots.
         Utilizes the method of the same name in DataHandler.
-        
+
         Parameters
         ----------
         no_of_spectra : int
@@ -659,8 +626,8 @@ class Classifier:
             Either 'train', 'val', or 'test'.
             The default is 'train'.
         with_prediction : bool, optional
-            If True, information about the predicted values are also 
-            shown in the plot. 
+            If True, information about the predicted values are also
+            shown in the plot.
             The default is False.
 
         Returns
@@ -697,11 +664,11 @@ class Classifier:
     ):
         """
         Plot random XPS spectra out of one of the data set.
-        
+
         The labels and additional information are shown as texts on the
         plots.
         Utilizes the method of the same name in DataHandler.
-        
+
         Parameters
         ----------
         no_of_spectra : int
@@ -710,8 +677,8 @@ class Classifier:
             Either 'train', 'val', or 'test'.
             The default is 'train'.
         with_prediction : bool, optional
-            If True, information about the predicted values are also 
-            shown in the plot. 
+            If True, information about the predicted values are also
+            shown in the plot.
             The default is False.
 
         Returns
@@ -739,7 +706,7 @@ class Classifier:
     ):
         """
         Plot the spectra with the highest losses.
-        
+
         Accepts a threshold parameter. If a threshold other than 0 is
         given, the spectra with losses right above this threshold are
         plotted.
@@ -753,11 +720,11 @@ class Classifier:
             Choice of sub set in test data.
             'all': all test data.
             'single': only test data with single species.
-            'linear_comb': only test data with linear combination 
+            'linear_comb': only test data with linear combination
                            of  species.
             The default is 'all'.
         threshold : float
-            Threshold value for loss.            
+            Threshold value for loss.
 
         Returns
         -------
@@ -777,7 +744,7 @@ class Classifier:
     def show_wrong_classification(self):
         """
         Plot all spectra in the test data with a wrong prediction.
-        
+
         Utilizes the method of the same name in DataHandler.
 
         Returns
@@ -790,23 +757,20 @@ class Classifier:
     def plot_class_distribution(self):
         """
         Plot the class distribution of the data.
-        
+
         Returns
         -------
         None.
 
         """
-        self.datahandler.class_distribution.plot(
-            self.datahandler.labels
-        )
+        self.datahandler.class_distribution.plot(self.datahandler.labels)
 
     def plot_weight_distribution(self, kind="posterior", to_file=True):
 
         bayesian_layers = [
             layer
             for layer in self.model.layers
-            if ("Flipout" or "Reparameterization")
-            in str(layer.__class__)
+            if ("Flipout" or "Reparameterization") in str(layer.__class__)
         ]
 
         wd = WeightDistributions(
@@ -829,9 +793,7 @@ class Classifier:
             fig.savefig(filename)
             print("Saved to {}".format(filename))
 
-    def predict_probabilistic(
-        self, dataset="test", no_of_predictions=100
-    ):
+    def predict_probabilistic(self, dataset="test", no_of_predictions=100):
 
         X, y = self.datahandler._select_dataset(dataset_name=dataset)
 
@@ -910,13 +872,9 @@ class Classifier:
                     pickle_data[key] = cd.cd
                 else:
                     try:
-                        pickle_data[key] = getattr(
-                            self.datahandler, key
-                        )
+                        pickle_data[key] = getattr(self.datahandler, key)
                     except AttributeError:
-                        print(
-                            f"'DataHandler' object has no attribute {key}."
-                        )
+                        print(f"'DataHandler' object has no attribute {key}.")
             except KeyError:
                 pass
 
@@ -937,8 +895,8 @@ class Classifier:
 def restore_clf_from_logs(runpath):
     """
     Restore a Classifier object.
-    
-    The classifier is created from the logs saved in a previous 
+
+    The classifier is created from the logs saved in a previous
     experiment.
 
     Parameters

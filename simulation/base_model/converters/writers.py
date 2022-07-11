@@ -47,7 +47,7 @@ class VamasWriter:
         self.normalize = 0
 
     def write(self, data, filename):
-        """ This method converts a nested dictionary into vamas format
+        """This method converts a nested dictionary into vamas format
         and writes it to a vamas file.
         """
         self.filename = filename
@@ -124,8 +124,7 @@ class VamasWriter:
             if self.normalize != 0:
                 norm = self.normalize
                 y = [
-                    spec["data"]["y0"][i]
-                    / spec["data"]["y" + str(norm)][i]
+                    spec["data"]["y0"][i] / spec["data"]["y" + str(norm)][i]
                     for i in range(len(spec["data"]["y0"]))
                 ]
             x_units = setting["x_units"]
@@ -149,8 +148,7 @@ class VamasWriter:
                 )
             else:
                 block.numOrdValues = str(
-                    int(setting["nr_values"])
-                    * int(block.noAdditionalParams)
+                    int(setting["nr_values"]) * int(block.noAdditionalParams)
                 )
             block.minOrdValue1 = min(spec["data"]["y0"])
             block.maxOrdValue1 = max(spec["data"]["y0"])
@@ -166,9 +164,7 @@ class VamasWriter:
 
         with open(str(filename), "w") as file:
             for item in self.vamas_header.__dict__:
-                file.writelines(
-                    str(self.vamas_header.__dict__[item]) + "\n"
-                )
+                file.writelines(str(self.vamas_header.__dict__[item]) + "\n")
             for block in self.blocks:
                 for item in block.__dict__:
                     file.writelines(str(block.__dict__[item]) + "\n")

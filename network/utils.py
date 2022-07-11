@@ -113,12 +113,12 @@ class ClassDistribution:
 
     def __init__(self, task, data_list):
         """
-        Calculate the distibutions of the labels.
-        
+        Calculate the distributions of the labels.
+
         If the task is "regression", the average distributions
         are calculated. If the task is "classification", calculate how
         many examples of each class are in the different data ses.
-        
+
         Save the distribution in a dict called 'cd'.
         cd: Dictionary of the format {'all data': dict,
                                       'training data': dict,
@@ -130,7 +130,7 @@ class ClassDistribution:
         Parameters
         ----------
         task : str
-            If task == 'regression', an average distribution is 
+            If task == 'regression', an average distribution is
             calculated.
             If task == 'classification' or 'multi_class_detection',
             the distribution of the labels across the different data
@@ -205,6 +205,7 @@ class ClassDistribution:
             for k, v in self.cd.items():
                 data.append(v)
             data = np.transpose(np.array(data))
+            ax.set_ylabel("Average concentration")
 
         else:
             plt.title("Class distribution")
@@ -245,9 +246,7 @@ class TrainingGraphs:
         self.history = history
         self.fig_dir = fig_dir
 
-    def plot_metric(
-        self, metric, title=None, ylabel=None, to_file=True
-    ):
+    def plot_metric(self, metric, title=None, ylabel=None, to_file=True):
         """
         Plots the training and validation values of a metric
         against the epochs.
@@ -420,9 +419,7 @@ class WeightDistributions:
 
         ax1.set_title(f"{kind.capitalize()}" + " weight means")
         ax1.legend()
-        ax2.set_title(
-            f"{kind.capitalize()}" + " weight standard deviations"
-        )
+        ax2.set_title(f"{kind.capitalize()}" + " weight standard deviations")
 
         fig.tight_layout()
         # plt.show()
@@ -436,7 +433,7 @@ class Report:
     def __init__(self, dir_name=""):
         """
         Initialize a docx document.
-        
+
         Load the data from the hyperparamters file.
 
         Parameters
@@ -459,14 +456,15 @@ class Report:
         # Get the data
         root_dir = os.getcwd()
         self.model_dir = os.path.join(
-            *[root_dir, "runs", dir_name, "model",]
+            *[
+                root_dir,
+                "runs",
+                dir_name,
+                "model",
+            ]
         )
-        self.log_dir = os.path.join(
-            *[root_dir, "runs", dir_name, "logs"]
-        )
-        self.fig_dir = os.path.join(
-            *[root_dir, "runs", dir_name, "figures"]
-        )
+        self.log_dir = os.path.join(*[root_dir, "runs", dir_name, "logs"])
+        self.fig_dir = os.path.join(*[root_dir, "runs", dir_name, "figures"])
 
         (
             self.name_data,
@@ -570,18 +568,14 @@ class Report:
 
             for row in result_table.rows:
                 for cell in row.cells:
-                    cell.paragraphs[
-                        0
-                    ].alignment = WD_ALIGN_PARAGRAPH.CENTER
+                    cell.paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
         except KeyError:
             pass
 
         self.document.add_page_break()
 
         # Add predictions on random data.
-        self.document.add_heading(
-            "Predictions for 5 random examples", 1
-        )
+        self.document.add_heading("Predictions for 5 random examples", 1)
 
         self.document.add_heading("Training data", 2)
 
@@ -696,9 +690,7 @@ class Report:
             "Total no. of samples": data_dict["no_of_examples"],
             "Train-test-split": data_dict["train_test_split"],
             "Train-val-split": data_dict["train_val_split"],
-            "No. of training samples": data_dict[
-                "No. of training samples"
-            ],
+            "No. of training samples": data_dict["No. of training samples"],
             "No. of validation samples": data_dict[
                 "No. of validation samples"
             ],
@@ -721,7 +713,7 @@ class Report:
     def get_results(self):
         """
         Load the results from the pickle file.
-        
+
         Results include e.g. the test data and the predictions.
 
         Returns

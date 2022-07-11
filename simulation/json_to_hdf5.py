@@ -35,7 +35,7 @@ def safe_arange_with_edges(start, stop, step):
     Returns
     -------
     ndarray
-        1D array with values in the interval (start, stop), 
+        1D array with values in the interval (start, stop),
         incremented by step.
 
     """
@@ -47,7 +47,7 @@ def load_data_preprocess(
 ):
     """
     Load data from JSON files in the json_datafolder.
-    
+
     Data from the files that start and end with the respective numbers
     is loaded.
 
@@ -69,7 +69,7 @@ def load_data_preprocess(
         (no_of_spectra, len of 1 spectrum, 1).
     y : arr
         One-hot encoded labels. Label values need to be given/changed
-        in the first line of this method.        
+        in the first line of this method.
     shiftx : arr
         Array of float values of the shiftx values.
     noise : arr
@@ -142,9 +142,7 @@ def load_data_preprocess(
             number = j
         print(
             "Load: "
-            + str(
-                (filenames.index(file) - start) * len(test) + number + 1
-            )
+            + str((filenames.index(file) - start) * len(test) + number + 1)
             + "/"
             + str(len(filenames[start:end]) * len(test))
         )
@@ -210,8 +208,8 @@ def _load_labels(filepath):
 def _one_hot_encode(y, label_list):
     """
     One-hot encode the labels.
-    
-    As an example, if the label of a spectrum is Fe metal = 1 and all 
+
+    As an example, if the label of a spectrum is Fe metal = 1 and all
     oxides = 0, then the output will be np.array([1,0,0,0],1).
 
     Parameters
@@ -441,9 +439,7 @@ if __name__ == "__main__":
     with open(param_filepath, "r") as param_file:
         params = json.load(param_file)
 
-    output_filepath = (
-        params["output_datafolder"] + params["h5_filename"]
-    )
+    output_filepath = params["output_datafolder"] + params["h5_filename"]
 
     runtimes = {}
     t0 = time()

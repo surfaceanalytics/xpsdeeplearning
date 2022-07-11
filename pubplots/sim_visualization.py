@@ -12,11 +12,8 @@ import matplotlib.gridspec as gridspec
 import matplotlib.colors as mcolors
 
 os.chdir(
-    os.path.join(
-        os.path.abspath(__file__).split("deepxps")[0], "deepxps"
-    )
+    os.path.join(os.path.abspath(__file__).split("deepxps")[0], "deepxps")
 )
-cw = os.getcwd()
 
 # noqa: E402
 from xpsdeeplearning.simulation.base_model.spectra import (
@@ -59,7 +56,6 @@ ax1_0 = fig.add_subplot(inner[1, 0])
 ax1_1 = fig.add_subplot(inner[1, 1])
 
 # %% Reference spectra
-# ax0.set_title("a", fontdict=fontdict_bold, loc='left')
 ax0.set_title("(a) Reference spectra", fontdict=fontdict)
 ax0.set_xlabel("Binding energy (eV)", fontdict=fontdict)
 ax0.set_ylabel("Intensity (arb. units)", fontdict=fontdict)
@@ -79,9 +75,7 @@ ax0.legend(
 
 # %% Sim values
 shift_x_values = list(np.arange(-3, 4, 1))
-shift_x_values = list(
-    np.delete(shift_x_values, shift_x_values.index(0))
-)
+shift_x_values = list(np.delete(shift_x_values, shift_x_values.index(0)))
 
 sim_values = {
     "shift_x": shift_x_values,
@@ -107,7 +101,6 @@ colors = [
 alpha = 0.65
 
 # %% Shifting
-# ax0_0.set_title("b", fontdict=fontdict_bold, loc='left')
 ax0_0.set_title("(b) Horizontal shift", fontdict=fontdict)
 ax0_0.set_xlabel("Binding energy (eV)", fontdict=fontdict)
 ax0_0.set_ylabel("Intensity (arb. units)", fontdict=fontdict)
@@ -146,7 +139,6 @@ legend0_0 = ax0_0.legend(
 legend0_0._legend_box.align = "left"
 
 #%% Noise
-# ax0_1.set_title("c", fontdict=fontdict_bold, loc='left')
 ax0_1.set_title("(c) Artificial noise", fontdict=fontdict)
 ax0_1.set_xlabel("Binding energy (eV)", fontdict=fontdict)
 ax0_1.set_ylabel("Intensity (arb. units)", fontdict=fontdict)
@@ -187,7 +179,6 @@ legend0_1 = ax0_1.legend(
 legend0_1._legend_box.align = "left"
 
 #%% Resolution
-# ax1_0.set_title("d", fontdict=fontdict_bold, loc='left')
 ax1_0.set_title("(d) Change of resolution", fontdict=fontdict)
 ax1_0.set_xlabel("Binding energy (eV)", fontdict=fontdict)
 ax1_0.set_ylabel("Intensity (arb. units)", fontdict=fontdict)
@@ -239,7 +230,13 @@ def _select_random_scatterer(sim_values, key):
 
 def _select_random_scatter_pressure(sim_values, key):
     sim_range = sim_values["pressure"][str(key)]
-    return np.random.randint(sim_range[0] * 10, sim_range[1] * 10,) / 10
+    return (
+        np.random.randint(
+            sim_range[0] * 10,
+            sim_range[1] * 10,
+        )
+        / 10
+    )
 
 
 def _select_random_scatter_distance(sim_values):
@@ -252,7 +249,6 @@ def _select_random_scatter_distance(sim_values):
     )
 
 
-# ax1_1.set_title("e", fontdict=fontdict_bold, loc='left')
 ax1_1.set_title("(e) Scattering in gas phase", fontdict=fontdict)
 ax1_1.set_xlabel("Binding energy (eV)", fontdict=fontdict)
 ax1_1.set_ylabel("Intensity (arb. units)", fontdict=fontdict)
@@ -299,7 +295,6 @@ legend1_1 = ax1_1.legend(
 legend1_1._legend_box.align = "left"
 
 #%% Linear combination
-# colors = iter(["m", "tab:purple", "grey", "black"])
 colors = iter(["tab:orange", "tab:purple", "grey", "turquoise"])
 
 sim_params = {
@@ -341,7 +336,6 @@ sim_params = {
     },
 }
 
-# ax1_1.set_title("f", fontdict=fontdict_bold, loc='left')
 ax2.set_title("(f) Simulated spectra", fontdict=fontdict)
 ax2.set_xlabel("Binding energy (eV)", fontdict=fontdict)
 ax2.set_ylabel("Intensity (arb. units)", fontdict=fontdict)

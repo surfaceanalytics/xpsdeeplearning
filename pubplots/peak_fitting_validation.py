@@ -99,9 +99,7 @@ class TextParser:
             "Background",
             "Envelope",
         ]
-        lines = np.array(
-            [[float(i) for i in d.split()] for d in self.data]
-        )
+        lines = np.array([[float(i) for i in d.split()] for d in self.data])
         x = lines[:, 0]
         y = lines[:, 1:]
 
@@ -109,7 +107,8 @@ class TextParser:
 
         return self.data
 
-class ParserWrapper():
+
+class ParserWrapper:
     def __init__(self, datafolder, file_dict):
         self.file_dict = file_dict
         self.parsers = []
@@ -127,10 +126,11 @@ class ParserWrapper():
     def plot_all(self, to_file=False):
         fig, ax = plt.subplots(
             nrows=1,
-            ncols=len(self.parsers)+1,
-            figsize=(len(self.parsers)*12, 8),
+            ncols=len(self.parsers) + 1,
+            figsize=(len(self.parsers) * 12, 8),
             dpi=300,
-            gridspec_kw={'width_ratios': [2, 2, 2, 2, 1]})
+            gridspec_kw={"width_ratios": [2, 2, 2, 2, 1]},
+        )
         fontdict = {"size": 25}
         fontdict_small = {"size": 21}
         fontdict_legend = {"size": 17}
@@ -149,9 +149,9 @@ class ParserWrapper():
             "Fe sat": "Fe satellite",
             "Fe3O4": "Fe$_{3}$O$_{4}$",
             "Fe2O3": "Fe$_{2}$O$_{3}$",
-            "Fe sat": "Fe satellite"
-            }
-        col_labels= ["Fe metal","FeO","Fe$_{3}$O$_{4}$", "Fe$_{2}$O$_{3}$"]
+            "Fe sat": "Fe satellite",
+        }
+        col_labels = ["Fe metal", "FeO", "Fe$_{3}$O$_{4}$", "Fe$_{2}$O$_{3}$"]
 
         for i, parser in enumerate(self.parsers):
             x, y = parser.data["x"], parser.data["y"]
@@ -171,14 +171,18 @@ class ParserWrapper():
 
                     color = color_dict[name]
                 if name == "CPS":
-                    handle = ax[i].plot(x, y[:,j], c=color)
+                    handle = ax[i].plot(x, y[:, j], c=color)
                 else:
                     start = parser.fit_start
                     end = -parser.fit_end
                     try:
-                        handle = ax[i].plot(x[start:end], y[start:end, j], c=color)
+                        handle = ax[i].plot(
+                            x[start:end], y[start:end, j], c=color
+                        )
                     except IndexError:
-                        handle = ax[i].plot(x[start:end], y[start:end], c=color)
+                        handle = ax[i].plot(
+                            x[start:end], y[start:end], c=color
+                        )
 
                     if name not in handle_dict:
                         handle_dict[name] = handle
@@ -194,38 +198,42 @@ class ParserWrapper():
                     handles=handles,
                     labels=labels,
                     prop={"size": fontdict_legend["size"]},
-                    loc="upper left"
-                    )
+                    loc="upper left",
+                )
                 text = "Quantification:"
             else:
                 text = "Ground truth:"
 
             ax[i].set_title(parser.title, fontdict=fontdict)
 
-            quantification = [f"{p} %" for p in list(parser.quantification.values())]
+            quantification = [
+                f"{p} %" for p in list(parser.quantification.values())
+            ]
 
             table = ax[i].table(
                 cellText=[quantification],
                 cellLoc="center",
                 colLabels=col_labels,
-                bbox = [0.03, 0.03, 0.6, 0.15]
-                )
+                bbox=[0.03, 0.03, 0.6, 0.15],
+            )
             table.auto_set_font_size(False)
             table.set_fontsize(fontdict_small["size"])
 
-# =============================================================================
-#             if i == 3:
-#                 for cell in table.get_celld().values():
-#                     cell._text.set_color("red")
-# =============================================================================
+            # =============================================================================
+            #             if i == 3:
+            #                 for cell in table.get_celld().values():
+            #                     cell._text.set_color("red")
+            # =============================================================================
 
-            ax[i].text(0.03,0.215,
-                       text,
-                       horizontalalignment="left",
-                       size=fontdict_small["size"],
-                       verticalalignment="center",
-                       transform=ax[i].transAxes
-                 )
+            ax[i].text(
+                0.03,
+                0.215,
+                text,
+                horizontalalignment="left",
+                size=fontdict_small["size"],
+                verticalalignment="center",
+                transform=ax[i].transAxes,
+            )
 
             ax[i].set_xlim(left=np.max(x), right=np.min(x))
 
@@ -237,9 +245,10 @@ class ParserWrapper():
 
         if to_file:
             fig_name = os.path.join(datafolder, f"peak_fitting.png")
-            fig.savefig(fig_name)#, bbox_inches="tight")
+            fig.savefig(fig_name)  # , bbox_inches="tight")
 
         return fig
+
 
 # %%
 datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\utils"
@@ -259,9 +268,9 @@ file_dict = {
             "Fe metal": 30.1,
             "FeO": 17.54,
             "Fe3O4": 22.9,
-            "Fe2O3": 29.5
-            }
+            "Fe2O3": 29.5,
         },
+    },
     "Shirley lineshapes": {
         "filename": "shirley_fit.txt",
         "title": "(d) Peak model using a Shirley background",
@@ -271,9 +280,9 @@ file_dict = {
             "Fe metal": 19.56,
             "FeO": 7.38,
             "Fe3O4": 7.26,
-            "Fe2O3": 65.80
-            }
+            "Fe2O3": 65.80,
         },
+    },
     "Biesinger": {
         "filename": "biesinger.txt",
         "title": "(b) Fit according to Biesinger et al.",
@@ -283,9 +292,9 @@ file_dict = {
             "Fe metal": 36.6,
             "FeO": 11.4,
             "Fe3O4": 34.8,
-            "Fe2O3": 17.2
-            }
+            "Fe2O3": 17.2,
         },
+    },
     "Tougaard lineshapes": {
         "filename": "tougaard_lineshapes.txt",
         "title": "(c) Fit with reference lineshapes",
@@ -295,10 +304,10 @@ file_dict = {
             "Fe metal": 38.0,
             "FeO": 11.9,
             "Fe3O4": 28.3,
-            "Fe2O3": 21.7
-            }
+            "Fe2O3": 21.7,
         },
-    }
+    },
+}
 
 wrapper = ParserWrapper(datafolder, file_dict)
 wrapper.plot_all(to_file=True)

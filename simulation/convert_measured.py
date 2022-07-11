@@ -38,16 +38,12 @@ filename = "Fe2p_Fe_metal.vms"
 energies = []
 filepath = os.path.join(input_datafolder, filename)
 ref_spectrum = MeasuredSpectrum(filepath)
-fig_old = Figure(
-    x=ref_spectrum.x, y=ref_spectrum.lineshape, title="old"
-)
+fig_old = Figure(x=ref_spectrum.x, y=ref_spectrum.lineshape, title="old")
 energies.append(ref_spectrum.x[np.argmax(ref_spectrum.lineshape)])
 
 ref_spectrum.resample(start=685.0, stop=770.0, step=0.2)
 energies.append(ref_spectrum.x[np.argmax(ref_spectrum.lineshape)])
-fig_new = Figure(
-    x=ref_spectrum.x, y=ref_spectrum.lineshape, title="new"
-)
+fig_new = Figure(x=ref_spectrum.x, y=ref_spectrum.lineshape, title="new")
 new_filename = filename.split(".")[0] + "_new.vms"
 ref_spectrum.write(input_datafolder, new_filename)
 
@@ -259,7 +255,10 @@ def load_data(filepath):
     xy_data = np.array(lines)[:, 2:]
 
     data = {
-        "data": {"x": list(xy_data[:, 0]), "y0": list(xy_data[:, 1]),},
+        "data": {
+            "x": list(xy_data[:, 0]),
+            "y0": list(xy_data[:, 1]),
+        },
         "spectrum_type": species,
         "name": name,
     }
@@ -340,12 +339,8 @@ def convert_all_spectra(input_datafolder, plot_all=True):
 
 # Load the data into numpy arrays and save to hdf5 file.
 input_datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Data\NAP-XPS\analyzed data\AmmoMaxRef\exports"
-X, names, energies = convert_all_spectra(
-    input_datafolder, plot_all=True
-)
-output_file = (
-    r"C:\Users\pielsticker\Simulations\20220609_AmmoMax_spectra.h5"
-)
+X, names, energies = convert_all_spectra(input_datafolder, plot_all=True)
+output_file = r"C:\Users\pielsticker\Simulations\20220609_AmmoMax_spectra.h5"
 
 with h5py.File(output_file, "w") as hf:
     hf.create_dataset(

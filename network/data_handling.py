@@ -22,7 +22,7 @@ class DataHandler:
     def __init__(self, intensity_only=True):
         """
         Initialize intenstiy_only parameter.
-        
+
         Parameters
         ----------
         intensity_only : boolean, optional
@@ -74,7 +74,7 @@ class DataHandler:
             Validation labels.
         self.y_test : ndarray
             Test labels.
-            
+
         Optionally, the method can also return more information about
         the data set:
             self.sim_values_train,
@@ -83,14 +83,14 @@ class DataHandler:
                 Dictionary containing information about the parameters
                 used during the artificical constructuon of the dataset.
                 Keys : 'shiftx', 'noise', 'FWHM',
-                       'scatterer', 'distance', 'pressure' 
+                       'scatterer', 'distance', 'pressure'
                 Split in the same way as the features and labels.
-                
+
              self.names_train,
-             self.names_val, 
+             self.names_val,
              self.names_test : ndarrays
                  Arrays of the spectra names associated  with each X,y
-                 pairing in the data set. Typical for measured spectra.   
+                 pairing in the data set. Typical for measured spectra.
                  Split in the same way as the features and labels.
         """
         self.input_filepath = input_filepath
@@ -110,13 +110,10 @@ class DataHandler:
             try:
                 try:
                     self.labels = [
-                        label.decode("utf-8")
-                        for label in hf["labels"][:]
+                        label.decode("utf-8") for label in hf["labels"][:]
                     ]
                 except AttributeError:
-                    self.labels = [
-                        str(label) for label in hf["labels"][:]
-                    ]
+                    self.labels = [str(label) for label in hf["labels"][:]]
                 self.num_classes = len(self.labels)
             except KeyError:
                 print(
@@ -127,9 +124,7 @@ class DataHandler:
             dataset_size = hf["X"].shape[0]
             # Randomly choose a subset of the whole data set.
             try:
-                r = np.random.randint(
-                    0, dataset_size - self.no_of_examples
-                )
+                r = np.random.randint(0, dataset_size - self.no_of_examples)
             except ValueError as e:
                 error_msg = (
                     "There are not enough spectra in this data set. "
@@ -163,12 +158,8 @@ class DataHandler:
                     scatterer = hf["scatterer"][
                         r : r + self.no_of_examples, :
                     ]
-                    distance = hf["distance"][
-                        r : r + self.no_of_examples, :
-                    ]
-                    pressure = hf["pressure"][
-                        r : r + self.no_of_examples, :
-                    ]
+                    distance = hf["distance"][r : r + self.no_of_examples, :]
+                    pressure = hf["pressure"][r : r + self.no_of_examples, :]
 
                     (
                         self.X,
@@ -249,9 +240,7 @@ class DataHandler:
             elif "names" in hf.keys():
                 names_load_list = [
                     name[0].decode("utf-8")
-                    for name in hf["names"][
-                        r : r + self.no_of_examples, :
-                    ]
+                    for name in hf["names"][r : r + self.no_of_examples, :]
                 ]
                 names = np.reshape(np.array(names_load_list), (-1, 1))
 
@@ -342,10 +331,10 @@ class DataHandler:
     def _split_test_val_train(self, X, y, **kwargs):
         """
         Split multiple numpy arrays into train, val, and test sets.
-        
+
         First, the whole data is split into the train+val and test sets
         according to the attribute self.train_test_split. Secondly.
-        the train+val sets are further split into train and val sets 
+        the train+val sets are further split into train and val sets
         according to the attribute self.train_val_split.
 
         Parameters
@@ -372,9 +361,7 @@ class DataHandler:
         y_test = y[no_of_train_val:, :]
 
         # Then create val subset from train set
-        no_of_train = int(
-            (1 - self.train_val_split) * X_train_val.shape[0]
-        )
+        no_of_train = int((1 - self.train_val_split) * X_train_val.shape[0])
 
         X_train = X_train_val[:no_of_train, :, :]
         X_val = X_train_val[no_of_train:, :, :]
@@ -544,9 +531,7 @@ class DataHandler:
                 self.names_train,
                 self.names_val,
                 self.names_test,
-            ) = self._split_test_val_train(
-                self.X, self.y, names=self.names
-            )
+            ) = self._split_test_val_train(self.X, self.y, names=self.names)
 
             loaded_data = (
                 self.X_train,
@@ -581,9 +566,7 @@ class DataHandler:
         print(
             f"Only spectra with one species were left in the data set! Test/val/train splits were kept."
         )
-        print(
-            f"Remaining no. of training examples: {self.y_train.shape[0]}"
-        )
+        print(f"Remaining no. of training examples: {self.y_train.shape[0]}")
         print(f"Remaining no. of val examples: {self.y_val.shape[0]}")
         print(f"Remaining no. of test examples: {self.y_test.shape[0]}")
 
@@ -596,12 +579,12 @@ class DataHandler:
         Parameters
         ----------
         task : str
-            If task == 'regression', an average distribution is 
+            If task == 'regression', an average distribution is
             calculated.
             If task == 'classification' or 'multi_class_detection',
             the distribution of the labels across the different data
             sets is calculated.
-            
+
         Returns
         -------
         dict
@@ -638,9 +621,7 @@ class DataHandler:
         ]
         print("Done!")
 
-    def plot_spectra(
-        self, no_of_spectra, dataset, indices, with_prediction
-    ):
+    def plot_spectra(self, no_of_spectra, dataset, indices, with_prediction):
         """
         Generate spectra plot for a given data set.
 
@@ -652,10 +633,10 @@ class DataHandler:
             Either 'train', 'val', or 'test'.
             The default is 'train'.
         indices: list
-            List 
+            List
         with_prediction : bool, optional
-            If True, information about the predicted values are also 
-            shown in the plot. 
+            If True, information about the predicted values are also
+            shown in the plot.
             The default is False.
 
         Returns
@@ -671,9 +652,7 @@ class DataHandler:
         for i in range(no_of_spectra):
             index = indices[i]
             if self.intensity_only:
-                new_energies = np.reshape(
-                    np.array(self.energies), (-1, 1)
-                )
+                new_energies = np.reshape(np.array(self.energies), (-1, 1))
                 data.append(np.hstack((new_energies, X[index])))
             else:
                 data.append(X[index])
@@ -694,10 +673,10 @@ class DataHandler:
     def plot_random(self, no_of_spectra, dataset, with_prediction):
         """
         Plot random XPS spectra out of one of the data set.
-        
+
         The labels and additional information are shown as texts on the
         plots.
-        
+
         Parameters
         ----------
         no_of_spectra : int
@@ -706,8 +685,8 @@ class DataHandler:
             Either 'train', 'val', or 'test'.
             The default is 'train'.
         with_prediction : bool, optional
-            If True, information about the predicted values are also 
-            shown in the plot. 
+            If True, information about the predicted values are also
+            shown in the plot.
             The default is False.
 
         Returns
@@ -734,7 +713,7 @@ class DataHandler:
     ):
         """
         Plot the spectra with the highest losses.
-        
+
         Accepts a threshold parameter. If a threshold other than 0 is
         given, the spectra with losses right above this threshold are
         plotted.
@@ -747,11 +726,11 @@ class DataHandler:
             Choice of sub set in test data.
             'all': all test data.
             'single': only test data with single species.
-            'linear_comb': only test data with linear combination 
+            'linear_comb': only test data with linear combination
                            of  species.
             The default is 'all'.
         threshold : float
-            Threshold value for loss.            
+            Threshold value for loss.
 
         Returns
         -------
@@ -830,18 +809,11 @@ class DataHandler:
                     str(len(indices)),
                     str(len_all),
                     str(
-                        100
-                        * (
-                            np.around(
-                                len(indices) / len_all, decimals=3
-                            )
-                        )
+                        100 * (np.around(len(indices) / len_all, decimals=3))
                     ),
                     print_statement,
                 )
-                + "absolute error of of at least {0}.".format(
-                    str(threshold)
-                )
+                + "absolute error of of at least {0}.".format(str(threshold))
             )
             indices = indices[-no_of_spectra:]
 
@@ -858,7 +830,7 @@ class DataHandler:
     def show_wrong_classification(self):
         """
         Plot all spectra in the test data with a wrong prediction.
-        
+
         Only works for classification.
 
         Returns
@@ -906,9 +878,7 @@ class DataHandler:
                         label = "Real label: " + label + "\n"
                 text = real_y + pred_y + label + pred_label
                 try:
-                    sim = self._write_sim_text(
-                        dataset="test", index=index
-                    )
+                    sim = self._write_sim_text(dataset="test", index=index)
                     text += sim
                 except AttributeError:
                     pass
@@ -934,9 +904,7 @@ class DataHandler:
         X, y = self._select_dataset(dataset_name="test")
 
         if no_of_spectra > y.shape[0]:
-            print(
-                "Provide no. of spectra was bigger than dataset size."
-            )
+            print("Provide no. of spectra was bigger than dataset size.")
             no_of_spectra = y.shape[0]
 
         fig, axs = plt.subplots(
@@ -966,13 +934,13 @@ class DataHandler:
             elif len(X.shape) == 3:
                 ax0.plot(self.energies, self.X[r])
                 ax0.invert_xaxis()
-                ax0.set_xlim(
-                    np.max(self.energies), np.min(self.energies)
-                )
+                ax0.set_xlim(np.max(self.energies), np.min(self.energies))
                 ax0.set_xlabel("Binding energy (eV)")
                 ax0.set_ylabel("Intensity (arb. units)")
                 annot = self.write_text_for_spectrum(
-                    dataset="test", index=r, with_prediction=False,
+                    dataset="test",
+                    index=r,
+                    with_prediction=False,
                 )
                 ax0.set_title("Spectrum no. {}".format(r))
                 ax0.text(
@@ -1068,7 +1036,7 @@ class DataHandler:
     def _get_predictions(self, dataset_name):
         """
         Get the predictions and losses for one data set.
-        
+
         Used for writing the annotations during plotting.
 
         Parameters
@@ -1092,9 +1060,7 @@ class DataHandler:
 
         return pred, losses
 
-    def write_text_for_spectrum(
-        self, dataset, index, with_prediction=True
-    ):
+    def write_text_for_spectrum(self, dataset, index, with_prediction=True):
         """
         Create the annotation for a plot of one spectrum.
 
@@ -1134,17 +1100,13 @@ class DataHandler:
         except AttributeError:
             pass
         try:
-            text += self._write_measured_text(
-                dataset=dataset, index=index
-            )
+            text += self._write_measured_text(dataset=dataset, index=index)
         except AttributeError:
             pass
 
         if with_prediction:
             loss_text = (
-                "\n"
-                + "Loss: "
-                + str(np.around(losses[index], decimals=3))
+                "\n" + "Loss: " + str(np.around(losses[index], decimals=3))
             )
             text += loss_text
 
@@ -1153,7 +1115,7 @@ class DataHandler:
     def _write_sim_text(self, dataset, index):
         """
         Generate a string containing the simulation parameters.
-        
+
         Parameters
         ----------
         dataset : str
@@ -1191,9 +1153,7 @@ class DataHandler:
             fwhm_text = "FHWM: not changed" + ", "
 
         if shift_x is not None and shift_x != 0:
-            shift_text = (
-                " Shift: " + "{:.2f}".format(float(shift_x)) + ", "
-            )
+            shift_text = " Shift: " + "{:.2f}".format(float(shift_x)) + ", "
         else:
             shift_text = " Shift: none" + ", "
 
@@ -1254,9 +1214,7 @@ class DataHandler:
 
         pressure_text = "{:.1f}".format(float(pressure)) + " mbar, "
 
-        distance_text = (
-            "d = " + "{:.1f}".format(float(distance)) + " mm"
-        )
+        distance_text = "d = " + "{:.1f}".format(float(distance)) + " mm"
 
         scatter_text = name_text + pressure_text + distance_text + "\n"
 
@@ -1289,9 +1247,7 @@ class DataHandler:
         elif dataset == "test":
             name = self.names_test[index][0]
 
-        measured_text = (
-            "Spectrum no. " + str(index) + "\n" + str(name) + "\n"
-        )
+        measured_text = "Spectrum no. " + str(index) + "\n" + str(name) + "\n"
 
         return measured_text
 

@@ -8,10 +8,9 @@ Created on Thu Sep 23 09:50:14 2021
 import os
 import numpy as np
 import matplotlib.pyplot as plt
+
 os.chdir(
-    os.path.join(
-        os.path.abspath(__file__).split("deepxps")[0], "deepxps"
-    )
+    os.path.join(os.path.abspath(__file__).split("deepxps")[0], "deepxps")
 )
 
 # noqa: E402
@@ -19,9 +18,10 @@ from xpsdeeplearning.network.data_handling import DataHandler
 from xpsdeeplearning.network.utils import ClassDistribution
 
 #%%
-plt.rcParams.update({'mathtext.default':  'regular' })
-plt.rcParams['axes.facecolor']='white'
-plt.rcParams['savefig.facecolor']='white'
+plt.rcParams.update({"mathtext.default": "regular"})
+plt.rcParams["axes.facecolor"] = "white"
+plt.rcParams["savefig.facecolor"] = "white"
+
 
 class UpdatedClassDistribution(ClassDistribution):
     def plot(self, labels):
@@ -40,14 +40,14 @@ class UpdatedClassDistribution(ClassDistribution):
         """
         fontdict = {"size": 14}
         fontdict_small = {"size": 12}
-        #fig = plt.figure(figsize=(6,5), dpi=300)
+        # fig = plt.figure(figsize=(6,5), dpi=300)
         fig = plt.figure(dpi=300)
         ax = fig.add_axes([0, 0, 1, 1])
         x = np.arange(len(self.cd.keys())) * 1.5
         data = []
 
         if self.task == "regression":
-            #ax.set_title("Average distribution across the classes", fontdict=fontdict)
+            # ax.set_title("Average distribution across the classes", fontdict=fontdict)
             # Plot of the average label distribution in the different
             # data sets.
             for k, v in self.cd.items():
@@ -69,15 +69,22 @@ class UpdatedClassDistribution(ClassDistribution):
             ax.bar(x + i * 0.25, data[i], align="edge", width=0.2)
         ax.legend(
             labels,
-            bbox_to_anchor=(1.25,1), loc="upper right",
-            #bbox_transform=plt.gcf().transFigure,
-            prop=fontdict_small)
+            bbox_to_anchor=(1.25, 1),
+            loc="upper right",
+            # bbox_transform=plt.gcf().transFigure,
+            prop=fontdict_small,
+        )
 
-        ax.set_xticks(ticks=x + 0.5, labels=list(self.cd.keys()), fontsize=fontdict["size"])
-        ax.tick_params(axis='y', which='major', labelsize=fontdict["size"])
+        ax.set_xticks(
+            ticks=x + 0.5,
+            labels=list(self.cd.keys()),
+            fontsize=fontdict["size"],
+        )
+        ax.tick_params(axis="y", which="major", labelsize=fontdict["size"])
         plt.show()
 
         return fig
+
 
 # %%
 np.random.seed(502)
@@ -112,16 +119,17 @@ datahandler.plot_random(
     no_of_spectra=15, dataset="train", with_prediction=False
 )
 
-data_list = [datahandler.y, datahandler.y_train, datahandler.y_val, datahandler.y_test]
+data_list = [
+    datahandler.y,
+    datahandler.y_train,
+    datahandler.y_val,
+    datahandler.y_test,
+]
 class_distribution = UpdatedClassDistribution(
-    task="regression",
-    data_list=data_list)
+    task="regression", data_list=data_list
+)
 
-labels_legend = [
-    "Fe metal",
-    "FeO",
-    "$Fe_{3}O_{4}$",
-    "$Fe_{2}O_{3}$"]
+labels_legend = ["Fe metal", "FeO", "$Fe_{3}O_{4}$", "$Fe_{2}O_{3}$"]
 fig = class_distribution.plot(labels=labels_legend)
 
 save_dir = r"C:\Users\pielsticker\Downloads\label_distribution.png"
@@ -130,5 +138,3 @@ save_dir = r"C:\Users\pielsticker\Downloads\label_distribution.png"
 #     save_dir,
 #     bbox_inches="tight")
 # =============================================================================
-
-

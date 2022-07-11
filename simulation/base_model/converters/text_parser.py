@@ -67,16 +67,17 @@ class TextParser:
             Data dictionary.
 
         """
-        lines = np.array(
-            [[float(i) for i in d.split()] for d in self.data]
-        )
+        lines = np.array([[float(i) for i in d.split()] for d in self.data])
         x = lines[:, 0]
         y = lines[:, 1]
         x, y = self._check_step_width(x, y)
 
         spectrum_type, group_name = self.header.split(" ", 1)
         data = {
-            "data": {"x": list(x), "y0": list(y),},
+            "data": {
+                "x": list(x),
+                "y0": list(y),
+            },
             "spectrum_type": spectrum_type,
             "group_name": group_name,
         }

@@ -85,7 +85,7 @@ class ExperimentLogging:
     def make_dirs(self):
         """
         Make folder structure unless it already exists.
-        
+
         Ensure that the folders are properly created.
 
         Returns
@@ -129,8 +129,8 @@ class ExperimentLogging:
     ):
         """
         Activate the callbacks and store the active ones in a list.
-        
-        Method to be used before training. 
+
+        Method to be used before training.
 
         Parameters
         ----------
@@ -177,7 +177,7 @@ class ExperimentLogging:
     def _count_epochs_trained(self):
         """
         Count the numbers of previously trained epochs.
-        
+
         Seaches the csv log file.
 
         Returns
@@ -202,7 +202,7 @@ class ExperimentLogging:
     def _get_total_history(self):
         """
         Load the previous training history from the CSV log file.
-        
+
         Useful for retraining.
 
         Returns
@@ -260,9 +260,7 @@ class ExperimentLogging:
             self.log_dir, "hyperparameters.json"
         )
 
-        with open(
-            hyperparam_file_name, "w", encoding="utf-8"
-        ) as json_file:
+        with open(hyperparam_file_name, "w", encoding="utf-8") as json_file:
             json.dump(
                 self.hyperparams,
                 json_file,
@@ -319,15 +317,13 @@ class HyperParamCallback(callbacks.Callback):
         logs : dict, optional
              Dict, metric results for this training epoch, and for the
              validation epoch if validation is performed.
-             
+
         Returns
         -------
         None.
 
         """
-        epoch_param = {
-            "epochs_trained": self.logging._count_epochs_trained()
-        }
+        epoch_param = {"epochs_trained": self.logging._count_epochs_trained()}
         self.logging.update_saved_hyperparams(epoch_param)
 
 
@@ -337,9 +333,9 @@ class CustomModelCheckpoint(callbacks.ModelCheckpoint):
     def _save_model(self, epoch, batch, logs):
         """
         Saves the model.
-        
+
         Saves the model to JSON and the weights to HDF5 as well.
-        
+
         Parameters
         ----------
             epoch: the epoch this iteration is in.
@@ -394,15 +390,11 @@ class CustomModelCheckpoint(callbacks.ModelCheckpoint):
                                 )
                             else:
                                 with open(
-                                    os.path.join(
-                                        filepath, "model.json"
-                                    ),
+                                    os.path.join(filepath, "model.json"),
                                     "w",
                                     encoding="utf-8",
                                 ) as json_file:
-                                    json_file.write(
-                                        self.model.to_json()
-                                    )
+                                    json_file.write(self.model.to_json())
                                 self.model.save_weights(
                                     os.path.join(filepath, "weights.h5")
                                 )

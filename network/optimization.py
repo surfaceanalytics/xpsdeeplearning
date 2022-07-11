@@ -69,7 +69,7 @@ class Hyperoptimization:
         ----------
         label_values : list
             List of strings of the labels of the XPS spectra.
-            Example: 
+            Example:
                 label_values = ['Fe metal', 'FeO', 'Fe3O4', 'Fe2O3']
 
         Returns
@@ -89,7 +89,7 @@ class Hyperoptimization:
     def hyper_opt(self, x_train, y_train, x_val, y_val, params):
         """
         Instantiate, compile and call model.
-        
+
         Used in the Talos Scan.
 
         Parameters
@@ -98,17 +98,17 @@ class Hyperoptimization:
             3d array, or a list of arrays with features for the
             prediction task.
         y_train : ndarray
-            2d array, or a list of arrays with labels for the 
+            2d array, or a list of arrays with labels for the
             prediction task.
         x_val : sequence of array_like
-            3d array, or a list of arrays with features for the 
+            3d array, or a list of arrays with features for the
             validation.
         y_val : ndarray
             2d array, or a list of arrays with labels for the
             validation.
         params : dict
-           Dictionary containing all parameters that should be tested 
-           in the Talos Scan, a subset of which will be selected at 
+           Dictionary containing all parameters that should be tested
+           in the Talos Scan, a subset of which will be selected at
            random for training and evaluation.
            For example:
             p = {'lr': (0.5, 5, 10),
@@ -118,7 +118,7 @@ class Hyperoptimization:
 
         Returns
         -------
-        out : tf.keras.callbacks.History 
+        out : tf.keras.callbacks.History
             Training history object from Keras.
         model : tensorflow.keras.models.Model
             Keras model.
@@ -149,7 +149,7 @@ class Hyperoptimization:
     def scan_parameter_space(self, params, **kwargs):
         """
         Scan the parameter space provided in the params dictionary.
-        
+
         Keywords can be used to limit the search space.
 
         Parameters
@@ -158,7 +158,7 @@ class Hyperoptimization:
             Parameter space to be scanned.
         **kwargs : str
             Limiter arguments in Talos (see Talos doc), e.g.
-            'fraction_limit', 'round_limit', 'time_limit' 
+            'fraction_limit', 'round_limit', 'time_limit'
 
         Returns
         -------
@@ -173,9 +173,7 @@ class Hyperoptimization:
         filenames = next(os.walk(self.test_dir))[2]
         number = 0
         for filename in filenames:
-            if filename.startswith("test_log") and filename.endswith(
-                ".pkl"
-            ):
+            if filename.startswith("test_log") and filename.endswith(".pkl"):
                 number += 1
 
         # Initialize Scan object (based on talos.Scan)
@@ -230,8 +228,8 @@ class Hyperoptimization:
     def restore_previous_scans(self):
         """
         Create a list of RestoredScan objects.
-        
-        This is used to restore information about previous results 
+
+        This is used to restore information about previous results
         on this data set.
 
         Returns
@@ -244,10 +242,7 @@ class Hyperoptimization:
         filenames = [
             filename
             for filename in next(os.walk(self.test_dir))[2]
-            if (
-                filename.startswith("test_log")
-                and filename.endswith("pkl")
-            )
+            if (filename.startswith("test_log") and filename.endswith("pkl"))
         ]
 
         for filename in filenames:
@@ -263,7 +258,7 @@ class Hyperoptimization:
     def combine_results(self):
         """
         Combine the results from all scans in the self.scans list.
-        
+
         Return a DataFrame containing all results.
 
         Returns
@@ -275,14 +270,10 @@ class Hyperoptimization:
         filenames = next(os.walk(self.test_dir))[2]
         full_data = pd.DataFrame()
         for filename in filenames:
-            if filename.startswith("test_log") and filename.endswith(
-                "pkl"
-            ):
+            if filename.startswith("test_log") and filename.endswith("pkl"):
                 results_file = os.path.join(self.test_dir, filename)
                 new_df = pd.read_pickle(results_file)
-                full_data = pd.concat(
-                    [full_data, new_df], ignore_index=True
-                )
+                full_data = pd.concat([full_data, new_df], ignore_index=True)
 
         return full_data
 
@@ -298,9 +289,7 @@ class Hyperoptimization:
         new_csv_filepath = os.path.join(self.test_dir, "all_tests.csv")
         new_pkl_filepath = os.path.join(self.test_dir, "all_tests.pkl")
 
-        np.savetxt(
-            new_csv_filepath, self.full_data, fmt="%s", delimiter=","
-        )
+        np.savetxt(new_csv_filepath, self.full_data, fmt="%s", delimiter=",")
 
         self.full_data.to_pickle(new_pkl_filepath)
 
@@ -339,7 +328,7 @@ class Hyperoptimization:
     def get_best_params(self, metric):
         """
         Get the best params for a certain metric.
-        
+
         Exploits the Analyzer object.
 
         Parameters
@@ -363,7 +352,7 @@ class Hyperoptimization:
     ):
         """
         Reload a model from all scans.
-        
+
         Either the best model or a model from an ID is loaded.
 
         Parameters
@@ -436,7 +425,7 @@ class Scan(talos.Scan):
     ):
         """
         Overwrite __init__ method taken from talos.Scan.
-        
+
         In comparison to original talos.Scan, scan_round is
         not run on implementation (see talos docs),
         """
@@ -474,7 +463,7 @@ class Scan(talos.Scan):
         Save all relevant information from the Scan object.
 
         Method very similar to the Deploy class of Talos.
-        Saves all details, the model, information about the rounds 
+        Saves all details, the model, information about the rounds
         and the weights to different files. Needed for restoring of
         scans.
 
@@ -547,12 +536,12 @@ class RestoredScan:
     def __init__(self, folder, number):
         """
         Load all data from a previous scan.
-        
-        This class is to be used if the hyperparamter scan had to 
+
+        This class is to be used if the hyperparamter scan had to
         be abandoned, but shall be continued in a new Scan object.
-        
+
         Note: It is not possible (yet) to run the scan in this class,
-        this class is only a container for the results from a previous 
+        this class is only a container for the results from a previous
         scan.
 
         Parameters
@@ -594,9 +583,7 @@ class RestoredScan:
             for line in modelfile.readlines():
                 self.saved_models.append(line[:-1])
 
-        print(
-            "Previous data for Scan {} was loaded!".format(self.number)
-        )
+        print("Previous data for Scan {} was loaded!".format(self.number))
 
 
 class Analysis:
@@ -605,8 +592,8 @@ class Analysis:
     def __init__(self, df):
         """
         Initialize the attribute self.df from an results DataFrame.
-        
-        This class is very similar to talos.Reporting, but with added 
+
+        This class is very similar to talos.Reporting, but with added
         analysis tools.
 
         Parameters
@@ -660,9 +647,7 @@ class Analysis:
             ID of the best round.
 
         """
-        return self.df[self.df[metric] == self.df[metric].min()].index[
-            0
-        ]
+        return self.df[self.df[metric] == self.df[metric].min()].index[0]
 
     def _minimum_value(self, metric):
         """Return the minimum value for a given metric."""
@@ -680,9 +665,7 @@ class Analysis:
     def _cols(self, metric, exclude):
         """Remove other than desired metric from data table."""
         cols = [
-            col
-            for col in self.df.columns
-            if col not in exclude + [metric]
+            col for col in self.df.columns if col not in exclude + [metric]
         ]
 
         # make sure only unique values in col list
@@ -866,7 +849,7 @@ class LinePlot(Plot):
         Parameters
         ----------
         data : pd.DataFrame
-            Subset of a dataframe containing the relevant data for a 
+            Subset of a dataframe containing the relevant data for a
             line plot.
 
         Returns
@@ -881,7 +864,7 @@ class LinePlot(Plot):
     def plot(self):
         """
         Create a line plot of the data.
-        
+
         Returns
         -------
         None.
@@ -929,7 +912,7 @@ class HistPlot(Plot):
         Parameters
         ----------
         data : pd.DataFrame
-            Subset of a dataframe containing the relevant data for a 
+            Subset of a dataframe containing the relevant data for a
             histogram.
 
         Returns
@@ -975,9 +958,7 @@ class HistPlot(Plot):
         )
         self.ax.set_ylabel("Counts", self.font_dict)
 
-        self.ax.yaxis.set_major_locator(
-            ticker.MaxNLocator(integer=True)
-        )
+        self.ax.yaxis.set_major_locator(ticker.MaxNLocator(integer=True))
 
 
 class CorrPlot(Plot):
@@ -990,7 +971,7 @@ class CorrPlot(Plot):
         Parameters
         ----------
         data : pd.DataFrame
-            Subset of a dataframe containing the relevant data for a 
+            Subset of a dataframe containing the relevant data for a
             correlation plot.
 
         Returns
@@ -1040,7 +1021,7 @@ class KDEPlot(Plot):
     def __init__(self, data, x, y=None):
         """
         Initialize the superclass Plot and the attribute name.
-       
+
         Parameters
         ----------
         data : pd.DataFrame
@@ -1066,7 +1047,7 @@ class KDEPlot(Plot):
     def plot(self):
         """
         Plot the KDE plot.
-        
+
         Returns
         -------
         None.
@@ -1092,9 +1073,7 @@ class KDEPlot(Plot):
         )
 
         self.ax.set_title(
-            "Kernel density estimator for {0} and {1}".format(
-                self.x, self.y
-            ),
+            "Kernel density estimator for {0} and {1}".format(self.x, self.y),
             self.font_dict,
         )
 
@@ -1149,7 +1128,7 @@ class BarPlot(Plot):
     def plot(self):
         """
         Plot a bar plot (sns.catplot) with four parameters.
-        
+
         Returns
         -------
         None.
