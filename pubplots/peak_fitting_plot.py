@@ -123,13 +123,26 @@ class ParserWrapper:
             parser.quantification = d["quantification"]
             self.parsers.append(parser)
 
-    def plot_all(self, to_file=False):
+    def plot_all(
+            self,
+            with_nn_col=True,
+            with_quantification=True,
+            to_file=False):
+
+        width_ratios = [2]*len(self.parsers)
+        ncols = len(self.parsers)
+
+        if with_nn_col:
+            width_ratios.append(1)
+            ncols += 1
+
         fig, ax = plt.subplots(
             nrows=1,
-            ncols=len(self.parsers) + 1,
+            ncols=ncols,
             figsize=(len(self.parsers) * 12, 8),
+            squeeze=False,
             dpi=300,
-            gridspec_kw={"width_ratios": [2, 2, 2, 2, 1]},
+            gridspec_kw={"width_ratios": width_ratios},
         )
         fontdict = {"size": 25}
         fontdict_small = {"size": 21}
@@ -156,10 +169,10 @@ class ParserWrapper:
         for i, parser in enumerate(self.parsers):
             x, y = parser.data["x"], parser.data["y"]
 
-            ax[i].set_xlabel("Binding energy (eV)", fontdict=fontdict)
-            ax[i].set_ylabel("Intensity (arb. units)", fontdict=fontdict)
-            ax[i].tick_params(axis="x", labelsize=fontdict["size"])
-            ax[i].set_yticklabels([])
+            ax[0,i].set_xlabel("Binding energy (eV)", fontdict=fontdict)
+            ax[0,i].set_ylabel("Intensity (arb. units)", fontdict=fontdict)
+            ax[0,i].tick_params(axis="x", labelsize=fontdict["size"])
+            ax[0,i].set_yticklabels([])
 
             handle_dict = {}
             labels = []
@@ -171,16 +184,16 @@ class ParserWrapper:
 
                     color = color_dict[name]
                 if name == "CPS":
-                    handle = ax[i].plot(x, y[:, j], c=color)
+                    handle = ax[0,i].plot(x, y[:, j], c=color)
                 else:
                     start = parser.fit_start
                     end = -parser.fit_end
                     try:
-                        handle = ax[i].plot(
+                        handle = ax[0,i].plot(
                             x[start:end], y[start:end, j], c=color
                         )
                     except IndexError:
-                        handle = ax[i].plot(
+                        handle = ax[0,i].plot(
                             x[start:end], y[start:end], c=color
                         )
 
@@ -193,8 +206,8 @@ class ParserWrapper:
 
             handles = [x for l in list(handle_dict.values()) for x in l]
 
-            if i != 0:
-                ax[i].legend(
+            if "spectrum.txt" not in self.parsers[i].filepath:
+                ax[0,i].legend(
                     handles=handles,
                     labels=labels,
                     prop={"size": fontdict_legend["size"]},
@@ -204,41 +217,37 @@ class ParserWrapper:
             else:
                 text = "Ground truth:"
 
-            ax[i].set_title(parser.title, fontdict=fontdict)
+            ax[0,i].set_title(parser.title, fontdict=fontdict)
 
             quantification = [
                 f"{p} %" for p in list(parser.quantification.values())
             ]
 
-            table = ax[i].table(
-                cellText=[quantification],
-                cellLoc="center",
-                colLabels=col_labels,
-                bbox=[0.03, 0.03, 0.6, 0.15],
-            )
-            table.auto_set_font_size(False)
-            table.set_fontsize(fontdict_small["size"])
+            if with_quantification:
+                table = ax[0,i].table(
+                    cellText=[quantification],
+                    cellLoc="center",
+                    colLabels=col_labels,
+                    bbox=[0.03, 0.03, 0.6, 0.15],
+                    )
+                table.auto_set_font_size(False)
+                table.set_fontsize(fontdict_small["size"])
 
-            # =============================================================================
-            #             if i == 3:
-            #                 for cell in table.get_celld().values():
-            #                     cell._text.set_color("red")
-            # =============================================================================
+                ax[0,i].text(
+                    0.03,
+                    0.215,
+                    text,
+                    horizontalalignment="left",
+                    size=fontdict_small["size"],
+                    verticalalignment="center",
+                    transform=ax[0,i].transAxes,
+                    )
 
-            ax[i].text(
-                0.03,
-                0.215,
-                text,
-                horizontalalignment="left",
-                size=fontdict_small["size"],
-                verticalalignment="center",
-                transform=ax[i].transAxes,
-            )
+            ax[0,i].set_xlim(left=np.max(x), right=np.min(x))
 
-            ax[i].set_xlim(left=np.max(x), right=np.min(x))
-
-        ax[-1].set_axis_off()
-        ax[-1].set_title("(e) Neural Network", fontdict=fontdict)
+        if with_nn_col:
+            ax[0,-1].set_axis_off()
+            ax[0,-1].set_title("(e) Neural Network", fontdict=fontdict)
 
         fig.tight_layout()
         plt.show()
@@ -251,7 +260,7 @@ class ParserWrapper:
 
 
 # %%
-datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\utils"
+datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\utils\exports"
 file_dict = {
     "true": {
         "filename": "spectrum.txt",
@@ -310,4 +319,7 @@ file_dict = {
 }
 
 wrapper = ParserWrapper(datafolder, file_dict)
-wrapper.plot_all(to_file=True)
+wrapper.plot_all(
+    with_nn_col=True,
+    with_quantification=True,
+    to_file=True)
