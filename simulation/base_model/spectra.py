@@ -71,7 +71,7 @@ def _resample_array(y, x0, x1):
         DESCRIPTION.
 
     """
-    fn = interp1d(x0, y, axis=0)
+    fn = interp1d(x0, y, axis=0, fill_value="extrapolate")
     return fn(x1)
 
 
