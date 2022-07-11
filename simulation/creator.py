@@ -15,12 +15,12 @@ from time import time
 import matplotlib.pyplot as plt
 
 
-from base_model.spectra import (
+from .base_model.spectra import (
     safe_arange_with_edges,
     MeasuredSpectrum,
 )
-from base_model.figures import Figure
-from sim import Simulation
+from .base_model.figures import Figure
+from .sim import Simulation
 
 # %%
 class Creator:
