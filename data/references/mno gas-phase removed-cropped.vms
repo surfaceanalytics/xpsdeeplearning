@@ -4,7 +4,7 @@ Not Specified
 Not Specified
 Not Specified
 7
-Casa Info Follows CasaXPS Version 2.3.20rev1.2G
+Casa Info Follows CasaXPS Version 2.3.24PR1.0
 0
 SourceAnalyserAngle: Not Specified
 CasaRowLabel:afer reduction, 100 C, H2, gas-bg removed (MnO)
@@ -1772,9 +1772,10 @@ Mn 2p
 37
 54
 0
-12
+13
 Casa Info Follows
-0
+1
+Calib M = 641.02 A = 640.79 BE ADD
 0
 0
 0
