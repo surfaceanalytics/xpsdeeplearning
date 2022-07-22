@@ -35,6 +35,13 @@ class WindowWrapper(ParserWrapper):
             )
         self.fontdict_legend = {"size": 16}
 
+        self.color_dict = {
+            "CPS": "black",
+            "window": "orangered",
+            "train_loss": "cornflowerblue",
+            "val_loss": "forestgreen",
+            }
+
     def load_history(self, csv_filepath):
         """
         Load the previous training history from the CSV log file.
@@ -80,10 +87,6 @@ class WindowWrapper(ParserWrapper):
         """
         fontdict = {"size": 25}
         fontdict_legend = {"size": 21}
-        color_dict = {
-            "train_loss": "cornflowerblue",
-            "val_loss": "forestgreen",
-        }
 
         metric_cap = metric.capitalize()
         legend = ["Training", "Validation"]
@@ -100,11 +103,10 @@ class WindowWrapper(ParserWrapper):
         ax.tick_params(axis="x", labelsize=fontdict["size"])
         ax.tick_params(axis="y", labelsize=fontdict["size"])
 
-
-        ax.plot(self.history[metric], linewidth=3, c=color_dict["train_loss"])
+        ax.plot(self.history[metric], linewidth=3, c=self.color_dict["train_loss"])
         val_key = "val_" + metric
         ax.plot(self.history[val_key], linewidth=3,
-                c=color_dict["val_loss"], alpha=0.6)
+                c=self.color_dict["val_loss"], alpha=0.6)
         ax.set_xlim(-5, len(self.history[metric]) + 5)
 
         ax.set_ylabel(str(ylabel), fontdict=fontdict)
@@ -137,27 +139,7 @@ class WindowWrapper(ParserWrapper):
         fontdict = {"size": 25}
         fontdict_small = {"size": 14}
         fontdict_legend = {"size": 17}
-        color_dict = {
-            "CPS": "black",
-            "window": "orangered"
-        }
 
-        label_dict = {
-            "Co3O4": "Co$_{3}$O$_{4}$",
-            "Fe sat": "Fe satellite",
-            "Fe3O4": "Fe$_{3}$O$_{4}$",
-            "Fe2O3": "Fe$_{2}$O$_{3}$",
-            "Fe sat": "Fe satellite",
-        }
-        col_labels = [
-            "Co metal",
-            "CoO",
-            "Co$_{3}$O$_{4}$",
-            "Fe metal",
-            "FeO",
-            "Fe$_{3}$O$_{4}$",
-            "Fe$_{2}$O$_{3}$",
-        ]
 
         self.ax[0,1] = self._add_metric_plot(
             ax = self.ax[0,1],
@@ -192,7 +174,7 @@ class WindowWrapper(ParserWrapper):
                     if spectrum_name in header_name:
                         name = spectrum_name
 
-                color = color_dict[name]
+                color = self.color_dict[name]
 
                 start = parser.fit_start
                 end = parser.fit_end
@@ -215,6 +197,9 @@ class WindowWrapper(ParserWrapper):
             quantification = [
                 f"{p} %" for p in list(parser.quantification.values())
             ]
+
+            keys = list(parser.quantification.keys())
+            col_labels = self._reformat_label_list(keys)
 
             table = self.ax[0,i].table(
                 cellText=[quantification],
@@ -248,7 +233,7 @@ class WindowWrapper(ParserWrapper):
             window[1]-window[0],
             0.71*ymax,
             linewidth=2,
-            edgecolor=color_dict["window"],
+            edgecolor=self.color_dict["window"],
             facecolor="none",
             )
         self.ax[0,0].add_patch(rect)
@@ -258,7 +243,7 @@ class WindowWrapper(ParserWrapper):
             (window[1],0.65*ymax),
             arrowstyle='<->',
             mutation_scale=20,
-            color=color_dict["window"]
+            color=self.color_dict["window"]
             )
         self.ax[0,0].add_patch(arrow)
 
@@ -268,7 +253,7 @@ class WindowWrapper(ParserWrapper):
             "100 eV window",
             horizontalalignment="center",
             size=fontdict["size"],
-            color=color_dict["window"],
+            color=self.color_dict["window"],
             verticalalignment="center",
             )
 
@@ -282,7 +267,7 @@ logpath = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\runs\20210914_19
 
 file_dict = {
     "true": {
-        "filename": "feco.txt",
+        "filename": "cofe_sim.txt",
         "title": "(a) Simulated spectrum with window",
         "fit_start": 0,
         "fit_end": -1,
@@ -303,7 +288,7 @@ file_dict = {
         },
     },
     "neural_net": {
-        "filename": "feco.txt",
+        "filename": "cofe_sim.txt",
         "title": "(c) Neural network quantifcation on one example",
         "fit_start": 0,
         "fit_end": -1,

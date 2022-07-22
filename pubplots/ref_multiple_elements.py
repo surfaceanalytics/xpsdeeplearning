@@ -167,13 +167,10 @@ class MultipleElementWrapper(ParserWrapper):
 
             if name not in handle_dict:
                 handle_dict[name] = handle
-
-                if name in self.label_dict:
-                    labels.append(self.label_dict[name])
-                else:
-                    labels.append(name)
+                labels.append(name)
 
         handles = [x for l in list(handle_dict.values()) for x in l]
+        labels = self._reformat_label_list(labels)
 
         # Only for this plot: Sort by oxidation state
         labels_sort_dict = {

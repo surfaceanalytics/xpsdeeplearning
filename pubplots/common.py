@@ -34,6 +34,33 @@ class TextParser:
         """
         self.data_dict = []
 
+        self.names = [
+            "CPS",
+            "Cu metal",
+            "Cu2O",
+            "CuO",
+            "Co metal",
+            "CoO",
+            "Co3O4",
+            "Fe metal",
+            "FeO",
+            "Fe3O4",
+            "Fe2O3",
+            "Ni metal",
+            "NiO",
+            "MnO",
+            "Mn2O3",
+            "MnO2",
+            "Pd metal",
+            "PdO",
+            "Ti metal",
+            "TiO",
+            "Ti2O3",
+            "TiO2",
+            "Background",
+            "Envelope",
+        ]
+
     def parse_file(self, filepath, bg=True, envelope=True):
         """
         Parse the .txt file into a list of dictionaries.
@@ -64,7 +91,7 @@ class TextParser:
         None.
 
         """
-        self.header = self.data[:7]  # str(self.data[0]).split("\n")[0]
+        self.header = self.data[:7]
         self.data = self.data[7:]
 
     def _build_data(self, bg=True, envelope=True):
@@ -89,21 +116,6 @@ class TextParser:
 
         self.header_names = filter_header_list(self.header_names)
 
-        self.names = [
-            "CPS",
-            "Co metal",
-            "CoO",
-            "Co3O4",
-            "Fe metal",
-            "FeO",
-            "Fe3O4",
-            "Fe2O3",
-            "Fe sat",
-            "Ni metal",
-            "NiO",
-            "Background",
-            "Envelope",
-        ]
         lines = np.array([[float(i) for i in d.split()] for d in self.data])
         x = lines[:, 0]
         y = lines[:, 1:]
@@ -141,24 +153,17 @@ class ParserWrapper:
         }
 
         self.label_dict = {
+            "Cu2O": "Cu$_{2}$O",
             "Co3O4": "Co$_{3}$O$_{4}$",
             "Fe sat": "Fe satellite",
             "Fe3O4": "Fe$_{3}$O$_{4}$",
             "Fe2O3": "Fe$_{2}$O$_{3}$",
             "Fe sat": "Fe satellite",
+            "Mn2O3": "Mn$_{2}$O$_{3}$",
+            "MnO2": "MnO$_{2}$",
+            "Ti2O3": "Ti$_{2}$O$_{3}$",
+            "TiO2": "TiO$_{2}$",
         }
-        self.col_labels = [
-            "Ni metal",
-            "NiO",
-            "Co metal",
-            "CoO",
-            "Co$_{3}$O$_{4}$",
-            "Fe metal",
-            "FeO",
-            "Fe$_{3}$O$_{4}$",
-            "Fe$_{2}$O$_{3}$",
-        ]
-
 
     def parse_data(self, bg=True, envelope=True):
         for method, d in self.file_dict.items():
@@ -170,6 +175,17 @@ class ParserWrapper:
             parser.fit_end = d["fit_end"]
             parser.quantification = d["quantification"]
             self.parsers.append(parser)
+
+    def _reformat_label_list(self, label_list):
+        formatted_label_list = []
+
+        for item in label_list:
+            if item in self.label_dict:
+                formatted_label_list.append(self.label_dict[item])
+            else:
+                formatted_label_list.append(item)
+
+        return formatted_label_list
 
     def plot_all(
             self,
@@ -237,12 +253,10 @@ class ParserWrapper:
 
                         if name not in handle_dict:
                             handle_dict[name] = handle
-                            if name in self.label_dict:
-                                labels.append(self.label_dict[name])
-                            else:
-                                labels.append(name)
+                            labels.append(name)
 
             handles = [x for l in list(handle_dict.values()) for x in l]
+            labels = self._reformat_label_list(labels)
 
             #if not any(x in self.parsers[i].filepath for x in ("spectrum.txt")):
             if "spectrum.txt" not in self.parsers[i].filepath:

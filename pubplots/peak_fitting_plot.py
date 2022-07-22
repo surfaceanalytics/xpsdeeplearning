@@ -21,11 +21,21 @@ class PeakFittingWrapper(ParserWrapper):
         )
         self.fontdict_small = {"size": 14}
 
-    def plot_all(
-        self,
-        with_fits=True,
-        with_nn_col=True):
-        super(PeakFittingWrapper, self).plot_all(with_fits, with_nn_col)
+        self.color_dict = {
+            "CPS": "grey",
+            "Fe metal": "black",
+            "FeO": "green",
+            "Fe3O4": "blue",
+            "Fe2O3": "orange",
+            "Fe sat": "deeppink",
+            "Background": "tab:brown",
+            "Envelope": "red",
+        }
+
+    def plot_all(self):
+        super(PeakFittingWrapper, self).plot_all(
+            with_fits=True,
+            with_nn_col=True)
 
         for i, parser in enumerate(self.parsers):
             quantification = [
@@ -43,10 +53,15 @@ class PeakFittingWrapper(ParserWrapper):
                 f"{p} %" for p in list(parser.quantification.values())
             ]
 
+            keys = list(parser.quantification.keys())
+            col_labels = self._reformat_label_list(keys)
+
+            cell_colors = [["white" for r in range(len(quantification))]]
+
             table = self.axs[0,i].table(
                 cellText=[quantification],
                 cellLoc="center",
-                colLabels=self.col_labels,
+                colLabels=col_labels,
                 bbox=[0.03, 0.03, 0.6, 0.15],
                 )
             table.auto_set_font_size(False)
@@ -62,21 +77,20 @@ class PeakFittingWrapper(ParserWrapper):
                 transform=self.axs[0,i].transAxes,
                 )
 
+            self.axs[0,-1].set_axis_off()
+            self.axs[0,-1].set_title("(e) Neural Network", fontdict=self.fontdict)
 
-            if with_nn_col:
-                self.axs[0,-1].set_axis_off()
-                self.axs[0,-1].set_title("(e) Neural Network", fontdict=self.fontdict)
-
-                infile = os.path.join(
-                    r"C:\Users\pielsticker\Lukas\MPI-CEC\Publications\DeepXPS paper\Manuscript - Identification & Quantification\figures",
-                    "neural_net_multiple_elements.png")
-                with Image.open(infile) as im:
-                    self.axs[0,-1].imshow(im)
+            infile = os.path.join(
+                r"C:\Users\pielsticker\Lukas\MPI-CEC\Publications\DeepXPS paper\Manuscript - Identification & Quantification\figures",
+                "neural_net_multiple_elements.png")
+            with Image.open(infile) as im:
+                self.axs[0,-1].imshow(im)
 
         self.fig.tight_layout()
 
         return self.fig, self.axs
 
+# %%
 file_dict = {
     "true": {
         "filename": "spectrum.txt",
@@ -136,9 +150,7 @@ file_dict = {
 
 wrapper = PeakFittingWrapper(datafolder, file_dict)
 wrapper.parse_data(bg=True, envelope=True)
-fig, axs = wrapper.plot_all(
-    with_fits=True,
-    with_nn_col=True)
+fig, axs = wrapper.plot_all()
 plt.show()
 
 save_dir = r"C:\Users\pielsticker\Lukas\MPI-CEC\Publications\DeepXPS paper\Manuscript - Identification & Quantification\figures"

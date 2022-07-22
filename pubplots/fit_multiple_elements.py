@@ -40,10 +40,13 @@ class MultipleElementWrapper(ParserWrapper):
             q1 = [f"{p[0]} %" for p in list(parser.quantification.values())]
             q2 = [f"{p[1]} %" for p in list(parser.quantification.values())]
 
+            keys = list(parser.quantification.keys())
+            col_labels = self._reformat_label_list(keys)
+
             table = self.axs[0, i].table(
                 cellText=[q1,q2],
                 cellLoc="center",
-                colLabels=self.col_labels,
+                colLabels=col_labels,
                 rowLabels=["Peak fitting", "CNN"],
                 bbox=[0.12, 0.79, 0.69, 0.15],
             )

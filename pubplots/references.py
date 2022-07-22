@@ -54,29 +54,6 @@ class FitTextParser(TextParser):
             if (hn == "Ni" or hn == "Co" or hn == "Fe"):
                 self.header_names[i] += " metal"
 
-        self.names = [
-            "Cu metal",
-            "Cu2O",
-            "CuO",
-            "Co metal",
-            "CoO",
-            "Co3O4",
-            "Fe metal",
-            "FeO",
-            "Fe3O4",
-            "Fe2O3",
-            "Ni metal",
-            "NiO",
-            "MnO",
-            "Mn2O3",
-            "MnO2",
-            "Pd metal",
-            "PdO",
-            "Ti metal",
-            "TiO",
-            "Ti2O3",
-            "TiO2"
-        ]
         lines = np.array([[float(i) for i in d.split()] for d in self.data])
 
         x = lines[:, 0::2]
@@ -123,17 +100,6 @@ class ReferenceWrapper(ParserWrapper):
             "TiO2": "tab:purple",
             "Background": "tab:brown",
             "Envelope": "red",
-        }
-
-        self.label_dict = {
-            "Cu2O": "Cu$_{2}$O",
-            "Co3O4": "Co$_{3}$O$_{4}$",
-            "Fe3O4": "Fe$_{3}$O$_{4}$",
-            "Fe2O3": "Fe$_{2}$O$_{3}$",
-            "Mn2O3": "Mn$_{2}$O$_{3}$",
-            "MnO2": "MnO$_{2}$",
-            "Ti2O3": "Ti$_{2}$O$_{3}$",
-            "TiO2": "TiO$_{2}$"
         }
 
     def parse_data(self, bg=True, envelope=True):
@@ -221,12 +187,10 @@ class ReferenceWrapper(ParserWrapper):
 
                 if name not in handle_dict:
                     handle_dict[name] = handle
-                    if name in self.label_dict:
-                        labels.append(self.label_dict[name])
-                    else:
-                        labels.append(name)
+                    labels.append(name)
 
                 handles = [x for l in list(handle_dict.values()) for x in l]
+                labels = self._reformat_label_list(labels)
 
             self.axs[row,col].legend(
                 handles=handles,
