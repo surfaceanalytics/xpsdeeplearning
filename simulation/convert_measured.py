@@ -34,7 +34,7 @@ from base_model.figures import Figure
 
 #%% For one reference spectrum.
 input_datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\utils"
-filename = "Mn2O3.vms"
+filename = "NiCoFe.vms"
 
 energies = []
 filepath = os.path.join(input_datafolder, filename)
@@ -42,7 +42,7 @@ ref_spectrum = MeasuredSpectrum(filepath)
 fig_old = Figure(x=ref_spectrum.x, y=ref_spectrum.lineshape, title="old")
 energies.append(ref_spectrum.x[np.argmax(ref_spectrum.lineshape)])
 
-ref_spectrum.resample(start=685.0, stop=770.0, step=0.2)
+ref_spectrum.resample(start=682.0, stop=885.0, step=0.2)
 energies.append(ref_spectrum.x[np.argmax(ref_spectrum.lineshape)])
 fig_new = Figure(x=ref_spectrum.x, y=ref_spectrum.lineshape, title="new")
 new_filename = filename.split(".")[0] + "_new.vms"
