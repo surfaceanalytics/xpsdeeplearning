@@ -60,6 +60,11 @@ ax0.set_title("(a) Reference spectra", fontdict=fontdict)
 ax0.set_xlabel("Binding energy (eV)", fontdict=fontdict)
 ax0.set_ylabel("Intensity (arb. units)", fontdict=fontdict)
 ax0.tick_params(axis="x", labelsize=fontdict["size"])
+ax0.tick_params(
+    axis="y",
+    which="both",
+    right=False,
+    left=False)
 ax0.set_yticklabels([])
 colors = iter(["black", "green", "blue", "orange"])
 for spectrum in measured_spectra:
@@ -80,7 +85,7 @@ shift_x_values = list(np.delete(shift_x_values, shift_x_values.index(0)))
 sim_values = {
     "shift_x": shift_x_values,
     "noise": [5, 15, 25, 50, 100, 200],
-    "FWHM": [50, 80, 100, 150, 200, 300],
+    "FWHM": [1.0, 3.0, 5.0, 7.0, 9.0, 11.0],
     "scatterers": {
         "0": "He",
         # "1": "H2",
@@ -106,6 +111,11 @@ ax0_0.set_xlabel("Binding energy (eV)", fontdict=fontdict)
 ax0_0.set_ylabel("Intensity (arb. units)", fontdict=fontdict)
 ax0_0.tick_params(axis="x", labelsize=fontdict["size"])
 ax0_0.set_yticklabels([])
+ax0_0.tick_params(
+    axis="y",
+    which="both",
+    right=False,
+    left=False)
 legend = []
 for i, shift_x in enumerate(sim_values["shift_x"]):
     spectrum = SimulatedSpectrum(
@@ -144,6 +154,11 @@ ax0_1.set_xlabel("Binding energy (eV)", fontdict=fontdict)
 ax0_1.set_ylabel("Intensity (arb. units)", fontdict=fontdict)
 ax0_1.tick_params(axis="x", labelsize=fontdict["size"])
 ax0_1.set_yticklabels([])
+ax0_1.tick_params(
+    axis="y",
+    which="both",
+    right=False,
+    left=False)
 legend = []
 for i, noise in enumerate(sim_values["noise"]):
     spectrum = SimulatedSpectrum(
@@ -184,6 +199,11 @@ ax1_0.set_xlabel("Binding energy (eV)", fontdict=fontdict)
 ax1_0.set_ylabel("Intensity (arb. units)", fontdict=fontdict)
 ax1_0.tick_params(axis="x", labelsize=fontdict["size"])
 ax1_0.set_yticklabels([])
+ax1_1.tick_params(
+    axis="y",
+    which="both",
+    right=False,
+    left=False)
 legend = []
 for i, FWHM in enumerate(sim_values["FWHM"]):
     spectrum = SimulatedSpectrum(
@@ -198,7 +218,10 @@ for i, FWHM in enumerate(sim_values["FWHM"]):
     if i == 0:
         ax1_0.plot(spectrum.x, spectrum.lineshape, c="red")
         legend.append("original")
-    spectrum.change_resolution(FWHM)
+
+    resolution = np.mean(spectrum.x) / FWHM
+    spectrum.change_resolution(resolution)
+    #FWHM = np.mean(spectrum.x) / resolution
     spectrum.normalize()
     ax1_0.plot(spectrum.x, spectrum.lineshape, c=colors[i], alpha=alpha)
     ax1_0.set_xlim(left=np.max(spectrum.x), right=np.min(spectrum.x))
@@ -254,6 +277,11 @@ ax1_1.set_xlabel("Binding energy (eV)", fontdict=fontdict)
 ax1_1.set_ylabel("Intensity (arb. units)", fontdict=fontdict)
 ax1_1.tick_params(axis="x", labelsize=fontdict["size"])
 ax1_1.set_yticklabels([])
+ax1_1.tick_params(
+    axis="y",
+    which="both",
+    right=False,
+    left=False)
 legend = []
 for i in range(0, 4):
     spectrum = SimulatedSpectrum(
@@ -341,6 +369,11 @@ ax2.set_xlabel("Binding energy (eV)", fontdict=fontdict)
 ax2.set_ylabel("Intensity (arb. units)", fontdict=fontdict)
 ax2.tick_params(axis="x", labelsize=fontdict["size"])
 ax2.set_yticklabels([])
+ax2.tick_params(
+    axis="y",
+    which="both",
+    right=False,
+    left=False)
 legend = []
 for sim_values in sim_params.values():
     sim = Simulation(measured_spectra)
@@ -383,13 +416,17 @@ legend2 = ax2.legend(
     shadow=False,
     mode=None,
 )
-legend1_1._legend_box.align = "left"
+legend2._legend_box.align = "left"
 
-fig.tight_layout()
+outer.tight_layout(fig)
 fig.show()
 
-# %% Only linear combination
+save_dir = r"C:\Users\pielsticker\Lukas\MPI-CEC\Publications\DeepXPS paper\Manuscript - Identification & Quantification\figures"
+fig_path = os.path.join(save_dir, "data_augmentation.png")
+fig.savefig(fig_path)
+
 # =============================================================================
+# # %% Only linear combination
 # fig, ax3 = plt.subplots(figsize=(5, 4), dpi=300)
 # ax3.set_xlabel("Binding energy (eV)",
 #               fontdict=fontdict)
@@ -397,6 +434,11 @@ fig.show()
 #               fontdict=fontdict)
 # ax3.tick_params(axis="x", labelsize=fontdict["size"])
 # ax3.set_yticklabels([])
+# ax3.tick_params(
+#     axis="y",
+#     which="both",
+#     right=False,
+#     left=False)
 # colors = iter(["tab:orange","tab:purple","grey","turquoise"])
 # for sim_values in sim_params.values():
 #     sim = Simulation(measured_spectra)
@@ -407,4 +449,5 @@ fig.show()
 #             right=np.min(sim.output_spectrum.x))
 # fig.tight_layout()
 # plt.show()
+#
 # =============================================================================
