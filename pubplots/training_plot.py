@@ -9,26 +9,13 @@ import os
 import numpy as np
 import csv
 import matplotlib.pyplot as plt
-import matplotlib.gridspec as gridspec
-import matplotlib.colors as mcolors
 
 os.chdir(
     os.path.join(os.path.abspath(__file__).split("deepxps")[0], "deepxps")
 )
 cw = os.getcwd()
 
-# noqa: E402
-from xpsdeeplearning.simulation.base_model.spectra import (
-    MeasuredSpectrum,
-    SimulatedSpectrum,
-)
-from xpsdeeplearning.simulation.base_model.figures import Figure
-from xpsdeeplearning.simulation.sim import Simulation
-
-
 # %% Loading
-
-
 def _get_total_history(csv_filepath):
     """
     Load the previous training history from the CSV log file.
@@ -212,7 +199,7 @@ def plot_metric(
                     zoom_x[1] = len(metric_history) + 5
                 axins.set_xlim(zoom_x[0], zoom_x[1])  # apply the x-limits
                 axins.set_ylim(zoom_y[0], zoom_y[1])
-            #   mark_inset(ax, axins, loc1=2, loc2=4, ec="0.5")
+                #mark_inset(ax, axins, loc1=2, loc2=4, ec="0.5")
 
     # Only for a better legend.
     ax.plot(np.zeros(1), np.zeros([1, 3]), color="w", alpha=0, label=" ")
@@ -234,6 +221,7 @@ def plot_metric(
         fig_name = os.path.join(fig_dir, f"{metric}.png")
         fig.savefig(fig_name)
 
+fig_dir = r"C:\Users\pielsticker\Lukas\MPI-CEC\Publications\DeepXPS paper\Manuscript - Identification & Quantification\figures"
 
 plot_metric(
     history=history,
@@ -244,5 +232,5 @@ plot_metric(
     zoom_x=[100, None],
     zoom_y=[None, 0.1],
     to_file=True,
-    fig_dir=r"C:\Users\pielsticker\Downloads",
+    fig_dir=fig_dir,
 )
