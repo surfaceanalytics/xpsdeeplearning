@@ -132,9 +132,7 @@ class_distribution = UpdatedClassDistribution(
 labels_legend = ["Fe metal", "FeO", "$Fe_{3}O_{4}$", "$Fe_{2}O_{3}$"]
 fig = class_distribution.plot(labels=labels_legend)
 
-save_dir = r"C:\Users\pielsticker\Downloads\label_distribution.png"
-# =============================================================================
-# fig.savefig(
-#     save_dir,
-#     bbox_inches="tight")
-# =============================================================================
+output_file = r"C:\Users\pielsticker\Lukas\MPI-CEC\Publications\DeepXPS paper\Manuscript - Identification & Quantification\figures\label_distribution.png"
+fig.savefig(
+    output_file,
+    bbox_inches="tight")
