@@ -12,11 +12,10 @@ import os
 from scipy.signal import fftconvolve
 from scipy.interpolate import interp1d
 
-
-from .converters.data_converter import DataConverter
-
 try:
     from .peaks import Gauss, Lorentz, Voigt, VacuumExcitation, Tougaard
+    from .converters.data_converter import DataConverter
+
 except ImportError as e:
     if str(e) == "attempted relative import with no known parent package":
         pass
@@ -798,6 +797,7 @@ class SimulatedSpectrum(Spectrum):
 #%%
 if __name__ == "__main__":
     from peaks import Gauss, Lorentz, Voigt, VacuumExcitation, Tougaard
+    from converters.data_converter import DataConverter
 
     # label = "NiCoFe\\Ni2pCo2pFe2p_Co_metal"
     label = "NiCoFe\\Fe2p_Fe_metal"
