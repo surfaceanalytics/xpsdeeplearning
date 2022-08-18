@@ -55,7 +55,7 @@ class TextParser:
 
         """
         self.header = str(self.data[0]).split("\n")[0]
-        self.data = self.data[7:]
+        self.data = self.data[1:]
 
     def _build_dict(self):
         """
@@ -156,3 +156,8 @@ class TextParser:
         x = new_x
         y = np.array(new_y)
         return x, y
+
+
+fp = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\xpsdeeplearning\data\references\Fe2p_Fe_metal.txt"
+parser = TextParser()
+parser.parse_file(fp)
