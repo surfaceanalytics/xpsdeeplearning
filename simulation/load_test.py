@@ -26,9 +26,9 @@ no_of_examples = 200000
     y_train,
     y_val,
     y_test,
-    aug_values_train,
-    aug_values_val,
-    aug_values_test,
+    sim_values_train,
+    sim_values_val,
+    sim_values_test,
 ) = datahandler.load_data_preprocess(
     input_filepath=input_filepath,
     no_of_examples=no_of_examples,
