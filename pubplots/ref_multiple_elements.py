@@ -17,20 +17,6 @@ datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\utils\exports
 class FitTextParser(TextParser):
     """Parser for XPS data stored in TXT files."""
 
-    def __init__(self):
-        """
-        Initialize empty data dictionary.
-
-        Parameters
-        ----------
-
-        Returns
-        -------
-        None.
-
-        """
-        super(FitTextParser, self).__init__()
-
     def _build_data(self, bg=True, envelope=True):
         """
         Build dictionary from the loaded data.
@@ -42,11 +28,6 @@ class FitTextParser(TextParser):
 
         """
         self.header_names = [hn.split(":")[1] for hn in self.header[6].split("\t") if "Cycle" in hn]
-
-        if bg:
-            self.header_names += ["Background"]
-        if envelope:
-            self.header_names += ["Envelope"]
 
         for i, hn in enumerate(self.header_names):
             if (hn == "Ni" or hn == "Co" or hn == "Fe"):
@@ -66,7 +47,6 @@ class FitTextParser(TextParser):
             "NiO",
         ]
         lines = np.array([[float(i) for i in d.split()] for d in self.data])
-        c = [d.split() for d in self.data]
 
         x = lines[:, 0]
         y = lines[:, 1::2]
@@ -77,11 +57,10 @@ class FitTextParser(TextParser):
 
         return self.data
 
-# %% lot of various different peak fitting methods
-
-class MultipleElementWrapper(ParserWrapper):
+# %%
+class Wrapper(ParserWrapper):
     def __init__(self, datafolder, file_dict):
-        super(MultipleElementWrapper, self).__init__(
+        super(Wrapper, self).__init__(
             datafolder=datafolder, file_dict=file_dict
         )
         self.fontdict_legend = {"size": 17}
@@ -101,11 +80,10 @@ class MultipleElementWrapper(ParserWrapper):
             "Envelope": "red",
         }
 
-
-    def parse_data(self, bg=True, envelope=True):
+    def parse_data(self):
         filepath = os.path.join(self.datafolder, file_dict["filename"])
         self.parser = FitTextParser()
-        self.parser.parse_file(filepath, bg=bg, envelope=bg)
+        self.parser.parse_file(filepath)
         self.parser.title =file_dict["title"]
         self.parser.fit_start = file_dict["fit_start"]
         self.parser.fit_end = file_dict["fit_end"]
@@ -114,7 +92,7 @@ class MultipleElementWrapper(ParserWrapper):
         self.fig, self.axs = plt.subplots(
             nrows=3,
             ncols=1,
-            figsize=(12, 12),
+            figsize=(10, 12),
             squeeze=False,
             dpi=300,
         )
@@ -208,8 +186,8 @@ file_dict = {
     "fit_end": -1,
     }
 
-wrapper = MultipleElementWrapper(datafolder, file_dict)
-wrapper.parse_data(bg=False, envelope=False)
+wrapper = Wrapper(datafolder, file_dict)
+wrapper.parse_data()
 fig, ax = wrapper.plot_all()
 
 plt.show()

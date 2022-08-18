@@ -8,14 +8,16 @@ Created on Mon Jul 11 16:51:00 2022
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
+import matplotlib.gridspec as gridspec
 import os
 import csv
+import pickle
+from sklearn.metrics import mean_absolute_error
 
-from common import TextParser, ParserWrapper
+from common import ParserWrapper
 
 #%%
-
-class WindowWrapper(ParserWrapper):
+class Wrapper(ParserWrapper):
     """Parser for XPS data stored in TXT files."""
 
     def __init__(self, datafolder, file_dict):
@@ -30,9 +32,11 @@ class WindowWrapper(ParserWrapper):
         None.
 
         """
-        super(WindowWrapper, self).__init__(
+        super(Wrapper, self).__init__(
             datafolder=datafolder, file_dict=file_dict
             )
+        self.fontdict = {"size": 25}
+        self.fontdict_small = {"size": 14}
         self.fontdict_legend = {"size": 16}
 
         self.color_dict = {
@@ -72,7 +76,6 @@ class WindowWrapper(ParserWrapper):
         ax,
         history,
         metric,
-        fontdict,
         title=None,
         ylabel=None
     ):
@@ -91,7 +94,6 @@ class WindowWrapper(ParserWrapper):
         metric_cap = metric.capitalize()
         legend = ["Training", "Validation"]
 
-        metric_cap = metric.capitalize()
         if ylabel is None:
             ylabel = metric_cap
         ax.set_ylabel(str(ylabel), fontdict=fontdict)
@@ -125,42 +127,154 @@ class WindowWrapper(ParserWrapper):
 
         return ax
 
+    def load_predictions(self, pickle_filepath):
+        """
+        Load the previous training history from the CSV log file.
+
+        Useful for retraining.
+
+        Returns
+        -------
+
+        """
+        with open(pickle_filepath, "rb") as pickle_file:
+            results = pickle.load(
+                pickle_file,
+                #encoding="utf8"
+                )
+        self.y_test = results["y_test"]
+        self.pred_test = results["pred_test"]
+
+        return self.y_test, self.pred_test
+
+    def calculate_test_losses(self, loss_func):
+        """
+        Calculate losses for train and test data.
+
+        Parameters
+        ----------
+        loss_func : keras.losses.Loss
+            A keras loss function.
+
+        Returns
+        -------
+        None.
+
+        """
+        self.losses_test = np.array([
+            loss_func(self.y_test[i], self.pred_test[i])
+            for i in range(self.y_test.shape[0])
+        ])
+
+        return self.losses_test
+
+    def _add_loss_histogram(
+        self,
+        ax,
+        losses_test,
+    ):
+       """
+       Plots a histogram of the lossses for each example in the pred_test
+       data set.
+
+       Returns
+       -------
+       None.
+
+       """
+
+       ax.set_title("(d) MAEs of test set", fontdict=self.fontdict)
+
+       ax.set_xlabel("Mean Absolute Error ", fontdict=self.fontdict)
+       ax.set_ylabel("Counts", fontdict=self.fontdict)
+       ax.tick_params(axis="x", labelsize=self.fontdict["size"])
+       ax.tick_params(axis="y", labelsize=self.fontdict["size"])
+
+       N, bins, hist_patches = ax.hist(
+           losses_test,
+           bins=100,
+           histtype="bar",
+           fill=False,
+           cumulative=False,
+           )
+
+       thresholds = [0.025, 0.05, 0.075, 0.1, 0.15, 0.2]
+       quantification = []
+
+       for t in thresholds:
+           ng, nb = 0, 0
+           for i, patch in enumerate(hist_patches):
+               if patch.xy[0] < t:
+                   ng += N[i]
+               else:
+                   nb += N[i]
+           ng_p = np.round(ng / (ng + nb) * 100, 1)
+           nb_p = np.round(nb / (ng + nb) * 100, 1)
+
+           quantification.append([t, f"{ng_p} %", f"{nb_p} %" ])
+
+       col_labels = [
+           "MAE threshold",
+           "% of correct \n quantications",
+           "% of wrong \n quantications"]
+
+       table = ax.table(
+                cellText=quantification,
+                cellLoc="center",
+                colLabels=col_labels,
+                bbox=[0.4, 0.45, 0.55, 0.45],
+                zorder=500
+                )
+       table.auto_set_font_size(False)
+       #print(table.get_fontsize())
+       table.set_fontsize(10)
+
+       ax.set_xlim(hist_patches[0].xy[0],hist_patches[-1].xy[0],)
+
+       return ax
+
 
 
     def plot_all(self, with_fits=False):
-        self.fig, self.ax = plt.subplots(
-            nrows=1,
-            ncols=3,
-            figsize=(30, 8),
-            squeeze=False,
-            dpi=100,
-            gridspec_kw={"width_ratios": [1.5, 1, 1.5]},
-        )
-        fontdict = {"size": 25}
-        fontdict_small = {"size": 14}
-        fontdict_legend = {"size": 17}
+        self.fig = plt.figure(figsize=(24, 16), dpi=300)
 
+        gs = gridspec.GridSpec(
+            nrows=2,
+            ncols=2,
+            wspace=0.2,
+            hspace=0.3,
+            width_ratios=[1.5, 1],)
 
-        self.ax[0,1] = self._add_metric_plot(
-            ax = self.ax[0,1],
+        # Set up 2 plots in both rows.
+        ax0_0 = self.fig.add_subplot(gs[0, 0])
+        ax0_1 = self.fig.add_subplot(gs[0, 1])
+        ax1_0 = self.fig.add_subplot(gs[1, 0])
+        ax1_1 = self.fig.add_subplot(gs[1, 1])
+        self.axs = np.array(
+            [[ax0_0, ax0_1],
+             [ax1_0, ax1_1]])
+
+        self.axs[0,1] = self._add_metric_plot(
+            ax = self.axs[0,1],
             history=history,
             metric="loss",
-            fontdict=fontdict,
-            title="MAE (L$_1$) loss",
-            ylabel="MAE (L$_1$) loss",
+            title="MAE loss",
+            ylabel="MAE loss",
         )
+
+        self.axs[1,1] = self._add_loss_histogram(
+                ax = self.axs[1,1],
+                losses_test=losses_test,
+            )
 
         for i, parser in enumerate(self.parsers):
             x, y = parser.data["x"], parser.data["y"]
 
-            if i == 1:
-                i += 1
-
-            self.ax[0,i].set_xlabel("Binding energy (eV)", fontdict=fontdict)
-            self.ax[0,i].set_ylabel("Intensity (arb. units)", fontdict=fontdict)
-            self.ax[0,i].tick_params(axis="x", labelsize=fontdict["size"])
-            self.ax[0,i].set_yticklabels([])
-            self.ax[0,i].tick_params(
+            self.axs[i,0].set_xlabel("Binding energy (eV)", fontdict=self.fontdict)
+            self.axs[i,0].set_ylabel("Intensity (arb. units)", fontdict=self.fontdict)
+            self.axs[i,0].tick_params(axis="x", labelsize=self.fontdict["size"])
+            self.axs[i,0].set_yticklabels([])
+            self.axs[i,0].tick_params(
                 axis="y",
                 which="both",
                 right=False,
@@ -180,11 +294,11 @@ class WindowWrapper(ParserWrapper):
                 end = parser.fit_end
 
                 try:
-                    self.ax[0,i].plot(
+                    self.axs[i,0].plot(
                         x[start:end], y[start:end, j], c=color
                         )
                 except IndexError:
-                    self.ax[0,i].plot(
+                    self.axs[i,0].plot(
                         x[start:end], y[start:end], c=color
                         )
             if i == 0:
@@ -192,7 +306,7 @@ class WindowWrapper(ParserWrapper):
             else:
                 text = "Quantification:"
 
-            self.ax[0,i].set_title(parser.title, fontdict=fontdict)
+            self.axs[i,0].set_title(parser.title, fontdict=self.fontdict)
 
             quantification = [
                 f"{p} %" for p in list(parser.quantification.values())
@@ -201,7 +315,7 @@ class WindowWrapper(ParserWrapper):
             keys = list(parser.quantification.keys())
             col_labels = self._reformat_label_list(keys)
 
-            table = self.ax[0,i].table(
+            table = self.axs[i,0].table(
                 cellText=[quantification],
                 cellLoc="center",
                 colLabels=col_labels,
@@ -209,24 +323,24 @@ class WindowWrapper(ParserWrapper):
                 zorder=500
                 )
             table.auto_set_font_size(False)
-            table.set_fontsize(fontdict_small["size"])
+            table.set_fontsize(self.fontdict_small["size"])
 
-            self.ax[0,i].text(
+            self.axs[i,0].text(
                 0.03,
                 0.22,
                 text,
                 horizontalalignment="left",
-                size=fontdict_small["size"],
+                size=self.fontdict_small["size"],
                 verticalalignment="center",
-                transform=self.ax[0,i].transAxes,
+                transform=self.axs[i,0].transAxes,
                 )
 
         window = [705, 805]
 
-        self.ax[0,0].set_xlim(left=np.max(x), right=np.min(x))
-        self.ax[0,2].set_xlim(left=window[1], right=window[0])
+        self.axs[0,0].set_xlim(left=np.max(x), right=np.min(x))
+        self.axs[1,0].set_xlim(left=window[1], right=window[0])
 
-        ymin, ymax = self.ax[0,0].get_ylim()
+        ymin, ymax = self.axs[0,0].get_ylim()
 
         rect = patches.Rectangle(
             (window[0], 0.27*ymax),
@@ -236,7 +350,7 @@ class WindowWrapper(ParserWrapper):
             edgecolor=self.color_dict["window"],
             facecolor="none",
             )
-        self.ax[0,0].add_patch(rect)
+        self.axs[0,0].add_patch(rect)
 
         arrow = patches.FancyArrowPatch(
             (window[0], 0.65*ymax),
@@ -245,25 +359,57 @@ class WindowWrapper(ParserWrapper):
             mutation_scale=20,
             color=self.color_dict["window"]
             )
-        self.ax[0,0].add_patch(arrow)
+        self.axs[0,0].add_patch(arrow)
 
-        self.ax[0,0].text(
+        self.axs[0,0].text(
             (window[1]-window[0])/2+window[0],
             0.7*ymax,
             "100 eV window",
             horizontalalignment="center",
-            size=fontdict["size"],
+            size=self.fontdict["size"],
             color=self.color_dict["window"],
             verticalalignment="center",
             )
 
-        self.fig.tight_layout()
+        texts = [
+            ("Co 2p", 0.26, 0.9),
+            ("Fe 2p", 0.79, 0.47),
+            ]
 
-        return self.fig, self.ax
+        for t in texts:
+            self.axs[0,0].text(
+                x=t[1],
+                y=t[2],
+                s=t[0],
+                horizontalalignment="left",
+                size=self.fontdict["size"],
+                verticalalignment="center",
+                transform=self.axs[0,0].transAxes
+                )
+
+        # MAE of test spectrum
+        y_true = np.array(list(self.parsers[0].quantification.values()))/100
+        y_pred = np.array(list(self.parsers[1].quantification.values()))/100
+        mae_single = f"MAE: {np.round(mean_absolute_error(y_true, y_pred),2)}"
+        self.axs[1,0].text(
+                x=0.75,
+                y=0.125,
+                s=mae_single,
+                horizontalalignment="left",
+                size=self.fontdict["size"],
+                verticalalignment="center",
+                transform=self.axs[1,0].transAxes
+                )
+
+       # gs.tight_layout(self.fig)
+
+        return self.fig, self.axs
 
 #%% Plot of spectrum with multiple elements with window
 datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\utils\exports"
-logpath = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\runs\20210914_19h13m_FeCo_combined_without_auger_7_classes_100eV_window\logs\log.csv"
+clfpath = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\runs\20210914_19h13m_FeCo_combined_without_auger_7_classes_100eV_window\logs"
+logpath = os.path.join(clfpath, "log.csv")
+predpath = os.path.join(clfpath, "results.pkl")
 
 file_dict = {
     "true": {
@@ -306,30 +452,16 @@ file_dict = {
 }
 
 
-wrapper = WindowWrapper(datafolder, file_dict)
+wrapper = Wrapper(datafolder, file_dict)
 wrapper.parse_data(bg=True, envelope=True)
 history = wrapper.load_history(logpath)
+y_test, pred_test = wrapper.load_predictions(predpath)
+losses_test = wrapper.calculate_test_losses(loss_func=mean_absolute_error)
 
 fig, ax = wrapper.plot_all()
-
-texts = [
-    ("Co 2p", 0.26, 0.9),
-    ("Fe 2p", 0.79, 0.47),
-    ]
-
-for t in texts:
-    ax[0,0].text(
-        x=t[1],
-        y=t[2],
-        s=t[0],
-        horizontalalignment="left",
-        size=25,
-        verticalalignment="center",
-        transform=ax[0,0].transAxes
-        )
-plt.plot()
+plt.show()
 
 save_dir = r"C:\Users\pielsticker\Lukas\MPI-CEC\Publications\DeepXPS paper\Manuscript - Identification & Quantification\figures"
-fig_filename = f"window.png"
+fig_filename = "window.png"
 fig_path = os.path.join(save_dir, fig_filename)
 fig.savefig(fig_path)

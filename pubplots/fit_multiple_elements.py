@@ -13,10 +13,10 @@ from common import ParserWrapper
 
 datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\utils\exports"
 
-# %% lot of various different peak fitting methods
-class MultipleElementWrapper(ParserWrapper):
+# %%
+class Wrapper(ParserWrapper):
     def __init__(self, datafolder, file_dict):
-        super(MultipleElementWrapper, self).__init__(
+        super(Wrapper, self).__init__(
             datafolder=datafolder, file_dict=file_dict
         )
         self.fontdict_small = {"size": 13}
@@ -24,62 +24,128 @@ class MultipleElementWrapper(ParserWrapper):
 
     def plot_all(
             self,
-            with_fits=True,
-            with_nn_col=False):
-        super(MultipleElementWrapper, self).plot_all(with_fits, with_nn_col)
+            with_fits=True):
 
-        texts = [
-            ("Ni 2p", 0.065, 0.65),
-            ("Co 2p", 0.4, 0.575),
-            ("Fe 2p", 0.77, 0.4),
-            ]
+       self.fig, self.axs = plt.subplots(
+           nrows=1,
+           ncols=1,
+           figsize=(len(self.parsers) * 12, 8),
+           squeeze=False,
+           dpi=300,
+       )
 
-        for i, parser in enumerate(self.parsers):
-            self.axs[0, i].set_title(parser.title, fontdict=self.fontdict)
+       for i, parser in enumerate(self.parsers):
+           x, y = parser.data["x"], parser.data["y"]
 
-            q1 = [f"{p[0]} %" for p in list(parser.quantification.values())]
-            q2 = [f"{p[1]} %" for p in list(parser.quantification.values())]
+           self.axs[0,i].set_xlabel("Binding energy (eV)", fontdict=self.fontdict)
+           self.axs[0,i].set_ylabel("Intensity (arb. units)", fontdict=self.fontdict)
+           self.axs[0,i].tick_params(axis="x", labelsize=self.fontdict["size"])
+           self.axs[0,i].tick_params(
+               axis="y",
+               which="both",
+               right=False,
+               left=False)
+           self.axs[0,i].set_yticklabels([])
 
-            keys = list(parser.quantification.keys())
-            col_labels = self._reformat_label_list(keys)
+           handle_dict = {}
+           labels = []
 
-            table = self.axs[0, i].table(
-                cellText=[q1,q2],
-                cellLoc="center",
-                colLabels=col_labels,
-                rowLabels=["Peak fitting", "CNN"],
-                bbox=[0.12, 0.79, 0.69, 0.15],
-            )
-            table.auto_set_font_size(False)
-            table.set_fontsize(self.fontdict_small["size"])
+           for j, header_name in enumerate(parser.header_names):
+               for spectrum_name in parser.names:
+                   if spectrum_name in header_name:
+                       name = spectrum_name
 
-            self.axs[0, i].text(
-                0.01,
-                0.96,
-                "Quantification:",
-                horizontalalignment="left",
-                size=self.fontdict_small["size"],
-                verticalalignment="center",
-                transform=self.axs[0, i].transAxes,
-            )
+               color = self.color_dict[name]
 
-            for t in texts:
-                self.axs[0, i].text(
-                    x=t[1],
-                    y=t[2],
-                    s=t[0],
-                    horizontalalignment="left",
-                    size=25,
-                    verticalalignment="center",
-                    transform=self.axs[0, i].transAxes
-                )
+               if name == "CPS":
+                   if not with_fits:
+                       color = "black"
+                   handle = self.axs[0,i].plot(x, y[:, j], c=color)
+               else:
+                   if with_fits:
+                       start = parser.fit_start
+                       end = parser.fit_end
 
-            self.axs[0,i].set_ylim(
-                top=np.max(parser.data["y"]))
+                       try:
+                           handle = self.axs[0,i].plot(
+                               x[start:end], y[start:end, j], c=color
+                               )
+                       except IndexError:
+                           handle = self.axs[0,i].plot(
+                               x[start:end], y[start:end], c=color
+                               )
 
-        self.fig.tight_layout()
+                       if name not in handle_dict:
+                           handle_dict[name] = handle
+                           labels.append(name)
 
-        return self.fig, self.axs
+           handles = [x for l in list(handle_dict.values()) for x in l]
+           labels = self._reformat_label_list(labels)
+
+           if with_fits:
+               self.axs[0,i].legend(
+                   handles=handles,
+                   labels=labels,
+                   prop={"size": self.fontdict_legend["size"]},
+                   loc="upper right",
+                   )
+
+           self.axs[0,i].set_title(parser.title, fontdict=self.fontdict)
+           self.axs[0,i].set_xlim(left=np.max(x), right=np.min(x))
+
+
+       texts = [
+          ("Ni 2p", 0.065, 0.65),
+          ("Co 2p", 0.4, 0.575),
+          ("Fe 2p", 0.77, 0.4),
+          ]
+
+       for t in texts:
+           self.axs[0, i].text(
+               x=t[1],
+               y=t[2],
+               s=t[0],
+               horizontalalignment="left",
+               size=25,
+               verticalalignment="center",
+               transform=self.axs[0, i].transAxes
+               )
+
+       for i, parser in enumerate(self.parsers):
+           self.axs[0, i].set_title(parser.title, fontdict=self.fontdict)
+
+           q1 = [f"{p[0]} %" for p in list(parser.quantification.values())]
+           q2 = [f"{p[1]} %" for p in list(parser.quantification.values())]
+
+           keys = list(parser.quantification.keys())
+           col_labels = self._reformat_label_list(keys)
+
+           table = self.axs[0, i].table(
+               cellText=[q1,q2],
+               cellLoc="center",
+               colLabels=col_labels,
+               rowLabels=["Peak fitting", "CNN"],
+               bbox=[0.12, 0.79, 0.69, 0.15],
+           )
+           table.auto_set_font_size(False)
+           table.set_fontsize(self.fontdict_small["size"])
+
+           self.axs[0, i].text(
+               0.01,
+               0.96,
+               "Quantification:",
+               horizontalalignment="left",
+               size=self.fontdict_small["size"],
+               verticalalignment="center",
+               transform=self.axs[0, i].transAxes,
+           )
+
+       self.axs[0,i].set_ylim(
+           top=np.max(parser.data["y"]))
+
+       self.fig.tight_layout()
+
+       return self.fig, self.axs
 
 
 # %% Plot of spectrum with multiple elements
@@ -109,11 +175,10 @@ file_dict = {
     }
 }
 
-wrapper = MultipleElementWrapper(datafolder, file_dict)
+wrapper = Wrapper(datafolder, file_dict)
 wrapper.parse_data(bg=True, envelope=True)
 fig, ax = wrapper.plot_all(
-    with_fits=True,
-    with_nn_col=False)
+    with_fits=True)
 plt.show()
 
 save_dir = r"C:\Users\pielsticker\Lukas\MPI-CEC\Publications\DeepXPS paper\Manuscript - Identification & Quantification\figures"
