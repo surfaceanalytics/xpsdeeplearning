@@ -9,7 +9,6 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
-import matplotlib.ticker as ticker
 
 from common import TextParser, ParserWrapper
 
@@ -18,20 +17,6 @@ datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\utils\exports
 #%%
 class FitTextParser(TextParser):
     """Parser for XPS data stored in TXT files."""
-
-    def __init__(self):
-        """
-        Initialize empty data dictionary.
-
-        Parameters
-        ----------
-
-        Returns
-        -------
-        None.
-
-        """
-        super(FitTextParser, self).__init__()
 
     def _build_data(self, bg=True, envelope=True):
         """
@@ -65,11 +50,10 @@ class FitTextParser(TextParser):
 
         return self.data
 
-# %% lot of various different peak fitting methods
-
-class ReferenceWrapper(ParserWrapper):
+# %%
+class Wrapper(ParserWrapper):
     def __init__(self, datafolder, file_dict):
-        super(ReferenceWrapper, self).__init__(
+        super(Wrapper, self).__init__(
             datafolder=datafolder, file_dict=file_dict
         )
         self.fontdict["size"] = 30
@@ -133,25 +117,6 @@ class ReferenceWrapper(ParserWrapper):
              [ax2_0, ax2_1],
              [ax3, None]])
 
-# =============================================================================
-#         # Set up 4 plots in first row and 3 in second row.
-#         self.fig = plt.figure(figsize=(24, 12), dpi=300)
-#         gs = gridspec.GridSpec(2, ncols*6, wspace=0.5, hspace=0.5)
-#
-#         # Set up 4 plots in first row and 3 in second row.
-#         ax0_0 = self.fig.add_subplot(gs[0, :6])
-#         ax0_1 = self.fig.add_subplot(gs[0, 6:12])
-#         ax0_2 = self.fig.add_subplot(gs[0, 12:18])
-#         ax0_3 = self.fig.add_subplot(gs[0, 18:])
-#         ax1_0 = self.fig.add_subplot(gs[1, 3:9])
-#         ax1_1 = self.fig.add_subplot(gs[1, 9:15])
-#         ax1_2 = self.fig.add_subplot(gs[1, 15:21])
-#
-#         self.axs = np.array(
-#             [[ax0_0, ax0_1, ax0_2, ax0_3],
-#             [ax1_0, ax1_1, ax1_2, None]])
-# =============================================================================
-
         for i, parser in enumerate(self.parsers):
             x, y = parser.data["x"], parser.data["y"]
 
@@ -207,54 +172,53 @@ class ReferenceWrapper(ParserWrapper):
 
         return self.fig, self.axs
 
-
 # %% Plot of spectrum with multiple elements
 file_dict = {
-    "Cu" : {
-        "filename": "cu_references.txt",
-        "title": "(a) Cu 2p",
-        "fit_start": 0,
-        "fit_end": -1,
-        },
     "Co" : {
-        "filename": "co_references.txt",
-        "title": "(b) Co 2p",
+        "filename": "references_co.txt",
+        "title": "(a) Co 2p",
         "fit_start": 1,
         "fit_end": -1,
         },
+    "Cu" : {
+        "filename": "references_cu.txt",
+        "title": "(b) Cu 2p",
+        "fit_start": 0,
+        "fit_end": -1,
+        },
     "Fe" : {
-        "filename": "fe_references.txt",
+        "filename": "references_fe.txt",
         "title": "(c) Fe 2p",
         "fit_start": 0,
         "fit_end": -20,
         },
     "Mn" : {
-        "filename": "mn_references.txt",
+        "filename": "references_mn.txt",
         "title": "(d) Mn 2p",
         "fit_start": 0,
         "fit_end": -1,
         },
     "Ni" : {
-        "filename": "ni_references.txt",
+        "filename": "references_ni.txt",
         "title": "(e) Ni 2p",
         "fit_start": 1,
         "fit_end": -1,
         },
     "Pd" : {
-        "filename": "pd_references.txt",
+        "filename": "references_pd.txt",
         "title": "(f) Pd 3d",
         "fit_start": 0,
         "fit_end": -1,
         },
     "Ti" : {
-        "filename": "ti_references.txt",
+        "filename": "references_ti.txt",
         "title": "(g) Ti 2p",
         "fit_start": 20,
         "fit_end": -1,
         },
     }
 
-wrapper = ReferenceWrapper(datafolder, file_dict)
+wrapper = Wrapper(datafolder, file_dict)
 wrapper.parse_data(bg=False, envelope=False)
 fig, ax = wrapper.plot_all()
 
