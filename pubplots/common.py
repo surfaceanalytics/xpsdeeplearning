@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-import numpy as np
 import os
+import numpy as np
 import matplotlib.pyplot as plt
 
 #%%
@@ -46,6 +46,7 @@ class TextParser:
             "FeO",
             "Fe3O4",
             "Fe2O3",
+            "Fe sat",
             "Ni metal",
             "NiO",
             "MnO",
@@ -61,7 +62,7 @@ class TextParser:
             "Envelope",
         ]
 
-    def parse_file(self, filepath, bg=True, envelope=True):
+    def parse_file(self, filepath, **kwargs):
         """
         Parse the .txt file into a list of dictionaries.
 
@@ -73,7 +74,7 @@ class TextParser:
         self.filepath = filepath
         self._read_lines(filepath)
         self._parse_header()
-        return self._build_data(bg=bg, envelope=envelope)
+        return self._build_data(**kwargs)
 
     def _read_lines(self, filepath):
         self.data = []
@@ -94,7 +95,7 @@ class TextParser:
         self.header = self.data[:7]
         self.data = self.data[7:]
 
-    def _build_data(self, bg=True, envelope=True):
+    def _build_data(self, **kwargs):
         """
         Build dictionary from the loaded data.
 
@@ -109,9 +110,9 @@ class TextParser:
             + self.header[0].split("\t")[2:]
         )
 
-        if bg:
+        if "bg" in kwargs.keys():
             self.header_names += ["Background"]
-        if envelope:
+        if "envelope" in kwargs.keys():
             self.header_names += ["Envelope"]
 
         self.header_names = filter_header_list(self.header_names)
@@ -135,6 +136,7 @@ class ParserWrapper:
         self.parsers = []
 
         self.fontdict = {"size": 25}
+        self.fontdict_small = {"size": 20}
         self.fontdict_legend = {"size": 16}
         self.color_dict = {
             "CPS": "grey",
@@ -170,10 +172,8 @@ class ParserWrapper:
             filepath = os.path.join(self.datafolder, d["filename"])
             parser = TextParser()
             parser.parse_file(filepath, bg=bg, envelope=envelope)
-            parser.title = d["title"]
-            parser.fit_start = d["fit_start"]
-            parser.fit_end = d["fit_end"]
-            parser.quantification = d["quantification"]
+            for key, value in d.items():
+                setattr(parser, key, value)
             self.parsers.append(parser)
 
     def _reformat_label_list(self, label_list):
@@ -192,80 +192,4 @@ class ParserWrapper:
             with_fits=True,
             with_nn_col=True,
             with_quantification=True):
-
-        width_ratios = [2]*len(self.parsers)
-        ncols = len(self.parsers)
-
-        if with_nn_col:
-            width_ratios.append(1)
-            ncols += 1
-
-        self.fig, self.axs = plt.subplots(
-            nrows=1,
-            ncols=ncols,
-            figsize=(len(self.parsers) * 12, 8),
-            squeeze=False,
-            dpi=300,
-            gridspec_kw={"width_ratios": width_ratios},
-        )
-
-        for i, parser in enumerate(self.parsers):
-            x, y = parser.data["x"], parser.data["y"]
-
-            self.axs[0,i].set_xlabel("Binding energy (eV)", fontdict=self.fontdict)
-            self.axs[0,i].set_ylabel("Intensity (arb. units)", fontdict=self.fontdict)
-            self.axs[0,i].tick_params(axis="x", labelsize=self.fontdict["size"])
-            self.axs[0,i].tick_params(
-                axis="y",
-                which="both",
-                right=False,
-                left=False)
-
-            self.axs[0,i].set_yticklabels([])
-
-            handle_dict = {}
-            labels = []
-
-            for j, header_name in enumerate(parser.header_names):
-                for spectrum_name in parser.names:
-                    if spectrum_name in header_name:
-                        name = spectrum_name
-
-                color = self.color_dict[name]
-
-                if name == "CPS":
-                    if not with_fits:
-                        color = "black"
-                    handle = self.axs[0,i].plot(x, y[:, j], c=color)
-                else:
-                    if with_fits:
-                        start = parser.fit_start
-                        end = parser.fit_end
-
-                        try:
-                            handle = self.axs[0,i].plot(
-                                x[start:end], y[start:end, j], c=color
-                                )
-                        except IndexError:
-                            handle = self.axs[0,i].plot(
-                                x[start:end], y[start:end], c=color
-                                )
-
-                        if name not in handle_dict:
-                            handle_dict[name] = handle
-                            labels.append(name)
-
-            handles = [x for l in list(handle_dict.values()) for x in l]
-            labels = self._reformat_label_list(labels)
-
-            #if not any(x in self.parsers[i].filepath for x in ("spectrum.txt")):
-            if "spectrum.txt" not in self.parsers[i].filepath:
-                self.axs[0,i].legend(
-                    handles=handles,
-                    labels=labels,
-                    prop={"size": self.fontdict_legend["size"]},
-                    loc="upper right",
-                    )
-
-            self.axs[0,i].set_title(parser.title, fontdict=self.fontdict)
-            self.axs[0,i].set_xlim(left=np.max(x), right=np.min(x))
+        pass
