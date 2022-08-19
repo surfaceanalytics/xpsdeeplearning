@@ -280,6 +280,6 @@ fig, ax = wrapper.plot_all()
 plt.show()
 
 save_dir = r"C:\Users\pielsticker\Lukas\MPI-CEC\Publications\DeepXPS paper\Manuscript - Identification & Quantification\figures"
-fig_filename = "maes_single_elements.png"
+fig_filename = "hist_cnn_single.png"
 fig_path = os.path.join(save_dir, fig_filename)
 fig.savefig(fig_path)
