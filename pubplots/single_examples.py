@@ -335,5 +335,5 @@ fig, ax = wrapper.plot_all()
 plt.show()
 
 save_dir = r"C:\Users\pielsticker\Lukas\MPI-CEC\Publications\DeepXPS paper\Manuscript - Identification & Quantification\figures"
-fig_path = os.path.join(save_dir, "success_and_fail_examples.png")
+fig_path = os.path.join(save_dir, "examples_single.png")
 fig.savefig(fig_path)

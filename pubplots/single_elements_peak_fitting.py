@@ -241,7 +241,7 @@ fig, axs = wrapper.plot_all()
 plt.show()
 
 save_dir = r"C:\Users\pielsticker\Lukas\MPI-CEC\Publications\DeepXPS paper\Manuscript - Identification & Quantification\figures"
-fig_path = os.path.join(save_dir, "peak_fitting.png")
+fig_path = os.path.join(save_dir, "peak_fitting_single.png")
 fig.savefig(fig_path)
 
 q_true = np.array(list(file_dict["true"]["quantification"].values()))/100
