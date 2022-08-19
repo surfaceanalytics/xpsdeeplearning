@@ -193,7 +193,7 @@ fig, ax = wrapper.plot_all()
 plt.show()
 
 save_dir = r"C:\Users\pielsticker\Lukas\MPI-CEC\Publications\DeepXPS paper\Manuscript - Identification & Quantification\figures"
-fig_path = os.path.join(save_dir, "ref_multiple_elements.png")
+fig_path = os.path.join(save_dir, "references_multiple.png")
 fig.savefig(fig_path)
 
 
