@@ -425,11 +425,11 @@ file_dict = {
         "pressure": 0.3,
         "quantification": {
             "Co metal": 26.7,
-            "CoO": 22.17,
-            "Co3O4": 24.09,
+            "CoO": 22.2,
+            "Co3O4": 24.0,
             "Fe metal": 0.0,
-            "FeO": 14.37,
-            "Fe3O4": 12.66,
+            "FeO": 14.4,
+            "Fe3O4": 12.7,
             "Fe2O3": 0.0,
         },
     },
@@ -440,17 +440,16 @@ file_dict = {
         "fit_end": -1,
         "shift_x": 0.0,
         "quantification": {
-            "Co metal": 25.73,
-            "CoO": 22.84,
-            "Co3O4":  28.26,
-            "Fe metal": 4.12,
-            "FeO": 10.53,
-            "Fe3O4": 5.77,
-            "Fe2O3": 2.75,
+            "Co metal": 25.7,
+            "CoO": 22.8,
+            "Co3O4":  28.3,
+            "Fe metal": 4.1,
+            "FeO": 10.5,
+            "Fe3O4": 5.8,
+            "Fe2O3": 2.8,
         },
     },
 }
-
 
 wrapper = Wrapper(datafolder, file_dict)
 wrapper.parse_data(bg=True, envelope=True)
