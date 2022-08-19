@@ -16,6 +16,25 @@ def filter_header_list(header_list):
 
     return header_list
 
+def get_xlsxpath(fit_datafolder, method):
+    return os.path.join(fit_datafolder, method + ".csv")
+
+def sort_with_index(array, reverse=True):
+    return [f"No. {j} : {k}" for (k, j) in sorted([(x, i) for (i, x) in enumerate(array)],reverse=reverse)]
+
+def print_mae_info(mae, name, precision=3):
+    print(name + ":")
+    print(
+        f"\t Mean MAE = {np.round(np.mean(mae), precision)}" + " \u00B1 " +  f"{np.round(np.std(mae), precision)} \n",
+        f"\t Median MAE = {np.round(np.median(mae), precision)} \n",
+        f"\t 25th percentile = {np.round(np.percentile(mae, 25), precision)} \n"
+        f"\t 75th percentile = {np.round(np.percentile(mae, 75), precision)} \n",
+        f"\t Maximum MAE = {np.round(np.max(mae), precision)}, Spectrum no. {np.argmax(mae)} \n",
+        f"\t Minimum MAE = {np.round(np.min(mae), precision)}, Spectrum no. {np.argmin(mae)} \n",
+        f"\t Lowest 5 MAEs = {sort_with_index(np.round(mae, precision), reverse=False)[:5]} \n",
+        f"\t Highest 5 MAEs = {sort_with_index(np.round(mae, precision), reverse=True)[:5]} \n",
+        )
+
 
 class TextParser:
     """Parser for XPS data stored in TXT files."""
