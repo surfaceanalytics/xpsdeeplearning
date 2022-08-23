@@ -47,7 +47,8 @@ class SpectraPlot:
             self.no_of_rows += 1
 
         self.fig, self.axs = plt.subplots(
-            nrows=self.no_of_rows, ncols=self.no_of_cols
+            nrows=self.no_of_rows, ncols=self.no_of_cols,
+            squeeze=False
         )
         plt.subplots_adjust(
             left=0.125,
