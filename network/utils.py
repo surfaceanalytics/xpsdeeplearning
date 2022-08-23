@@ -47,8 +47,7 @@ class SpectraPlot:
             self.no_of_rows += 1
 
         self.fig, self.axs = plt.subplots(
-            nrows=self.no_of_rows, ncols=self.no_of_cols,
-            squeeze=False
+            nrows=self.no_of_rows, ncols=self.no_of_cols, squeeze=False
         )
         plt.subplots_adjust(
             left=0.125,
@@ -341,8 +340,7 @@ class WeightDistributions:
 
     def plot_weight_priors(self, to_file=True):
         qm_vals = [
-            layer.kernel_prior.mean().numpy()
-            for layer in self.bayesian_layers
+            layer.kernel_prior.mean().numpy() for layer in self.bayesian_layers
         ]
         qs_vals = [
             layer.kernel_prior.stddev().numpy()

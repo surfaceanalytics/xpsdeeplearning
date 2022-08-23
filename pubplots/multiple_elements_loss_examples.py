@@ -17,7 +17,9 @@ import csv
 
 from common import TextParser, ParserWrapper
 
-datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\utils\exports"
+datafolder = (
+    r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\utils\exports"
+)
 
 # %%
 class Wrapper(ParserWrapper):
@@ -27,7 +29,7 @@ class Wrapper(ParserWrapper):
         )
         self.fontdict_small = {"size": 15}
         self.fontdict_mae = {"size": 18}
-        #self.fontdict_legend = {"size": 14.5}
+        # self.fontdict_legend = {"size": 14.5}
 
     def parse_data(self, bg=True, envelope=True):
         for result_dict in self.file_dict.values():
@@ -51,8 +53,12 @@ class Wrapper(ParserWrapper):
             Dictionary containing the previous training history.
 
         """
-        input_datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\runs"
-        csv_filepath = os.path.join(*[input_datafolder, clf_name, "logs/log.csv"])
+        input_datafolder = (
+            r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\runs"
+        )
+        csv_filepath = os.path.join(
+            *[input_datafolder, clf_name, "logs/log.csv"]
+        )
 
         self.history = {}
         try:
@@ -78,8 +84,8 @@ class Wrapper(ParserWrapper):
         zoom=False,
         zoom_x=(None, None),
         zoom_y=(None, None),
-        to_file=False
-        ):
+        to_file=False,
+    ):
         metric_cap = metric.capitalize()
 
         if ylabel is None:
@@ -91,12 +97,7 @@ class Wrapper(ParserWrapper):
         ax.tick_params(axis="x", labelsize=self.fontdict["size"])
         ax.tick_params(axis="y", labelsize=self.fontdict["size"])
 
-        colors = [
-            "cornflowerblue",
-            "red",
-            "forestgreen",
-            "darkgrey"
-            ]
+        colors = ["cornflowerblue", "red", "forestgreen", "darkgrey"]
 
         if zoom:
             axins = inset_axes(
@@ -113,9 +114,9 @@ class Wrapper(ParserWrapper):
             axins.tick_params(axis="y", labelsize=self.fontdict_small["size"])
 
         metric_history = history[metric]
-        h0, = ax.plot(metric_history, linewidth=3, c=colors[0])
+        (h0,) = ax.plot(metric_history, linewidth=3, c=colors[0])
         val_key = "val_" + metric
-        h1, = ax.plot(history[val_key], linewidth=3, c=colors[1], alpha=0.6)
+        (h1,) = ax.plot(history[val_key], linewidth=3, c=colors[1], alpha=0.6)
         ax.set_xlim(-5, len(metric_history) + 5)
 
         labels = ["Train", "Validation"]
@@ -123,7 +124,7 @@ class Wrapper(ParserWrapper):
         ax.legend(
             handles=[h0, h1],
             labels=labels,
-            prop=self.fontdict,#_legend,
+            prop=self.fontdict,  # _legend,
             bbox_to_anchor=(0, 0, 1, 1),
             fancybox=True,
             shadow=False,
@@ -132,9 +133,7 @@ class Wrapper(ParserWrapper):
 
         if zoom:
             axins.plot(metric_history, linewidth=3, c=colors[0])
-            axins.plot(
-                history[val_key], linewidth=3, c=colors[1], alpha=0.5
-            )
+            axins.plot(history[val_key], linewidth=3, c=colors[1], alpha=0.5)
             if zoom_x[1] is None:
                 zoom_end = len(metric_history) + 5
             else:
@@ -151,11 +150,7 @@ class Wrapper(ParserWrapper):
         ax.set_xlabel("Binding energy (eV)", fontdict=self.fontdict)
         ax.set_ylabel("Intensity (arb. units)", fontdict=self.fontdict)
         ax.tick_params(axis="x", labelsize=self.fontdict["size"])
-        ax.tick_params(
-            axis="y",
-            which="both",
-            right=False,
-            left=False)
+        ax.tick_params(axis="y", which="both", right=False, left=False)
 
         ax.set_yticklabels([])
 
@@ -166,18 +161,17 @@ class Wrapper(ParserWrapper):
                 start = parser.fit_start
                 end = parser.fit_end
                 try:
-                    handle = ax.plot(
-                        x[start:end], y[start:end, j], c=color
-                        )
+                    handle = ax.plot(x[start:end], y[start:end, j], c=color)
                 except IndexError:
-                    handle = ax.plot(
-                        x[start:end], y[start:end], c=color
-                        )
+                    handle = ax.plot(x[start:end], y[start:end], c=color)
 
             ax.set_title(parser.title, fontdict=self.fontdict)
             ax.set_xlim(left=np.max(x), right=np.min(x))
 
-            percentages = [[f"{p[0]} %", f"{p[1]} %"] for p in parser.quantification.values()]
+            percentages = [
+                [f"{p[0]} %", f"{p[1]} %"]
+                for p in parser.quantification.values()
+            ]
 
             keys = list(parser.quantification.keys())
             row_labels = self._reformat_label_list(keys)
@@ -188,7 +182,7 @@ class Wrapper(ParserWrapper):
                 colLabels=["Truth", "CNN"],
                 rowLabels=row_labels,
                 bbox=[0.12, 0.025, 0.15, 0.425],
-                zorder=500
+                zorder=500,
             )
 
             mae = f"MAE:\n {np.round(parser.mae,3)}"
@@ -203,18 +197,14 @@ class Wrapper(ParserWrapper):
 
         return ax
 
-
     def plot_all(self):
         nrows = 2
         ncols = 3
 
         self.fig = plt.figure(figsize=(32, 15), dpi=300)
         gs = gridspec.GridSpec(
-            nrows=nrows,
-            ncols=ncols,
-            wspace=0.1,
-            hspace=0.3
-            )
+            nrows=nrows, ncols=ncols, wspace=0.1, hspace=0.3
+        )
 
         ax0 = self.fig.add_subplot(gs[:, 0])
         ax0_1 = self.fig.add_subplot(gs[0, 1])
@@ -224,9 +214,8 @@ class Wrapper(ParserWrapper):
 
         self.axs = [
             ax0,
-            [[ax0_1, ax0_2],
-                [ax1_1, ax1_2]],
-            ]
+            [[ax0_1, ax0_2], [ax1_1, ax1_2]],
+        ]
 
         ax0 = self._plot_metric(
             ax0,
@@ -239,29 +228,38 @@ class Wrapper(ParserWrapper):
             zoom_y=[None, 0.1],
         )
 
-        ax0_1 = self._add_spectrum_examples(ax0_1, self.parsers[0], color="green")
-        ax0_2 = self._add_spectrum_examples(ax0_2, self.parsers[1], color="green")
-        ax1_1 = self._add_spectrum_examples(ax1_1, self.parsers[2], color="red")
-        ax1_2 = self._add_spectrum_examples(ax1_2, self.parsers[3], color="red")
+        ax0_1 = self._add_spectrum_examples(
+            ax0_1, self.parsers[0], color="green"
+        )
+        ax0_2 = self._add_spectrum_examples(
+            ax0_2, self.parsers[1], color="green"
+        )
+        ax1_1 = self._add_spectrum_examples(
+            ax1_1, self.parsers[2], color="red"
+        )
+        ax1_2 = self._add_spectrum_examples(
+            ax1_2, self.parsers[3], color="red"
+        )
 
-        #gs.tight_layout(self.fig)
+        # gs.tight_layout(self.fig)
 
         return self.fig, self.axs
 
+
 # %%
 file_dict = {
-    "sucesses" : {
+    "sucesses": {
         "NiCoFe_good_0": {
             "filename": "nicofe_good_fit_no_81.txt",
             "title": "(b)",
             "fit_start": 0,
             "fit_end": -1,
-            #"shift_x": 0.0,
-            #"noise": 0.0,
-            #"FWHM": 0.0,
-            #"scatterer": "O2",
-            #"distance": 0.0,
-            #"pressure": 0.0,
+            # "shift_x": 0.0,
+            # "noise": 0.0,
+            # "FWHM": 0.0,
+            # "scatterer": "O2",
+            # "distance": 0.0,
+            # "pressure": 0.0,
             "mae": 0.00833,
             "quantification": {
                 "Ni metal": [0.0, 0.0],
@@ -273,19 +271,19 @@ file_dict = {
                 "FeO": [0.0, 0.0],
                 "Fe3O4": [0.0, 0.0],
                 "Fe2O3": [0.0, 0.0],
-                },
             },
+        },
         "NiCoFe_good_1": {
             "filename": "nicofe_good_fit_no_45.txt",
             "title": "(c)",
             "fit_start": 0,
             "fit_end": -1,
-            #"shift_x": 0.0,
-            #"noise": 0.0,
-            #"FWHM": 0.0,
-            #"scatterer": "O2",
-            #"distance": 0.0,
-            #"pressure": 0.0,
+            # "shift_x": 0.0,
+            # "noise": 0.0,
+            # "FWHM": 0.0,
+            # "scatterer": "O2",
+            # "distance": 0.0,
+            # "pressure": 0.0,
             "mae": 0.0132,
             "quantification": {
                 "Ni metal": [25.9, 21.3],
@@ -297,21 +295,21 @@ file_dict = {
                 "FeO": [0.0, 0.0],
                 "Fe3O4": [0.0, 0.0],
                 "Fe2O3": [0.0, 0.0],
-                },
             },
         },
-    "fails" : {
+    },
+    "fails": {
         "NiCoFe_bad_0": {
             "filename": "nicofe_bad_fit_no_71.txt",
             "title": "(d)",
             "fit_start": 0,
             "fit_end": -1,
-            #"shift_x": 0.0,
-            #"noise": 0.0,
-            #"FWHM": 0.0,
-            #"scatterer": "O2",
-            #"distance": 0.0,
-            #"pressure": 0.0,
+            # "shift_x": 0.0,
+            # "noise": 0.0,
+            # "FWHM": 0.0,
+            # "scatterer": "O2",
+            # "distance": 0.0,
+            # "pressure": 0.0,
             "mae": 0.06984,
             "quantification": {
                 "Ni metal": [0.0, 0.0],
@@ -323,19 +321,19 @@ file_dict = {
                 "FeO": [0.0, 12.9],
                 "Fe3O4": [28.2, 6.9],
                 "Fe2O3": [39.2, 57.7],
-                },
             },
+        },
         "NiCoFe_bad_1": {
             "filename": "nicofe_bad_fit_no_18.txt",
             "title": "(e)",
             "fit_start": 0,
             "fit_end": -1,
-            #"shift_x": 0.95,
-            #"noise": 18.0,
-            #"FWHM": "not changed",
-            #"scatterer": None,
-            #"distance": 0.0,
-            #"pressure": 0.0,
+            # "shift_x": 0.95,
+            # "noise": 18.0,
+            # "FWHM": "not changed",
+            # "scatterer": None,
+            # "distance": 0.0,
+            # "pressure": 0.0,
             "mae": 0.05695,
             "quantification": {
                 "Ni metal": [20.5, 12.2],
@@ -349,13 +347,15 @@ file_dict = {
                 "Fe2O3": [14.8, 29.2],
             },
         },
-    }
+    },
 }
 
 wrapper = Wrapper(datafolder, file_dict)
 wrapper.parse_data(bg=False, envelope=False)
 
-classifier = "20210604_23h09m_NiCoFe_9_classes_long_linear_comb_small_gas_phase"
+classifier = (
+    "20210604_23h09m_NiCoFe_9_classes_long_linear_comb_small_gas_phase"
+)
 history = wrapper.get_total_history(classifier)
 
 fig, axs = wrapper.plot_all()

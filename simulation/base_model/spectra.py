@@ -674,9 +674,7 @@ class SimulatedSpectrum(Spectrum):
             # This performs the convolution of the initial lineshape
             # with the Gaussian kernel.
             # Note: The convolution is performed in the Fourier space.
-            result = fftconvolve(
-                y, broadening_spectrum.lineshape, mode="same"
-            )
+            result = fftconvolve(y, broadening_spectrum.lineshape, mode="same")
             result = result[len_y:-len_y]
 
             self.lineshape = result
@@ -812,6 +810,4 @@ if __name__ == "__main__":
 
     from figures import Figure
 
-    fig = Figure(
-        measured_spectrum.x, measured_spectrum.lineshape, title=label
-    )
+    fig = Figure(measured_spectrum.x, measured_spectrum.lineshape, title=label)

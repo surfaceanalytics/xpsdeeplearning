@@ -11,7 +11,9 @@ import matplotlib.pyplot as plt
 
 from common import TextParser, ParserWrapper
 
-datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\utils\exports"
+datafolder = (
+    r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\utils\exports"
+)
 
 #%%
 class FitTextParser(TextParser):
@@ -27,10 +29,14 @@ class FitTextParser(TextParser):
             Data dictionary.
 
         """
-        self.header_names = [hn.split(":")[1] for hn in self.header[6].split("\t") if "Cycle" in hn]
+        self.header_names = [
+            hn.split(":")[1]
+            for hn in self.header[6].split("\t")
+            if "Cycle" in hn
+        ]
 
         for i, hn in enumerate(self.header_names):
-            if (hn == "Ni" or hn == "Co" or hn == "Fe"):
+            if hn == "Ni" or hn == "Co" or hn == "Fe":
                 self.header_names[i] += " metal"
 
         self.names = [
@@ -56,6 +62,7 @@ class FitTextParser(TextParser):
         self.data = {"x": x, "y": y}
 
         return self.data
+
 
 # %%
 class Wrapper(ParserWrapper):
@@ -84,7 +91,7 @@ class Wrapper(ParserWrapper):
         filepath = os.path.join(self.datafolder, file_dict["filename"])
         self.parser = FitTextParser()
         self.parser.parse_file(filepath)
-        self.parser.title =file_dict["title"]
+        self.parser.title = file_dict["title"]
         self.parser.fit_start = file_dict["fit_start"]
         self.parser.fit_end = file_dict["fit_end"]
 
@@ -112,21 +119,19 @@ class Wrapper(ParserWrapper):
             elif "Fe" in header_name:
                 row = 2
 
-            self.axs[row,0].set_xlabel(
-                "Binding energy (eV)",
-                fontdict=self.fontdict)
-            self.axs[row,0].set_ylabel(
-                "Intensity (arb. units)",
-                fontdict=self.fontdict)
-            self.axs[row,0].tick_params(
-                axis="x",
-                labelsize=self.fontdict["size"])
-            self.axs[row,0].tick_params(
-                axis="y",
-                which="both",
-                right=False,
-                left=False)
-            self.axs[row,0].set_yticklabels([])
+            self.axs[row, 0].set_xlabel(
+                "Binding energy (eV)", fontdict=self.fontdict
+            )
+            self.axs[row, 0].set_ylabel(
+                "Intensity (arb. units)", fontdict=self.fontdict
+            )
+            self.axs[row, 0].tick_params(
+                axis="x", labelsize=self.fontdict["size"]
+            )
+            self.axs[row, 0].tick_params(
+                axis="y", which="both", right=False, left=False
+            )
+            self.axs[row, 0].set_yticklabels([])
 
             for spectrum_name in self.parser.names:
                 if spectrum_name in header_name:
@@ -137,11 +142,11 @@ class Wrapper(ParserWrapper):
             start = self.parser.fit_start
             end = self.parser.fit_end
 
-            handle = self.axs[row,0].plot(
+            handle = self.axs[row, 0].plot(
                 x[start:end], y[start:end, j], c=color
-                )
+            )
 
-            self.axs[row,0].set_xlim(left=np.max(x), right=np.min(x))
+            self.axs[row, 0].set_xlim(left=np.max(x), right=np.min(x))
 
             if name not in handle_dict:
                 handle_dict[name] = handle
@@ -152,10 +157,10 @@ class Wrapper(ParserWrapper):
 
         # Only for this plot: Sort by oxidation state
         labels_sort_dict = {
-            0: ["Ni metal","NiO"],
+            0: ["Ni metal", "NiO"],
             1: ["Co metal", "CoO", "Co$_{3}$O$_{4}$"],
-            2: ["Fe metal","FeO","Fe$_{3}$O$_{4}$", "Fe$_{2}$O$_{3}$"]
-            }
+            2: ["Fe metal", "FeO", "Fe$_{3}$O$_{4}$", "Fe$_{2}$O$_{3}$"],
+        }
 
         for key, label_list in labels_sort_dict.items():
             handles_sort = []
@@ -165,13 +170,13 @@ class Wrapper(ParserWrapper):
                 handles_sort.append(handles[index])
                 labels_sort.append(label)
 
-            self.axs[key,0].legend(
+            self.axs[key, 0].legend(
                 handles=handles_sort,
                 labels=labels_sort,
                 ncol=1,
                 prop={"size": self.fontdict_legend["size"]},
-                loc="best"
-                )
+                loc="best",
+            )
 
         self.fig.tight_layout()
 
@@ -184,7 +189,7 @@ file_dict = {
     "title": "",
     "fit_start": 0,
     "fit_end": -1,
-    }
+}
 
 wrapper = Wrapper(datafolder, file_dict)
 wrapper.parse_data()
@@ -195,5 +200,3 @@ plt.show()
 save_dir = r"C:\Users\pielsticker\Lukas\MPI-CEC\Publications\DeepXPS paper\Manuscript - Identification & Quantification\figures"
 fig_path = os.path.join(save_dir, "references_multiple.png")
 fig.savefig(fig_path)
-
-

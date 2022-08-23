@@ -40,12 +40,7 @@ class UpdatedClassDistribution(ClassDistribution):
         """
         fontdict = {"size": 14}
         fontdict_small = {"size": 12}
-        colors =  (
-            "black",
-            "green",
-            "blue",
-            "orange"
-            )
+        colors = ("black", "green", "blue", "orange")
 
         # fig = plt.figure(figsize=(6,5), dpi=300)
         fig = plt.figure(dpi=300)
@@ -74,11 +69,8 @@ class UpdatedClassDistribution(ClassDistribution):
 
         for i, data_i in enumerate(data):
             ax.bar(
-                x + i * 0.25,
-                data_i,
-                color=colors[i],
-                align="edge",
-                width=0.2)
+                x + i * 0.25, data_i, color=colors[i], align="edge", width=0.2
+            )
         ax.legend(
             labels,
             bbox_to_anchor=(1.25, 1),
@@ -95,6 +87,8 @@ class UpdatedClassDistribution(ClassDistribution):
         plt.show()
 
         return fig
+
+
 # %%
 np.random.seed(502)
 input_filepath = r"C:\Users\pielsticker\Simulations\20220624_Fe_linear_combination_small_gas_phase\20220624_Fe_linear_combination_small_gas_phase.h5"
@@ -142,7 +136,4 @@ labels_legend = ["Fe metal", "FeO", "$Fe_{3}O_{4}$", "$Fe_{2}O_{3}$"]
 fig = class_distribution.plot(labels=labels_legend)
 
 output_file = r"C:\Users\pielsticker\Lukas\MPI-CEC\Publications\DeepXPS paper\Manuscript - Identification & Quantification\figures\label_distribution.png"
-fig.savefig(
-    output_file,
-    bbox_inches="tight")
-
+fig.savefig(output_file, bbox_inches="tight")

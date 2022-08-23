@@ -28,7 +28,7 @@ from base_model.spectra import (
     Spectrum,
     MeasuredSpectrum,
     FittedSpectrum,
-    SimulatedSpectrum
+    SimulatedSpectrum,
 )
 from base_model.figures import Figure
 
@@ -217,7 +217,9 @@ label_list = ["Pd metal", "PdO"]
 X, y, names, energies = convert_all_spectra(
     input_datafolder, label_filepath, label_list, plot_all=False
 )
-output_file = r"C:\Users\pielsticker\Simulations\20210125_palladium_measured_caro_fit.h5"
+output_file = (
+    r"C:\Users\pielsticker\Simulations\20210125_palladium_measured_caro_fit.h5"
+)
 
 with h5py.File(output_file, "w") as hf:
     hf.create_dataset(
@@ -335,8 +337,8 @@ def convert_all_spectra(input_datafolder, plot_all=True):
     import warnings
 
     warnings.filterwarnings("ignore")
-    #filenames = next(os.walk(input_datafolder))[2]
-    filenames =  ["nicofe_mixed.txt"]
+    # filenames = next(os.walk(input_datafolder))[2]
+    filenames = ["nicofe_mixed.txt"]
 
     X = np.zeros((len(filenames), 1901, 1))
 
@@ -348,7 +350,7 @@ def convert_all_spectra(input_datafolder, plot_all=True):
         data = load_data(filepath)
 
         x = np.array(data["data"]["x"])
-        #x -= 0.808
+        # x -= 0.808
         x1 = np.roll(x, -1)
         diff = np.abs(np.subtract(x, x1))
         step = np.round(np.min(diff[diff != 0]), 3)
@@ -385,37 +387,32 @@ def convert_all_spectra(input_datafolder, plot_all=True):
 # X, names, energies = convert_all_spectra(input_datafolder, plot_all=True)
 # output_file = r"C:\Users\pielsticker\Simulations\20220609_AmmoMax_spectra.h5"
 # =============================================================================
-input_datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\utils\exports"
+input_datafolder = (
+    r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\utils\exports"
+)
 X, names, energies = convert_all_spectra(input_datafolder, plot_all=True)
 output_file = r"C:\Users\pielsticker\Simulations\20220721_NiCoFe.h5"
 
 y = np.expand_dims(
-    np.array([
-        0.018,
-        0.234,
-        0.024,
-        0.035,
-        0.367,
-        0.001,
-        0.032,
-        0.001,
-        0.288]
-    ), axis=0)
+    np.array([0.018, 0.234, 0.024, 0.035, 0.367, 0.001, 0.032, 0.001, 0.288]),
+    axis=0,
+)
 
 X = np.repeat(X, 2, axis=0)
 y = np.repeat(y, 2, axis=0)
 names = names + names
 
 label_list = [
-     'Ni2pCo2pFe2p Ni metal',
-     'Ni2pCo2pFe2p NiO',
-     'Ni2pCo2pFe2p Co metal',
-     'Ni2pCo2pFe2p CoO',
-     'Ni2pCo2pFe2p Co3O4',
-     'Ni2pCo2pFe2p Fe metal',
-     'Ni2pCo2pFe2p FeO',
-     'Ni2pCo2pFe2p Fe3O4',
-     'Ni2pCo2pFe2p Fe2O3']
+    "Ni2pCo2pFe2p Ni metal",
+    "Ni2pCo2pFe2p NiO",
+    "Ni2pCo2pFe2p Co metal",
+    "Ni2pCo2pFe2p CoO",
+    "Ni2pCo2pFe2p Co3O4",
+    "Ni2pCo2pFe2p Fe metal",
+    "Ni2pCo2pFe2p FeO",
+    "Ni2pCo2pFe2p Fe3O4",
+    "Ni2pCo2pFe2p Fe2O3",
+]
 
 with h5py.File(output_file, "w") as hf:
     hf.create_dataset(
@@ -436,7 +433,6 @@ with h5py.File(output_file, "w") as hf:
         "energies", data=energies, compression="gzip", chunks=True
     )
     string_dt = h5py.special_dtype(vlen=str)
-
 
     labels = np.array(label_list, dtype=object)
     string_dt = h5py.special_dtype(vlen=str)
@@ -464,6 +460,5 @@ with h5py.File(output_file, "r") as hf:
     X_h5 = hf["X"][:, :, :]
     y_h5 = hf["y"][:, :]
     energies_h5 = hf["energies"][:]
-   # names_h5 = [str(name.decode("utf-8")) for name in hf["names"][:]]
+    # names_h5 = [str(name.decode("utf-8")) for name in hf["names"][:]]
     labels_h5 = [str(label) for label in hf["labels"][:]]
-

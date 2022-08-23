@@ -42,9 +42,7 @@ def safe_arange_with_edges(start, stop, step):
     return step * np.arange(start / step, (stop + step) / step)
 
 
-def load_data_preprocess(
-    json_datafolder, label_list, start, end, window=None
-):
+def load_data_preprocess(json_datafolder, label_list, start, end, window=None):
     """
     Load data from JSON files in the json_datafolder.
 

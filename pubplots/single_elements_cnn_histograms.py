@@ -13,7 +13,7 @@ import pickle
 from sklearn.metrics import mean_absolute_error
 
 #%%
-class MAEWrapper():
+class MAEWrapper:
     """Parser for XPS data stored in TXT files."""
 
     def __init__(self, datafolder):
@@ -40,8 +40,8 @@ class MAEWrapper():
             "Mn": "(d) Mn 2p",
             "Ni": "(e) Ni 2p",
             "Pd": "(f) Pd 3d",
-            "Ti": "(g) Ti 2p"
-            }
+            "Ti": "(g) Ti 2p",
+        }
 
     def _load_predictions_for_one_run(self, pickle_filepath):
         """
@@ -56,7 +56,7 @@ class MAEWrapper():
         with open(pickle_filepath, "rb") as pickle_file:
             results = pickle.load(
                 pickle_file,
-                )
+            )
         y_test = results["y_test"]
         pred_test = results["pred_test"]
 
@@ -76,10 +76,12 @@ class MAEWrapper():
         None.
 
         """
-        losses_test = np.array([
-            loss_func(y_test[i], pred_test[i])
-            for i in range(y_test.shape[0])
-        ])
+        losses_test = np.array(
+            [
+                loss_func(y_test[i], pred_test[i])
+                for i in range(y_test.shape[0])
+            ]
+        )
 
         return losses_test
 
@@ -93,20 +95,15 @@ class MAEWrapper():
         -------
 
         """
-        self.results =  {}
+        self.results = {}
         for clf, clf_name in classifiers.items():
             pkl_path = os.path.join(
-                *[self.datafolder,
-                  clf_name,
-                  "logs",
-                  "results.pkl"])
+                *[self.datafolder, clf_name, "logs", "results.pkl"]
+            )
 
             y_test, pred_test = self._load_predictions_for_one_run(pkl_path)
 
-            self.results[clf] = {
-                "y_test": y_test,
-                "pred_test": pred_test}
-
+            self.results[clf] = {"y_test": y_test, "pred_test": pred_test}
 
     def calculate_test_losses(self, loss_func):
         """
@@ -128,88 +125,85 @@ class MAEWrapper():
             y_test = self.results[clf]["y_test"]
             pred_test = self.results[clf]["pred_test"]
             losses_test = self._calculate_test_losses_for_one_run(
-                loss_func, y_test, pred_test)
+                loss_func, y_test, pred_test
+            )
             self.results[clf]["losses_test"] = losses_test
-            print(clf,
-                  np.median(losses_test),
-                  np.percentile(losses_test, [25,75])
-                  )
+            print(
+                clf,
+                np.median(losses_test),
+                np.percentile(losses_test, [25, 75]),
+            )
         print("Done!")
 
         return self.results
 
+    def _add_loss_histogram(self, ax, losses_test, title):
+        """
+        Plots a histogram of the lossses for each example in the pred_test
+        data set.
 
-    def _add_loss_histogram(
-        self,
-        ax,
-        losses_test,
-        title
-    ):
-       """
-       Plots a histogram of the lossses for each example in the pred_test
-       data set.
+        Returns
+        -------
+        None.
 
-       Returns
-       -------
-       None.
+        """
+        ax.set_title(title, fontdict=self.fontdict)
 
-       """
-       ax.set_title(title, fontdict=self.fontdict)
+        ax.set_xlabel("Mean Absolute Error ", fontdict=self.fontdict)
+        ax.set_ylabel("Counts", fontdict=self.fontdict)
+        ax.tick_params(axis="x", labelsize=self.fontdict["size"])
+        ax.tick_params(axis="y", labelsize=self.fontdict["size"])
 
-       ax.set_xlabel("Mean Absolute Error ", fontdict=self.fontdict)
-       ax.set_ylabel("Counts", fontdict=self.fontdict)
-       ax.tick_params(axis="x", labelsize=self.fontdict["size"])
-       ax.tick_params(axis="y", labelsize=self.fontdict["size"])
+        N, bins, hist_patches = ax.hist(
+            losses_test,
+            bins=100,
+            range=(0.0, 0.5),
+            histtype="bar",
+            fill=False,
+            cumulative=False,
+        )
 
-       N, bins, hist_patches = ax.hist(
-           losses_test,
-           bins=100,
-           range=(0.0, 0.5),
-           histtype="bar",
-           fill=False,
-           cumulative=False,
-           )
+        thresholds = [0.025, 0.05, 0.075, 0.1, 0.15, 0.2, 0.3, 0.4, 0.5]
+        quantification = []
 
-       thresholds = [0.025, 0.05, 0.075, 0.1, 0.15, 0.2, 0.3, 0.4, 0.5]
-       quantification = []
+        for t in thresholds:
+            ng, nb = 0, 0
+            for i, patch in enumerate(hist_patches):
+                if patch.xy[0] < t:
+                    ng += N[i]
+                else:
+                    nb += N[i]
+            ng_p = np.round(ng / (ng + nb) * 100, 1)
+            nb_p = np.round(nb / (ng + nb) * 100, 1)
 
-       for t in thresholds:
-           ng, nb = 0, 0
-           for i, patch in enumerate(hist_patches):
-               if patch.xy[0] < t:
-                   ng += N[i]
-               else:
-                   nb += N[i]
-           ng_p = np.round(ng / (ng + nb) * 100, 1)
-           nb_p = np.round(nb / (ng + nb) * 100, 1)
-
-           try:
-               if float(quantification[-1][1].split(" ")[0]) < 100.0:
-                   quantification.append([t, f"{ng_p} %", f"{nb_p} %"])
-           except IndexError:
+            try:
+                if float(quantification[-1][1].split(" ")[0]) < 100.0:
+                    quantification.append([t, f"{ng_p} %", f"{nb_p} %"])
+            except IndexError:
                 quantification.append([t, f"{ng_p} %", f"{nb_p} %"])
 
-       col_labels = [
-           "MAE threshold",
-           "% of correct \n quantications",
-           "% of wrong \n quantications"]
+        col_labels = [
+            "MAE threshold",
+            "% of correct \n quantications",
+            "% of wrong \n quantications",
+        ]
 
-       field_height = 0.1
-       y0 = 0.975 - field_height *len(quantification)
+        field_height = 0.1
+        y0 = 0.975 - field_height * len(quantification)
 
-       table = ax.table(
-                cellText=quantification,
-                cellLoc="center",
-                colLabels=col_labels,
-                bbox=[0.35, y0, 0.625, field_height*len(quantification)],
-                zorder=500
-                )
-       table.auto_set_font_size(False)
-       table.set_fontsize(8.5)
+        table = ax.table(
+            cellText=quantification,
+            cellLoc="center",
+            colLabels=col_labels,
+            bbox=[0.35, y0, 0.625, field_height * len(quantification)],
+            zorder=500,
+        )
+        table.auto_set_font_size(False)
+        table.set_fontsize(8.5)
 
-       ax.set_xlim(hist_patches[0].xy[0], 0.4)
+        ax.set_xlim(hist_patches[0].xy[0], 0.4)
 
-       return ax
+        return ax
 
     def plot_all(self):
         self.x_max = {
@@ -220,15 +214,13 @@ class MAEWrapper():
             "Ni": 0.25,
             "Pd": 0.25,
             "Ti": 0.25,
-            }
+        }
         ncols = 2
 
         self.fig = plt.figure(figsize=(16, 24), dpi=300)
         gs = gridspec.GridSpec(
-            nrows=4,
-            ncols=2*ncols,
-            wspace=0.2,
-            hspace=0.3)
+            nrows=4, ncols=2 * ncols, wspace=0.2, hspace=0.3
+        )
 
         # Set up 2 plots in first three row and 1 in last row.
         ax0_0 = self.fig.add_subplot(gs[0, :2])
@@ -240,25 +232,22 @@ class MAEWrapper():
         ax3 = self.fig.add_subplot(gs[3, 1:3])
 
         self.axs = np.array(
-            [[ax0_0, ax0_1],
-             [ax1_0, ax1_1],
-             [ax2_0, ax2_1],
-             [ax3, None]])
+            [[ax0_0, ax0_1], [ax1_0, ax1_1], [ax2_0, ax2_1], [ax3, None]]
+        )
 
         for i, clf in enumerate(self.results.keys()):
             row, col = int(i / ncols), i % ncols
-            losses_test  = self.results[clf]["losses_test"]
+            losses_test = self.results[clf]["losses_test"]
             title = self.title_dict[clf]
 
             self.axs[row, col] = self._add_loss_histogram(
-                ax=self.axs[row, col],
-                losses_test=losses_test,
-                title=title
+                ax=self.axs[row, col], losses_test=losses_test, title=title
             )
 
         gs.tight_layout(self.fig)
 
         return self.fig, self.axs
+
 
 #%% Plot of spectrum with multiple elements with window
 datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\runs"

@@ -12,7 +12,9 @@ import matplotlib.gridspec as gridspec
 
 from common import TextParser, ParserWrapper
 
-datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\utils\exports"
+datafolder = (
+    r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\utils\exports"
+)
 
 #%%
 class FitTextParser(TextParser):
@@ -28,7 +30,11 @@ class FitTextParser(TextParser):
             Data dictionary.
 
         """
-        self.header_names = [hn.split(":")[1] for hn in self.header[6].split("\t") if "Cycle" in hn]
+        self.header_names = [
+            hn.split(":")[1]
+            for hn in self.header[6].split("\t")
+            if "Cycle" in hn
+        ]
 
         if bg:
             self.header_names += ["Background"]
@@ -36,7 +42,7 @@ class FitTextParser(TextParser):
             self.header_names += ["Envelope"]
 
         for i, hn in enumerate(self.header_names):
-            if (hn == "Ni" or hn == "Co" or hn == "Fe"):
+            if hn == "Ni" or hn == "Co" or hn == "Fe":
                 self.header_names[i] += " metal"
 
         lines = np.array([[float(i) for i in d.split()] for d in self.data])
@@ -49,6 +55,7 @@ class FitTextParser(TextParser):
         self.data = {"x": x, "y": y}
 
         return self.data
+
 
 # %%
 class Wrapper(ParserWrapper):
@@ -100,7 +107,7 @@ class Wrapper(ParserWrapper):
         ncols = 2
 
         self.fig = plt.figure(figsize=(18, 24), dpi=300)
-        gs = gridspec.GridSpec(4, ncols*2, wspace=0.5, hspace=0.5)
+        gs = gridspec.GridSpec(4, ncols * 2, wspace=0.5, hspace=0.5)
 
         # Set up 2 plots in first three row and 1 in last row.
         ax0_0 = self.fig.add_subplot(gs[0, :2])
@@ -112,26 +119,28 @@ class Wrapper(ParserWrapper):
         ax3 = self.fig.add_subplot(gs[3, 1:3])
 
         self.axs = np.array(
-            [[ax0_0, ax0_1],
-             [ax1_0, ax1_1],
-             [ax2_0, ax2_1],
-             [ax3, None]])
+            [[ax0_0, ax0_1], [ax1_0, ax1_1], [ax2_0, ax2_1], [ax3, None]]
+        )
 
         for i, parser in enumerate(self.parsers):
             x, y = parser.data["x"], parser.data["y"]
 
             row, col = int(i / ncols), i % ncols
 
-            self.axs[row,col].set_xlabel("Binding energy (eV)", fontdict=self.fontdict)
-            self.axs[row,col].set_ylabel("Intensity (arb. units)", fontdict=self.fontdict)
-            self.axs[row,col].tick_params(axis="x", labelsize=self.fontdict["size"])
-            self.axs[row,col].tick_params(
-                axis="y",
-                which="both",
-                right=False,
-                left=False)
+            self.axs[row, col].set_xlabel(
+                "Binding energy (eV)", fontdict=self.fontdict
+            )
+            self.axs[row, col].set_ylabel(
+                "Intensity (arb. units)", fontdict=self.fontdict
+            )
+            self.axs[row, col].tick_params(
+                axis="x", labelsize=self.fontdict["size"]
+            )
+            self.axs[row, col].tick_params(
+                axis="y", which="both", right=False, left=False
+            )
 
-            self.axs[row,col].set_yticklabels([])
+            self.axs[row, col].set_yticklabels([])
 
             handle_dict = {}
             labels = []
@@ -146,9 +155,9 @@ class Wrapper(ParserWrapper):
                 start = parser.fit_start
                 end = parser.fit_end
 
-                handle = self.axs[row,col].plot(
-                    x[start:end,j], y[start:end, j], c=color, linewidth=2
-                    )
+                handle = self.axs[row, col].plot(
+                    x[start:end, j], y[start:end, j], c=color, linewidth=2
+                )
 
                 if name not in handle_dict:
                     handle_dict[name] = handle
@@ -157,66 +166,67 @@ class Wrapper(ParserWrapper):
                 handles = [x for l in list(handle_dict.values()) for x in l]
                 labels = self._reformat_label_list(labels)
 
-            self.axs[row,col].legend(
+            self.axs[row, col].legend(
                 handles=handles,
                 labels=labels,
                 ncol=1,
                 prop={"size": self.fontdict_legend["size"]},
-                loc="upper left"
-                )
+                loc="upper left",
+            )
 
-            self.axs[row,col].set_title(parser.title, fontdict=self.fontdict)
-            self.axs[row,col].set_xlim(left=x[start,j], right=x[end,j])
+            self.axs[row, col].set_title(parser.title, fontdict=self.fontdict)
+            self.axs[row, col].set_xlim(left=x[start, j], right=x[end, j])
 
         gs.tight_layout(self.fig)
 
         return self.fig, self.axs
 
+
 # %% Plot of spectrum with multiple elements
 file_dict = {
-    "Co" : {
+    "Co": {
         "filename": "references_co.txt",
         "title": "(a) Co 2p",
         "fit_start": 1,
         "fit_end": -1,
-        },
-    "Cu" : {
+    },
+    "Cu": {
         "filename": "references_cu.txt",
         "title": "(b) Cu 2p",
         "fit_start": 0,
         "fit_end": -1,
-        },
-    "Fe" : {
+    },
+    "Fe": {
         "filename": "references_fe.txt",
         "title": "(c) Fe 2p",
         "fit_start": 0,
         "fit_end": -20,
-        },
-    "Mn" : {
+    },
+    "Mn": {
         "filename": "references_mn.txt",
         "title": "(d) Mn 2p",
         "fit_start": 0,
         "fit_end": -1,
-        },
-    "Ni" : {
+    },
+    "Ni": {
         "filename": "references_ni.txt",
         "title": "(e) Ni 2p",
         "fit_start": 1,
         "fit_end": -1,
-        },
-    "Pd" : {
+    },
+    "Pd": {
         "filename": "references_pd.txt",
         "title": "(f) Pd 3d",
         "fit_start": 0,
         "fit_end": -1,
-        },
-    "Ti" : {
+    },
+    "Ti": {
         "filename": "references_ti.txt",
         "title": "(g) Ti 2p",
         "fit_start": 20,
         "fit_end": -1,
-        },
-    }
+    },
+}
 
 wrapper = Wrapper(datafolder, file_dict)
 wrapper.parse_data(bg=False, envelope=False)

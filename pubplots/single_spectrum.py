@@ -14,12 +14,14 @@ os.chdir(
     os.path.join(os.path.abspath(__file__).split("deepxps")[0], "deepxps")
 )
 
-from xpsdeeplearning.simulation.base_model.spectra import (
-    MeasuredSpectrum)
+from xpsdeeplearning.simulation.base_model.spectra import MeasuredSpectrum
 
-datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\utils\exports"
+datafolder = (
+    r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\utils\exports"
+)
 
 #%% For one reference spectrum.
+
 
 class Figure:
     """Class for plotting an XPS spectrum."""
@@ -51,7 +53,7 @@ class Figure:
         self.fig, self.ax = plt.subplots(figsize=(11.6, 3.8), dpi=300)
         self.fig.patch.set_facecolor("white")
         self.fig.patch.set_edgecolor("none")
-        self.ax.plot(x, y, linewidth=3, color ="grey")
+        self.ax.plot(x, y, linewidth=3, color="grey")
         self.ax.set_xlim(left=np.max(x), right=np.min(x))
         if axis_off:
             self.ax.set_axis_off()
@@ -64,6 +66,7 @@ class Figure:
         self.ax.set_title(title, fontdict=fontdict)
         self.fig.tight_layout()
 
+
 #%%
 
 input_datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\utils"
@@ -71,7 +74,9 @@ filename = "fe2p_for_comparison_plot.vms"
 
 filepath = os.path.join(input_datafolder, filename)
 ref_spectrum = MeasuredSpectrum(filepath)
-figure = Figure(x=ref_spectrum.x, y=ref_spectrum.lineshape, title="", axis_off=True)
+figure = Figure(
+    x=ref_spectrum.x, y=ref_spectrum.lineshape, title="", axis_off=True
+)
 
 save_dir = r"C:\Users\pielsticker\Lukas\MPI-CEC\Publications\DeepXPS paper\Manuscript - Identification & Quantification\figures"
 fig_filename = "test_spectrum.tif"

@@ -73,9 +73,7 @@ class Peakfinder:
 
         """
         self.peakfull_indices = np.where([len(p) > 0 for p in self.all_peaks])
-        self.peakless_indices = np.where(
-            [len(p) == 0 for p in self.all_peaks]
-        )
+        self.peakless_indices = np.where([len(p) == 0 for p in self.all_peaks])
 
     def distinguish_arrays(self, array_dict):
         """
@@ -227,9 +225,7 @@ peakfinder.get_indices()
 print(f"Spectra with peaks: {len(peakfinder.peakfull_indices[0])}")
 print(f"Spectra without peaks: {len(peakfinder.peakless_indices[0])}")
 peakfinder.plot_random_spectra(energies_h5, no_of_spectra=10, with_peaks=True)
-peakfinder.plot_random_spectra(
-    energies_h5, no_of_spectra=10, with_peaks=False
-)
+peakfinder.plot_random_spectra(energies_h5, no_of_spectra=10, with_peaks=False)
 
 array_dict = {
     "shiftx": shiftx_h5,

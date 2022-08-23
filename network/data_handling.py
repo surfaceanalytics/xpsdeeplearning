@@ -43,7 +43,7 @@ class DataHandler:
         no_of_examples,
         train_test_split,
         train_val_split,
-        shuffle=True
+        shuffle=True,
     ):
         """
         Load the data from an HDF5 file and preprocess it.
@@ -128,7 +128,9 @@ class DataHandler:
             dataset_size = hf["X"].shape[0]
             # Randomly choose a subset of the whole data set.
             try:
-                r = np.random.randint(0, dataset_size - self.no_of_examples + 1)
+                r = np.random.randint(
+                    0, dataset_size - self.no_of_examples + 1
+                )
             except ValueError as e:
                 error_msg = (
                     "There are not enough spectra in this data set. "
@@ -160,9 +162,7 @@ class DataHandler:
                 # If the data set was artificially created, check
                 # if scattering in a gas phase was simulated.
                 if "scatterer" in hf.keys():
-                    scatterer = hf["scatterer"][
-                        r : r + self.no_of_examples, :
-                    ]
+                    scatterer = hf["scatterer"][r : r + self.no_of_examples, :]
                     distance = hf["distance"][r : r + self.no_of_examples, :]
                     pressure = hf["pressure"][r : r + self.no_of_examples, :]
 
@@ -185,7 +185,7 @@ class DataHandler:
                             scatterer,
                             distance,
                             pressure,
-                            random_state=np.random.RandomState(seed=1)
+                            random_state=np.random.RandomState(seed=1),
                         )
 
                     # Store all parameters of the simulations in a dict
@@ -202,10 +202,20 @@ class DataHandler:
                 else:
                     if shuffle:
                         # Shuffle all arrays together
-                        self.X, self.y, shift_x, noise, fwhm = sklearn.utils.shuffle(
-                            self.X, self.y, shift_x, noise, fwhm,
-                            random_state=np.random.RandomState(seed=1)
-                            )
+                        (
+                            self.X,
+                            self.y,
+                            shift_x,
+                            noise,
+                            fwhm,
+                        ) = sklearn.utils.shuffle(
+                            self.X,
+                            self.y,
+                            shift_x,
+                            noise,
+                            fwhm,
+                            random_state=np.random.RandomState(seed=1),
+                        )
 
                     sim_values = {
                         "shift_x": shift_x,
@@ -260,7 +270,8 @@ class DataHandler:
                         self.X,
                         self.y,
                         self.names,
-                        random_state=np.random.RandomState(seed=1))
+                        random_state=np.random.RandomState(seed=1),
+                    )
 
                 # Split into train, val and test sets
                 (
@@ -725,9 +736,7 @@ class DataHandler:
             with_prediction=with_prediction,
         )
 
-    def show_worst_predictions(
-        self, no_of_spectra, kind="all", threshold=0.0
-    ):
+    def show_worst_predictions(self, no_of_spectra, kind="all", threshold=0.0):
         """
         Plot the spectra with the highest losses.
 
@@ -761,11 +770,7 @@ class DataHandler:
             indices = [
                 j[1]
                 for j in sorted(
-                    [
-                        (x, i)
-                        for (i, x) in enumerate(losses)
-                        if x >= threshold
-                    ],
+                    [(x, i) for (i, x) in enumerate(losses) if x >= threshold],
                     reverse=True,
                 )
             ]
@@ -825,9 +830,7 @@ class DataHandler:
                 "{0} of {1} test samples ({2}%) {3}have a mean ".format(
                     str(len(indices)),
                     str(len_all),
-                    str(
-                        100 * (np.around(len(indices) / len_all, decimals=3))
-                    ),
+                    str(100 * (np.around(len(indices) / len_all, decimals=3))),
                     print_statement,
                 )
                 + "absolute error of of at least {0}.".format(str(threshold))

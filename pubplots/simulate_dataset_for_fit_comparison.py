@@ -29,8 +29,8 @@ from xpsdeeplearning.simulation.base_model.figures import Figure
 
 #%% Input parameter
 # Change the following line according to your folder structure ###
-init_param_folder = (r"C:\Users\pielsticker\Simulations\paper")
-#init_param_filename = "init_params_Fe_core_small_gas_phase.json"
+init_param_folder = r"C:\Users\pielsticker\Simulations\paper"
+# init_param_filename = "init_params_Fe_core_small_gas_phase.json"
 init_param_filename = "init_params_NiCoFe_combined_core_small_gas_phase.json"
 
 #%% Parameters
@@ -56,22 +56,24 @@ with h5py.File(writer.hdf5_filepath, "r") as hf:
     y_h5 = hf["y"][:, :]
 
 #%% Save data and metadata.
-output_datafolder = os.path.join(*[os.getcwd(), "utils", creator.params["name"]])
+output_datafolder = os.path.join(
+    *[os.getcwd(), "utils", creator.params["name"]]
+)
 output_datafolder = r"C:\Users\pielsticker\Downloads"
 
-#filepath_output = os.path.join(output_datafolder, "truth.csv")
+# filepath_output = os.path.join(output_datafolder, "truth.csv")
 filepath_output = os.path.join(output_datafolder, "truth_multiple.csv")
 
-indices = [f"Synthetic spectrum no. {str(i).zfill(len(str(creator.no_of_simulations-1)))}"for i in range(creator.no_of_simulations)]
-df_true = pd.DataFrame(
-    y_h5,
-    index=indices,
-    columns = creator.labels)
+indices = [
+    f"Synthetic spectrum no. {str(i).zfill(len(str(creator.no_of_simulations-1)))}"
+    for i in range(creator.no_of_simulations)
+]
+df_true = pd.DataFrame(y_h5, index=indices, columns=creator.labels)
 df_true.to_csv(filepath_output, index=True, sep=";")
 
 # %%
 filename = "ones.vms"
-#input_datafolder = os.path.join(os.getcwd(), "utils")
+# input_datafolder = os.path.join(os.getcwd(), "utils")
 input_datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\utils"
 filepath_input = os.path.join(input_datafolder, filename)
 spectrum = MeasuredSpectrum(filepath_input)
@@ -91,19 +93,21 @@ for i in range(creator.no_of_simulations):
         verticalalignment="top",
         transform=fig.ax.transAxes,
         fontsize=7,
-        )
+    )
     plt.show()
 
     spectrum.x = df["x"][i]
     spectrum.lineshape = np.squeeze(df["y"][i])
     spectrum.label = df["label"][i]
-    number = str(i).zfill(len(str(creator.no_of_simulations-1)))
-    spectrum.converter.data[0]["group_name"] = f"Synthetic spectrum no. {number}"
+    number = str(i).zfill(len(str(creator.no_of_simulations - 1)))
+    spectrum.converter.data[0][
+        "group_name"
+    ] = f"Synthetic spectrum no. {number}"
     spectrum.converter.data[0]["settings"]["nr_values"] = spectrum.x.shape[0]
     new_filename = f"Synthetic spectrum {number}.vms"
 
     datafolder_vms = os.path.join(output_datafolder, "multiple")
     spectrum.write(datafolder_vms, new_filename)
 
-    #spectrum.write(output_datafolder, new_filename)
+    # spectrum.write(output_datafolder, new_filename)
     print(spectrum.label)

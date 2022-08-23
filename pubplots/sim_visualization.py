@@ -57,11 +57,7 @@ ax0.set_title("(a) Reference spectra", fontdict=fontdict)
 ax0.set_xlabel("Binding energy (eV)", fontdict=fontdict)
 ax0.set_ylabel("Intensity (arb. units)", fontdict=fontdict)
 ax0.tick_params(axis="x", labelsize=fontdict["size"])
-ax0.tick_params(
-    axis="y",
-    which="both",
-    right=False,
-    left=False)
+ax0.tick_params(axis="y", which="both", right=False, left=False)
 ax0.set_yticklabels([])
 colors = iter(["black", "green", "blue", "orange"])
 for spectrum in measured_spectra:
@@ -108,11 +104,7 @@ ax0_0.set_xlabel("Binding energy (eV)", fontdict=fontdict)
 ax0_0.set_ylabel("Intensity (arb. units)", fontdict=fontdict)
 ax0_0.tick_params(axis="x", labelsize=fontdict["size"])
 ax0_0.set_yticklabels([])
-ax0_0.tick_params(
-    axis="y",
-    which="both",
-    right=False,
-    left=False)
+ax0_0.tick_params(axis="y", which="both", right=False, left=False)
 legend = []
 for i, shift_x in enumerate(sim_values["shift_x"]):
     spectrum = SimulatedSpectrum(
@@ -127,8 +119,9 @@ for i, shift_x in enumerate(sim_values["shift_x"]):
         ax0_0.plot(spectrum.x, spectrum.lineshape, c="red", linewidth=2)
         legend.append("original")
     spectrum.shift_horizontal(shift_x)
-    ax0_0.plot(spectrum.x, spectrum.lineshape,
-               c=colors[i], alpha=alpha, linewidth=2)
+    ax0_0.plot(
+        spectrum.x, spectrum.lineshape, c=colors[i], alpha=alpha, linewidth=2
+    )
     ax0_0.set_xlim(left=np.max(spectrum.x), right=np.min(spectrum.x))
     legend.append(f"x = {shift_x}")
 legend0_0 = ax0_0.legend(
@@ -152,11 +145,7 @@ ax0_1.set_xlabel("Binding energy (eV)", fontdict=fontdict)
 ax0_1.set_ylabel("Intensity (arb. units)", fontdict=fontdict)
 ax0_1.tick_params(axis="x", labelsize=fontdict["size"])
 ax0_1.set_yticklabels([])
-ax0_1.tick_params(
-    axis="y",
-    which="both",
-    right=False,
-    left=False)
+ax0_1.tick_params(axis="y", which="both", right=False, left=False)
 legend = []
 for i, noise in enumerate(sim_values["noise"]):
     spectrum = SimulatedSpectrum(
@@ -173,8 +162,9 @@ for i, noise in enumerate(sim_values["noise"]):
         legend.append("original")
     spectrum.add_noise(noise)
     spectrum.normalize()
-    ax0_1.plot(spectrum.x, spectrum.lineshape,
-               c=colors[i], alpha=alpha, linewidth=2)
+    ax0_1.plot(
+        spectrum.x, spectrum.lineshape, c=colors[i], alpha=alpha, linewidth=2
+    )
     ax0_1.set_xlim(left=np.max(spectrum.x), right=np.min(spectrum.x))
     legend.append(str(noise))
 legend0_1 = ax0_1.legend(
@@ -198,11 +188,7 @@ ax1_0.set_xlabel("Binding energy (eV)", fontdict=fontdict)
 ax1_0.set_ylabel("Intensity (arb. units)", fontdict=fontdict)
 ax1_0.tick_params(axis="x", labelsize=fontdict["size"])
 ax1_0.set_yticklabels([])
-ax1_1.tick_params(
-    axis="y",
-    which="both",
-    right=False,
-    left=False)
+ax1_1.tick_params(axis="y", which="both", right=False, left=False)
 legend = []
 for i, FWHM in enumerate(sim_values["FWHM"]):
     spectrum = SimulatedSpectrum(
@@ -220,10 +206,11 @@ for i, FWHM in enumerate(sim_values["FWHM"]):
 
     resolution = np.mean(spectrum.x) / FWHM
     spectrum.change_resolution(resolution)
-    #FWHM = np.mean(spectrum.x) / resolution
+    # FWHM = np.mean(spectrum.x) / resolution
     spectrum.normalize()
-    ax1_0.plot(spectrum.x, spectrum.lineshape,
-               c=colors[i], alpha=alpha, linewidth=2)
+    ax1_0.plot(
+        spectrum.x, spectrum.lineshape, c=colors[i], alpha=alpha, linewidth=2
+    )
     ax1_0.set_xlim(left=np.max(spectrum.x), right=np.min(spectrum.x))
     legend.append(f"{FWHM} eV")
 legend1_0 = ax1_0.legend(
@@ -246,8 +233,10 @@ legend1_0._legend_box.align = "left"
 def _select_random_scatterer_key(sim_values):
     return np.random.randint(0, len(sim_values["scatterers"].keys()))
 
+
 def _select_random_scatterer(sim_values, key):
     return sim_values["scatterers"][str(key)]
+
 
 def _select_random_scatter_pressure(sim_values, key):
     sim_range = sim_values["pressure"][str(key)]
@@ -259,6 +248,7 @@ def _select_random_scatter_pressure(sim_values, key):
         / 10
     )
 
+
 def _select_random_scatter_distance(sim_values):
     return (
         np.random.randint(
@@ -268,16 +258,13 @@ def _select_random_scatter_distance(sim_values):
         / 100
     )
 
+
 ax1_1.set_title("(e) Scattering in gas phase", fontdict=fontdict)
 ax1_1.set_xlabel("Binding energy (eV)", fontdict=fontdict)
 ax1_1.set_ylabel("Intensity (arb. units)", fontdict=fontdict)
 ax1_1.tick_params(axis="x", labelsize=fontdict["size"])
 ax1_1.set_yticklabels([])
-ax1_1.tick_params(
-    axis="y",
-    which="both",
-    right=False,
-    left=False)
+ax1_1.tick_params(axis="y", which="both", right=False, left=False)
 legend = []
 for i in range(0, 4):
     spectrum = SimulatedSpectrum(
@@ -300,8 +287,9 @@ for i in range(0, 4):
         label=scatterer, distance=distance, pressure=pressure
     )
     spectrum.normalize()
-    ax1_1.plot(spectrum.x, spectrum.lineshape,
-               c=colors[i], alpha=alpha, linewidth=2)
+    ax1_1.plot(
+        spectrum.x, spectrum.lineshape, c=colors[i], alpha=alpha, linewidth=2
+    )
     ax1_1.set_xlim(left=np.max(spectrum.x), right=np.min(spectrum.x))
     legend.append(f"d: {distance} mm, P: {pressure} mbar")
 legend1_1 = ax1_1.legend(
@@ -366,11 +354,7 @@ ax2.set_xlabel("Binding energy (eV)", fontdict=fontdict)
 ax2.set_ylabel("Intensity (arb. units)", fontdict=fontdict)
 ax2.tick_params(axis="x", labelsize=fontdict["size"])
 ax2.set_yticklabels([])
-ax2.tick_params(
-    axis="y",
-    which="both",
-    right=False,
-    left=False)
+ax2.tick_params(axis="y", which="both", right=False, left=False)
 legend = []
 for sim_values in sim_params.values():
     sim = Simulation(measured_spectra)
@@ -390,7 +374,7 @@ for sim_values in sim_params.values():
         sim.output_spectrum.x,
         sim.output_spectrum.lineshape,
         c=next(colors),
-        linewidth=2
+        linewidth=2,
     )
 
     legend.append(

@@ -34,7 +34,7 @@ no_of_examples = 200000
     no_of_examples=no_of_examples,
     train_test_split=train_test_split,
     train_val_split=train_val_split,
-    shuffle=True
+    shuffle=True,
 )
 print("Input shape: " + str(datahandler.input_shape))
 print("Labels: " + str(datahandler.labels))

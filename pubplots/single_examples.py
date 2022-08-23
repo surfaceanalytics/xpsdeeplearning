@@ -11,7 +11,9 @@ import matplotlib.pyplot as plt
 
 from common import TextParser, ParserWrapper
 
-datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\utils\exports"
+datafolder = (
+    r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\utils\exports"
+)
 
 # %%
 class Wrapper(ParserWrapper):
@@ -38,7 +40,7 @@ class Wrapper(ParserWrapper):
         self.fig, self.axs = plt.subplots(
             nrows=nrows,
             ncols=ncols,
-            figsize=(len(self.parsers)/2*6, 11),
+            figsize=(len(self.parsers) / 2 * 6, 11),
             squeeze=False,
             dpi=300,
         )
@@ -46,47 +48,50 @@ class Wrapper(ParserWrapper):
         for i, parser in enumerate(self.parsers):
             x, y = parser.data["x"], parser.data["y"]
 
-            if i < len(self.parsers)/2:
+            if i < len(self.parsers) / 2:
                 color = "green"
             else:
                 color = "red"
 
             row = i % nrows
-            if i < len(self.parsers)-6:
+            if i < len(self.parsers) - 6:
                 col = 0
-            elif i < len(self.parsers)-4:
+            elif i < len(self.parsers) - 4:
                 col = 1
-            elif i < len(self.parsers)-2:
+            elif i < len(self.parsers) - 2:
                 col = 2
             elif i < len(self.parsers):
                 col = 3
 
-
-            self.axs[row, col].set_xlabel("Binding energy (eV)", fontdict=self.fontdict)
-            self.axs[row, col].set_ylabel("Intensity (arb. units)", fontdict=self.fontdict)
-            self.axs[row, col].tick_params(axis="x", labelsize=self.fontdict["size"])
+            self.axs[row, col].set_xlabel(
+                "Binding energy (eV)", fontdict=self.fontdict
+            )
+            self.axs[row, col].set_ylabel(
+                "Intensity (arb. units)", fontdict=self.fontdict
+            )
             self.axs[row, col].tick_params(
-                axis="y",
-                which="both",
-                right=False,
-                left=False)
+                axis="x", labelsize=self.fontdict["size"]
+            )
+            self.axs[row, col].tick_params(
+                axis="y", which="both", right=False, left=False
+            )
 
             self.axs[row, col].set_yticklabels([])
 
             for j, header_name in enumerate(parser.header_names):
                 if header_name == "CPS":
-                    handle = self.axs[row,col].plot(x, y[:, j], c=color)
+                    handle = self.axs[row, col].plot(x, y[:, j], c=color)
                 else:
                     start = parser.fit_start
                     end = parser.fit_end
                     try:
-                        handle = self.axs[row,col].plot(
+                        handle = self.axs[row, col].plot(
                             x[start:end], y[start:end, j], c=color
-                            )
+                        )
                     except IndexError:
-                        handle = self.axs[row,col].plot(
+                        handle = self.axs[row, col].plot(
                             x[start:end], y[start:end], c=color
-                            )
+                        )
 
             self.axs[row, col].set_title(parser.title, fontdict=self.fontdict)
             self.axs[row, col].set_xlim(left=np.max(x), right=np.min(x))
@@ -103,12 +108,12 @@ class Wrapper(ParserWrapper):
             col_labels = self._reformat_label_list(keys)
 
             table = self.axs[row, col].table(
-                cellText=[q1_percentage,q2_percentage],
+                cellText=[q1_percentage, q2_percentage],
                 cellLoc="center",
                 colLabels=col_labels,
                 rowLabels=["Truth", "CNN"],
-                bbox=[0.1, 0.025, 0.126*len(q1), 0.15],
-                zorder=500
+                bbox=[0.1, 0.025, 0.126 * len(q1), 0.15],
+                zorder=500,
             )
             table.auto_set_font_size(False)
             table.set_fontsize(self.fontdict_small["size"])
@@ -137,10 +142,12 @@ class Wrapper(ParserWrapper):
                 "He": "He",
                 "H2": "H$_{2}$",
                 "N2": "N$_{2}$",
-                "O2": "O$_{2}$"
-                }
+                "O2": "O$_{2}$",
+            }
             try:
-                scat_text = f"Scattered in {scatterer_dict[parser.scatterer]} \n"
+                scat_text = (
+                    f"Scattered in {scatterer_dict[parser.scatterer]} \n"
+                )
                 scat_text += f"p = {parser.pressure} mbar \n"
                 scat_text += f"d = {parser.distance} mm"
                 self.axs[row, col].text(
@@ -156,9 +163,9 @@ class Wrapper(ParserWrapper):
                 pass
 
             if row == 1 and col == 1:
-                self.axs[row, col].set_ylim(bottom=0.6*np.min(y), top=None)
+                self.axs[row, col].set_ylim(bottom=0.6 * np.min(y), top=None)
             if row == 1 and col == 3:
-                self.axs[row, col].set_ylim(bottom=0.8*np.min(y), top=None)
+                self.axs[row, col].set_ylim(bottom=0.8 * np.min(y), top=None)
 
         self.fig.tight_layout()
 
@@ -167,74 +174,74 @@ class Wrapper(ParserWrapper):
 
 # %%
 file_dict = {
-    "sucesses" : {
+    "sucesses": {
         "Fe": {
             "filename": "fe2p_good_fit.txt",
             "title": "(a) Fe 2p",
             "fit_start": 0,
             "fit_end": -1,
-            #"shift_x": -1.45,
-            #"noise": 12.3,
-            #"FWHM": 0.7,
-            #"scatterer": "O2",
-            #"distance": 0.3,
-            #"pressure": 0.4,
+            # "shift_x": -1.45,
+            # "noise": 12.3,
+            # "FWHM": 0.7,
+            # "scatterer": "O2",
+            # "distance": 0.3,
+            # "pressure": 0.4,
             "mae": 0.004027272850268222,
             "quantification": {
                 "Fe metal": [25.2, 24.9],
                 "FeO": [27.0, 26.5],
                 "Fe3O4": [30.7, 30.8],
                 "Fe2O3": [17.1, 17.8],
-                },
             },
+        },
         "Ti": {
             "filename": "ti2p_good_fit.txt",
             "title": "(c) Ti 2p",
             "fit_start": 0,
             "fit_end": -1,
-            #"shift_x": 0.90,
-            #"noise": 30.0,
-            #"FWHM": 1.14,
-            #"scatterer": "N2",
-            #"distance": 0.3,
-            #"pressure": 0.9,
+            # "shift_x": 0.90,
+            # "noise": 30.0,
+            # "FWHM": 1.14,
+            # "scatterer": "N2",
+            # "distance": 0.3,
+            # "pressure": 0.9,
             "mae": 0.00600266148683188,
             "quantification": {
                 "Ti metal": [24.5, 25.0],
                 "TiO": [19.8, 20.5],
                 "Ti2O3": [27.2, 26.7],
                 "TiO2": [28.4, 27.8],
-                },
             },
+        },
         "Mn": {
             "filename": "mn2p_good_fit.txt",
             "title": "(b) Mn 2p",
             "fit_start": 0,
             "fit_end": -1,
-            #"shift_x": 0.0,
-            #"noise": 21.0,
-            #"FWHM": 1.06,
-            #"scatterer": "H2",
-            #"distance": 0.4,
-            #"pressure": 0.4,
+            # "shift_x": 0.0,
+            # "noise": 21.0,
+            # "FWHM": 1.06,
+            # "scatterer": "H2",
+            # "distance": 0.4,
+            # "pressure": 0.4,
             "mae": 0.004019161666664384,
             "quantification": {
                 "MnO": [31.5, 32.1],
                 "Mn2O3": [29.0, 28.3],
                 "MnO2": [39.5, 39.6],
-                },
             },
+        },
         "CoFe": {
             "filename": "cofe_good_fit.txt",
             "title": "(d) Mixed Co 2p and Fe 2p",
             "fit_start": 0,
             "fit_end": -1,
-            #"shift_x": 0.95,
-            #"noise": 18.0,
-            #"FWHM": "not changed",
-            #"scatterer": None,
-            #"distance": 0.0,
-            #"pressure": 0.0,
+            # "shift_x": 0.95,
+            # "noise": 18.0,
+            # "FWHM": "not changed",
+            # "scatterer": None,
+            # "distance": 0.0,
+            # "pressure": 0.0,
             "mae": 0.0,
             "quantification": {
                 "Co metal": [16.0, 15.6],
@@ -244,19 +251,19 @@ file_dict = {
                 "FeO": [11.4, 11.7],
                 "Fe3O4": [16.9, 15.3],
                 "Fe2O3": [15.7, 17.4],
-                },
             },
         },
-    "fails" : {
+    },
+    "fails": {
         "fe2p_scattering": {
             "filename": "fe2p_strong_scattering.txt",
             "title": "(e) Fe 2p, strong scattering",
             "fit_start": 0,
             "fit_end": -1,
-            #"shift_x": -2.85,
-            #"noise": 13.8,
-            #"FWHM": 0.89,
-            #"scatterer": "N2",
+            # "shift_x": -2.85,
+            # "noise": 13.8,
+            # "FWHM": 0.89,
+            # "scatterer": "N2",
             "distance": 2.0,
             "pressure": 4.3,
             "mae": 0.4123186282813549,
@@ -265,56 +272,56 @@ file_dict = {
                 "FeO": [0.0, 10.3],
                 "Fe3O4": [51.3, 2.6],
                 "Fe2O3": [48.7, 15.0],
-                },
             },
+        },
         "mn_oxides": {
             "filename": "mn2p_similar_lineshapes.txt",
             "title": "(g) Mn 2p, similar peak shapes",
             "fit_start": 0,
             "fit_end": -1,
-            #"shift_x": 0.90,
-            #"noise": 3.2,
-            #"FWHM": 0.55,
-            #"scatterer": "O2",
-            #"distance": 0.1,
-            #"pressure": 0.5,
+            # "shift_x": 0.90,
+            # "noise": 3.2,
+            # "FWHM": 0.55,
+            # "scatterer": "O2",
+            # "distance": 0.1,
+            # "pressure": 0.5,
             "mae": 0.4059938986397533,
             "quantification": {
                 "MnO": [0.0, 0.3],
                 "Mn2O3": [23.3, 83.9],
                 "MnO2": [76.7, 15.8],
-                },
             },
+        },
         "fe2p_noise": {
             "filename": "fe2p_noise.txt",
             "title": "(f) Fe 2p, low S/N",
             "fit_start": 0,
             "fit_end": -1,
-            #"shift_x": -2.75,
-            #"noise": 3.5,
-            #"FWHM": 1.63,
-            #"scatterer": "H2",
-            #"distance": 0.9,
-            #"pressure": 0.1,
+            # "shift_x": -2.75,
+            # "noise": 3.5,
+            # "FWHM": 1.63,
+            # "scatterer": "H2",
+            # "distance": 0.9,
+            # "pressure": 0.1,
             "mae": 0.29266935600171756,
             "quantification": {
                 "Fe metal": [0.0, 14.7],
                 "FeO": [61.6, 24.4],
                 "Fe3O4": [14.3, 58.1],
                 "Fe2O3": [24.1, 2.8],
-                },
             },
+        },
         "cofe_mixed": {
             "filename": "cofe_bad_fit.txt",
             "title": "(g) Mixed Co 2p and Fe 2p",
             "fit_start": 0,
             "fit_end": -1,
-            #"shift_x": 2.70,
-            #"noise": 6.4,
-            #"FWHM": "not changed",
-            #"scatterer": None,
-            #"distance": 0.0,
-            #"pressure": 0.0,
+            # "shift_x": 2.70,
+            # "noise": 6.4,
+            # "FWHM": "not changed",
+            # "scatterer": None,
+            # "distance": 0.0,
+            # "pressure": 0.0,
             "mae": 0.08289022088380008,
             "quantification": {
                 "Co metal": [11.9, 24.7],
@@ -324,9 +331,9 @@ file_dict = {
                 "FeO": [15.3, 17.1],
                 "Fe3O4": [0.0, 13.6],
                 "Fe2O3": [55.0, 26.0],
-                },
             },
         },
+    },
 }
 
 wrapper = Wrapper(datafolder, file_dict)

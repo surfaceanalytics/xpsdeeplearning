@@ -12,11 +12,7 @@ import matplotlib.pyplot as plt
 
 from sklearn.metrics import mean_absolute_error
 
-from common import (
-    get_xlsxpath,
-    sort_with_index,
-    print_mae_info
-    )
+from common import get_xlsxpath, sort_with_index, print_mae_info
 
 
 os.chdir(
@@ -34,6 +30,7 @@ fit_datafolder = os.path.join(input_datafolder, "fit_comparison")
 # def sort_with_index(array, reverse=True):
 #     return [f"No. {j} : {k}" for (k, j) in sorted([(x, i) for (i, x) in enumerate(array)],reverse=reverse)]
 # =============================================================================
+
 
 def print_for_one_spectrum(number, method):
     if method == "biesinger":
@@ -58,8 +55,9 @@ def print_for_one_spectrum(number, method):
     print(
         f"\t True: \n {y_true}\n ",
         f"\t {method.capitalize()}: \n {y_pred} \n",
-        f"\t MAE = {mae_one}"
-        )
+        f"\t MAE = {mae_one}",
+    )
+
 
 # =============================================================================
 # def print_mae_info(mae, name, precision=3):
@@ -76,92 +74,112 @@ def print_for_one_spectrum(number, method):
 #         )
 #
 # =============================================================================
-def _add_loss_histogram(
-    ax,
-    mae,
-    title
-    ):
-   fontdict = {"size": 25}
-   ax.set_title(title, fontdict=fontdict, multialignment='center')
+def _add_loss_histogram(ax, mae, title):
+    fontdict = {"size": 25}
+    ax.set_title(title, fontdict=fontdict, multialignment="center")
 
-   ax.set_xlabel("Mean Absolute Error ", fontdict=fontdict)
-   ax.set_ylabel("Counts", fontdict=fontdict)
-   ax.tick_params(axis="x", labelsize=fontdict["size"])
-   ax.tick_params(axis="y", labelsize=fontdict["size"])
+    ax.set_xlabel("Mean Absolute Error ", fontdict=fontdict)
+    ax.set_ylabel("Counts", fontdict=fontdict)
+    ax.tick_params(axis="x", labelsize=fontdict["size"])
+    ax.tick_params(axis="y", labelsize=fontdict["size"])
 
-   N, bins, hist_patches = ax.hist(
-       mae,
-       bins=30,
-       range=(0,0.5),
-       histtype="bar",
-       fill=False,
-       cumulative=False,
-       )
+    N, bins, hist_patches = ax.hist(
+        mae,
+        bins=30,
+        range=(0, 0.5),
+        histtype="bar",
+        fill=False,
+        cumulative=False,
+    )
 
-   ax.text(
-       0.45,
-       0.8,
-       f"Median MAE: \n {np.round(np.median(mae),2)}",
-       horizontalalignment="left",
-       size=fontdict["size"],
-       verticalalignment="center",
-       transform=ax.transAxes
-       )
+    ax.text(
+        0.45,
+        0.8,
+        f"Median MAE: \n {np.round(np.median(mae),2)}",
+        horizontalalignment="left",
+        size=fontdict["size"],
+        verticalalignment="center",
+        transform=ax.transAxes,
+    )
 
-   ax.set_xlim(hist_patches[0].xy[0],0.5) #hist_patches[-1].xy[0],)
+    ax.set_xlim(hist_patches[0].xy[0], 0.5)  # hist_patches[-1].xy[0],)
 
-   return ax
+    return ax
+
 
 #%%
-cols = ['Fe metal', 'FeO', 'Fe3O4', 'Fe2O3']
+cols = ["Fe metal", "FeO", "Fe3O4", "Fe2O3"]
 
-df_true = pd.read_csv(get_xlsxpath(fit_datafolder, "truth"), index_col=0, sep=";")
+df_true = pd.read_csv(
+    get_xlsxpath(fit_datafolder, "truth"), index_col=0, sep=";"
+)
 
-df_biesinger = pd.read_csv(get_xlsxpath(fit_datafolder, "biesinger"), index_col=0, sep=";")
+df_biesinger = pd.read_csv(
+    get_xlsxpath(fit_datafolder, "biesinger"), index_col=0, sep=";"
+)
 df_biesinger = df_biesinger.divide(100)
-df_biesinger.columns = df_biesinger.columns.str.replace(' %', '')
+df_biesinger.columns = df_biesinger.columns.str.replace(" %", "")
 df_biesinger["Fe3O4"] = df_biesinger["Fe3O4 2+"] + df_biesinger["Fe3O4 3+"]
 df_biesinger = df_biesinger.drop(columns=["Fe3O4 2+", "Fe3O4 3+", "Fe sat"])
 df_biesinger = df_biesinger[cols]
 df_biesinger = df_biesinger.div(df_biesinger.sum(axis=1), axis=0)
-mae_biesinger = mean_absolute_error(df_biesinger.to_numpy().T, df_true.to_numpy().T, multioutput="raw_values")
+mae_biesinger = mean_absolute_error(
+    df_biesinger.to_numpy().T, df_true.to_numpy().T, multioutput="raw_values"
+)
 df_biesinger["MAE"] = mae_biesinger
 print_mae_info(mae_biesinger, "Biesinger")
 
-df_fit_model = pd.read_csv(get_xlsxpath(fit_datafolder, "fit_model"), index_col=0, sep=";")
+df_fit_model = pd.read_csv(
+    get_xlsxpath(fit_datafolder, "fit_model"), index_col=0, sep=";"
+)
 df_fit_model = df_fit_model.divide(100)
-df_fit_model.columns = df_fit_model.columns.str.replace(' %', '')
+df_fit_model.columns = df_fit_model.columns.str.replace(" %", "")
 df_fit_model = df_fit_model[cols]
-fe3o4_indices = df_true.loc[(df_true['Fe3O4'] == 1.0)].index
+fe3o4_indices = df_true.loc[(df_true["Fe3O4"] == 1.0)].index
 df_fit_model.loc[fe3o4_indices]
-mae_fit_model = mean_absolute_error(df_fit_model.to_numpy().T, df_true.to_numpy().T, multioutput="raw_values")
+mae_fit_model = mean_absolute_error(
+    df_fit_model.to_numpy().T, df_true.to_numpy().T, multioutput="raw_values"
+)
 df_fit_model["MAE"] = mae_fit_model
 print_mae_info(mae_fit_model, "Fit model")
 
-df_lineshapes = pd.read_csv(get_xlsxpath(fit_datafolder, "lineshapes"), index_col=0, sep=";")
+df_lineshapes = pd.read_csv(
+    get_xlsxpath(fit_datafolder, "lineshapes"), index_col=0, sep=";"
+)
 df_lineshapes = df_lineshapes.divide(100)
-df_lineshapes.columns = df_lineshapes.columns.str.replace(' %', '')
+df_lineshapes.columns = df_lineshapes.columns.str.replace(" %", "")
 df_lineshapes = df_lineshapes[cols]
-mae_lineshapes = mean_absolute_error(df_lineshapes.to_numpy().T, df_true.to_numpy().T, multioutput="raw_values")
+mae_lineshapes = mean_absolute_error(
+    df_lineshapes.to_numpy().T, df_true.to_numpy().T, multioutput="raw_values"
+)
 df_lineshapes["MAE"] = mae_lineshapes
 print_mae_info(mae_lineshapes, "lineshapes")
 
 df_nn = pd.read_csv(get_xlsxpath(fit_datafolder, "nn"), index_col=0, sep=";")
-mae_nn = mean_absolute_error(df_nn.to_numpy().T, df_true.to_numpy().T, multioutput="raw_values")
+mae_nn = mean_absolute_error(
+    df_nn.to_numpy().T, df_true.to_numpy().T, multioutput="raw_values"
+)
 df_nn["MAE"] = mae_nn
 print_mae_info(mae_nn, "Neural network")
 
 fig, axs = plt.subplots(
-    nrows=1,
-    ncols=4,
-    squeeze=False,
-    figsize=(36, 16), dpi=300
-    )
+    nrows=1, ncols=4, squeeze=False, figsize=(36, 16), dpi=300
+)
 
-axs[0,0] = _add_loss_histogram(axs[0,0], mae_biesinger, title="(a) M1: Fit according to \n Grosvenor et al.")
-axs[0,1] = _add_loss_histogram(axs[0,1], mae_fit_model, title="(b) M2: Manual peak \n fit model")
-axs[0,2] = _add_loss_histogram(axs[0,2], mae_lineshapes, title="(c) M3: Fit with reference \n lineshapes")
-axs[0,3] = _add_loss_histogram(axs[0,3], mae_nn, title="(D) Convolutional \n Neural network")
+axs[0, 0] = _add_loss_histogram(
+    axs[0, 0],
+    mae_biesinger,
+    title="(a) M1: Fit according to \n Grosvenor et al.",
+)
+axs[0, 1] = _add_loss_histogram(
+    axs[0, 1], mae_fit_model, title="(b) M2: Manual peak \n fit model"
+)
+axs[0, 2] = _add_loss_histogram(
+    axs[0, 2], mae_lineshapes, title="(c) M3: Fit with reference \n lineshapes"
+)
+axs[0, 3] = _add_loss_histogram(
+    axs[0, 3], mae_nn, title="(D) Convolutional \n Neural network"
+)
 
 save_dir = r"C:\Users\pielsticker\Lukas\MPI-CEC\Publications\DeepXPS paper\Manuscript - Identification & Quantification\figures"
 fig_filename = "hist_fits_single.png"
@@ -169,19 +187,25 @@ fig_path = os.path.join(save_dir, fig_filename)
 fig.savefig(fig_path)
 
 dfs = {
-       "Neural network": df_nn,
-       "Biesinger": df_biesinger,
-       "Fit model": df_fit_model,
-       "Lineshapes": df_lineshapes,
-       }
+    "Neural network": df_nn,
+    "Biesinger": df_biesinger,
+    "Fit model": df_fit_model,
+    "Lineshapes": df_lineshapes,
+}
 
 # %%
 threshold = 0.05
-indices = df_nn[df_nn["MAE"] < threshold].sort_values(by=["MAE"], ascending=False).index[:10]
+indices = (
+    df_nn[df_nn["MAE"] < threshold]
+    .sort_values(by=["MAE"], ascending=False)
+    .index[:10]
+)
 
 for index in indices:
-    df_print = pd.concat([df_true.loc[index], df_nn.loc[index]], axis=1)#.reset_index()
-    df_print["diff"] = (df_true.loc[index] - df_nn.loc[index])*100
+    df_print = pd.concat(
+        [df_true.loc[index], df_nn.loc[index]], axis=1
+    )  # .reset_index()
+    df_print["diff"] = (df_true.loc[index] - df_nn.loc[index]) * 100
     print(df_print)
     print(f"Max diff.: {max(df_print['diff'])}")
 
@@ -191,23 +215,30 @@ def print_diff(df, threshold, kind="average"):
     correct = 0
     wrong = 0
     for index in df.index:
-        df_print = pd.concat([df_true.loc[index], df_test.loc[index]], axis=1)#.reset_index()
+        df_print = pd.concat(
+            [df_true.loc[index], df_test.loc[index]], axis=1
+        )  # .reset_index()
         df_print.columns = ["true", "nn"]
-        df_print["diff"] = (df_true.loc[index] - df_test.loc[index])*100
-        #print(f"{index}: max diff.: {max(df_print['diff'])}, mean diff.: {np.mean(np.abs(df_print['diff']))}")
+        df_print["diff"] = (df_true.loc[index] - df_test.loc[index]) * 100
+        # print(f"{index}: max diff.: {max(df_print['diff'])}, mean diff.: {np.mean(np.abs(df_print['diff']))}")
         if kind == "average":
-            metric = np.mean(np.abs(df_print['diff']))
+            metric = np.mean(np.abs(df_print["diff"]))
         elif kind == "max":
-            metric = np.max(df_print['diff'])
+            metric = np.max(df_print["diff"])
         if metric < threshold:
             correct += 1
         else:
             wrong += 1
-    print(f"No. of correct classifications ({kind}): {correct}/{len(df_nn.index)} = {correct/len(df_nn.index)*100} %")
-    print(f"No. of wrong classifications ({kind}): {wrong}/{len(df_nn.index)} = {wrong/len(df_nn.index)*100} %")
+    print(
+        f"No. of correct classifications ({kind}): {correct}/{len(df_nn.index)} = {correct/len(df_nn.index)*100} %"
+    )
+    print(
+        f"No. of wrong classifications ({kind}): {wrong}/{len(df_nn.index)} = {wrong/len(df_nn.index)*100} %"
+    )
 
-threshold = 10.0 #percent
+
+threshold = 10.0  # percent
 for method, df in dfs.items():
     print(method)
-    print_diff(df, threshold, kind = "average")
-    print_diff(df, threshold, kind = "max")
+    print_diff(df, threshold, kind="average")
+    print_diff(df, threshold, kind="max")

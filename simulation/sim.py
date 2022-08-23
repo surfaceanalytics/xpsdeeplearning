@@ -172,9 +172,7 @@ class Simulation:
             )
 
             # Position auger spectrum in the middle of the window
-            m = int(
-                np.where(auger_spectrum.x == np.mean(auger_spectrum.x))[0]
-            )
+            m = int(np.where(auger_spectrum.x == np.mean(auger_spectrum.x))[0])
             n = int(np.where(x == np.mean(x))[0])
             if n > m:
                 shifted_auger_spectrum.lineshape[

@@ -13,7 +13,9 @@ from PIL import Image
 
 from common import ParserWrapper
 
-datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\utils\exports"
+datafolder = (
+    r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\utils\exports"
+)
 
 # %% Plot of various different peak fitting methods
 class Wrapper(ParserWrapper):
@@ -37,11 +39,14 @@ class Wrapper(ParserWrapper):
 
     def _add_nn_image(self, ax):
         ax.set_axis_off()
-        ax.set_title("(e) Convolutional Neural network", fontdict=self.fontdict)
+        ax.set_title(
+            "(e) Convolutional Neural network", fontdict=self.fontdict
+        )
 
         infile = os.path.join(
             r"C:\Users\pielsticker\Lukas\MPI-CEC\Publications\DeepXPS paper\Manuscript - Identification & Quantification\figures",
-            "neural_net_peak_fitting.png")
+            "neural_net_peak_fitting.png",
+        )
         with Image.open(infile) as im:
             ax.imshow(im)
 
@@ -53,10 +58,10 @@ class Wrapper(ParserWrapper):
         ncols = 2
         gs = gridspec.GridSpec(
             nrows=2,
-            ncols=ncols+1,
+            ncols=ncols + 1,
             wspace=0.5,
             hspace=0.5,
-            )
+        )
 
         # Set up 2 plots in first three row and 1 in last row.
         ax0_0 = self.fig.add_subplot(gs[0, 0])
@@ -65,25 +70,27 @@ class Wrapper(ParserWrapper):
         ax1_1 = self.fig.add_subplot(gs[1, 1])
         ax3 = self.fig.add_subplot(gs[:, 2])
 
-        self.axs = np.array(
-            [[ax0_0, ax0_1, ax3],
-             [ax1_0, ax1_1, None]])
+        self.axs = np.array([[ax0_0, ax0_1, ax3], [ax1_0, ax1_1, None]])
 
         for i, parser in enumerate(self.parsers):
             x, y = parser.data["x"], parser.data["y"]
 
-            row, col =  int(i / ncols), i % ncols
+            row, col = int(i / ncols), i % ncols
 
-            self.axs[row,col].set_xlabel("Binding energy (eV)", fontdict=self.fontdict)
-            self.axs[row,col].set_ylabel("Intensity (arb. units)", fontdict=self.fontdict)
-            self.axs[row,col].tick_params(axis="x", labelsize=self.fontdict["size"])
-            self.axs[row,col].tick_params(
-                axis="y",
-                which="both",
-                right=False,
-                left=False)
+            self.axs[row, col].set_xlabel(
+                "Binding energy (eV)", fontdict=self.fontdict
+            )
+            self.axs[row, col].set_ylabel(
+                "Intensity (arb. units)", fontdict=self.fontdict
+            )
+            self.axs[row, col].tick_params(
+                axis="x", labelsize=self.fontdict["size"]
+            )
+            self.axs[row, col].tick_params(
+                axis="y", which="both", right=False, left=False
+            )
 
-            self.axs[row,col].set_yticklabels([])
+            self.axs[row, col].set_yticklabels([])
 
             handle_dict = {}
             labels = []
@@ -97,16 +104,16 @@ class Wrapper(ParserWrapper):
                 start = parser.fit_start
                 end = parser.fit_end
                 if name == "CPS":
-                    handle = self.axs[row,col].plot(x, y[:, j], c=color)
+                    handle = self.axs[row, col].plot(x, y[:, j], c=color)
                 else:
                     try:
-                        handle = self.axs[row,col].plot(
+                        handle = self.axs[row, col].plot(
                             x[start:end], y[start:end, j], c=color
-                            )
+                        )
                     except IndexError:
-                        handle = self.axs[row,col].plot(
+                        handle = self.axs[row, col].plot(
                             x[start:end], y[start:end], c=color
-                            )
+                        )
 
                 if name not in handle_dict:
                     handle_dict[name] = handle
@@ -115,14 +122,14 @@ class Wrapper(ParserWrapper):
             handles = [x for l in list(handle_dict.values()) for x in l]
             labels = self._reformat_label_list(labels)
 
-            if i > 0: #"spectrum.txt" not in self.parsers[i].filepath:
+            if i > 0:  # "spectrum.txt" not in self.parsers[i].filepath:
                 self.axs[row, col].legend(
                     handles=handles,
                     labels=labels,
                     prop={"size": self.fontdict_legend["size"]},
                     loc="upper right",
-                    )
-                self.axs[row,col].text(
+                )
+                self.axs[row, col].text(
                     0.5,
                     0.1,
                     f"MAE: {np.round(parser.mae, 3)}",
@@ -130,21 +137,21 @@ class Wrapper(ParserWrapper):
                     verticalalignment="center",
                     size=self.fontdict_small["size"],
                     transform=self.axs[row, col].transAxes,
-                    )
+                )
 
-            self.axs[row,col].set_title(parser.title, fontdict=self.fontdict)
-            self.axs[row,col].set_xlim(left=np.max(x), right=np.min(x))
+            self.axs[row, col].set_title(parser.title, fontdict=self.fontdict)
+            self.axs[row, col].set_xlim(left=np.max(x), right=np.min(x))
 
             quantification = [
                 f"{p} %" for p in list(parser.quantification.values())
-                ]
+            ]
 
             if "spectrum.txt" not in self.parsers[i].filepath:
                 quant_text = "Quantification:"
             else:
                 quant_text = "Ground truth:"
 
-            self.axs[row,col].text(
+            self.axs[row, col].text(
                 0.03,
                 0.225,
                 quant_text,
@@ -152,26 +159,27 @@ class Wrapper(ParserWrapper):
                 verticalalignment="center",
                 size=self.fontdict_small["size"],
                 transform=self.axs[row, col].transAxes,
-                )
+            )
 
             keys = list(parser.quantification.keys())
             col_labels = self._reformat_label_list(keys)
 
-            table = self.axs[row,col].table(
+            table = self.axs[row, col].table(
                 cellText=[quantification],
                 cellLoc="center",
                 colLabels=col_labels,
                 bbox=[0.03, 0.03, 0.45, 0.15],
-                zorder=500
-                )
+                zorder=500,
+            )
             table.auto_set_font_size(False)
             table.set_fontsize(self.fontdict_small["size"])
 
-        self.axs[0,-1] = self._add_nn_image(self.axs[0,-1])
+        self.axs[0, -1] = self._add_nn_image(self.axs[0, -1])
 
         gs.tight_layout(self.fig)
 
         return self.fig, self.axs
+
 
 # %%
 file_dict = {
@@ -203,7 +211,6 @@ file_dict = {
             "FeO": 5.6,
             "Fe3O4": 8.4,
             "Fe2O3": 54.8,
-
         },
         "mae": 0.132,
     },
@@ -244,11 +251,19 @@ save_dir = r"C:\Users\pielsticker\Lukas\MPI-CEC\Publications\DeepXPS paper\Manus
 fig_path = os.path.join(save_dir, "peak_fitting_single.png")
 fig.savefig(fig_path)
 
-q_true = np.array(list(file_dict["true"]["quantification"].values()))/100
-q_biesinger = np.array(list(file_dict["Biesinger"]["quantification"].values()))/100
-q_fit_model = np.array(list(file_dict["Peak fit model"]["quantification"].values()))/100
-q_lineshapes = np.array(list(file_dict["Tougaard lineshapes"]["quantification"].values()))/100
-q_nn = np.array([29.9, 16.9, 23.4, 29.8])/100
+q_true = np.array(list(file_dict["true"]["quantification"].values())) / 100
+q_biesinger = (
+    np.array(list(file_dict["Biesinger"]["quantification"].values())) / 100
+)
+q_fit_model = (
+    np.array(list(file_dict["Peak fit model"]["quantification"].values()))
+    / 100
+)
+q_lineshapes = (
+    np.array(list(file_dict["Tougaard lineshapes"]["quantification"].values()))
+    / 100
+)
+q_nn = np.array([29.9, 16.9, 23.4, 29.8]) / 100
 
 from sklearn.metrics import mean_absolute_error
 
@@ -262,5 +277,3 @@ print(f"Biesinger: {mae_biesinger}")
 print(f"Fit model: {mae_fit_model}")
 print(f"Tougaard lineshapes: {mae_lineshapes}")
 print(f"CNN: {mae_nn}")
-
-

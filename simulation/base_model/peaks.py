@@ -253,9 +253,7 @@ class VacuumExcitation:
 
         """
         if self.fermi_width != 0:
-            vac_exc = (
-                (self.fermi_edge(x)) * self.power_law(x) * self.intensity
-            )
+            vac_exc = (self.fermi_edge(x)) * self.power_law(x) * self.intensity
             return vac_exc
 
 

@@ -629,9 +629,7 @@ class Creator:
             ]
             i_auger = self.spectra.index(label_auger)
             i_core = self.spectra.index(label_core)
-            max_value = np.max(
-                [linear_params[i_auger], linear_params[i_core]]
-            )
+            max_value = np.max([linear_params[i_auger], linear_params[i_core]])
             linear_params[i_auger] = max_value
             linear_params[i_core] = max_value
 
@@ -730,10 +728,7 @@ class Creator:
             d = {**d1, **d2}
             dict_list.append(d)
             print(
-                "Simulation: "
-                + str(i + 1)
-                + "/"
-                + str(self.no_of_simulations)
+                "Simulation: " + str(i + 1) + "/" + str(self.no_of_simulations)
             )
 
         print("Number of created spectra: " + str(self.no_of_simulations))

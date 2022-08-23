@@ -208,9 +208,7 @@ class Classifier:
             # Overwrite the previus optimizer learning rate using the
             # backend of keras.
             K.set_value(self.model.optimizer.learning_rate, new_learning_rate)
-            print(
-                "New learning rate: " + str(K.eval(self.model.optimizer.lr))
-            )
+            print("New learning rate: " + str(K.eval(self.model.optimizer.lr)))
 
         # Activate callbacks in experiment logging.
         self.logging.activate_cbs(
@@ -387,9 +385,7 @@ class Classifier:
 
             for i, pred in enumerate(clf.datahandler.pred_test):
                 argmax_class = np.argmax(pred, axis=0)
-                pred_test_classes.append(
-                    self.datahandler.labels[argmax_class]
-                )
+                pred_test_classes.append(self.datahandler.labels[argmax_class])
 
             self.datahandler.pred_train_classes = np.array(
                 pred_train_classes
@@ -471,9 +467,7 @@ class Classifier:
         custom_objects[str(type(self.model).__name__)] = self.model.__class__
         for name, obj in inspect.getmembers(models):
             if inspect.isclass(obj):
-                if obj.__module__.startswith(
-                    "xpsdeeplearning.network.models"
-                ):
+                if obj.__module__.startswith("xpsdeeplearning.network.models"):
                     custom_objects[obj.__module__ + "." + obj.__name__] = obj
 
         # Load from file.
@@ -532,9 +526,7 @@ class Classifier:
                 )
 
         if compile_model:
-            self.model.compile(
-                optimizer=optimizer, loss=loss, metrics=metrics
-            )
+            self.model.compile(optimizer=optimizer, loss=loss, metrics=metrics)
 
     def load_data_preprocess(
         self,
@@ -701,9 +693,7 @@ class Classifier:
                 no_of_spectra, dataset, with_prediction
             )
 
-    def show_worst_predictions(
-        self, no_of_spectra, kind="all", threshold=0.0
-    ):
+    def show_worst_predictions(self, no_of_spectra, kind="all", threshold=0.0):
         """
         Plot the spectra with the highest losses.
 
@@ -773,9 +763,7 @@ class Classifier:
             if ("Flipout" or "Reparameterization") in str(layer.__class__)
         ]
 
-        wd = WeightDistributions(
-            bayesian_layers, fig_dir=self.logging.fig_dir
-        )
+        wd = WeightDistributions(bayesian_layers, fig_dir=self.logging.fig_dir)
 
         if kind == "prior":
             fig = wd.plot_weight_priors(to_file=to_file)
