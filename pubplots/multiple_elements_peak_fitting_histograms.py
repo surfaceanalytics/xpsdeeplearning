@@ -145,17 +145,18 @@ class Wrapper(ParserWrapper):
        for i, parser in enumerate(self.parsers):
            self.axs[0, i].set_title(parser.title, fontdict=self.fontdict)
 
-           q1 = [f"{p[0]} %" for p in list(parser.quantification.values())]
-           q2 = [f"{p[1]} %" for p in list(parser.quantification.values())]
+           q_true = [f"{p[0]} %" for p in list(parser.quantification.values())]
+           q_fitting = [f"{p[1]} %" for p in list(parser.quantification.values())]
+           q_cnn = [f"{p[2]} %" for p in list(parser.quantification.values())]
 
            keys = list(parser.quantification.keys())
            col_labels = self._reformat_label_list(keys)
 
            table = self.axs[0, i].table(
-               cellText=[q1,q2],
+               cellText=[q_true,q_fitting,q_cnn],
                cellLoc="center",
                colLabels=col_labels,
-               rowLabels=["Peak fitting", "CNN"],
+               rowLabels=["Truth", "Peak fitting", "CNN"],
                bbox=[0.12, 0.79, 0.69, 0.15],
            )
            table.auto_set_font_size(False)
@@ -172,7 +173,7 @@ class Wrapper(ParserWrapper):
            )
 
        ax.set_ylim(
-           top=np.max(parser.data["y"]))
+           top=np.max(parser.data["y"]*1.1))
 
     def plot_all(
         self,
@@ -186,17 +187,6 @@ class Wrapper(ParserWrapper):
             dpi=300,
             gridspec_kw={'width_ratios': [2, 1]}
         )
-
-# =============================================================================
-#         subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=None, hspace=None)
-#         left  = 0.125  # the left side of the subplots of the figure
-# right = 0.9    # the right side of the subplots of the figure
-# bottom = 0.1   # the bottom of the subplots of the figure
-# top = 0.9      # the top of the subplots of the figure
-# wspace = 0.2   # the amount of width reserved for blank space between subplots
-# hspace = 0.2   # the amount of height reserved for white space between subplots
-# =============================================================================
-
 
         self.axs[0,0] = self._add_peak_fits(self.axs[0,0], with_fits=with_fits)
 
@@ -223,35 +213,30 @@ class Wrapper(ParserWrapper):
 
 # %% Plot of spectrum with multiple elements
 file_dict = {
-    "true": {
-        "filename": "nicofe_fit2.txt",
+    "nicofe": {
+        "filename": "nicofe_fit.txt",
         "title": "(a)",
         "fit_start": 15,
         "fit_end": -15,
         "shift_x": 0.0,
-        "noise": 32.567,
-        "FWHM": 1.28,
+        "noise": 0.0,
+        "FWHM": 0.0,
         "scatterer": None,
         "distance": 0.0,
         "pressure": 0.0,
         "quantification": {
-            "Ni metal": [15.5, 14.8],
-            "NiO": [23.4, 30.5],
-            "Co metal": [2.4, 0.0],
-            "CoO": [3.5, 2.7],
-            "Co3O4": [36.7, 28.9],
-            "Fe metal": [0.1, 0.0],
-            "FeO": [3.2, 3.0],
-            "Fe3O4": [0.1, 2.2],
-            "Fe2O3": [28.8, 32.3],
+            "Ni metal": [25.9, 20.4, 21.3],
+            "NiO": [19.1, 18.5, 20.5],
+            "Co metal": [15.0, 13.1, 15.9],
+            "CoO": [20.1, 30.1, 23.7],
+            "Co3O4": [0.0, 2.2, 0.0],
+            "Fe metal": [19.9, 15.0, 18.6],
+            "FeO": [0.0, 0.1, 0.0],
+            "Fe3O4": [0.0, 0.0, 0.0],
+            "Fe2O3": [0.0, 0.6, 0.0],
         },
     }
 }
-
-
-"""
-NEED TO UPDATE VALUES IN QUANTIFICATION, INCLUDE REAL VALUES
-"""
 
 wrapper = Wrapper(datafolder, file_dict)
 wrapper.parse_data(bg=True, envelope=True)
@@ -324,9 +309,9 @@ def print_diff(df, threshold, kind="average"):
         df_print["diff"] = (df_true.loc[index] - df_test.loc[index])*100
         #print(f"{index}: max diff.: {max(df_print['diff'])}, mean diff.: {np.mean(np.abs(df_print['diff']))}")
         if kind == "average":
-            metric = np.mean(np.abs(df_print['diff']))
+            metric = np.mean(np.abs(df_print["diff"]))
         elif kind == "max":
-            metric = np.max(df_print['diff'])
+            metric = np.max(df_print["diff"])
         if metric < threshold:
             correct += 1
         else:
