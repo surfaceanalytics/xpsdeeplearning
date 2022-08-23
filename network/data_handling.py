@@ -7,7 +7,7 @@ Created on Tue Feb 23 15:29:41 2021.
 
 import numpy as np
 import h5py
-from sklearn.utils import shuffle
+import sklearn
 
 import seaborn as sns
 import matplotlib.pyplot as plt
@@ -43,6 +43,7 @@ class DataHandler:
         no_of_examples,
         train_test_split,
         train_val_split,
+        shuffle=True
     ):
         """
         Load the data from an HDF5 file and preprocess it.
@@ -59,6 +60,9 @@ class DataHandler:
         train_val_split : float
             Split percentage between train and val set.
             Typically ~ 0.2.
+        shuffle : bool
+            Whether or not the data should be shuffled randomly.
+            Default is true.
 
         Returns
         -------
@@ -124,13 +128,11 @@ class DataHandler:
             dataset_size = hf["X"].shape[0]
             # Randomly choose a subset of the whole data set.
             try:
-                r = np.random.randint(0, dataset_size - self.no_of_examples)
+                r = np.random.randint(0, dataset_size - self.no_of_examples + 1)
             except ValueError as e:
                 error_msg = (
                     "There are not enough spectra in this data set. "
-                    + "Please choose a value of less than {0} ".format(
-                        dataset_size - 1
-                    )
+                    + f"Please choose a value of no more than {dataset_size} "
                     + "for no_of_examples."
                 )
                 raise type(e)(error_msg)
@@ -146,40 +148,45 @@ class DataHandler:
                 )
                 X = np.dstack((new_energies, X))
 
+            self.X = X
+            self.y = y
+
             # Check if the data set was artificially created.
             if "shiftx" in hf.keys():
                 shift_x = hf["shiftx"][r : r + self.no_of_examples, :]
                 noise = hf["noise"][r : r + self.no_of_examples, :]
                 fwhm = hf["FWHM"][r : r + self.no_of_examples, :]
 
+                # If the data set was artificially created, check
+                # if scattering in a gas phase was simulated.
                 if "scatterer" in hf.keys():
-                    # If the data set was artificially created, check
-                    # if scattering in a gas phase was simulated.
                     scatterer = hf["scatterer"][
                         r : r + self.no_of_examples, :
                     ]
                     distance = hf["distance"][r : r + self.no_of_examples, :]
                     pressure = hf["pressure"][r : r + self.no_of_examples, :]
 
-                    (
-                        self.X,
-                        self.y,
-                        shift_x,
-                        noise,
-                        fwhm,
-                        scatterer,
-                        distance,
-                        pressure,
-                    ) = shuffle(
-                        X,
-                        y,
-                        shift_x,
-                        noise,
-                        fwhm,
-                        scatterer,
-                        distance,
-                        pressure,
-                    )
+                    if shuffle:
+                        (
+                            self.X,
+                            self.y,
+                            shift_x,
+                            noise,
+                            fwhm,
+                            scatterer,
+                            distance,
+                            pressure,
+                        ) = sklearn.utils.shuffle(
+                            self.X,
+                            self.y,
+                            shift_x,
+                            noise,
+                            fwhm,
+                            scatterer,
+                            distance,
+                            pressure,
+                            random_state=np.random.RandomState(seed=1)
+                        )
 
                     # Store all parameters of the simulations in a dict
                     sim_values = {
@@ -193,10 +200,13 @@ class DataHandler:
                     self.sim_values = sim_values
 
                 else:
-                    # Shuffle all arrays together
-                    self.X, self.y, shift_x, noise, fwhm = shuffle(
-                        X, y, shift_x, noise, fwhm
-                    )
+                    if shuffle:
+                        # Shuffle all arrays together
+                        self.X, self.y, shift_x, noise, fwhm = sklearn.utils.shuffle(
+                            self.X, self.y, shift_x, noise, fwhm,
+                            random_state=np.random.RandomState(seed=1)
+                            )
+
                     sim_values = {
                         "shift_x": shift_x,
                         "noise": noise,
@@ -242,10 +252,15 @@ class DataHandler:
                     name[0].decode("utf-8")
                     for name in hf["names"][r : r + self.no_of_examples, :]
                 ]
-                names = np.reshape(np.array(names_load_list), (-1, 1))
+                self.names = np.reshape(np.array(names_load_list), (-1, 1))
 
                 # Shuffle all arrays together
-                self.X, self.y, self.names = shuffle(X, y, names)
+                if shuffle:
+                    self.X, self.y, self.names = sklearn.utils.shuffle(
+                        self.X,
+                        self.y,
+                        self.names,
+                        random_state=np.random.RandomState(seed=1))
 
                 # Split into train, val and test sets
                 (
@@ -284,8 +299,10 @@ class DataHandler:
             # If there are neither simulation values nor names in
             # the dataset, just load the X and y arrays.
             else:
-                # Shuffle X and y together
-                self.X, self.y = shuffle(X, y)
+                if shuffle:
+                    # Shuffle X and y together
+                    self.X, self.y = sklearn.utils.shuffle(X, y)
+
                 # Split into train, val and test sets
                 (
                     self.X_train,

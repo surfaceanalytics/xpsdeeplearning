@@ -11,13 +11,14 @@ os.chdir(r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps")
 from xpsdeeplearning.network.data_handling import DataHandler
 
 #%%
-np.random.seed(502)
-input_filepath = r"C:\Users\pielsticker\Simulations\20210914_CoFe_individual_without_auger_peaks_35eV_window\20210914_CoFe_individual_without_auger_peaks_35eV_window_peaks_only.h5"
+np.random.seed(1)
+#input_filepath = r"C:\Users\pielsticker\Simulations\20210914_CoFe_individual_without_auger_peaks_35eV_window\20210914_CoFe_individual_without_auger_peaks_35eV_window_peaks_only.h5"
+input_filepath = r"C:\Users\pielsticker\Simulations\20220802_Fe_linear_combination_small_gas_phase\20220802_Fe_linear_combination_small_gas_phase.h5"
 
 datahandler = DataHandler(intensity_only=False)
 train_test_split = 0.2
 train_val_split = 0.2
-no_of_examples = 200000
+no_of_examples = 101 #200000
 
 (
     X_train,
@@ -34,6 +35,7 @@ no_of_examples = 200000
     no_of_examples=no_of_examples,
     train_test_split=train_test_split,
     train_val_split=train_val_split,
+    shuffle=True
 )
 print("Input shape: " + str(datahandler.input_shape))
 print("Labels: " + str(datahandler.labels))
