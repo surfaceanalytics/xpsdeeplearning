@@ -15,12 +15,12 @@ from time import time
 import matplotlib.pyplot as plt
 
 
-from base_model.spectra import (
+from .base_model.spectra import (
     safe_arange_with_edges,
     MeasuredSpectrum,
 )
-from base_model.figures import Figure
-from sim import Simulation
+from .base_model.figures import Figure
+from .sim import Simulation
 
 # %%
 class Creator:
@@ -81,9 +81,7 @@ class Creator:
                     self.params[key] = params[key]
                 else:
                     for subkey in params["sim_ranges"].keys():
-                        self.sim_ranges[subkey] = params["sim_ranges"][
-                            subkey
-                        ]
+                        self.sim_ranges[subkey] = params["sim_ranges"][subkey]
 
         # Print parameter file name.
         print(
@@ -224,9 +222,7 @@ class Creator:
 
         """
         for i in range(self.no_of_simulations):
-            key = (
-                self.select_reference_set()
-            )  # select a set of references
+            key = self.select_reference_set()  # select a set of references
             self.simulation_matrix[i, 0] = int(key)
 
             self.simulation_matrix[
@@ -310,9 +306,7 @@ class Creator:
         # Select indices where a spectrum is available for this key.
         indices = [
             self.spectra.index(j)
-            for j in inputs.columns[
-                inputs.isnull().any() == False
-            ].tolist()
+            for j in inputs.columns[inputs.isnull().any() == False].tolist()
         ]
         indices_empty = [
             self.spectra.index(j)
@@ -338,9 +332,7 @@ class Creator:
         unselected_auger_spectra = [
             auger_spectrum
             for auger_spectrum in auger_spectra
-            if (
-                auger_region not in list(auger_spectrum.label.keys())[0]
-            )
+            if (auger_region not in list(auger_spectrum.label.keys())[0])
         ]
         selected_auger_indices = [
             inputs.columns.get_loc(list(s.label.keys())[0])
@@ -380,10 +372,7 @@ class Creator:
 
             else:
                 # Linear parameters
-                r = [
-                    np.random.uniform(0.1, 1.0)
-                    for j in range(len(indices))
-                ]
+                r = [np.random.uniform(0.1, 1.0) for j in range(len(indices))]
                 params = self._normalize_float_list(r)
 
                 while all(p >= 0.1 for p in params) is not False:
@@ -409,8 +398,7 @@ class Creator:
                 i for i in indices if i not in unselected_auger_indices
             ]
             while all(
-                p == 0.0
-                for p in [linear_params[i] for i in test_indices]
+                p == 0.0 for p in [linear_params[i] for i in test_indices]
             ):
                 np.random.shuffle(params)
                 param_iter = iter(params)
@@ -440,9 +428,7 @@ class Creator:
             # when available.
             if all(
                 p == 0.0
-                for p in [
-                    linear_params[i] for i in selected_auger_indices
-                ]
+                for p in [linear_params[i] for i in selected_auger_indices]
             ):
                 linear_params = self.select_scaling_params(
                     key=key,
@@ -530,9 +516,7 @@ class Creator:
                 self.sim_ranges["shift_x"][1],
                 step,
             )
-            r = np.round(
-                np.random.randint(0, len(shift_range)), decimals=2
-            )
+            r = np.round(np.random.randint(0, len(shift_range)), decimals=2)
             if -step < shift_range[r] < step:
                 shift_range[r] = 0
 
@@ -597,9 +581,7 @@ class Creator:
         if not labels:
             return []
 
-        auger_regions = set(
-            [label.split(" ", 1)[0] for label in labels]
-        )
+        auger_regions = set([label.split(" ", 1)[0] for label in labels])
         auger_regions = list(auger_regions)
 
         r = np.random.randint(0, len(auger_regions))
@@ -631,9 +613,7 @@ class Creator:
         auger_labels = [
             list(s.label.keys())[0] for s in selected_auger_spectra
         ]
-        auger_phases = [
-            label.split(" ", 1)[1] for label in auger_labels
-        ]
+        auger_phases = [label.split(" ", 1)[1] for label in auger_labels]
         core_labels = [list(s.label.keys())[0] for s in core_spectra]
         core_phases = [label.split(" ", 1)[1] for label in core_labels]
         overlapping_species = [
@@ -644,9 +624,9 @@ class Creator:
             label_auger = [
                 label for label in auger_labels if species in label
             ][0]
-            label_core = [
-                label for label in core_labels if species in label
-            ][0]
+            label_core = [label for label in core_labels if species in label][
+                0
+            ]
             i_auger = self.spectra.index(label_auger)
             i_core = self.spectra.index(label_core)
             max_value = np.max(
@@ -699,9 +679,7 @@ class Creator:
             # for the references that are avalable.
             sim_input_spectra = [
                 spectrum
-                for spectrum in self.input_spectra.iloc[
-                    ref_set_key
-                ].tolist()
+                for spectrum in self.input_spectra.iloc[ref_set_key].tolist()
                 if str(spectrum) != "nan"
             ]
 
@@ -721,8 +699,8 @@ class Creator:
             shift_x = self.simulation_matrix[i][-5]
             signal_to_noise = self.simulation_matrix[i][-4]
             scatterer_id = self.simulation_matrix[i][-3]
-            distance = self.simulation_matrix[i][-2]
-            pressure = self.simulation_matrix[i][-1]
+            pressure = self.simulation_matrix[i][-2]
+            distance = self.simulation_matrix[i][-1]
 
             try:
                 # In order to assign a label, the scatterers are encoded
@@ -758,9 +736,7 @@ class Creator:
                 + str(self.no_of_simulations)
             )
 
-        print(
-            "Number of created spectra: " + str(self.no_of_simulations)
-        )
+        print("Number of created spectra: " + str(self.no_of_simulations))
 
         self.df = pd.DataFrame(dict_list)
 
@@ -801,9 +777,7 @@ class Creator:
 
         spectrum.label = new_label
 
-        y = np.reshape(
-            spectrum.lineshape, (spectrum.lineshape.shape[0], -1)
-        )
+        y = np.reshape(spectrum.lineshape, (spectrum.lineshape.shape[0], -1))
 
         d = {
             "label": spectrum.label,
@@ -996,9 +970,7 @@ class Creator:
         params_text = "\n"
         if df_row["FWHM"] is not None and df_row["FWHM"] != 0:
             params_text += (
-                "FHWM: "
-                + str(np.round(df_row["FWHM"], decimals=2))
-                + "\n"
+                "FHWM: " + str(np.round(df_row["FWHM"], decimals=2)) + "\n"
             )
         else:
             params_text += "FHWM: not changed" + "\n"
@@ -1011,17 +983,13 @@ class Creator:
             params_text += "X shift: none" + "\n"
 
         if df_row["noise"] is not None and df_row["noise"] != 0:
-            params_text += (
-                "S/N: " + "{:.1f}".format(df_row["noise"]) + "\n"
-            )
+            params_text += "S/N: " + "{:.1f}".format(df_row["noise"]) + "\n"
         else:
             params_text += "S/N: not changed" + "\n"
 
         scatter_text = "\n"
         if df_row["scatterer"] is not None:
-            scatter_text += (
-                "Scatterer: " + str(df_row["scatterer"]) + "\n"
-            )
+            scatter_text += "Scatterer: " + str(df_row["scatterer"]) + "\n"
             scatter_text += (
                 "Pressure: " + str(df_row["pressure"]) + " mbar" + "\n"
             )
@@ -1087,9 +1055,7 @@ class FileWriter:
 
         for filetype in filetypes:
             if filetype not in valid_filetypes:
-                print(
-                    "Saving was not successful. Choose a valid filetype!"
-                )
+                print("Saving was not successful. Choose a valid filetype!")
             else:
                 self._save_to_file(self.df, self.filepath, filetype)
                 print(f"Data was saved to {filetype.upper()} file.")
@@ -1232,10 +1198,7 @@ class FileWriter:
             pressure.append(pressure_one)
 
             print(
-                "Prepare HDF5 upload: "
-                + str(index)
-                + "/"
-                + str(df.shape[0])
+                "Prepare HDF5 upload: " + str(index) + "/" + str(df.shape[0])
             )
 
         X = np.array(X, dtype=np.float)

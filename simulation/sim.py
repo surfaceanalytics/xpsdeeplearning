@@ -7,8 +7,8 @@ Created on Thu May  7 11:25:02 2020.
 
 import numpy as np
 import os
-from base_model.spectra import MeasuredSpectrum, SimulatedSpectrum
-from base_model.figures import Figure
+from .base_model.spectra import MeasuredSpectrum, SimulatedSpectrum
+from .base_model.figures import Figure
 
 #%%
 class Simulation:
@@ -39,9 +39,7 @@ class Simulation:
         """
         self.input_spectra = input_spectra
         self.core_spectra = [
-            s
-            for s in self.input_spectra
-            if s.spectrum_type == "core_level"
+            s for s in self.input_spectra if s.spectrum_type == "core_level"
         ]
 
         self.auger_spectra = [
@@ -59,9 +57,7 @@ class Simulation:
         step = input_spectrum.step
         label = ""
 
-        self.output_spectrum = SimulatedSpectrum(
-            start, stop, step, label
-        )
+        self.output_spectrum = SimulatedSpectrum(start, stop, step, label)
 
     def combine_linear(self, scaling_params):
         """
@@ -91,9 +87,7 @@ class Simulation:
 
         # Make sure that the right amount of params is given.
         if len(sim_spectra) < len(scaling_params):
-            print(
-                "Please supply the correct amount of scaling parameters."
-            )
+            print("Please supply the correct amount of scaling parameters.")
             print("Simulated spectrum was not changed!")
 
         elif len(sim_spectra) > len(scaling_params):
@@ -110,9 +104,7 @@ class Simulation:
                     species = list(sim_spectrum.label.keys())[0]
                     concentration = scaling_params[i]
 
-                    intensity = (
-                        sim_spectrum.lineshape * scaling_params[i]
-                    )
+                    intensity = sim_spectrum.lineshape * scaling_params[i]
                     output_list.append(intensity)
 
                     # For each species, the label gets a new key:value
@@ -127,7 +119,10 @@ class Simulation:
                 print("Simulated spectrum was not changed!")
 
     def _position_augers_randomly(
-        self, x, auger_spectra, shift_x=None,
+        self,
+        x,
+        auger_spectra,
+        shift_x=None,
     ):
         """
         Randomly position auger spectra on x.
@@ -163,9 +158,7 @@ class Simulation:
         shift_range = np.arange(-max_shift, max_shift, step)
         if not shift_x:
             # Shift by random amount
-            r = np.round(
-                np.random.randint(0, len(shift_range)), decimals=2
-            )
+            r = np.round(np.random.randint(0, len(shift_range)), decimals=2)
             shift_x = np.round(shift_range[r], 3)
 
         if -step < shift_x < step:
@@ -180,9 +173,7 @@ class Simulation:
 
             # Position auger spectrum in the middle of the window
             m = int(
-                np.where(auger_spectrum.x == np.mean(auger_spectrum.x))[
-                    0
-                ]
+                np.where(auger_spectrum.x == np.mean(auger_spectrum.x))[0]
             )
             n = int(np.where(x == np.mean(x))[0])
             if n > m:
@@ -266,9 +257,7 @@ class Simulation:
             self.output_spectrum.shift_horizontal(kwargs["shift_x"])
 
         if "signal_to_noise" in kwargs.keys():
-            self.output_spectrum.signal_to_noise = kwargs[
-                "signal_to_noise"
-            ]
+            self.output_spectrum.signal_to_noise = kwargs["signal_to_noise"]
             self.output_spectrum.add_noise(kwargs["signal_to_noise"])
 
         if "scatterer" in kwargs.keys():
@@ -320,9 +309,7 @@ class Simulation:
 #%%
 if __name__ == "__main__":
     datapath = (
-        os.path.dirname(os.path.abspath(__file__)).partition(
-            "simulation"
-        )[0]
+        os.path.dirname(os.path.abspath(__file__)).partition("simulation")[0]
         + "data\\references\\NiCoFe"
     )
 
@@ -350,8 +337,5 @@ if __name__ == "__main__":
     #         scatterer={"label": "O2", "distance": 0.2, "pressure": 1.0},
     #     )
     # =============================================================================
-    print(
-        "Linear combination parameters: "
-        + str(sim.output_spectrum.label)
-    )
+    print("Linear combination parameters: " + str(sim.output_spectrum.label))
     sim.plot_simulation(plot_inputs=False)

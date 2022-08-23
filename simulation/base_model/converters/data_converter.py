@@ -45,9 +45,7 @@ class DataConverter:
             in_format: The file format of the loaded file.
         """
         if "in_format" not in kwargs.keys():
-            in_format = self._extensions[
-                filename.rsplit(".", 1)[-1].lower()
-            ]
+            in_format = self._extensions[filename.rsplit(".", 1)[-1].lower()]
         else:
             in_format = kwargs["in_format"]
 
@@ -56,7 +54,7 @@ class DataConverter:
 
     def write(self, filename, **kwargs):
         """
-        Write data to new file.        
+        Write data to new file.
 
         Parameters
         ----------
@@ -71,9 +69,7 @@ class DataConverter:
 
         """
         if "out_format" not in kwargs.keys():
-            out_format = self._extensions[
-                filename.rsplit(".", 1)[-1].lower()
-            ]
+            out_format = self._extensions[filename.rsplit(".", 1)[-1].lower()]
         else:
             out_format = kwargs["out_format"]
 

@@ -156,14 +156,12 @@ class Voigt(Peak):
         if self.width != 0:
             voigt = (
                 self.fraction_gauss
-                * Gauss(
-                    self.position, self.width, self.intensity
-                ).function(x)
+                * Gauss(self.position, self.width, self.intensity).function(x)
             ) + (
                 (1 - self.fraction_gauss)
-                * Lorentz(
-                    self.position, self.width, self.intensity
-                ).function(x)
+                * Lorentz(self.position, self.width, self.intensity).function(
+                    x
+                )
             )
             return voigt
 
@@ -216,9 +214,7 @@ class VacuumExcitation:
 
         """
         k = 0.1
-        fermi = 1 / (
-            np.exp((self.edge - x) / (k * self.fermi_width)) + 1
-        )
+        fermi = 1 / (np.exp((self.edge - x) / (k * self.fermi_width)) + 1)
         return fermi
 
     def power_law(self, x):
@@ -258,9 +254,7 @@ class VacuumExcitation:
         """
         if self.fermi_width != 0:
             vac_exc = (
-                (self.fermi_edge(x))
-                * self.power_law(x)
-                * self.intensity
+                (self.fermi_edge(x)) * self.power_law(x) * self.intensity
             )
             return vac_exc
 
@@ -314,7 +308,7 @@ class Tougaard:
         C = self.C * 20
         tougaard = (
             (self.B * x)
-            / ((C - x ** 2) ** 2 + self.D * x ** 2)
+            / ((C - x**2) ** 2 + self.D * x**2)
             * 1
             / (np.exp((self.Eg - x) / (self.t * self.kb)) + 1)
         )

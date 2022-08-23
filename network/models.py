@@ -27,11 +27,11 @@ class EmptyModel(models.Model):
     ):
         """
         Intialize emppy keras model.
-        
-        Aside from the inputs and outputs for the instantion of the 
-        Model class from Keras, the EmptyModel class also gets as 
+
+        Aside from the inputs and outputs for the instantion of the
+        Model class from Keras, the EmptyModel class also gets as
         paramters the input shape of the data, the no. of classes
-        of the labels as well as how many times the input shall be 
+        of the labels as well as how many times the input shall be
         used.
 
         Parameters
@@ -67,7 +67,7 @@ class EmptyModel(models.Model):
     def get_config(self):
         """
         Overwrite get_config method.
-        
+
         For serialization, all input paramters of the model are added to
         the get_config method from the keras.Model class.
 
@@ -92,7 +92,7 @@ class CustomMLP(EmptyModel):
     def __init__(self, inputshape, num_classes):
         """
         Initialize model with dense and batch norm layers.
-        
+
         Parameters
         ----------
         inputshape : ndarray
@@ -108,15 +108,13 @@ class CustomMLP(EmptyModel):
         self.input_1 = layers.Input(shape=inputshape, name="input_1")
 
         self.flatten_1 = layers.Flatten(name="flatten1")(self.input_1)
-        self.drop_1 = layers.Dropout(rate=0.5, name="drop_1")(
-            self.flatten_1
-        )
+        self.drop_1 = layers.Dropout(rate=0.5, name="drop_1")(self.flatten_1)
         self.dense_1 = layers.Dense(
             units=64, activation="relu", name="dense1"
         )(self.drop_1)
-        self.batch_norm_1 = layers.BatchNormalization(
-            name="batch_norm_1"
-        )(self.dense_1)
+        self.batch_norm_1 = layers.BatchNormalization(name="batch_norm_1")(
+            self.dense_1
+        )
         self.dense_2 = layers.Dense(
             units=num_classes, activation="softmax", name="dense2"
         )(self.batch_norm_1)
@@ -136,12 +134,12 @@ class ClassificationCNN(EmptyModel):
     def __init__(self, inputshape, num_classes):
         """
         Initialize model with convolutional layers.
-        
-        A CNN with three convolutional layers of different kernel size 
-        at the beginning. Works well for learning across scales.   
+
+        A CNN with three convolutional layers of different kernel size
+        at the beginning. Works well for learning across scales.
         This is to be used for classification -> softmax activation in
         the last layer.
-       
+
         Parameters
         ----------
         inputshape : ndarray
@@ -204,16 +202,12 @@ class ClassificationCNN(EmptyModel):
             activation="relu",
             name="conv_3",
         )(self.conv_2)
-        self.average_pool_1 = layers.AveragePooling1D(
-            name="average_pool_1"
-        )(self.conv_3)
+        self.average_pool_1 = layers.AveragePooling1D(name="average_pool_1")(
+            self.conv_3
+        )
 
-        self.flatten_1 = layers.Flatten(name="flatten1")(
-            self.average_pool_1
-        )
-        self.drop_1 = layers.Dropout(rate=0.2, name="drop_1")(
-            self.flatten_1
-        )
+        self.flatten_1 = layers.Flatten(name="flatten1")(self.average_pool_1)
+        self.drop_1 = layers.Dropout(rate=0.2, name="drop_1")(self.flatten_1)
         self.dense_1 = layers.Dense(
             units=1000, activation="relu", name="dense_1"
         )(self.drop_1)
@@ -239,11 +233,11 @@ class RegressionCNN(EmptyModel):
     def __init__(self, inputshape, num_classes):
         """
         Initialize model with convolutional layers.
-        
-        A CNN with three convolutional layers of different kernel size 
+
+        A CNN with three convolutional layers of different kernel size
         at the beginning. Works well for learning across scales.
-        
-        This is to be used for regression on all labels. -> sigmoid 
+
+        This is to be used for regression on all labels. -> sigmoid
         activation in the last layer.
         """
         self.input_1 = layers.Input(shape=inputshape)
@@ -296,16 +290,12 @@ class RegressionCNN(EmptyModel):
             activation="relu",
             name="conv_3",
         )(self.conv_2)
-        self.average_pool_1 = layers.AveragePooling1D(
-            name="average_pool_1"
-        )(self.conv_3)
+        self.average_pool_1 = layers.AveragePooling1D(name="average_pool_1")(
+            self.conv_3
+        )
 
-        self.flatten_1 = layers.Flatten(name="flatten1")(
-            self.average_pool_1
-        )
-        self.drop_1 = layers.Dropout(rate=0.2, name="drop_1")(
-            self.flatten_1
-        )
+        self.flatten_1 = layers.Flatten(name="flatten1")(self.average_pool_1)
+        self.drop_1 = layers.Dropout(rate=0.2, name="drop_1")(self.flatten_1)
         self.dense_1 = layers.Dense(
             units=4000, activation="relu", name="dense_1"
         )(self.drop_1)
@@ -332,12 +322,12 @@ class RegressionCNN(EmptyModel):
 
 class ClassificationCNN2D(EmptyModel):
     """
-    A CNN with three convolutional layers of different kernel size at 
+    A CNN with three convolutional layers of different kernel size at
     the beginning. Works well for learning across scales.
-    
+
     This is to be used for classification -> softmax activation in the
     last layer.
-    
+
     2D model for e.g. MNIST.
     """
 
@@ -382,16 +372,12 @@ class ClassificationCNN2D(EmptyModel):
             activation="relu",
             name="conv_2",
         )(merged_sublayers)
-        self.average_pool_1 = layers.AveragePooling2D(
-            name="average_pool_1"
-        )(self.conv_2)
+        self.average_pool_1 = layers.AveragePooling2D(name="average_pool_1")(
+            self.conv_2
+        )
 
-        self.flatten_1 = layers.Flatten(name="flatten1")(
-            self.average_pool_1
-        )
-        self.drop_1 = layers.Dropout(rate=0.2, name="drop_1")(
-            self.flatten_1
-        )
+        self.flatten_1 = layers.Flatten(name="flatten1")(self.average_pool_1)
+        self.drop_1 = layers.Dropout(rate=0.2, name="drop_1")(self.flatten_1)
         self.dense_1 = layers.Dense(
             units=1000, activation="relu", name="dense_1"
         )(self.drop_1)
@@ -418,9 +404,9 @@ class IdentityBlock(models.Model):
     def __init__(self, filters, kernel_size_2, stage, block, strides=1):
         """
         Initialize the layers.
-        
-        IdentityBlock contain a main path (3 convolutional layers with 
-        subsequent batch norm layers) and a shortcut path 
+
+        IdentityBlock contain a main path (3 convolutional layers with
+        subsequent batch norm layers) and a shortcut path
         without convolutional layers.
 
         Parameters
@@ -429,10 +415,10 @@ class IdentityBlock(models.Model):
             Filter sizes for the 3 convolutional layer at main path.
             The third filter is used in the shortcut path, too.
         kernel_size_2 : int
-            The kernel size of the middle convolutional layer at 
+            The kernel size of the middle convolutional layer at
             main path.
         stage : int
-            Current stage label, used for generating layer names.        
+            Current stage label, used for generating layer names.
             1, 2, ...
         block : str
             Current block label, used for generating layer names.
@@ -462,9 +448,7 @@ class IdentityBlock(models.Model):
             kernel_initializer=glorot_uniform(seed=0),
             name=name + "_conv1",
         )
-        self.batch_1 = layers.BatchNormalization(
-            axis=1, name=name + "_bn1"
-        )
+        self.batch_1 = layers.BatchNormalization(axis=1, name=name + "_bn1")
         # Component 2
         self.conv_2 = layers.Conv1D(
             filters=filter2,
@@ -475,9 +459,7 @@ class IdentityBlock(models.Model):
             name=name + "_conv2",
         )
 
-        self.batch_2 = layers.BatchNormalization(
-            axis=1, name=name + "_bn2"
-        )
+        self.batch_2 = layers.BatchNormalization(axis=1, name=name + "_bn2")
 
         # Component 3
         self.conv_3 = layers.Conv1D(
@@ -488,14 +470,12 @@ class IdentityBlock(models.Model):
             kernel_initializer=glorot_uniform(seed=0),
             name=name + "_conv3",
         )
-        self.batch_3 = layers.BatchNormalization(
-            axis=1, name=name + "_bn3"
-        )
+        self.batch_3 = layers.BatchNormalization(axis=1, name=name + "_bn3")
 
     def call(self, x, training=False):
         """
         Call the model on new inputs.
-        
+
         There is no convolution in the shortcut path.
 
         Parameters
@@ -538,9 +518,9 @@ class ConvBlock(models.Model):
     def __init__(self, filters, kernel_size_2, stage, block, strides=2):
         """
         Initialize the layers.
-        
-        ConvBlocks contain a main path (3 convolutional layers with 
-        subsequent batch norm layers) and a shortcut path 
+
+        ConvBlocks contain a main path (3 convolutional layers with
+        subsequent batch norm layers) and a shortcut path
         (3 convolutional layers with subsequent batch norm layers).
 
         Parameters
@@ -549,10 +529,10 @@ class ConvBlock(models.Model):
             Filter sizes for the 3 convolutional layer at main path.
             The third filter is used in the shortcut path, too.
         kernel_size_2 : int
-            The kernel size of the middle convolutional layer at 
+            The kernel size of the middle convolutional layer at
             main path.
         stage : int
-            Current stage label, used for generating layer names.        
+            Current stage label, used for generating layer names.
             1, 2, ...
         block : str
             Current block label, used for generating layer names.
@@ -582,9 +562,7 @@ class ConvBlock(models.Model):
             kernel_initializer=glorot_uniform(seed=0),
             name=name + "_conv1",
         )
-        self.batch_1 = layers.BatchNormalization(
-            axis=1, name=name + "_bn1"
-        )
+        self.batch_1 = layers.BatchNormalization(axis=1, name=name + "_bn1")
         # Component 2
         self.conv_2 = layers.Conv1D(
             filters=filter2,
@@ -595,9 +573,7 @@ class ConvBlock(models.Model):
             name=name + "_conv2",
         )
 
-        self.batch_2 = layers.BatchNormalization(
-            axis=1, name=name + "_bn2"
-        )
+        self.batch_2 = layers.BatchNormalization(axis=1, name=name + "_bn2")
 
         # Component 3
         self.conv_3 = layers.Conv1D(
@@ -608,9 +584,7 @@ class ConvBlock(models.Model):
             kernel_initializer=glorot_uniform(seed=0),
             name=name + "_conv3",
         )
-        self.batch_3 = layers.BatchNormalization(
-            axis=1, name=name + "_bn3"
-        )
+        self.batch_3 = layers.BatchNormalization(axis=1, name=name + "_bn3")
 
         ### Shortcut Path ###
         self.conv_short = layers.Conv1D(
@@ -628,7 +602,7 @@ class ConvBlock(models.Model):
     def call(self, inputs, training=False):
         """
         Call the model on new inputs.
-        
+
         At shortcut, there is a convolutional layer.
 
         Parameters
@@ -674,20 +648,18 @@ class ConvBlock(models.Model):
 class ResNet1D(EmptyModel):
     """Class instantiatingthe ResNet50 architecture in 1D."""
 
-    def __init__(
-        self, inputshape, num_classes, ap=False, no_of_inputs=1
-    ):
+    def __init__(self, inputshape, num_classes, ap=False, no_of_inputs=1):
         """
         Instantiate layers.
-        
+
         This implementation uses the functional API in Keras.
         Architecture:
             CONV1D -> BATCHNORM -> RELU -> MAXPOOL -> CONVBLOCK
             -> IDBLOCK*2 -> CONVBLOCK -> IDBLOCK*3 -> CONVBLOCK
-            -> IDBLOCK*5 -> CONVBLOCK -> IDBLOCK*2 
-            -> AVGPOOL (optional) -> OUTPUTLAYER 
+            -> IDBLOCK*5 -> CONVBLOCK -> IDBLOCK*2
+            -> AVGPOOL (optional) -> OUTPUTLAYER
             -> NORMALIZED OUTPUTLAYER
-        
+
         Parameters
         ----------
         num_classes : int
@@ -719,12 +691,12 @@ class ResNet1D(EmptyModel):
             kernel_initializer=glorot_uniform(seed=0),
             name="stage1_conv",
         )(self.zero_pad_1)
-        self.batch_1 = layers.BatchNormalization(
-            axis=1, name="stage1_bn"
-        )(self.conv_1)
-        self.act_1 = layers.Activation(
-            activation="relu", name="stage1_act"
-        )(self.batch_1)
+        self.batch_1 = layers.BatchNormalization(axis=1, name="stage1_bn")(
+            self.conv_1
+        )
+        self.act_1 = layers.Activation(activation="relu", name="stage1_act")(
+            self.batch_1
+        )
         self.max_pool_1 = layers.MaxPooling1D(
             pool_size=1, strides=1, name="stage1_max_pool"
         )(self.act_1)
@@ -811,9 +783,7 @@ class ResNet1D(EmptyModel):
             self.flatten = layers.Flatten(name="flatten")(self.avg_pool)
 
         else:
-            self.flatten = layers.Flatten(name="flatten")(
-                self.id_block_5c
-            )
+            self.flatten = layers.Flatten(name="flatten")(self.id_block_5c)
 
         # output layer
         self.dense = layers.Dense(
@@ -845,13 +815,13 @@ class ResNet1DSubclassed(models.Model):
     def __init__(self, num_classes, ap=False, no_of_inputs=1):
         """
         Instantiate layers.
-        
+
         This implementation uses subclassing of models.
         Architecture:
             CONV1D -> BATCHNORM -> RELU -> MAXPOOL -> CONVBLOCK
             -> IDBLOCK*2 -> CONVBLOCK -> IDBLOCK*3 -> CONVBLOCK
-            -> IDBLOCK*5 -> CONVBLOCK -> IDBLOCK*2 
-            -> AVGPOOL (optional) -> OUTPUTLAYER 
+            -> IDBLOCK*5 -> CONVBLOCK -> IDBLOCK*2
+            -> AVGPOOL (optional) -> OUTPUTLAYER
             -> NORMALIZED OUTPUTLAYER
         Parameters
         ----------
@@ -884,12 +854,8 @@ class ResNet1DSubclassed(models.Model):
             kernel_initializer=glorot_uniform(seed=0),
             name="stage1_conv",
         )
-        self.batch_1 = layers.BatchNormalization(
-            axis=1, name="stage1_bn"
-        )
-        self.act_1 = layers.Activation(
-            activation="relu", name="stage1_act"
-        )
+        self.batch_1 = layers.BatchNormalization(axis=1, name="stage1_bn")
+        self.act_1 = layers.Activation(activation="relu", name="stage1_act")
         self.max_pool_1 = layers.MaxPooling1D(
             pool_size=1, strides=1, name="stage1_max_pool"
         )
@@ -1050,12 +1016,12 @@ class ResNet1DSubclassed(models.Model):
 ### Probabilistic implementations ###
 class BayesianClassificationCNN2D(EmptyModel):
     """
-    A CNN with three convolutional layers of different kernel size at 
+    A CNN with three convolutional layers of different kernel size at
     the beginning. Works well for learning across scales.
-    
+
     This is to be used for classification -> softmax activation in the
     last layer.
-    
+
     2D model for e.g. MNIST.
     Implements Bayes by Backprop.
     """
@@ -1116,16 +1082,12 @@ class BayesianClassificationCNN2D(EmptyModel):
             name="conv_2",
         )(merged_sublayers)
 
-        self.average_pool_1 = layers.AveragePooling2D(
-            name="average_pool_1"
-        )(self.conv_2)
+        self.average_pool_1 = layers.AveragePooling2D(name="average_pool_1")(
+            self.conv_2
+        )
 
-        self.flatten_1 = layers.Flatten(name="flatten1")(
-            self.average_pool_1
-        )
-        self.drop_1 = layers.Dropout(rate=0.2, name="drop_1")(
-            self.flatten_1
-        )
+        self.flatten_1 = layers.Flatten(name="flatten1")(self.average_pool_1)
+        self.drop_1 = layers.Dropout(rate=0.2, name="drop_1")(self.flatten_1)
         self.dense_1 = tfp.layers.DenseFlipout(
             units=1000,
             kernel_divergence_fn=kl_divergence_function,
@@ -1155,15 +1117,19 @@ class BayesianClassificationCNN2D(EmptyModel):
 
 class BayesianCNN(EmptyModel):
     """
-    A CNN with three convolutional layers of different kernel size at 
+    A CNN with three convolutional layers of different kernel size at
     the beginning. Works well for learning across scales.
-    
-    This is to be used for regression on all labels. -> sigmoid 
+
+    This is to be used for regression on all labels. -> sigmoid
     activation in the last layer.
     """
 
     def __init__(
-        self, inputshape, num_classes, kl_divergence_fn, task,
+        self,
+        inputshape,
+        num_classes,
+        kl_divergence_fn,
+        task,
     ):
         if len(inputshape) == 2:
             conv_layer = tfp.layers.Convolution1DFlipout
@@ -1247,12 +1213,8 @@ class BayesianCNN(EmptyModel):
             self.conv_3
         )
 
-        self.flatten_1 = layers.Flatten(name="flatten1")(
-            self.average_pool_1
-        )
-        self.drop_1 = layers.Dropout(rate=0.2, name="drop_1")(
-            self.flatten_1
-        )
+        self.flatten_1 = layers.Flatten(name="flatten1")(self.average_pool_1)
+        self.drop_1 = layers.Dropout(rate=0.2, name="drop_1")(self.flatten_1)
         self.dense_1 = tfp.layers.DenseFlipout(
             units=4000,
             kernel_divergence_fn=kl_divergence_fn,

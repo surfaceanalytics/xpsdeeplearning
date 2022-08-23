@@ -28,29 +28,66 @@ from base_model.spectra import (
     Spectrum,
     MeasuredSpectrum,
     FittedSpectrum,
+    SimulatedSpectrum
 )
 from base_model.figures import Figure
 
 #%% For one reference spectrum.
-input_datafolder = r"C:\Users\pielsticker\Downloads"
-filename = "Fe2p_Fe_metal.vms"
+input_datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\utils"
+filename = "NiCoFe.vms"
 
 energies = []
 filepath = os.path.join(input_datafolder, filename)
 ref_spectrum = MeasuredSpectrum(filepath)
-fig_old = Figure(
-    x=ref_spectrum.x, y=ref_spectrum.lineshape, title="old"
-)
+fig_old = Figure(x=ref_spectrum.x, y=ref_spectrum.lineshape, title="old")
 energies.append(ref_spectrum.x[np.argmax(ref_spectrum.lineshape)])
 
-ref_spectrum.resample(start=685.0, stop=770.0, step=0.2)
+ref_spectrum.resample(start=682.0, stop=885.0, step=0.2)
 energies.append(ref_spectrum.x[np.argmax(ref_spectrum.lineshape)])
-fig_new = Figure(
-    x=ref_spectrum.x, y=ref_spectrum.lineshape, title="new"
-)
+fig_new = Figure(x=ref_spectrum.x, y=ref_spectrum.lineshape, title="new")
 new_filename = filename.split(".")[0] + "_new.vms"
 ref_spectrum.write(input_datafolder, new_filename)
 
+# =============================================================================
+# filename_np = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\utils\nicofe_mixed"
+#
+# np.save(filename_np,
+#            ref_spectrum.lineshape)
+# load_ls = np.load(filename_np + ".npy")
+#
+# fig_new = Figure(x=ref_spectrum.x, y=load_ls, title="load")
+# =============================================================================
+
+# =============================================================================
+# #%% To convert TXT to VAMAS
+# input_datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\utils"
+# filename0 = "nicofe.vms"
+# input_datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\xpsdeeplearning\data\references"
+# filename1 = "Pd3d_PdO_narrow.txt"
+#
+# filepath0 = os.path.join(input_datafolder, filename0)
+# ref_spectrum0 = MeasuredSpectrum(filepath0)
+# filepath1 = os.path.join(input_datafolder, filename1)
+# ref_spectrum1 = MeasuredSpectrum(filepath1)
+#
+# fig_old = Figure(x=ref_spectrum.x, y=ref_spectrum.lineshape, title="old")
+#
+# #d = ref_spectrum0.converter.data[0]
+# ref_spectrum0.converter.data[0]["group_name"] = "PdO"
+# ref_spectrum0.converter.data[0]["settings"]["nr_values"] = ref_spectrum1.lineshape.shape[0]
+# ref_spectrum0.x = ref_spectrum1.x
+# ref_spectrum.lineshape = ref_spectrum1.lineshape
+#
+# ref_spectrum.converter.data[0]["spectrum_type"] = "Pd 3d"
+# ref_spectrum.converter.data[0]["data"]["x"] = list(ref_spectrum1.x)
+# ref_spectrum.converter.data[0]["data"]["y0"] = list(ref_spectrum1.lineshape)
+# ref_spectrum.converter.data[0]["data"]["y1"] = ref_spectrum0.converter.data[0]["data"]["y1"][:ref_spectrum1.lineshape.shape[0]]
+#
+# fig_new = Figure(x=ref_spectrum1.x, y=ref_spectrum1.lineshape, title="new")
+# new_filename = filename1 + "_new.vms"
+# ref_spectrum.write(input_datafolder, new_filename)
+#
+# =============================================================================
 #%% For one fitted XPS spectrum
 # =============================================================================
 # input_datafolder = r'C:\Users\pielsticker\Desktop\Mixed Fe spectra\exported'
@@ -259,7 +296,10 @@ def load_data(filepath):
     xy_data = np.array(lines)[:, 2:]
 
     data = {
-        "data": {"x": list(xy_data[:, 0]), "y0": list(xy_data[:, 1]),},
+        "data": {
+            "x": list(xy_data[:, 0]),
+            "y0": list(xy_data[:, 1]),
+        },
         "spectrum_type": species,
         "name": name,
     }
@@ -295,9 +335,10 @@ def convert_all_spectra(input_datafolder, plot_all=True):
     import warnings
 
     warnings.filterwarnings("ignore")
-    filenames = next(os.walk(input_datafolder))[2]
+    #filenames = next(os.walk(input_datafolder))[2]
+    filenames =  ["nicofe_mixed.txt"]
 
-    X = np.zeros((len(filenames), 1121, 1))
+    X = np.zeros((len(filenames), 1901, 1))
 
     spectra = []
     names = []
@@ -307,7 +348,7 @@ def convert_all_spectra(input_datafolder, plot_all=True):
         data = load_data(filepath)
 
         x = np.array(data["data"]["x"])
-        x -= 0.808
+        #x -= 0.808
         x1 = np.roll(x, -1)
         diff = np.abs(np.subtract(x, x1))
         step = np.round(np.min(diff[diff != 0]), 3)
@@ -325,7 +366,7 @@ def convert_all_spectra(input_datafolder, plot_all=True):
 
         index = filenames.index(filename)
 
-        spectrum.resample(start=694, stop=750, step=0.05)
+        spectrum.resample(start=700.0, stop=890.0, step=0.1)
         spectrum.normalize()
         spectra.append(spectrum)
         X[index] = np.reshape(spectrum.lineshape, (-1, 1))
@@ -339,13 +380,42 @@ def convert_all_spectra(input_datafolder, plot_all=True):
 
 
 # Load the data into numpy arrays and save to hdf5 file.
-input_datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Data\NAP-XPS\analyzed data\AmmoMaxRef\exports"
-X, names, energies = convert_all_spectra(
-    input_datafolder, plot_all=True
-)
-output_file = (
-    r"C:\Users\pielsticker\Simulations\20220609_AmmoMax_spectra.h5"
-)
+# =============================================================================
+# input_datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Data\NAP-XPS\analyzed data\AmmoMaxRef\exports"
+# X, names, energies = convert_all_spectra(input_datafolder, plot_all=True)
+# output_file = r"C:\Users\pielsticker\Simulations\20220609_AmmoMax_spectra.h5"
+# =============================================================================
+input_datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\utils\exports"
+X, names, energies = convert_all_spectra(input_datafolder, plot_all=True)
+output_file = r"C:\Users\pielsticker\Simulations\20220721_NiCoFe.h5"
+
+y = np.expand_dims(
+    np.array([
+        0.018,
+        0.234,
+        0.024,
+        0.035,
+        0.367,
+        0.001,
+        0.032,
+        0.001,
+        0.288]
+    ), axis=0)
+
+X = np.repeat(X, 2, axis=0)
+y = np.repeat(y, 2, axis=0)
+names = names + names
+
+label_list = [
+     'Ni2pCo2pFe2p Ni metal',
+     'Ni2pCo2pFe2p NiO',
+     'Ni2pCo2pFe2p Co metal',
+     'Ni2pCo2pFe2p CoO',
+     'Ni2pCo2pFe2p Co3O4',
+     'Ni2pCo2pFe2p Fe metal',
+     'Ni2pCo2pFe2p FeO',
+     'Ni2pCo2pFe2p Fe3O4',
+     'Ni2pCo2pFe2p Fe2O3']
 
 with h5py.File(output_file, "w") as hf:
     hf.create_dataset(
@@ -356,20 +426,44 @@ with h5py.File(output_file, "w") as hf:
         maxshape=(None, X.shape[1], X.shape[2]),
     )
     hf.create_dataset(
+        "y",
+        data=y,
+        compression="gzip",
+        chunks=True,
+        maxshape=(None, y.shape[1]),
+    )
+    hf.create_dataset(
         "energies", data=energies, compression="gzip", chunks=True
     )
     string_dt = h5py.special_dtype(vlen=str)
+
+
+    labels = np.array(label_list, dtype=object)
+    string_dt = h5py.special_dtype(vlen=str)
     hf.create_dataset(
-        "names",
-        data=names,
+        "labels",
+        data=labels,
         dtype=string_dt,
         compression="gzip",
         chunks=True,
     )
 
+# =============================================================================
+#     hf.create_dataset(
+#         "names",
+#         data=names,
+#         dtype=string_dt,
+#         compression="gzip",
+#         chunks=True,
+#     )
+# =============================================================================
+
 # Test the new file
 with h5py.File(output_file, "r") as hf:
     size = hf["X"].shape
     X_h5 = hf["X"][:, :, :]
+    y_h5 = hf["y"][:, :]
     energies_h5 = hf["energies"][:]
-    names_h5 = [str(name.decode("utf-8")) for name in hf["names"][:]]
+   # names_h5 = [str(name.decode("utf-8")) for name in hf["names"][:]]
+    labels_h5 = [str(label) for label in hf["labels"][:]]
+

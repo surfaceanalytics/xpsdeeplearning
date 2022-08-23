@@ -14,22 +14,27 @@ from time import time
 import os
 import json
 import h5py
-import pandas as pd
 
-from creator import Creator, FileWriter, calculate_runtime
+os.chdir(
+    os.path.join(os.path.abspath(__file__).split("deepxps")[0], "deepxps")
+)
+
+from xpsdeeplearning.simulation.creator import (
+    Creator,
+    FileWriter,
+    calculate_runtime,
+)
 
 #%% Input parameter
 # Change the following line according to your folder structure ###
 init_param_folder = (
     r"C:\Users\pielsticker\Simulations\paper"  # "\params_CoFe"
 )
-init_param_filename = "init_params_Ti_core_no_scattering.json"
-#init_param_filename = "init_params_Mn_core_small_gas_phase.json"
+# init_param_filename = "init_params_Mn_core_no_scattering.json"
+init_param_filename = "init_params_Ti_core_big_gas_phase.json"
 
 #%% Parameters
-init_param_filepath = os.path.join(
-    init_param_folder, init_param_filename
-)
+init_param_filepath = os.path.join(init_param_folder, init_param_filename)
 
 with open(init_param_filepath, "r") as param_file:
     params = json.load(param_file)
@@ -48,6 +53,7 @@ runtimes["dataset_creation"] = runtime
 print(f"Runtime: {runtime}.")
 
 import numpy as np
+
 high_fwhm = np.max(df["FWHM"])
 low_fwhm = np.min(df["FWHM"])
 

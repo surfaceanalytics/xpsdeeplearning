@@ -27,9 +27,7 @@ class VamasHeader:
         self.operatorID = "Not Specified"
         self.experimentID = "Not Specified"
         self.noCommentLines = "2"
-        self.commentLines = (
-            "Casa Info Follows CasaXPS Version 2.3.22PR1.0\n0"
-        )
+        self.commentLines = "Casa Info Follows CasaXPS Version 2.3.22PR1.0\n0"
         self.expMode = "NORM"
         self.scanMode = "REGULAR"
         self.nrRegions = "0"

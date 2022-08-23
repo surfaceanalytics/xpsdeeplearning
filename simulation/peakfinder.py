@@ -72,9 +72,7 @@ class Peakfinder:
         None.
 
         """
-        self.peakfull_indices = np.where(
-            [len(p) > 0 for p in self.all_peaks]
-        )
+        self.peakfull_indices = np.where([len(p) > 0 for p in self.all_peaks])
         self.peakless_indices = np.where(
             [len(p) == 0 for p in self.all_peaks]
         )
@@ -110,15 +108,11 @@ class Peakfinder:
 
         for key, array in array_dict.items():
             self.arrays_with_peaks[key] = array[self.peakfull_indices]
-            self.arrays_without_peaks[key] = array[
-                self.peakless_indices
-            ]
+            self.arrays_without_peaks[key] = array[self.peakless_indices]
 
         return self.arrays_with_peaks, self.arrays_without_peaks
 
-    def plot_random_spectra(
-        self, energies, no_of_spectra=5, with_peaks=True
-    ):
+    def plot_random_spectra(self, energies, no_of_spectra=5, with_peaks=True):
         """
         Plot random spectra with indicated peaks.
 
@@ -143,17 +137,13 @@ class Peakfinder:
         for n in range(no_of_spectra):
             if with_peaks:
                 p = self.peakfull_indices[0][
-                    np.random.randint(
-                        0, self.peakfull_indices[0].shape[0]
-                    )
+                    np.random.randint(0, self.peakfull_indices[0].shape[0])
                 ]
                 peaks = self.all_peaks[p]
                 spectrum_text = "With peaks"
             else:
                 p = self.peakless_indices[0][
-                    np.random.randint(
-                        0, self.peakless_indices[0].shape[0]
-                    )
+                    np.random.randint(0, self.peakless_indices[0].shape[0])
                 ]
                 spectrum_text = "No peaks"
                 peaks = []
@@ -195,9 +185,7 @@ class Peakfinder:
         self.arrays_with_peaks["energies"] = energies_h5
         self.arrays_with_peaks["labels"] = labels_h5
 
-        new_filepath = (
-            original_filepath.split(".h5", 1)[0] + "_peaks_only.h5"
-        )
+        new_filepath = original_filepath.split(".h5", 1)[0] + "_peaks_only.h5"
 
         with h5py.File(new_filepath, "w") as hf:
             for key, value in hdf5_data.items():
@@ -238,9 +226,7 @@ all_peaks = peakfinder.get_peak_positions(prominence=0.000025)
 peakfinder.get_indices()
 print(f"Spectra with peaks: {len(peakfinder.peakfull_indices[0])}")
 print(f"Spectra without peaks: {len(peakfinder.peakless_indices[0])}")
-peakfinder.plot_random_spectra(
-    energies_h5, no_of_spectra=10, with_peaks=True
-)
+peakfinder.plot_random_spectra(energies_h5, no_of_spectra=10, with_peaks=True)
 peakfinder.plot_random_spectra(
     energies_h5, no_of_spectra=10, with_peaks=False
 )
