@@ -81,6 +81,8 @@ with h5py.File(writer.hdf5_filepath, "r") as hf:
     noise_h5 = hf["noise"][:4000, :]
     fwhm_h5 = hf["FWHM"][:4000, :]
     scatterers_h5 = hf["scatterer"][:4000, :]
+    distance_h5 = hf["distance"][:4000, :]
+    pressure_h5 = hf["pressure"][:4000, :]
     energies_h5 = hf["energies"][:4000]
     labels_h5 = [str(label) for label in hf["labels"]]
 
