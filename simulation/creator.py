@@ -504,8 +504,12 @@ class Creator:
 
     def _select_random_fwhm(self):
         if self.params["broaden"] is not False:
-            return np.random.randint(
-                self.sim_ranges["FWHM"][0], self.sim_ranges["FWHM"][1]
+            return (
+                np.random.randint(
+                    self.sim_ranges["FWHM"][0] * 1000,
+                    self.sim_ranges["FWHM"][1] * 1000,
+                )
+                / 1000
             )
         return 0
 

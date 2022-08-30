@@ -618,30 +618,26 @@ class SimulatedSpectrum(Spectrum):
 
             self.lineshape = self.lineshape + poisson_noise
 
-    def change_resolution(self, resolution):
+    def change_resolution(self, fwhm):
         """
         Apply Gaussian instrumental broadening.
 
-        This methdod broadens a spectrum assuming a Gaussian kernel.
-        The width of the kernel is determined by the resolution.
-        In particular, the function will determine the mean wavelength
-        and set the Full Width at Half Maximum (FWHM) of the Gaussian
-        to (mean wavelength)/resolution.
+        This method broadens a spectrum assuming a Gaussian kernel.
+        The width of the kernel is determined by the Full Width at
+        Half Maximum (FWHM).
 
         Parameters
         ----------
-        resolution : int
-            The spectral resolution.
+        fwhm : int
+            The FWHM of the broadening Gaussian.
 
         Returns
         -------
         None.
 
         """
-        if resolution == 0 or resolution is None:
-            fwhm = resolution
-        else:
-            fwhm = np.mean(self.x) / float(resolution)
+        if fwhm:
+            #fwhm = np.mean(self.x) / float(resolution)
             sigma = fwhm / (2.0 * np.sqrt(2.0 * np.log(2.0)))
 
             # To preserve the position of spectral lines, the

@@ -15,7 +15,7 @@ from sklearn.metrics import mean_absolute_error
 from common import maximum_absolute_error
 
 #%%
-class MAEWrapper:
+class Wrapper:
     """Parser for XPS data stored in TXT files."""
 
     def __init__(self, datafolder):
@@ -263,7 +263,7 @@ classifiers = {
     "Ti": "20220628_11h55m_Ti_linear_combination_normalized_inputs_small_gas_phase",
 }
 
-wrapper = MAEWrapper(datafolder)
+wrapper = Wrapper(datafolder)
 wrapper.load_predictions(classifiers)
 results = wrapper.calculate_test_losses(loss_func=mean_absolute_error)
 #results_maae = wrapper.calculate_test_losses(loss_func=maximum_absolute_error)
