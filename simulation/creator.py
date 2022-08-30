@@ -546,10 +546,10 @@ class Creator:
         if self.params["scatter"] is not False:
             return (
                 np.random.randint(
-                    self.sim_ranges["pressure"][0] * 10,
-                    self.sim_ranges["pressure"][1] * 10,
+                    self.sim_ranges["pressure"][0] * 100,
+                    self.sim_ranges["pressure"][1] * 100,
                 )
-                / 10
+                / 100
             )
         return 0
 
