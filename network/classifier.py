@@ -534,6 +534,7 @@ class Classifier:
         no_of_examples,
         train_test_split,
         train_val_split,
+        shuffle=True
     ):
         """
         Load the data.
@@ -554,6 +555,9 @@ class Classifier:
         train_val_split : float
             Split percentage between train and val set.
             Typically ~ 0.2.
+            shuffle : bool
+                Whether or not the data should be shuffled randomly.
+                Default is true.
 
         Returns
         -------
@@ -563,10 +567,11 @@ class Classifier:
 
         """
         loaded_data = self.datahandler.load_data_preprocess(
-            input_filepath,
-            no_of_examples,
-            train_test_split,
-            train_val_split,
+            input_filepath=input_filepath,
+            no_of_examples=no_of_examples,
+            train_test_split=train_test_split,
+            train_val_split=train_val_split,
+            shuffle=shuffle
         )
 
         energy_range = [
