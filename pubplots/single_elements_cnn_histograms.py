@@ -12,6 +12,8 @@ import matplotlib.gridspec as gridspec
 import pickle
 from sklearn.metrics import mean_absolute_error
 
+from common import maximum_absolute_error
+
 #%%
 class MAEWrapper:
     """Parser for XPS data stored in TXT files."""
@@ -264,7 +266,7 @@ classifiers = {
 wrapper = MAEWrapper(datafolder)
 wrapper.load_predictions(classifiers)
 results = wrapper.calculate_test_losses(loss_func=mean_absolute_error)
-
+#results_maae = wrapper.calculate_test_losses(loss_func=maximum_absolute_error)
 fig, ax = wrapper.plot_all()
 plt.show()
 

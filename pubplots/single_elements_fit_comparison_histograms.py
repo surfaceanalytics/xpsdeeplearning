@@ -10,9 +10,9 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-from sklearn.metrics import mean_absolute_error
+from sklearn.metrics import mean_absolute_error, r2_score
 
-from common import get_xlsxpath, sort_with_index, print_mae_info
+from common import get_xlsxpath, print_mae_info, maximum_absolute_error
 
 
 os.chdir(
@@ -101,8 +101,13 @@ df_biesinger = df_biesinger.div(df_biesinger.sum(axis=1), axis=0)
 mae_biesinger = mean_absolute_error(
     df_biesinger.to_numpy().T, df_true.to_numpy().T, multioutput="raw_values"
 )
+maae_biesinger = maximum_absolute_error(
+    df_biesinger.to_numpy().T, df_true.to_numpy().T
+)
 df_biesinger["MAE"] = mae_biesinger
+df_biesinger["MaAE"] = maae_biesinger
 print_mae_info(mae_biesinger, "Biesinger")
+
 
 df_fit_model = pd.read_csv(
     get_xlsxpath(fit_datafolder, "fit_model"), index_col=0, sep=";"
@@ -115,8 +120,13 @@ df_fit_model.loc[fe3o4_indices]
 mae_fit_model = mean_absolute_error(
     df_fit_model.to_numpy().T, df_true.to_numpy().T, multioutput="raw_values"
 )
+maae_fit_model = maximum_absolute_error(
+    df_fit_model.to_numpy().T, df_true.to_numpy().T
+)
 df_fit_model["MAE"] = mae_fit_model
+df_fit_model["MaAE"] = maae_fit_model
 print_mae_info(mae_fit_model, "Fit model")
+
 
 df_lineshapes = pd.read_csv(
     get_xlsxpath(fit_datafolder, "lineshapes"), index_col=0, sep=";"
@@ -127,14 +137,23 @@ df_lineshapes = df_lineshapes[cols]
 mae_lineshapes = mean_absolute_error(
     df_lineshapes.to_numpy().T, df_true.to_numpy().T, multioutput="raw_values"
 )
+maae_lineshapes = maximum_absolute_error(
+    df_lineshapes.to_numpy().T, df_true.to_numpy().T
+)
 df_lineshapes["MAE"] = mae_lineshapes
+df_lineshapes["MaAE"] = maae_lineshapes
 print_mae_info(mae_lineshapes, "lineshapes")
+
 
 df_nn = pd.read_csv(get_xlsxpath(fit_datafolder, "nn"), index_col=0, sep=";")
 mae_nn = mean_absolute_error(
     df_nn.to_numpy().T, df_true.to_numpy().T, multioutput="raw_values"
 )
+maae_nn = maximum_absolute_error(
+    df_nn.to_numpy().T, df_true.to_numpy().T
+    )
 df_nn["MAE"] = mae_nn
+df_nn["MaAE"] = maae_nn
 print_mae_info(mae_nn, "Neural network")
 
 fig, axs = plt.subplots(
