@@ -521,7 +521,7 @@ class Creator:
                 step,
             )
             r = np.round(np.random.randint(0, len(shift_range)), decimals=2)
-            if -step < shift_range[r] < step:
+            if -step < np.round(shift_range[r],2) < step:
                 shift_range[r] = 0
 
             return shift_range[r]
