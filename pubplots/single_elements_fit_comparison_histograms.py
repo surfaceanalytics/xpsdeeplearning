@@ -175,6 +175,8 @@ axs[0, 3] = _add_loss_histogram(
     axs[0, 3], mae_nn, title="(D) Convolutional \n Neural network"
 )
 
+fig.tight_layout()
+
 save_dir = r"C:\Users\pielsticker\Lukas\MPI-CEC\Publications\DeepXPS paper\Manuscript - Identification & Quantification\figures"
 fig_filename = "hist_fits_single.png"
 fig_path = os.path.join(save_dir, fig_filename)

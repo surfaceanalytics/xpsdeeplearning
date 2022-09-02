@@ -14,7 +14,7 @@ import csv
 import pickle
 from sklearn.metrics import mean_absolute_error
 
-from common import ParserWrapper
+from common import ParserWrapper, print_mae_info, maximum_absolute_error
 
 #%%
 class Wrapper(ParserWrapper):
@@ -467,3 +467,54 @@ save_dir = r"C:\Users\pielsticker\Lukas\MPI-CEC\Publications\DeepXPS paper\Manus
 fig_filename = "window.png"
 fig_path = os.path.join(save_dir, fig_filename)
 fig.savefig(fig_path)
+
+
+#%%
+print_mae_info(losses_test, "Window", precision=4)
+
+maae_test = wrapper.calculate_test_losses(loss_func=maximum_absolute_error)
+
+def print_diff(losses, threshold):
+    correct = 0
+    wrong = 0
+    for l in losses:
+        if l < threshold:
+            correct += 1
+        else:
+            wrong += 1
+    print(
+        f"No. of correct classifications {correct}/{len(losses)} = {correct/len(losses)*100} %"
+    )
+    print(
+        f"No. of wrong classifications {wrong}/{len(losses)} = {wrong/len(losses)*100} %"
+    )
+
+
+threshold = 0.1  # percent
+losses = {
+    "MAE": losses_test,
+    "MaAE": maae_test
+    }
+
+for name, losses in losses.items():
+    print(name + ":")
+    print_diff(losses, threshold)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

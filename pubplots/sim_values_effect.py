@@ -91,8 +91,8 @@ class Wrapper:
             ]
         )
         print(
-            np.median(losses_test),
-            np.percentile(losses_test, [25, 75]),
+            f"Median loss: {np.round(np.median(losses_test),2)}",
+            f"25th/75th percentile: {np.round(np.percentile(losses_test, [25, 75]),2)}",
         )
         print("Done!")
 
@@ -152,26 +152,29 @@ class Wrapper:
             )
 
         for i, key in enumerate(keys):
+            if key == "fwhsm":
+                clf_name = "20220901_13h40m_Mn_linear_combination_normalized_inputs_no_scattering_medium_broadening"
+                datapath = r"C:\Users\pielsticker\Simulations\20220901_Mn_linear_combination_small_gas_phase_medium_broadening\20220901_Mn_linear_combination_small_gas_phase_medium_broadening.h5"
+                y_test, pred_test = self.load_predictions(clf_name)
+                losses_test = self.calculate_test_losses(loss_func=mean_absolute_error)
+                sim_values_test = self.load_sim_values(datapath)
+
+
             sorted_arrays = np.array(sorted(
                 [
-                    (x[0], i)
-                    for (x, i) in zip(self.sim_values_test[key],
+                    (s[0], l)
+                    for (s, l) in zip(self.sim_values_test[key],
                                       self.results["losses_test"])
                     ],
                 reverse=False
                 )
             )
 
-            if key == "shift_x":
-                self.axs[0,i].scatter(
-                    np.abs(sorted_arrays[:,0]),
-                    sorted_arrays[:,1])
-            else:#if key == "shift_x":
-                self.axs[0,i].scatter(
-                    np.abs(sorted_arrays[:,0]),
-                    sorted_arrays[:,1])
+            self.axs[0,i].scatter(
+                np.abs(sorted_arrays[:,0]),
+                sorted_arrays[:,1])
 
-            self.axs[0,i].set_xlabel(key.capitalize(), fontdict=self.fontdict)
+            self.axs[0,i].set_xlabel(self.x_labels[key], fontdict=self.fontdict)
             self.axs[0,i].set_ylabel("Mean Absolute Error", fontdict=self.fontdict)
             self.axs[0,i].tick_params(axis="x", labelsize=self.fontdict["size"])
             self.axs[0,i].tick_params(axis="y", labelsize=self.fontdict["size"])
@@ -184,34 +187,66 @@ class Wrapper:
 
 #%%
 runfolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\runs"
-clf_name = "20220830_16h30m_Mn_linear_combination_normalized_inputs_small_gas_phase_strong_broadening_using_20220628_11h57m"
-datapath = r"C:\Users\pielsticker\Simulations\20220830_Mn_linear_combination_small_gas_phase_strong_broadening\20220830_Mn_linear_combination_small_gas_phase_strong_broadening.h5"
+clf_name = "20220830_09h42m_Mn_linear_combination_normalized_inputs_small_gas_phase_predict_using_20220628_11h57m"
+datapath = r"C:\Users\pielsticker\Simulations\20220624_Mn_linear_combination_small_gas_phase\20220624_Mn_linear_combination_small_gas_phase.h5"
 
 wrapper = Wrapper(runfolder)
 y_test, pred_test = wrapper.load_predictions(clf_name)
 losses_test = wrapper.calculate_test_losses(loss_func=mean_absolute_error)
 sim_values_test = wrapper.load_sim_values(datapath)
 fig, ax = wrapper.plot_all(keys=["shift_x", "noise", "fwhm"])
-plt.show()
 
 save_dir = r"C:\Users\pielsticker\Lukas\MPI-CEC\Publications\DeepXPS paper\Manuscript - Identification & Quantification\figures"
 fig_filename = "sim_values_effect.png"
 fig_path = os.path.join(save_dir, fig_filename)
 fig.savefig(fig_path)
 
-# %% See results for noise.
-sorted_arrays = np.array(sorted(
-    [
-        (x[0], i)
-        for (x, i) in zip(wrapper.sim_values_test["noise"],
-                          wrapper.results["losses_test"])
-        ],
-    reverse=False
+# %% See MAE results for individual parameter.
+def print_threshold_info(param_name, th_param, ths_mae, reverse=False):
+    sorted_arrays = np.array(sorted(
+        [
+            (x[0], i)
+            for (x, i) in zip(wrapper.sim_values_test[param_name],
+                              wrapper.results["losses_test"])
+            ],
+        reverse=reverse
+        )
     )
-)
+    if reverse:
+        comp = ">"
+        sim_th = np.where(sorted_arrays[:,0] > th_param)[0]
+    else:
+        comp = "<"
+        sim_th = np.where(sorted_arrays[:,0] < th_param)[0]
 
-np.where(sorted_arrays[np.where(sorted_arrays[:,1] < 0.1)[0], 0] < 5)[0].shape
-np.where(sorted_arrays[:,0] < 5)[0].shape
+    no_sim_th = sim_th.shape[0]
+    if no_sim_th > 0:
+        print(f"Of {no_sim_th} test spectra with {param_name} {comp} {th_param},")
+
+        for th_mae in ths_mae:
+            if reverse:
+                both_th = np.where(sorted_arrays[sim_th,1] > th_mae)[0]
+            else:
+                both_th = np.where(sorted_arrays[sim_th,1] < th_mae)[0]
+
+            no_both_th = both_th.shape[0]
+            ratio = np.round((no_both_th/no_sim_th)*100,2)
+            print(f"\t{no_both_th} ({ratio} %) had a "
+                  f"MAE smaller than {th_mae}.")
+    else:
+        print(f"No test spectrum had {param_name} {comp} {th_param}.")
+
+
+ths_noise = [5, 10, 20, 35]
+ths_mae = [0.05, 0.1, 0.15, 0.2]
+
+for th_noise in ths_noise:
+    print_threshold_info(
+        param_name="noise",
+        th_param=th_noise,
+        ths_mae=ths_mae,
+        reverse=False)
+    print("\n")
 
 #%%
 import pandas as pd
@@ -229,23 +264,56 @@ df_out = pd.DataFrame(d_sim_values)
 df_out.insert(0, "MAE", wrapper.results["losses_test"])
 
 corr_data = df_out.corr(method="pearson")
+mask = np.identity(4)
 
-fig, ax = plt.subplots()
+fig, ax = plt.subplots(figsize=(2,4))
 p = sns.heatmap(
-    corr_data,
+    corr_data[["MAE"]],
     ax=ax,
     linewidths=0.1,
     linecolor="white",
+    annot=True,
+    #mask=mask,
     cmap="YlOrRd",
 )
 ax.set_title(
-    "Correlation matrix of the scanned parameters",
+    "Correlation of the scanned parameters",
     #wrapper.fontdict,
 )
-p.set_xticklabels(corr_data, rotation=90)
-p.set_yticklabels(corr_data, rotation=0)
+
+p.set_xticklabels(corr_data[["MAE"]], rotation=0)
+p.set_yticklabels(corr_data[["MAE"]].index, rotation=0)
 
 for tick in ax.xaxis.get_major_ticks():
     tick.label.set_fontsize(13)
 for tick in ax.yaxis.get_major_ticks():
     tick.label.set_fontsize(13)
+
+#%%
+clf_name = "20220831_10h44m_Mn_linear_combination_normalized_inputs_no_scattering_strong_broadening"
+datapath = r"C:\Users\pielsticker\Simulations\20220830_Mn_linear_combination_small_gas_phase_strong_broadening\20220830_Mn_linear_combination_small_gas_phase_strong_broadening.h5"
+y_test, pred_test = wrapper.load_predictions(clf_name)
+losses_test = wrapper.calculate_test_losses(loss_func=mean_absolute_error)
+sim_values_test = wrapper.load_sim_values(datapath)
+fig, ax = wrapper.plot_all(keys=["shift_x", "noise", "fwhm"])
+
+
+sorted_arrays = np.array(sorted(
+    [
+        (s[0], l)
+        for (s, l) in zip(wrapper.sim_values_test["fwhm"],
+                          wrapper.results["losses_test"])
+        ],
+    reverse=False
+    )
+)
+
+low_fwhm_indices = np.where(sorted_arrays[:,0] < 1.0)
+high_fwhm_indices = np.where(sorted_arrays[:,0] > 7.5)
+
+losses_low_fwhm = np.median(sorted_arrays[low_fwhm_indices][:,1])
+losses_high_fwhm = np.median(sorted_arrays[high_fwhm_indices][:,1])
+
+
+
+
