@@ -861,8 +861,11 @@ class Classifier:
         for key in key_list:
             try:
                 if key == "class_distribution":
-                    cd = getattr(self.datahandler, key)
-                    pickle_data[key] = cd.cd
+                    try:
+                        cd = getattr(self.datahandler, key)
+                        pickle_data[key] = cd.cd
+                    except AttributeError:
+                        print(f"'DataHandler' object has no attribute {key}.")
                 else:
                     try:
                         pickle_data[key] = getattr(self.datahandler, key)
