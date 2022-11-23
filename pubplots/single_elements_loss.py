@@ -49,17 +49,17 @@ def _get_total_history(csv_filepath):
 input_datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\runs"
 
 classifiers = {
-    # "Co": "20220628_08h58m_Co_linear_combination_normalized_inputs_small_gas_phase",
-    # "Cu": "20220628_09h58m_Cu_linear_combination_normalized_inputs_small_gas_phase",
-    # "Fe": "20220629_09h36m_Fe_linear_combination_normalized_inputs_small_gas_phase",
-    # "Fe_1000": "20220629_09h36m_Fe_linear_combination_normalized_inputs_small_gas_phase_after_1000_epochs",
-    # "Mn": "20220628_11h57m_Mn_linear_combination_normalized_inputs_small_gas_phase",
-    # "Mn_1000": "20220628_11h57m_Mn_linear_combination_normalized_inputs_small_gas_phase_after_1000_epochs",
-    # "Ni": "20220627_16h49m_Ni_linear_combination_normalized_inputs_small_gas_phase",
-    # "Pd": "20220627_16h50m_Pd_linear_combination_normalized_inputs_small_gas_phase",
-    # "Ti": "20220628_11h55m_Ti_linear_combination_normalized_inputs_small_gas_phase",
-    "CoFe": "20210914_19h11m_FeCo_combined_without_auger_7_classes_no_window",
-    "NiCoFe": "20210604_23h09m_NiCoFe_9_classes_long_linear_comb_small_gas_phase",
+     "Co": "20220628_08h58m_Co_linear_combination_normalized_inputs_small_gas_phase",
+     "Cu": "20220628_09h58m_Cu_linear_combination_normalized_inputs_small_gas_phase",
+     "Fe": "20220629_09h36m_Fe_linear_combination_normalized_inputs_small_gas_phase",
+     #"Fe_1000": "20220629_09h36m_Fe_linear_combination_normalized_inputs_small_gas_phase_after_1000_epochs",
+     "Mn": "20220628_11h57m_Mn_linear_combination_normalized_inputs_small_gas_phase",
+     #"Mn_1000": "20220628_11h57m_Mn_linear_combination_normalized_inputs_small_gas_phase_after_1000_epochs",
+     "Ni": "20220627_16h49m_Ni_linear_combination_normalized_inputs_small_gas_phase",
+     "Pd": "20220627_16h50m_Pd_linear_combination_normalized_inputs_small_gas_phase",
+     "Ti": "20220628_11h55m_Ti_linear_combination_normalized_inputs_small_gas_phase",
+    #"CoFe": "20210914_19h11m_FeCo_combined_without_auger_7_classes_no_window",
+    #"NiCoFe": "20210604_23h09m_NiCoFe_9_classes_long_linear_comb_small_gas_phase",
 }
 
 history = {}
@@ -139,7 +139,7 @@ def plot_metric(
         ax.plot(clf_history[val_key], linewidth=3, c=colors[i], alpha=0.6)
         ax.set_xlim(-5, len(metric_history) + 5)
 
-        legend += [f"{clf_name}, Train"]
+        legend += [f"{clf_name}, Training"]
         legend += [f"{clf_name}, Validation"]
 
         if zoom:
@@ -179,7 +179,7 @@ def plot_metric(
         fig.savefig(fig_name)
 
 
-fig_dir = r"C:\Users\pielsticker\Lukas\MPI-CEC\Publications\DeepXPS paper\Manuscript - Identification & Quantification\figures"
+fig_dir = r"C:\Users\pielsticker\Lukas\MPI-CEC\Publications\DeepXPS paper\Manuscript - Automatic Quantification\figures"
 
 plot_metric(
     history=history,
@@ -189,6 +189,6 @@ plot_metric(
     zoom=True,
     zoom_x=[100, None],
     zoom_y=[None, 0.1],
-    to_file=False,
+    to_file=True,
     fig_dir=fig_dir,
 )

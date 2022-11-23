@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 
 from sklearn.metrics import mean_absolute_error
 
-from common import get_xlsxpath, sort_with_index, print_mae_info
+from common import get_xlsxpath, print_mae_info, maximum_absolute_error
 
 
 os.chdir(
@@ -23,15 +23,6 @@ input_datafolder = os.path.join(os.getcwd(), "utils")
 fit_datafolder = os.path.join(input_datafolder, "fit_comparison")
 
 # %%
-# =============================================================================
-# def get_xlsxpath(method):
-#     return os.path.join(fit_datafolder, method + ".csv")
-#
-# def sort_with_index(array, reverse=True):
-#     return [f"No. {j} : {k}" for (k, j) in sorted([(x, i) for (i, x) in enumerate(array)],reverse=reverse)]
-# =============================================================================
-
-
 def print_for_one_spectrum(number, method):
     if method == "biesinger":
         df = df_biesinger
@@ -58,24 +49,8 @@ def print_for_one_spectrum(number, method):
         f"\t MAE = {mae_one}",
     )
 
-
-# =============================================================================
-# def print_mae_info(mae, name, precision=3):
-#     print(name + ":")
-#     print(
-#         f"\t Mean MAE = {np.round(np.mean(mae), precision)}" + " \u00B1 " +  f"{np.round(np.std(mae), precision)} \n",
-#         f"\t Median MAE = {np.round(np.median(mae), precision)} \n",
-#         f"\t 25th percentile = {np.round(np.percentile(mae, 25), precision)} \n"
-#         f"\t 75th percentile = {np.round(np.percentile(mae, 75), precision)} \n",
-#         f"\t Maximum MAE = {np.round(np.max(mae), precision)}, Spectrum no. {np.argmax(mae)} \n",
-#         f"\t Minimum MAE = {np.round(np.min(mae), precision)}, Spectrum no. {np.argmin(mae)} \n",
-#         f"\t Lowest 5 MAEs = {sort_with_index(np.round(mae, precision), reverse=False)[:5]} \n",
-#         f"\t Highest 5 MAEs = {sort_with_index(np.round(mae, precision), reverse=True)[:5]} \n",
-#         )
-#
-# =============================================================================
 def _add_loss_histogram(ax, mae, title):
-    fontdict = {"size": 25}
+    fontdict = {"size": 40}
     ax.set_title(title, fontdict=fontdict, multialignment="center")
 
     ax.set_xlabel("Mean Absolute Error ", fontdict=fontdict)
@@ -93,19 +68,19 @@ def _add_loss_histogram(ax, mae, title):
     )
 
     ax.text(
-        0.45,
-        0.8,
-        f"Median MAE: \n {np.round(np.median(mae),2)}",
-        horizontalalignment="left",
+        0.7,
+        0.825,
+        f"Median MAE:\n{np.round(np.median(mae),2)}",
+        horizontalalignment="center",
         size=fontdict["size"],
         verticalalignment="center",
         transform=ax.transAxes,
     )
 
     ax.set_xlim(hist_patches[0].xy[0], 0.5)  # hist_patches[-1].xy[0],)
+    ax.tick_params(axis='x', pad=12)
 
     return ax
-
 
 #%%
 cols = ["Fe metal", "FeO", "Fe3O4", "Fe2O3"]
@@ -126,8 +101,13 @@ df_biesinger = df_biesinger.div(df_biesinger.sum(axis=1), axis=0)
 mae_biesinger = mean_absolute_error(
     df_biesinger.to_numpy().T, df_true.to_numpy().T, multioutput="raw_values"
 )
+maae_biesinger = maximum_absolute_error(
+    df_biesinger.to_numpy().T, df_true.to_numpy().T
+)
 df_biesinger["MAE"] = mae_biesinger
+df_biesinger["MaAE"] = maae_biesinger
 print_mae_info(mae_biesinger, "Biesinger")
+
 
 df_fit_model = pd.read_csv(
     get_xlsxpath(fit_datafolder, "fit_model"), index_col=0, sep=";"
@@ -140,8 +120,13 @@ df_fit_model.loc[fe3o4_indices]
 mae_fit_model = mean_absolute_error(
     df_fit_model.to_numpy().T, df_true.to_numpy().T, multioutput="raw_values"
 )
+maae_fit_model = maximum_absolute_error(
+    df_fit_model.to_numpy().T, df_true.to_numpy().T
+)
 df_fit_model["MAE"] = mae_fit_model
+df_fit_model["MaAE"] = maae_fit_model
 print_mae_info(mae_fit_model, "Fit model")
+
 
 df_lineshapes = pd.read_csv(
     get_xlsxpath(fit_datafolder, "lineshapes"), index_col=0, sep=";"
@@ -152,18 +137,32 @@ df_lineshapes = df_lineshapes[cols]
 mae_lineshapes = mean_absolute_error(
     df_lineshapes.to_numpy().T, df_true.to_numpy().T, multioutput="raw_values"
 )
+maae_lineshapes = maximum_absolute_error(
+    df_lineshapes.to_numpy().T, df_true.to_numpy().T
+)
 df_lineshapes["MAE"] = mae_lineshapes
+df_lineshapes["MaAE"] = maae_lineshapes
 print_mae_info(mae_lineshapes, "lineshapes")
+
 
 df_nn = pd.read_csv(get_xlsxpath(fit_datafolder, "nn"), index_col=0, sep=";")
 mae_nn = mean_absolute_error(
     df_nn.to_numpy().T, df_true.to_numpy().T, multioutput="raw_values"
 )
+maae_nn = maximum_absolute_error(
+    df_nn.to_numpy().T, df_true.to_numpy().T
+    )
 df_nn["MAE"] = mae_nn
+df_nn["MaAE"] = maae_nn
 print_mae_info(mae_nn, "Neural network")
 
 fig, axs = plt.subplots(
-    nrows=1, ncols=4, squeeze=False, figsize=(36, 16), dpi=300
+    nrows=1,
+    ncols=4,
+    squeeze=False,
+    figsize=(40, 16),
+    gridspec_kw={"wspace": 0.3},
+    dpi=300
 )
 
 axs[0, 0] = _add_loss_histogram(
@@ -181,10 +180,12 @@ axs[0, 3] = _add_loss_histogram(
     axs[0, 3], mae_nn, title="(D) Convolutional \n Neural network"
 )
 
-save_dir = r"C:\Users\pielsticker\Lukas\MPI-CEC\Publications\DeepXPS paper\Manuscript - Identification & Quantification\figures"
+fig.tight_layout()
+
+save_dir = r"C:\Users\pielsticker\Lukas\MPI-CEC\Publications\DeepXPS paper\Manuscript - Automatic Quantification\figures"
 fig_filename = "hist_fits_single.png"
 fig_path = os.path.join(save_dir, fig_filename)
-fig.savefig(fig_path)
+fig.savefig(fig_path, bbox_inches="tight")
 
 dfs = {
     "Neural network": df_nn,

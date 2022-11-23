@@ -7,8 +7,6 @@ Created on Thu Sep 23 09:50:14 2021
 
 import os
 import numpy as np
-import pandas as pd
-import pickle
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
@@ -27,9 +25,10 @@ class Wrapper(ParserWrapper):
         super(Wrapper, self).__init__(
             datafolder=datafolder, file_dict=file_dict
         )
-        self.fontdict_small = {"size": 15}
-        self.fontdict_mae = {"size": 18}
-        # self.fontdict_legend = {"size": 14.5}
+        self.fontdict = {"size": 38}
+        self.fontdict_inset = {"size": 30}
+        self.fontdict_small = {"size": 20}
+        self.fontdict_mae = {"size": 28}
 
     def parse_data(self, bg=True, envelope=True):
         for result_dict in self.file_dict.values():
@@ -99,32 +98,20 @@ class Wrapper(ParserWrapper):
 
         colors = ["cornflowerblue", "red", "forestgreen", "darkgrey"]
 
-        if zoom:
-            axins = inset_axes(
-                ax,
-                width=4,
-                height=3,
-                loc=2,
-                bbox_to_anchor=(0.2, 0.6),
-                bbox_transform=ax.figure.transFigure,
-            )
-            axins.set_xlabel("Epochs", fontdict=self.fontdict_small)
-            axins.set_ylabel(str(ylabel), fontdict=self.fontdict_small)
-            axins.tick_params(axis="x", labelsize=self.fontdict_small["size"])
-            axins.tick_params(axis="y", labelsize=self.fontdict_small["size"])
-
         metric_history = history[metric]
         (h0,) = ax.plot(metric_history, linewidth=3, c=colors[0])
         val_key = "val_" + metric
         (h1,) = ax.plot(history[val_key], linewidth=3, c=colors[1], alpha=0.6)
         ax.set_xlim(-5, len(metric_history) + 5)
 
-        labels = ["Train", "Validation"]
+        labels = ["Training", "Validation"]
 
         ax.legend(
             handles=[h0, h1],
             labels=labels,
-            prop=self.fontdict,  # _legend,
+            prop=self.fontdict,
+            title="MAE (L$_1$) loss",
+            title_fontsize=self.fontdict["size"],
             bbox_to_anchor=(0, 0, 1, 1),
             fancybox=True,
             shadow=False,
@@ -132,6 +119,17 @@ class Wrapper(ParserWrapper):
         )
 
         if zoom:
+            axins = inset_axes(
+                ax,
+                width=6,
+                height=4.5,
+                bbox_to_anchor=(0.325, 0.65),
+                bbox_transform=ax.figure.transFigure,
+            )
+            axins.set_xlabel("Epochs", fontdict=self.fontdict_inset)
+            axins.set_ylabel(str(ylabel), fontdict=self.fontdict_inset)
+            axins.tick_params(axis="x", labelsize=self.fontdict_inset["size"])
+            axins.tick_params(axis="y", labelsize=self.fontdict_inset["size"])
             axins.plot(metric_history, linewidth=3, c=colors[0])
             axins.plot(history[val_key], linewidth=3, c=colors[1], alpha=0.5)
             if zoom_x[1] is None:
@@ -167,6 +165,7 @@ class Wrapper(ParserWrapper):
 
             ax.set_title(parser.title, fontdict=self.fontdict)
             ax.set_xlim(left=np.max(x), right=np.min(x))
+            ax.set_ylim(bottom=np.min(y)*0.8)
 
             percentages = [
                 [f"{p[0]} %", f"{p[1]} %"]
@@ -181,11 +180,12 @@ class Wrapper(ParserWrapper):
                 cellLoc="center",
                 colLabels=["Truth", "CNN"],
                 rowLabels=row_labels,
-                bbox=[0.12, 0.025, 0.15, 0.425],
+                bbox=[0.15, 0.025, 0.2, 0.45],
                 zorder=500,
             )
+            table.set_fontsize(self.fontdict_small["size"])
 
-            mae = f"MAE:\n {np.round(parser.mae,3)}"
+            mae = f"MAE:\n{np.round(parser.mae,3)}"
             ax.text(
                 x=0.85,
                 y=0.85,
@@ -221,11 +221,11 @@ class Wrapper(ParserWrapper):
             ax0,
             history=history,
             metric="loss",
-            title="(a) MAE (L$_1$) loss",
+            title="(a) Training and validation loss",
             ylabel="MAE (L$_1$) loss",
             zoom=True,
             zoom_x=[100, None],
-            zoom_y=[None, 0.1],
+            zoom_y=[None, 0.04],
         )
 
         ax0_1 = self._add_spectrum_examples(
@@ -241,7 +241,7 @@ class Wrapper(ParserWrapper):
             ax1_2, self.parsers[3], color="red"
         )
 
-        # gs.tight_layout(self.fig)
+        gs.tight_layout(self.fig)
 
         return self.fig, self.axs
 
@@ -254,12 +254,6 @@ file_dict = {
             "title": "(b)",
             "fit_start": 0,
             "fit_end": -1,
-            # "shift_x": 0.0,
-            # "noise": 0.0,
-            # "FWHM": 0.0,
-            # "scatterer": "O2",
-            # "distance": 0.0,
-            # "pressure": 0.0,
             "mae": 0.00833,
             "quantification": {
                 "Ni metal": [0.0, 0.0],
@@ -278,12 +272,6 @@ file_dict = {
             "title": "(c)",
             "fit_start": 0,
             "fit_end": -1,
-            # "shift_x": 0.0,
-            # "noise": 0.0,
-            # "FWHM": 0.0,
-            # "scatterer": "O2",
-            # "distance": 0.0,
-            # "pressure": 0.0,
             "mae": 0.0132,
             "quantification": {
                 "Ni metal": [25.9, 21.3],
@@ -304,12 +292,6 @@ file_dict = {
             "title": "(d)",
             "fit_start": 0,
             "fit_end": -1,
-            # "shift_x": 0.0,
-            # "noise": 0.0,
-            # "FWHM": 0.0,
-            # "scatterer": "O2",
-            # "distance": 0.0,
-            # "pressure": 0.0,
             "mae": 0.06984,
             "quantification": {
                 "Ni metal": [0.0, 0.0],
@@ -328,12 +310,6 @@ file_dict = {
             "title": "(e)",
             "fit_start": 0,
             "fit_end": -1,
-            # "shift_x": 0.95,
-            # "noise": 18.0,
-            # "FWHM": "not changed",
-            # "scatterer": None,
-            # "distance": 0.0,
-            # "pressure": 0.0,
             "mae": 0.05695,
             "quantification": {
                 "Ni metal": [20.5, 12.2],
@@ -360,6 +336,6 @@ history = wrapper.get_total_history(classifier)
 
 fig, axs = wrapper.plot_all()
 
-save_dir = r"C:\Users\pielsticker\Lukas\MPI-CEC\Publications\DeepXPS paper\Manuscript - Identification & Quantification\figures"
+save_dir = r"C:\Users\pielsticker\Lukas\MPI-CEC\Publications\DeepXPS paper\Manuscript - Automatic Quantification\figures"
 fig_path = os.path.join(save_dir, "loss_examples_multiple.png")
-fig.savefig(fig_path)
+fig.savefig(fig_path, bbox_inches="tight")

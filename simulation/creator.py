@@ -504,8 +504,12 @@ class Creator:
 
     def _select_random_fwhm(self):
         if self.params["broaden"] is not False:
-            return np.random.randint(
-                self.sim_ranges["FWHM"][0], self.sim_ranges["FWHM"][1]
+            return (
+                np.random.randint(
+                    self.sim_ranges["FWHM"][0] * 1000,
+                    self.sim_ranges["FWHM"][1] * 1000,
+                )
+                / 1000
             )
         return 0
 
@@ -517,7 +521,7 @@ class Creator:
                 step,
             )
             r = np.round(np.random.randint(0, len(shift_range)), decimals=2)
-            if -step < shift_range[r] < step:
+            if -step < np.round(shift_range[r],2) < step:
                 shift_range[r] = 0
 
             return shift_range[r]
@@ -546,10 +550,10 @@ class Creator:
         if self.params["scatter"] is not False:
             return (
                 np.random.randint(
-                    self.sim_ranges["pressure"][0] * 10,
-                    self.sim_ranges["pressure"][1] * 10,
+                    self.sim_ranges["pressure"][0] * 100,
+                    self.sim_ranges["pressure"][1] * 100,
                 )
-                / 10
+                / 100
             )
         return 0
 

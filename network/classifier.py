@@ -92,6 +92,92 @@ class Classifier:
         }
         self.logging.save_hyperparams()
 
+    def load_data_preprocess(
+        self,
+        input_filepath,
+        no_of_examples,
+        train_test_split,
+        train_val_split,
+        select_random_subset=True,
+        shuffle=True
+    ):
+        """
+        Load the data.
+
+        Utilizes load_data_preprocess method from DataHandler.
+        Stores all loading parameters in the
+        hyperparameters.json file.
+
+        Parameters
+        ----------
+        input_filepath : str
+            Filepath of the .
+        no_of_examples : int
+            Number of samples from the input file.
+        train_test_split : float
+            Split percentage between train+val and test set.
+            Typically ~ 0.2.
+        train_val_split : float
+            Split percentage between train and val set.
+            Typically ~ 0.2.
+            shuffle : bool
+                Whether or not the data should be shuffled randomly.
+                Default is True.
+        select_random_subset: bool
+            Whether or not a random subset of the data shall
+            be loaded.
+            Default is True.
+        shuffle : bool
+            Whether or not the data should be shuffled randomly.
+            Default is True.
+
+        Returns
+        -------
+        loaded_data : tuple
+            Return the output of the load_data_preprocess method
+            from DataHandler.
+
+        """
+        loaded_data = self.datahandler.load_data_preprocess(
+            input_filepath=input_filepath,
+            no_of_examples=no_of_examples,
+            train_test_split=train_test_split,
+            train_val_split=train_val_split,
+            shuffle=shuffle
+        )
+
+        energy_range = [
+            np.min(self.datahandler.energies),
+            np.max(self.datahandler.energies),
+            np.round(
+                self.datahandler.energies[0] - self.datahandler.energies[1],
+                2,
+            ),
+        ]
+
+        data_params = {
+            "input_filepath": self.datahandler.input_filepath,
+            "train_test_split": self.datahandler.train_test_split,
+            "train_val_split": self.datahandler.train_val_split,
+            "labels": self.datahandler.labels,
+            "num_of_classes": self.datahandler.num_classes,
+            "no_of_examples": self.datahandler.no_of_examples,
+            "energy_range": energy_range,
+            "No. of training samples": str(self.datahandler.X_train.shape[0]),
+            "No. of validation samples": str(self.datahandler.X_val.shape[0]),
+            "No. of test samples": str(self.datahandler.X_test.shape[0]),
+            "Shape of each sample": str(self.datahandler.X_train.shape[1])
+            + " features (X)"
+            + " + "
+            + str(self.datahandler.y_train.shape[1])
+            + " labels (y)",
+        }
+
+        self.logging.update_saved_hyperparams(data_params)
+
+        return loaded_data
+
+
     def summary(self):
         """
         Print a summary of the keras Model in self.model.
@@ -528,78 +614,6 @@ class Classifier:
         if compile_model:
             self.model.compile(optimizer=optimizer, loss=loss, metrics=metrics)
 
-    def load_data_preprocess(
-        self,
-        input_filepath,
-        no_of_examples,
-        train_test_split,
-        train_val_split,
-    ):
-        """
-        Load the data.
-
-        Utilizes load_data_preprocess method from DataHandler.
-        Stores all loading parameters in the
-        hyperparameters.json file.
-
-        Parameters
-        ----------
-        input_filepath : str
-            Filepath of the .
-        no_of_examples : int
-            Number of samples from the input file.
-        train_test_split : float
-            Split percentage between train+val and test set.
-            Typically ~ 0.2.
-        train_val_split : float
-            Split percentage between train and val set.
-            Typically ~ 0.2.
-
-        Returns
-        -------
-        loaded_data : tuple
-            Return the output of the load_data_preprocess method
-            from DataHandler.
-
-        """
-        loaded_data = self.datahandler.load_data_preprocess(
-            input_filepath,
-            no_of_examples,
-            train_test_split,
-            train_val_split,
-        )
-
-        energy_range = [
-            np.min(self.datahandler.energies),
-            np.max(self.datahandler.energies),
-            np.round(
-                self.datahandler.energies[0] - self.datahandler.energies[1],
-                2,
-            ),
-        ]
-
-        data_params = {
-            "input_filepath": self.datahandler.input_filepath,
-            "train_test_split": self.datahandler.train_test_split,
-            "train_val_split": self.datahandler.train_val_split,
-            "labels": self.datahandler.labels,
-            "num_of_classes": self.datahandler.num_classes,
-            "no_of_examples": self.datahandler.no_of_examples,
-            "energy_range": energy_range,
-            "No. of training samples": str(self.datahandler.X_train.shape[0]),
-            "No. of validation samples": str(self.datahandler.X_val.shape[0]),
-            "No. of test samples": str(self.datahandler.X_test.shape[0]),
-            "Shape of each sample": str(self.datahandler.X_train.shape[1])
-            + " features (X)"
-            + " + "
-            + str(self.datahandler.y_train.shape[1])
-            + " labels (y)",
-        }
-
-        self.logging.update_saved_hyperparams(data_params)
-
-        return loaded_data
-
     def plot_spectra_by_indices(
         self, indices, dataset="train", with_prediction=False
     ):
@@ -875,8 +889,11 @@ class Classifier:
         for key in key_list:
             try:
                 if key == "class_distribution":
-                    cd = getattr(self.datahandler, key)
-                    pickle_data[key] = cd.cd
+                    try:
+                        cd = getattr(self.datahandler, key)
+                        pickle_data[key] = cd.cd
+                    except AttributeError:
+                        print(f"'DataHandler' object has no attribute {key}.")
                 else:
                     try:
                         pickle_data[key] = getattr(self.datahandler, key)

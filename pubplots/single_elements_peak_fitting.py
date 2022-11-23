@@ -23,7 +23,8 @@ class Wrapper(ParserWrapper):
         super(Wrapper, self).__init__(
             datafolder=datafolder, file_dict=file_dict
         )
-        self.fontdict_small["size"] = 16
+        self.fontdict["size"] = 32
+        self.fontdict_small["size"] = 18
         self.fontdict_legend["size"] = 16
 
         self.color_dict = {
@@ -44,7 +45,7 @@ class Wrapper(ParserWrapper):
         )
 
         infile = os.path.join(
-            r"C:\Users\pielsticker\Lukas\MPI-CEC\Publications\DeepXPS paper\Manuscript - Identification & Quantification\figures",
+            r"C:\Users\pielsticker\Lukas\MPI-CEC\Publications\DeepXPS paper\Manuscript - Automatic Quantification\figures",
             "neural_net_peak_fitting.png",
         )
         with Image.open(infile) as im:
@@ -59,8 +60,8 @@ class Wrapper(ParserWrapper):
         gs = gridspec.GridSpec(
             nrows=2,
             ncols=ncols + 1,
-            wspace=0.5,
-            hspace=0.5,
+            wspace=0.15,
+            hspace=0.4,
         )
 
         # Set up 2 plots in first three row and 1 in last row.
@@ -247,9 +248,9 @@ wrapper.parse_data(bg=True, envelope=True)
 fig, axs = wrapper.plot_all()
 plt.show()
 
-save_dir = r"C:\Users\pielsticker\Lukas\MPI-CEC\Publications\DeepXPS paper\Manuscript - Identification & Quantification\figures"
+save_dir = r"C:\Users\pielsticker\Lukas\MPI-CEC\Publications\DeepXPS paper\Manuscript - Automatic Quantification\figures"
 fig_path = os.path.join(save_dir, "peak_fitting_single.png")
-fig.savefig(fig_path)
+fig.savefig(fig_path, bbox_inches="tight")
 
 q_true = np.array(list(file_dict["true"]["quantification"].values())) / 100
 q_biesinger = (

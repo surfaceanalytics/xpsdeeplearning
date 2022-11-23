@@ -4,17 +4,19 @@ Created on Mon Jul 11 16:51:00 2022
 
 @author: pielsticker
 """
-
-import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.patches as patches
-import matplotlib.gridspec as gridspec
 import os
 import csv
 import pickle
+import numpy as np
+
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
+import matplotlib.gridspec as gridspec
+from matplotlib.patches import ConnectionPatch
+
 from sklearn.metrics import mean_absolute_error
 
-from common import ParserWrapper
+from common import ParserWrapper, print_mae_info, maximum_absolute_error
 
 #%%
 class Wrapper(ParserWrapper):
@@ -222,12 +224,11 @@ class Wrapper(ParserWrapper):
             cellText=quantification,
             cellLoc="center",
             colLabels=col_labels,
-            bbox=[0.4, 0.45, 0.55, 0.45],
+            bbox=[0.38, 0.4, 0.6, 0.48],
             zorder=500,
         )
         table.auto_set_font_size(False)
-        # print(table.get_fontsize())
-        table.set_fontsize(10)
+        table.set_fontsize(12)
 
         ax.set_xlim(
             hist_patches[0].xy[0],
@@ -387,6 +388,23 @@ class Wrapper(ParserWrapper):
                 transform=self.axs[0, 0].transAxes,
             )
 
+        for w in window:
+            con = ConnectionPatch(
+                xyA=(w,0.27*ymax),
+                xyB=(w,self.axs[1,0].get_ylim()[1]),
+                coordsA="data",
+                coordsB="data",
+                axesA=self.axs[0,0],
+                axesB=self.axs[1,0],
+                linestyle="dashed",
+                arrowstyle="-",
+                linewidth=2,
+                color=self.color_dict["window"],
+                alpha=0.5
+                )
+            self.axs[1,0].add_artist(con)
+        self.axs[0,0].set_axisbelow(False)
+
         # MAE of test spectrum
         y_true = np.array(list(self.parsers[0].quantification.values())) / 100
         y_pred = np.array(list(self.parsers[1].quantification.values())) / 100
@@ -463,7 +481,58 @@ losses_test = wrapper.calculate_test_losses(loss_func=mean_absolute_error)
 fig, ax = wrapper.plot_all()
 plt.show()
 
-save_dir = r"C:\Users\pielsticker\Lukas\MPI-CEC\Publications\DeepXPS paper\Manuscript - Identification & Quantification\figures"
+save_dir = r"C:\Users\pielsticker\Lukas\MPI-CEC\Publications\DeepXPS paper\Manuscript - Automatic Quantification\figures"
 fig_filename = "window.png"
 fig_path = os.path.join(save_dir, fig_filename)
-fig.savefig(fig_path)
+fig.savefig(fig_path, bbox_inches="tight")
+
+
+#%%
+print_mae_info(losses_test, "Window", precision=4)
+
+maae_test = wrapper.calculate_test_losses(loss_func=maximum_absolute_error)
+
+def print_diff(losses, threshold):
+    correct = 0
+    wrong = 0
+    for l in losses:
+        if l < threshold:
+            correct += 1
+        else:
+            wrong += 1
+    print(
+        f"No. of correct classifications {correct}/{len(losses)} = {correct/len(losses)*100} %"
+    )
+    print(
+        f"No. of wrong classifications {wrong}/{len(losses)} = {wrong/len(losses)*100} %"
+    )
+
+
+threshold = 0.1  # percent
+losses = {
+    "MAE": losses_test,
+    "MaAE": maae_test
+    }
+
+for name, losses in losses.items():
+    print(name + ":")
+    print_diff(losses, threshold)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
