@@ -56,12 +56,13 @@ class Wrapper(ParserWrapper):
             histtype="bar",
             fill=True,
             cumulative=False,
-        )
+            )
 
         ax.set_xlim(
             hist_patches[0].xy[0],
             hist_patches[-1].xy[0],
         )
+        ax.tick_params(axis='x', pad=12)
 
         return ax
 
@@ -126,8 +127,8 @@ class Wrapper(ParserWrapper):
 
         texts = [
             ("Ni 2p", 0.065, 0.65),
-            ("Co 2p", 0.4, 0.575),
-            ("Fe 2p", 0.77, 0.4),
+            ("Co 2p", 0.45, 0.575),
+            ("Fe 2p", 0.85, 0.4),
         ]
 
         for t in texts:
@@ -289,7 +290,7 @@ print_mae_info(mae_nn, "Neural network")
 fig, ax = wrapper.plot_all(with_fits=True)
 plt.show()
 
-save_dir = r"C:\Users\pielsticker\Lukas\MPI-CEC\Publications\DeepXPS paper\Manuscript - Identification & Quantification\figures"
+save_dir = r"C:\Users\pielsticker\Lukas\MPI-CEC\Publications\DeepXPS paper\Manuscript - Automatic Quantification\figures"
 fig_path = os.path.join(save_dir, "fit_histograms_multiple.png")
 fig.savefig(fig_path)
 
@@ -324,7 +325,6 @@ fig.savefig(fig_path)
 
 # %%
 dfs = {"Neural network": df_nn, "Lineshapes": df_fit}
-
 
 def print_diff(df, threshold, kind="average"):
     df_test = df.copy()

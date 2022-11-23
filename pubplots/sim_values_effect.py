@@ -12,7 +12,6 @@ import pickle
 import string
 
 from sklearn.metrics import mean_absolute_error
-from common import maximum_absolute_error
 
 os.chdir(
     os.path.join(os.path.abspath(__file__).split("deepxps")[0], "deepxps")
@@ -37,9 +36,7 @@ class Wrapper:
 
         """
         self.runfolder = runfolder
-        self.fontdict = {"size": 42}
-        self.fontdict_small = {"size": 14}
-        self.fontdict_legend = {"size": 16}
+        self.fontdict = {"size": 55}
 
         self.results = {}
 
@@ -108,17 +105,7 @@ class Wrapper:
         train_val_split = 0.2
         no_of_examples = 250000
 
-        (
-            _,
-            _,
-            _,
-            _,
-            _,
-            _,
-            _,
-            _,
-            self.sim_values_test,
-        ) = datahandler.load_data_preprocess(
+        loaded_data = datahandler.load_data_preprocess(
             input_filepath=datapath,
             no_of_examples=no_of_examples,
             train_test_split=train_test_split,
@@ -126,17 +113,19 @@ class Wrapper:
             shuffle=False,
         )
 
+        self.sim_values_test = loaded_data[-1]
+
         return self.sim_values_test
 
 
     def plot_all(self, keys=["noise"]):
         self.x_labels = {
-            "shift_x": "Absolute shift along the BE axis",
+            "shift_x": "Absolute Binding\nEnergy Shift (eV)",
             "noise": "S/N ratio",
-            "fwhm": "FWHM of Gaussian broadening peak",
-            "scatterer": "Scattering medium",
-            "distance": "Distance travelled in gas phase",
-            "pressure": "Gas phase pressure",
+            "fwhm": "FWHM of Gaussian\nBroadening Peak (eV)",
+            "scatterer": "Scattering Medium",
+            "distance": "Distance Travelled\nin Gas Phase (mm)",
+            "pressure": "Gas Phase Pressure (mbar)",
             }
 
         titles = [f"({s})" for s in list(string.ascii_lowercase)]
@@ -148,6 +137,7 @@ class Wrapper:
             ncols,
             figsize=(16*ncols, 24),
             dpi=300,
+            gridspec_kw={"hspace": 0.4, "wspace": 0.3},
             squeeze=False
             )
 
@@ -158,7 +148,6 @@ class Wrapper:
                 y_test, pred_test = self.load_predictions(clf_name)
                 losses_test = self.calculate_test_losses(loss_func=mean_absolute_error)
                 sim_values_test = self.load_sim_values(datapath)
-
 
             sorted_arrays = np.array(sorted(
                 [
@@ -174,11 +163,13 @@ class Wrapper:
                 np.abs(sorted_arrays[:,0]),
                 sorted_arrays[:,1])
 
+            self.axs[0,i].set_ylim(0,None)
             self.axs[0,i].set_xlabel(self.x_labels[key], fontdict=self.fontdict)
             self.axs[0,i].set_ylabel("Mean Absolute Error", fontdict=self.fontdict)
             self.axs[0,i].tick_params(axis="x", labelsize=self.fontdict["size"])
             self.axs[0,i].tick_params(axis="y", labelsize=self.fontdict["size"])
             self.axs[0,i].set_title(titles[i], fontdict=self.fontdict)
+            self.axs[0,i].tick_params(axis='x', pad=12)
 
         self.fig.tight_layout()
 
@@ -196,7 +187,7 @@ losses_test = wrapper.calculate_test_losses(loss_func=mean_absolute_error)
 sim_values_test = wrapper.load_sim_values(datapath)
 fig, ax = wrapper.plot_all(keys=["shift_x", "noise", "fwhm"])
 
-save_dir = r"C:\Users\pielsticker\Lukas\MPI-CEC\Publications\DeepXPS paper\Manuscript - Identification & Quantification\figures"
+save_dir = r"C:\Users\pielsticker\Lukas\MPI-CEC\Publications\DeepXPS paper\Manuscript - Automatic Quantification\figures"
 fig_filename = "sim_values_effect.png"
 fig_path = os.path.join(save_dir, fig_filename)
 fig.savefig(fig_path)
@@ -273,13 +264,9 @@ p = sns.heatmap(
     linewidths=0.1,
     linecolor="white",
     annot=True,
-    #mask=mask,
     cmap="YlOrRd",
 )
-ax.set_title(
-    "Correlation of the scanned parameters",
-    #wrapper.fontdict,
-)
+ax.set_title("Correlation of the scanned parameters")
 
 p.set_xticklabels(corr_data[["MAE"]], rotation=0)
 p.set_yticklabels(corr_data[["MAE"]].index, rotation=0)
@@ -290,30 +277,31 @@ for tick in ax.yaxis.get_major_ticks():
     tick.label.set_fontsize(13)
 
 #%%
-clf_name = "20220831_10h44m_Mn_linear_combination_normalized_inputs_no_scattering_strong_broadening"
-datapath = r"C:\Users\pielsticker\Simulations\20220830_Mn_linear_combination_small_gas_phase_strong_broadening\20220830_Mn_linear_combination_small_gas_phase_strong_broadening.h5"
-y_test, pred_test = wrapper.load_predictions(clf_name)
-losses_test = wrapper.calculate_test_losses(loss_func=mean_absolute_error)
-sim_values_test = wrapper.load_sim_values(datapath)
-fig, ax = wrapper.plot_all(keys=["shift_x", "noise", "fwhm"])
-
-
-sorted_arrays = np.array(sorted(
-    [
-        (s[0], l)
-        for (s, l) in zip(wrapper.sim_values_test["fwhm"],
-                          wrapper.results["losses_test"])
-        ],
-    reverse=False
-    )
-)
-
-low_fwhm_indices = np.where(sorted_arrays[:,0] < 1.0)
-high_fwhm_indices = np.where(sorted_arrays[:,0] > 7.5)
-
-losses_low_fwhm = np.median(sorted_arrays[low_fwhm_indices][:,1])
-losses_high_fwhm = np.median(sorted_arrays[high_fwhm_indices][:,1])
-
+# =============================================================================
+# clf_name = "20220831_10h44m_Mn_linear_combination_normalized_inputs_no_scattering_strong_broadening"
+# datapath = r"C:\Users\pielsticker\Simulations\20220830_Mn_linear_combination_small_gas_phase_strong_broadening\20220830_Mn_linear_combination_small_gas_phase_strong_broadening.h5"
+# y_test, pred_test = wrapper.load_predictions(clf_name)
+# losses_test = wrapper.calculate_test_losses(loss_func=mean_absolute_error)
+# sim_values_test = wrapper.load_sim_values(datapath)
+# fig, ax = wrapper.plot_all(keys=["shift_x", "noise", "fwhm"])
+#
+# sorted_arrays = np.array(sorted(
+#     [
+#         (s[0], l)
+#         for (s, l) in zip(wrapper.sim_values_test["fwhm"],
+#                           wrapper.results["losses_test"])
+#         ],
+#     reverse=False
+#     )
+# )
+#
+# low_fwhm_indices = np.where(sorted_arrays[:,0] < 1.0)
+# high_fwhm_indices = np.where(sorted_arrays[:,0] > 7.5)
+#
+# losses_low_fwhm = np.median(sorted_arrays[low_fwhm_indices][:,1])
+# losses_high_fwhm = np.median(sorted_arrays[high_fwhm_indices][:,1])
+#
+# =============================================================================
 
 
 

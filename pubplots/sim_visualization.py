@@ -21,7 +21,6 @@ from xpsdeeplearning.simulation.base_model.spectra import (
 )
 from xpsdeeplearning.simulation.sim import Simulation
 
-
 # %% Loading
 input_datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\xpsdeeplearning\data\references\NiCoFe"
 
@@ -36,13 +35,13 @@ for filename in filenames:
     filepath = os.path.join(input_datafolder, filename)
     measured_spectra += [MeasuredSpectrum(filepath)]
 
-fontdict = {"size": 17}
-fontdict_legend = {"size": 8.5}
+fontdict = {"size": 34}
+fontdict_legend = {"size": 22}
 
-fig = plt.figure(figsize=(35, 9), dpi=300)
-outer = gridspec.GridSpec(1, 3, wspace=0.2, hspace=3)
+fig = plt.figure(figsize=(36, 18), dpi=300)
+outer = gridspec.GridSpec(1, 3, wspace=0.6, hspace=0.5)
 inner = gridspec.GridSpecFromSubplotSpec(
-    2, 2, subplot_spec=outer[1], wspace=0.4, hspace=0.45
+    2, 2, subplot_spec=outer[1], wspace=0.2, hspace=0.4
 )
 
 ax0 = fig.add_subplot(outer[0, 0])
@@ -80,13 +79,13 @@ sim_values = {
     "noise": [5, 15, 25, 50, 100, 200],
     "FWHM": [1.0, 3.0, 5.0, 7.0, 9.0, 11.0],
     "scatterers": {
-        "0": "He",
-        # "1": "H2",
-        # "2": "N2",
-        # "3": "O2"
+        #0: "He",
+        #1: "H2",
+        #2: "N2",
+        3: "O2"
     },
-    "pressure": {"0": [1, 20], "1": [1, 7]},
-    "distance": [0.1, 1],
+    "pressure": [1, 5, 10],
+    "distance": [0.5, 0.8, 0.3],
 }
 colors = [
     "cornflowerblue",
@@ -99,7 +98,7 @@ colors = [
 alpha = 0.65
 
 # %% Shifting
-ax0_0.set_title("(b) Horizontal shift", fontdict=fontdict)
+ax0_0.set_title("(b) Shift in Binding Energy", fontdict=fontdict)
 ax0_0.set_xlabel("Binding energy (eV)", fontdict=fontdict)
 ax0_0.set_ylabel("Intensity (arb. units)", fontdict=fontdict)
 ax0_0.tick_params(axis="x", labelsize=fontdict["size"])
@@ -126,9 +125,10 @@ for i, shift_x in enumerate(sim_values["shift_x"]):
     legend.append(f"x = {shift_x}")
 legend0_0 = ax0_0.legend(
     legend,
-    title="Fe$^{0}$, shifted by x eV",
+    title="Fe$^{0}$, shifted by\nx eV",
     prop=fontdict_legend,
     title_fontsize=fontdict_legend["size"],
+    handlelength=1,
     loc=2,
     ncol=1,
     frameon=False,
@@ -169,9 +169,10 @@ for i, noise in enumerate(sim_values["noise"]):
     legend.append(str(noise))
 legend0_1 = ax0_1.legend(
     legend,
-    title="Fe$^{0}$, noise changed (new S/N ratio)",
+    title="Fe$^{0}$, noise changed\n(new S/N ratio)",
     prop=fontdict_legend,
     title_fontsize=fontdict_legend["size"],
+    handlelength=1,
     loc=2,
     ncol=1,
     frameon=False,
@@ -183,7 +184,7 @@ legend0_1 = ax0_1.legend(
 legend0_1._legend_box.align = "left"
 
 #%% Resolution
-ax1_0.set_title("(d) Change of resolution", fontdict=fontdict)
+ax1_0.set_title("(d) Broadening", fontdict=fontdict)
 ax1_0.set_xlabel("Binding energy (eV)", fontdict=fontdict)
 ax1_0.set_ylabel("Intensity (arb. units)", fontdict=fontdict)
 ax1_0.tick_params(axis="x", labelsize=fontdict["size"])
@@ -204,21 +205,20 @@ for i, FWHM in enumerate(sim_values["FWHM"]):
         ax1_0.plot(spectrum.x, spectrum.lineshape, c="red", linewidth=2)
         legend.append("original")
 
-    resolution = np.mean(spectrum.x) / FWHM
-    spectrum.change_resolution(resolution)
-    # FWHM = np.mean(spectrum.x) / resolution
+    spectrum.change_resolution(FWHM)
     spectrum.normalize()
     ax1_0.plot(
         spectrum.x, spectrum.lineshape, c=colors[i], alpha=alpha, linewidth=2
     )
     ax1_0.set_xlim(left=np.max(spectrum.x), right=np.min(spectrum.x))
-    legend.append(f"{FWHM} eV")
+    legend.append(f"{np.round(FWHM,0)} eV")
 legend1_0 = ax1_0.legend(
     legend,
-    title="Fe$^{0}$, resolution changed (new FWHM)",
+    title="Fe$^{0}$, broadened\n(FWHM of Gaussian)",
     prop=fontdict_legend,
     title_fontsize=fontdict_legend["size"],
     loc=2,
+    handlelength=1,
     ncol=1,
     bbox_to_anchor=(0, 0, 1, 1),
     fancybox=True,
@@ -230,43 +230,14 @@ legend1_0._legend_box.align = "left"
 
 
 #%% Scattering
-def _select_random_scatterer_key(sim_values):
-    return np.random.randint(0, len(sim_values["scatterers"].keys()))
-
-
-def _select_random_scatterer(sim_values, key):
-    return sim_values["scatterers"][str(key)]
-
-
-def _select_random_scatter_pressure(sim_values, key):
-    sim_range = sim_values["pressure"][str(key)]
-    return (
-        np.random.randint(
-            sim_range[0] * 10,
-            sim_range[1] * 10,
-        )
-        / 10
-    )
-
-
-def _select_random_scatter_distance(sim_values):
-    return (
-        np.random.randint(
-            sim_values["distance"][0] * 100,
-            sim_values["distance"][1] * 100,
-        )
-        / 100
-    )
-
-
-ax1_1.set_title("(e) Scattering in gas phase", fontdict=fontdict)
+ax1_1.set_title("(e) Gas phase scattering", fontdict=fontdict)
 ax1_1.set_xlabel("Binding energy (eV)", fontdict=fontdict)
 ax1_1.set_ylabel("Intensity (arb. units)", fontdict=fontdict)
 ax1_1.tick_params(axis="x", labelsize=fontdict["size"])
 ax1_1.set_yticklabels([])
 ax1_1.tick_params(axis="y", which="both", right=False, left=False)
 legend = []
-for i in range(0, 4):
+for i in range(len(sim_values["pressure"])):
     spectrum = SimulatedSpectrum(
         start=measured_spectra[0].start,
         stop=measured_spectra[0].stop,
@@ -278,11 +249,11 @@ for i in range(0, 4):
     spectrum.normalize()
     if i == 0:
         ax1_1.plot(spectrum.x, spectrum.lineshape, c="red", linewidth=2)
+        ax1_1.set_ylim(None, top=np.max(spectrum.lineshape)*1.2)
         legend.append("original")
-    key = _select_random_scatterer_key(sim_values)
-    scatterer = _select_random_scatterer(sim_values, key)
-    pressure = _select_random_scatter_pressure(sim_values, key)
-    distance = _select_random_scatter_distance(sim_values)
+    scatterer = "O2"
+    pressure = sim_values["pressure"][i]
+    distance = sim_values["distance"][i]
     spectrum.scatter_in_gas(
         label=scatterer, distance=distance, pressure=pressure
     )
@@ -291,13 +262,15 @@ for i in range(0, 4):
         spectrum.x, spectrum.lineshape, c=colors[i], alpha=alpha, linewidth=2
     )
     ax1_1.set_xlim(left=np.max(spectrum.x), right=np.min(spectrum.x))
-    legend.append(f"d: {distance} mm, P: {pressure} mbar")
+    legend.append(f"d = {distance} mm,\nP = {pressure} mbar")
+
 legend1_1 = ax1_1.legend(
     legend,
-    title="Fe$^{0}$, scattered in He",
+    title=f"Fe$^{0}$, scattered in O$_2$",
     prop=fontdict_legend,
     title_fontsize=fontdict_legend["size"],
     loc=2,
+    handlelength=1,
     ncol=1,
     bbox_to_anchor=(0, 0, 1, 1),
     fancybox=True,
@@ -315,16 +288,16 @@ sim_params = {
         "linear_params": [0.25, 0.25, 0.25, 0.25],
         "shift_x": 3,
         "noise": 50,
-        "FWHM": 500,
+        "FWHM": 2,
         "scatterer": "O2",
         "pressure": 1,
         "distance": 1,
     },
     "1": {
         "linear_params": [0.5, 0.25, 0.25, 0],
-        "shift_x": -6,
+        "shift_x": -3,
         "noise": 20,
-        "FWHM": 1000,
+        "FWHM": 1,
         "scatterer": "O2",
         "pressure": 5,
         "distance": 0.2,
@@ -356,17 +329,17 @@ ax2.tick_params(axis="x", labelsize=fontdict["size"])
 ax2.set_yticklabels([])
 ax2.tick_params(axis="y", which="both", right=False, left=False)
 legend = []
-for sim_values in sim_params.values():
+for sim_vals in sim_params.values():
     sim = Simulation(measured_spectra)
-    sim.combine_linear(sim_values["linear_params"])
+    sim.combine_linear(sim_vals["linear_params"])
     sim.change_spectrum(
-        fwhm=sim_values["FWHM"],
-        shift_x=sim_values["shift_x"],
-        signal_to_noise=sim_values["noise"],
+        fwhm=sim_vals["FWHM"],
+        shift_x=sim_vals["shift_x"],
+        signal_to_noise=sim_vals["noise"],
         scatterer={
-            "label": sim_values["scatterer"],
-            "distance": sim_values["distance"],
-            "pressure": sim_values["pressure"],
+            "label": sim_vals["scatterer"],
+            "distance": sim_vals["distance"],
+            "pressure": sim_vals["pressure"],
         },
     )
     sim.output_spectrum.normalize()
@@ -378,10 +351,10 @@ for sim_values in sim_params.values():
     )
 
     legend.append(
-        f"{int(sim_values['linear_params'][0]*100)} % Fe$^{0}$, "
-        + f"{int(sim_values['linear_params'][1]*100)} % FeO, "
-        + f"{int(sim_values['linear_params'][2]*100)} % Fe$_{3}$O$_{4}$, "
-        + f"{int(sim_values['linear_params'][3]*100)} % Fe$_{2}$O$_{3}$"
+        f"{int(sim_vals['linear_params'][0]*100)} % Fe$^{0}$, "
+        + f"{int(sim_vals['linear_params'][1]*100)} % FeO,\n"
+        + f"{int(sim_vals['linear_params'][2]*100)} % Fe$_{3}$O$_{4}$, "
+        + f"{int(sim_vals['linear_params'][3]*100)} % Fe$_{2}$O$_{3}$"
     )
     ax2.set_xlim(
         left=np.max(sim.output_spectrum.x),
@@ -389,12 +362,12 @@ for sim_values in sim_params.values():
     )
 legend2 = ax2.legend(
     legend,
-    prop={"size": 13},
+    prop={"size": 28},
     loc=0,
     ncol=1,
     bbox_to_anchor=(0, 0, 1, 1),
     fancybox=True,
-    frameon=False,
+    frameon=True,
     shadow=False,
     mode=None,
 )
@@ -403,9 +376,9 @@ legend2._legend_box.align = "left"
 outer.tight_layout(fig)
 fig.show()
 
-save_dir = r"C:\Users\pielsticker\Lukas\MPI-CEC\Publications\DeepXPS paper\Manuscript - Identification & Quantification\figures"
-fig_path = os.path.join(save_dir, "data_augmentation.png")
-fig.savefig(fig_path)
+save_dir = r"C:\Users\pielsticker\Lukas\MPI-CEC\Publications\DeepXPS paper\Manuscript - Automatic Quantification\figures"
+fig_path = os.path.join(save_dir, "sim_visualization.png")
+fig.savefig(fig_path, bbox_inches="tight")
 
 # =============================================================================
 # # %% Only linear combination

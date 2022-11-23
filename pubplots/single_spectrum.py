@@ -130,7 +130,7 @@ figure2 = FlippedFigure(
 )
 
 
-save_dir = r"C:\Users\pielsticker\Lukas\MPI-CEC\Publications\DeepXPS paper\Manuscript - Identification & Quantification\figures"
+save_dir = r"C:\Users\pielsticker\Lukas\MPI-CEC\Publications\DeepXPS paper\Manuscript - Automatic Quantification\figures"
 fig_filename = "test_spectrum.tif"
 fig_path = os.path.join(save_dir, fig_filename)
-#figure.fig.savefig(fig_path)
+figure.fig.savefig(fig_path)

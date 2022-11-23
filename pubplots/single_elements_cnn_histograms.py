@@ -12,8 +12,6 @@ import matplotlib.gridspec as gridspec
 import pickle
 from sklearn.metrics import mean_absolute_error
 
-from common import maximum_absolute_error
-
 #%%
 class Wrapper:
     """Parser for XPS data stored in TXT files."""
@@ -204,6 +202,7 @@ class Wrapper:
         table.set_fontsize(8.5)
 
         ax.set_xlim(hist_patches[0].xy[0], 0.4)
+        ax.tick_params(axis='x', pad=12)
 
         return ax
 
@@ -270,7 +269,7 @@ results = wrapper.calculate_test_losses(loss_func=mean_absolute_error)
 fig, ax = wrapper.plot_all()
 plt.show()
 
-save_dir = r"C:\Users\pielsticker\Lukas\MPI-CEC\Publications\DeepXPS paper\Manuscript - Identification & Quantification\figures"
+save_dir = r"C:\Users\pielsticker\Lukas\MPI-CEC\Publications\DeepXPS paper\Manuscript - Automatic Quantification\figures"
 fig_filename = "hist_cnn_single.png"
 fig_path = os.path.join(save_dir, fig_filename)
 fig.savefig(fig_path)

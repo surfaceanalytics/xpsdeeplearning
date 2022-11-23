@@ -21,8 +21,8 @@ class Wrapper(ParserWrapper):
         super(Wrapper, self).__init__(
             datafolder=datafolder, file_dict=file_dict
         )
-        self.fontdict_small = {"size": 10}
-        self.fontdict_mae = {"size": 14.5}
+        self.fontdict_small = {"size": 14}
+        self.fontdict_mae = {"size": 14}
 
     def parse_data(self, bg=True, envelope=True):
         for result_dict in self.file_dict.values():
@@ -40,8 +40,9 @@ class Wrapper(ParserWrapper):
         self.fig, self.axs = plt.subplots(
             nrows=nrows,
             ncols=ncols,
-            figsize=(len(self.parsers) / 2 * 6, 11),
+            figsize=(len(self.parsers) / 2 * 8, 14),
             squeeze=False,
+            gridspec_kw={"hspace": 0.4, "wspace": 0.2},
             dpi=300,
         )
 
@@ -92,6 +93,8 @@ class Wrapper(ParserWrapper):
 
             self.axs[row, col].set_title(parser.title, fontdict=self.fontdict)
             self.axs[row, col].set_xlim(left=np.max(x), right=np.min(x))
+            if (row == 1 and col == 0):
+                self.axs[row, col].set_ylim(bottom=np.min(y)*0.999)
 
             self.axs[row, col].set_title(parser.title, fontdict=self.fontdict)
 
@@ -109,7 +112,7 @@ class Wrapper(ParserWrapper):
                 cellLoc="center",
                 colLabels=col_labels,
                 rowLabels=["Truth", "CNN"],
-                bbox=[0.1, 0.025, 0.126 * len(q1), 0.15],
+                bbox=[0.125, 0.025, 0.16 * len(q1), 0.18],
                 zorder=500,
             )
             table.auto_set_font_size(False)
@@ -117,7 +120,7 @@ class Wrapper(ParserWrapper):
 
             self.axs[row, col].text(
                 0.01,
-                0.205,
+                0.245,
                 "Quantification:",
                 horizontalalignment="left",
                 size=self.fontdict_small["size"],
@@ -125,7 +128,7 @@ class Wrapper(ParserWrapper):
                 transform=self.axs[row, col].transAxes,
             )
 
-            mae = f"MAE:\n {np.round(parser.mae,3)}"
+            mae = f"MAE:\n{np.round(parser.mae,3)}"
             self.axs[row, col].text(
                 x=0.85,
                 y=0.85,
@@ -337,6 +340,6 @@ wrapper.parse_data(bg=False, envelope=False)
 fig, ax = wrapper.plot_all()
 plt.show()
 
-save_dir = r"C:\Users\pielsticker\Lukas\MPI-CEC\Publications\DeepXPS paper\Manuscript - Identification & Quantification\figures"
+save_dir = r"C:\Users\pielsticker\Lukas\MPI-CEC\Publications\DeepXPS paper\Manuscript - Automatic Quantification\figures"
 fig_path = os.path.join(save_dir, "examples_single.png")
-fig.savefig(fig_path)
+fig.savefig(fig_path, bbox_inches="tight")

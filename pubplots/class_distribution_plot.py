@@ -42,7 +42,6 @@ class UpdatedClassDistribution(ClassDistribution):
         fontdict_small = {"size": 12}
         colors = ("black", "green", "blue", "orange")
 
-        # fig = plt.figure(figsize=(6,5), dpi=300)
         fig = plt.figure(dpi=300)
         ax = fig.add_axes([0, 0, 1, 1])
         x = np.arange(len(self.cd.keys())) * 1.5
@@ -135,5 +134,5 @@ class_distribution = UpdatedClassDistribution(
 labels_legend = ["Fe metal", "FeO", "$Fe_{3}O_{4}$", "$Fe_{2}O_{3}$"]
 fig = class_distribution.plot(labels=labels_legend)
 
-output_file = r"C:\Users\pielsticker\Lukas\MPI-CEC\Publications\DeepXPS paper\Manuscript - Identification & Quantification\figures\label_distribution.png"
+output_file = r"C:\Users\pielsticker\Lukas\MPI-CEC\Publications\DeepXPS paper\Manuscript - Automatic Quantification\figures\label_distribution.png"
 fig.savefig(output_file, bbox_inches="tight")

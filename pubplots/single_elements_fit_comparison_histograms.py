@@ -10,7 +10,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-from sklearn.metrics import mean_absolute_error, r2_score
+from sklearn.metrics import mean_absolute_error
 
 from common import get_xlsxpath, print_mae_info, maximum_absolute_error
 
@@ -50,7 +50,7 @@ def print_for_one_spectrum(number, method):
     )
 
 def _add_loss_histogram(ax, mae, title):
-    fontdict = {"size": 25}
+    fontdict = {"size": 40}
     ax.set_title(title, fontdict=fontdict, multialignment="center")
 
     ax.set_xlabel("Mean Absolute Error ", fontdict=fontdict)
@@ -68,19 +68,19 @@ def _add_loss_histogram(ax, mae, title):
     )
 
     ax.text(
-        0.45,
-        0.8,
-        f"Median MAE: \n {np.round(np.median(mae),2)}",
-        horizontalalignment="left",
+        0.7,
+        0.825,
+        f"Median MAE:\n{np.round(np.median(mae),2)}",
+        horizontalalignment="center",
         size=fontdict["size"],
         verticalalignment="center",
         transform=ax.transAxes,
     )
 
     ax.set_xlim(hist_patches[0].xy[0], 0.5)  # hist_patches[-1].xy[0],)
+    ax.tick_params(axis='x', pad=12)
 
     return ax
-
 
 #%%
 cols = ["Fe metal", "FeO", "Fe3O4", "Fe2O3"]
@@ -157,7 +157,12 @@ df_nn["MaAE"] = maae_nn
 print_mae_info(mae_nn, "Neural network")
 
 fig, axs = plt.subplots(
-    nrows=1, ncols=4, squeeze=False, figsize=(36, 16), dpi=300
+    nrows=1,
+    ncols=4,
+    squeeze=False,
+    figsize=(40, 16),
+    gridspec_kw={"wspace": 0.3},
+    dpi=300
 )
 
 axs[0, 0] = _add_loss_histogram(
@@ -177,10 +182,10 @@ axs[0, 3] = _add_loss_histogram(
 
 fig.tight_layout()
 
-save_dir = r"C:\Users\pielsticker\Lukas\MPI-CEC\Publications\DeepXPS paper\Manuscript - Identification & Quantification\figures"
+save_dir = r"C:\Users\pielsticker\Lukas\MPI-CEC\Publications\DeepXPS paper\Manuscript - Automatic Quantification\figures"
 fig_filename = "hist_fits_single.png"
 fig_path = os.path.join(save_dir, fig_filename)
-fig.savefig(fig_path)
+fig.savefig(fig_path, bbox_inches="tight")
 
 dfs = {
     "Neural network": df_nn,
