@@ -781,12 +781,12 @@ class Classifier:
             fig.savefig(filename)
             print("Saved to {}".format(filename))
 
-    def predict_probabilistic(self, dataset="test", no_of_predictions=100):
+    def predict_probabilistic(self, dataset="test", no_of_predictions=100, verbose=0):
 
         X, y = self.datahandler._select_dataset(dataset_name=dataset)
 
         prob_pred = np.array(
-            [self.model.predict(X) for i in range(no_of_predictions)]
+            [self.model.predict(X,verbose=verbose) for i in range(no_of_predictions)]
         ).transpose(1, 0, 2)
 
         if dataset == "train":
@@ -800,29 +800,48 @@ class Classifier:
         return prob_pred
 
     def plot_prob_predictions(
-        self, dataset="test", no_of_spectra=10, to_file=True
+        self, dataset="test", kind="random", no_of_spectra=10, to_file=True
     ):
+        if not hasattr(self.datahandler,f"prob_pred_{dataset}"):
+            prob_preds = self.predict_probabilistic(
+                dataset=dataset,
+                no_of_predictions=500
+                )
+        else:
+            prob_preds = getattr(self.datahandler,f"prob_pred_{dataset}")
 
-        prob_preds = self.predict_probabilistic(
-            dataset=dataset, no_of_predictions=100
-        )
+        filenames  = {
+            "random": "random_probabilistic_predictions",
+            "min": "probabilistic_predictions_with_lowest_std",
+            "max": "probabilistic_predictions_with_highest_std"
+        }
 
-        fig = self.datahandler.plot_prob_predictions(
+        indices = self.datahandler._select_prob_predictions(
+            kind=kind,
             prob_preds=prob_preds,
             dataset=dataset,
-            no_of_spectra=no_of_spectra,
-        )
+            no_of_spectra=no_of_spectra
+            )
+
+        filename = filenames[kind]
+        
+        fig = self.datahandler.plot_prob_predictions(
+            prob_preds=prob_preds,
+            indices=indices,
+            dataset=dataset,
+            no_of_spectra=no_of_spectra
+            )
 
         if to_file:
             epoch = self.logging.hyperparams["epochs_trained"]
 
-            filename = os.path.join(
+            filepath = os.path.join(
                 self.logging.fig_dir,
-                f"probabilistic_predictions_after_epoch_{epoch}.png",
+                f"{filename}_after_epoch{epoch}.png"
             )
 
-            fig.savefig(filename)
-            print("Saved to {}".format(filename))
+            fig.savefig(filepath)
+            print("Saved to {}".format(filepath))
 
     def pickle_results(self):
         """

@@ -918,13 +918,17 @@ class DataHandler:
             fig, axs = graphic.plot()
 
     def plot_prob_predictions(
-        self, prob_preds, dataset="test", no_of_spectra=10
+        self,
+        prob_preds,
+        indices,
+        dataset="test",
+        no_of_spectra=10
     ):
 
         X, y = self._select_dataset(dataset_name="test")
 
         if no_of_spectra > y.shape[0]:
-            print("Provide no. of spectra was bigger than dataset size.")
+            print("Provided no. of spectra was bigger than dataset size.")
             no_of_spectra = y.shape[0]
 
         fig, axs = plt.subplots(
@@ -933,9 +937,7 @@ class DataHandler:
             figsize=(22, 5 * no_of_spectra),
         )
 
-        max_y = np.max([np.float(np.max(y)), np.max(prob_preds)])
 
-        random_numbers = []
         for i in range(no_of_spectra):
             ax0 = axs[i, 0]
             ax1 = axs[i, 1]
@@ -943,26 +945,22 @@ class DataHandler:
             ax3 = axs[i, 3]
             ax4 = axs[i, 4]
 
-            r = np.random.randint(0, X.shape[0])
-
-            while r in random_numbers:
-                r = np.random.randint(0, X.shape[0])
-            random_numbers.append(r)
+            index = indices[i]
 
             if len(X.shape) == 4:
                 ax0.imshow(X[r, :, :, 0], cmap="gist_gray")
             elif len(X.shape) == 3:
-                ax0.plot(self.energies, self.X[r])
+                ax0.plot(self.energies, self.X[index])
                 ax0.invert_xaxis()
                 ax0.set_xlim(np.max(self.energies), np.min(self.energies))
                 ax0.set_xlabel("Binding energy (eV)")
                 ax0.set_ylabel("Intensity (arb. units)")
                 annot = self.write_text_for_spectrum(
                     dataset="test",
-                    index=r,
+                    index=index,
                     with_prediction=False,
                 )
-                ax0.set_title("Spectrum no. {}".format(r))
+                ax0.set_title("Spectrum no. {}".format(index))
                 ax0.text(
                     0.025,
                     0.4,
@@ -973,12 +971,11 @@ class DataHandler:
                     fontsize=12,
                 )
 
-            sns.barplot(x=np.arange(self.num_classes), y=y[r], ax=ax1)
-            # ax1.set_ylim([0, np.max(y)])
+            sns.barplot(x=np.arange(self.num_classes), y=y[index], ax=ax1)
             ax1.set_title("Ground Truth")
 
             colors = iter(mcolors.CSS4_COLORS.keys())
-            for pred in prob_preds[r, :20]:
+            for pred in prob_preds[index, :20]:
                 sns.barplot(
                     x=np.arange(self.num_classes),
                     y=pred,
@@ -989,7 +986,7 @@ class DataHandler:
             # ax2.set_ylim([0, max_y])
             ax2.set_title("Posterior Samples")
 
-            for j, row in enumerate(prob_preds[r, :, :].transpose()):
+            for j, row in enumerate(prob_preds[index, :, :].transpose()):
                 _ = ax3.hist(
                     row,
                     bins=25,
@@ -1008,8 +1005,8 @@ class DataHandler:
 
             ax4.bar(
                 np.arange(self.num_classes),
-                np.mean(prob_preds[r, :, :], axis=0),
-                yerr=np.std(prob_preds[r, :, :], axis=0),
+                np.mean(prob_preds[index, :, :], axis=0),
+                yerr=np.std(prob_preds[index, :, :], axis=0),
                 align="center",
                 ecolor="black",
                 capsize=10,
@@ -1020,9 +1017,39 @@ class DataHandler:
             for ax in [ax1, ax2, ax4]:
                 ax.set_xticks(np.arange(self.num_classes))
                 ax.set_xticklabels(self.labels)
+            for ax in [ax1, ax2, ax3, ax4]:
+                ax.set_ylim(0,1.05)
+
         fig.tight_layout()
 
         return fig
+
+    def _select_prob_predictions(
+        self,
+        prob_preds,
+        kind,
+        dataset="test",
+        no_of_spectra=10
+        ):
+      
+        if kind == "random":
+            X, y = self._select_dataset(dataset_name="test")
+            indices = []
+            for i in range(no_of_spectra):
+                r = np.random.randint(0, X.shape[0])
+                while r in indices:
+                    r = np.random.randint(0, X.shape[0])
+                indices.append(r)
+            return indices
+        
+        elif kind == "min":
+              return [j[1] for j in sorted([(p, i) for (i, p) in enumerate(np.std(prob_preds, axis=1)[:,0])], reverse=False)]
+
+        elif kind == "max":
+              return [j[1] for j in sorted([(p, i) for (i, p) in enumerate(np.std(prob_preds, axis=1)[:,0])], reverse=True)]
+
+        else:
+            print("Select a valid kind!")
 
     def _select_dataset(self, dataset_name):
         """

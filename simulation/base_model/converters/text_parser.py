@@ -156,8 +156,3 @@ class TextParser:
         x = new_x
         y = np.array(new_y)
         return x, y
-
-
-fp = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\xpsdeeplearning\data\references\Fe2p_Fe_metal.txt"
-parser = TextParser()
-parser.parse_file(fp)
