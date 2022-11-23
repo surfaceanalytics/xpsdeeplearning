@@ -878,6 +878,8 @@ class Classifier:
             "pred_test",
             "test_loss",
             "class_distribution",
+            "prob_pred_train",
+            "prob_pred_test",            
         ]
         if self.task != "regression":
             key_list.extend(
