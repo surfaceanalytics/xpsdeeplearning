@@ -661,9 +661,12 @@ class Classifier:
                     with_prediction=True,
                 )
         else:
-            self.datahandler.plot_random(
-                no_of_spectra, dataset, with_prediction=False
-            )
+            self.datahandler.plot_spectra(
+                no_of_spectra=no_of_spectra,
+                dataset=dataset,
+                indices=indices,
+                with_prediction=False,
+                )
 
     def plot_random(
         self, no_of_spectra, dataset="train", with_prediction=False
@@ -838,7 +841,7 @@ class Classifier:
             )
 
         filename = filenames[kind]
-        
+
         fig = self.datahandler.plot_prob_predictions(
             prob_preds=prob_preds,
             indices=indices,
