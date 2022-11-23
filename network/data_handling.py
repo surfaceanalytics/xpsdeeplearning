@@ -43,6 +43,7 @@ class DataHandler:
         no_of_examples,
         train_test_split,
         train_val_split,
+        select_random_subset=True,
         shuffle=True,
     ):
         """
@@ -60,49 +61,141 @@ class DataHandler:
         train_val_split : float
             Split percentage between train and val set.
             Typically ~ 0.2.
+        select_random_subset: bool
+            Whether or not a random subset of the data shall
+            be loaded.
+            Default is True.
         shuffle : bool
             Whether or not the data should be shuffled randomly.
-            Default is true.
+            Default is True.
 
         Returns
         -------
-        self.X_train : ndarray
-            Training features. Shape: 3d Numpy array.
-        self.X_val : ndarray
-            Validation features.
-        self.X_test : ndarray
-            Test features.
-        self.y_train : ndarray. Shape: 2d Numpy array.
-            Training labels.
-        self.y_val : ndarray
-            Validation labels.
-        self.y_test : ndarray
-            Test labels.
-
-        Optionally, the method can also return more information about
-        the data set:
-            self.sim_values_train,
-            self.sim_values_val,
-            self.sim_values_test : dicts
-                Dictionary containing information about the parameters
-                used during the artificical constructuon of the dataset.
-                Keys : 'shiftx', 'noise', 'FWHM',
-                       'scatterer', 'distance', 'pressure'
-                Split in the same way as the features and labels.
-
-             self.names_train,
-             self.names_val,
-             self.names_test : ndarrays
-                 Arrays of the spectra names associated  with each X,y
-                 pairing in the data set. Typical for measured spectra.
-                 Split in the same way as the features and labels.
+        return_data: tuple
+            Tuple with train, val, test sets for each key in the
+            HDF5 file.
+            Always contains:
+                X_train, X_val, y_test: arrays. Shape: 3d Numpy arrays.
+                Features (spectra).
+                y_train, y_val, y_test: arrays. Shape: 2d Numpy array.
+                Labels (qauntification).
+            Depending on the type of file (measured/simulated),
+            the method can also return more information about
+            the data set:
+                self.sim_values_train,
+                self.sim_values_val,
+                self.sim_values_test : dicts
+                    Dictionaries containing information about the parameters
+                    used during the artificical construction of the dataset.
+                    Keys : 'shiftx', 'noise', 'FWHM',
+                           'scatterer', 'distance', 'pressure'
+                    Split in the same way as the features and labels.
+                self.names_train,
+                self.names_val,
+                self.names_test : ndarrays
+                    Arrays of the spectra names associated  with each X,y
+                    pairing in the data set. Typical for measured spectra.
+                    Split in the same way as the features and labels.
         """
         self.input_filepath = input_filepath
         self.train_test_split = train_test_split
         self.train_val_split = train_val_split
         self.no_of_examples = no_of_examples
+        self.shuffle = shuffle
+        self.select_random_subset = select_random_subset
 
-        with h5py.File(input_filepath, "r") as hf:
+        loaded_data = self._load_data_from_file()
+
+        if self.shuffle:
+            loaded_data = sklearn.utils.shuffle(
+                *loaded_data,
+                random_state=np.random.RandomState(seed=1)
+                )
+
+        # Store shuffled data (if shuffle=True), then split in train, val, test.
+        self.X = loaded_data[0]
+        self.X_train, self.X_val, self.X_test = self._split_test_val_train(self.X)
+
+        self.y = loaded_data[1]
+
+        self.y_train, self.y_val, self.y_test = self._split_test_val_train(self.y)
+
+        return_data = [
+            self.X_train,
+            self.X_val,
+            self.X_test,
+            self.y_train,
+            self.y_val,
+            self.y_test,
+            ]
+
+        # Determine the shape of the training features,
+        # needed for model building in Keras.
+        self.input_shape = self.X_train.shape[1:]
+
+        if self.sim_values:
+            self.sim_values_train = {}
+            self.sim_values_val = {}
+            self.sim_values_test = {}
+
+            # Store shuffled data
+            for i, key in enumerate(self.sim_values.keys()):
+                self.sim_values[key] = loaded_data[i+2]
+
+            # Split in train, val, test.
+            for key, array in self.sim_values.items():
+                array_train, array_val, array_test = \
+                    self._split_test_val_train(array)
+                self.sim_values_train[key] = array_train
+                self.sim_values_val[key] = array_val
+                self.sim_values_test[key] = array_test
+            return_data.extend([
+                self.sim_values_train,
+                self.sim_values_val,
+                self.sim_values_test])
+
+        if len(self.names):
+            self.names = loaded_data[-1]
+            self.names_train, self.names_val, self.names_test = self._split_test_val_train(self.names)
+            return_data.extend([
+                self.names_train,
+                self.names_val,
+                self.names_test])
+
+        print("Data was loaded!")
+        print("Total no. of samples: " + str(self.X.shape[0]))
+        print("No. of training samples: " + str(self.X_train.shape[0]))
+        print("No. of validation samples: " + str(self.X_val.shape[0]))
+        print("No. of test samples: " + str(self.X_test.shape[0]))
+        print(
+            "Shape of each sample : "
+            + str(self.X_train.shape[1])
+            + " features (X)"
+            + " + "
+            + str(self.y_train.shape[1])
+            + " labels (y)"
+            )
+
+        return (return_data)
+
+
+    def _load_data_from_file(self):
+        """
+        Load the data from the HDF5 file and preprocess it.
+
+        Raises
+        ------
+        ValueError
+            If the selected number of examples is bigger than the
+            size of the X array in the HDF5 file.
+
+        Returns
+        -------
+        loaded_data : list
+            List of data that were in the HDF5 file.
+
+        """
+        with h5py.File(self.input_filepath, "r") as hf:
             try:
                 self.energies = hf["energies"][:]
             except KeyError:
@@ -126,11 +219,16 @@ class DataHandler:
                 )
 
             dataset_size = hf["X"].shape[0]
+
             # Randomly choose a subset of the whole data set.
             try:
-                r = np.random.randint(
-                    0, dataset_size - self.no_of_examples + 1
-                )
+                if self.select_random_subset:
+                    r = np.random.randint(
+                        0, dataset_size - self.no_of_examples + 1
+                        )
+                else:
+                    r = 0
+
             except ValueError as e:
                 error_msg = (
                     "There are not enough spectra in this data set. "
@@ -139,9 +237,9 @@ class DataHandler:
                 )
                 raise type(e)(error_msg)
 
-            X = hf["X"][r : r + self.no_of_examples, :, :]
-            X = X.astype(np.float)
-            y = hf["y"][r : r + self.no_of_examples, :]
+            X = hf["X"][r : r + self.no_of_examples]
+            X = X.astype(float)
+            y = hf["y"][r : r + self.no_of_examples]
 
             if not self.intensity_only:
                 new_energies = np.tile(
@@ -152,108 +250,35 @@ class DataHandler:
 
             self.X = X
             self.y = y
+            self.sim_values = {}
+            self.names = []
+
+            loaded_data = [X, y]
 
             # Check if the data set was artificially created.
             if "shiftx" in hf.keys():
-                shift_x = hf["shiftx"][r : r + self.no_of_examples, :]
-                noise = hf["noise"][r : r + self.no_of_examples, :]
-                fwhm = hf["FWHM"][r : r + self.no_of_examples, :]
+                shift_x = hf["shiftx"][r : r + self.no_of_examples]
+                noise = hf["noise"][r : r + self.no_of_examples]
+                fwhm = hf["FWHM"][r : r + self.no_of_examples]
+
+                loaded_data.extend([shift_x, noise, fwhm])
+
+                self.sim_values["shift_x"] = shift_x
+                self.sim_values["noise"] = noise
+                self.sim_values["fwhm"] = fwhm
 
                 # If the data set was artificially created, check
                 # if scattering in a gas phase was simulated.
                 if "scatterer" in hf.keys():
-                    scatterer = hf["scatterer"][r : r + self.no_of_examples, :]
-                    distance = hf["distance"][r : r + self.no_of_examples, :]
-                    pressure = hf["pressure"][r : r + self.no_of_examples, :]
+                    scatterer = hf["scatterer"][r : r + self.no_of_examples]
+                    distance = hf["distance"][r : r + self.no_of_examples]
+                    pressure = hf["pressure"][r : r + self.no_of_examples]
 
-                    if shuffle:
-                        (
-                            self.X,
-                            self.y,
-                            shift_x,
-                            noise,
-                            fwhm,
-                            scatterer,
-                            distance,
-                            pressure,
-                        ) = sklearn.utils.shuffle(
-                            self.X,
-                            self.y,
-                            shift_x,
-                            noise,
-                            fwhm,
-                            scatterer,
-                            distance,
-                            pressure,
-                            random_state=np.random.RandomState(seed=1),
-                        )
+                    loaded_data.extend([scatterer, distance, pressure])
 
-                    # Store all parameters of the simulations in a dict
-                    sim_values = {
-                        "shift_x": shift_x,
-                        "noise": noise,
-                        "fwhm": fwhm,
-                        "scatterer": scatterer,
-                        "distance": distance,
-                        "pressure": pressure,
-                    }
-                    self.sim_values = sim_values
-
-                else:
-                    if shuffle:
-                        # Shuffle all arrays together
-                        (
-                            self.X,
-                            self.y,
-                            shift_x,
-                            noise,
-                            fwhm,
-                        ) = sklearn.utils.shuffle(
-                            self.X,
-                            self.y,
-                            shift_x,
-                            noise,
-                            fwhm,
-                            random_state=np.random.RandomState(seed=1),
-                        )
-
-                    sim_values = {
-                        "shift_x": shift_x,
-                        "noise": noise,
-                        "fwhm": fwhm,
-                    }
-                    self.sim_values = sim_values
-
-                # Split into train, val and test sets
-                (
-                    self.X_train,
-                    self.X_val,
-                    self.X_test,
-                    self.y_train,
-                    self.y_val,
-                    self.y_test,
-                    self.sim_values_train,
-                    self.sim_values_val,
-                    self.sim_values_test,
-                ) = self._split_test_val_train(
-                    self.X, self.y, sim_values=self.sim_values
-                )
-
-                # Determine the shape of the training features,
-                # needed for model building in Keras.
-                self.input_shape = self.X_train.shape[1:]
-
-                loaded_data = (
-                    self.X_train,
-                    self.X_val,
-                    self.X_test,
-                    self.y_train,
-                    self.y_val,
-                    self.y_test,
-                    self.sim_values_train,
-                    self.sim_values_val,
-                    self.sim_values_test,
-                )
+                    self.sim_values["scatterer"] = scatterer
+                    self.sim_values["distance"] = distance
+                    self.sim_values["pressure"] = pressure
 
             # Check if the spectra have associated names. Typical for
             # measured spectra.
@@ -263,102 +288,14 @@ class DataHandler:
                     for name in hf["names"][r : r + self.no_of_examples, :]
                 ]
                 self.names = np.reshape(np.array(names_load_list), (-1, 1))
-
-                # Shuffle all arrays together
-                if shuffle:
-                    self.X, self.y, self.names = sklearn.utils.shuffle(
-                        self.X,
-                        self.y,
-                        self.names,
-                        random_state=np.random.RandomState(seed=1),
-                    )
-
-                # Split into train, val and test sets
-                (
-                    self.X_train,
-                    self.X_val,
-                    self.X_test,
-                    self.y_train,
-                    self.y_val,
-                    self.y_test,
-                    self.names_train,
-                    self.names_val,
-                    self.names_test,
-                ) = self._split_test_val_train(
-                    self.X, self.y, names=self.names
-                )
-
-                # Determine the shape of the training features,
-                # needed for model building in Keras.
-                self.input_shape = (
-                    self.X_train.shape[1],
-                    self.X_train.shape[2],
-                )
-
-                loaded_data = (
-                    self.X_train,
-                    self.X_val,
-                    self.X_test,
-                    self.y_train,
-                    self.y_val,
-                    self.y_test,
-                    self.names_train,
-                    self.names_val,
-                    self.names_test,
-                )
-
-            # If there are neither simulation values nor names in
-            # the dataset, just load the X and y arrays.
-            else:
-                if shuffle:
-                    # Shuffle X and y together
-                    self.X, self.y = sklearn.utils.shuffle(X, y)
-
-                # Split into train, val and test sets
-                (
-                    self.X_train,
-                    self.X_val,
-                    self.X_test,
-                    self.y_train,
-                    self.y_val,
-                    self.y_test,
-                ) = self._split_test_val_train(self.X, self.y)
-
-                # Determine the shape of the training features,
-                # needed for model building in Keras.
-                self.input_shape = (
-                    self.X_train.shape[1],
-                    self.X_train.shape[2],
-                )
-
-                loaded_data = (
-                    self.X_train,
-                    self.X_val,
-                    self.X_test,
-                    self.y_train,
-                    self.y_val,
-                    self.y_test,
-                )
-
-        print("Data was loaded!")
-        print("Total no. of samples: " + str(self.X.shape[0]))
-        print("No. of training samples: " + str(self.X_train.shape[0]))
-        print("No. of validation samples: " + str(self.X_val.shape[0]))
-        print("No. of test samples: " + str(self.X_test.shape[0]))
-        print(
-            "Shape of each sample : "
-            + str(self.X_train.shape[1])
-            + " features (X)"
-            + " + "
-            + str(self.y_train.shape[1])
-            + " labels (y)"
-        )
+                loaded_data.extend([self.names])
 
         return loaded_data
 
-    def _split_test_val_train(self, X, y, **kwargs):
+
+    def _split_test_val_train(self, data_array):
         """
-        Split multiple numpy arrays into train, val, and test sets.
+        Split a numpy array into train, val, and test sets.
 
         First, the whole data is split into the train+val and test sets
         according to the attribute self.train_test_split. Secondly.
@@ -367,151 +304,56 @@ class DataHandler:
 
         Parameters
         ----------
-        X : ndarray
-            Features used as inputs for a Keras model. 3d array.
-        y : TYPE
-            Labels to be learned. 2d array.
-        **kwargs : str
-            Possible keywords:
-                'sim_values', 'names'.
+        data_array : ndarray
+            N-dimensional array.
 
         Returns
         -------
-        For each input array, three output arras are returned.
-        E.g. for input X, the returns are X_train, X_val, X_test.
+        (d_train, d_val, d_test): tuple
+            Three output arras are returned.
+            E.g. for input X, the returns are X_train, X_val, X_test.
+         : TYPE
+            DESCRIPTION.
+        d_test : TYPE
+            DESCRIPTION.
+
         """
         # First split into train+val and test sets
-        no_of_train_val = int((1 - self.train_test_split) * X.shape[0])
-
-        X_train_val = X[:no_of_train_val, :, :]
-        X_test = X[no_of_train_val:, :, :]
-        y_train_val = y[:no_of_train_val, :]
-        y_test = y[no_of_train_val:, :]
+        no_of_train_val = int((1 - self.train_test_split) * data_array.shape[0])
+        d_train_val = data_array[:no_of_train_val]
+        d_test = data_array[no_of_train_val:]
 
         # Then create val subset from train set
-        no_of_train = int((1 - self.train_val_split) * X_train_val.shape[0])
+        no_of_train = int((1 - self.train_val_split) * d_train_val.shape[0])
+        d_train = d_train_val[:no_of_train]
+        d_val = d_train_val[no_of_train:]
 
-        X_train = X_train_val[:no_of_train, :, :]
-        X_val = X_train_val[no_of_train:, :, :]
-        y_train = y_train_val[:no_of_train, :]
-        y_val = y_train_val[no_of_train:, :]
-
-        if "sim_values" in kwargs.keys():
-            # Also split the arrays in the 'sim_values' dictionary.
-            sim_values = kwargs["sim_values"]
-            shift_x = sim_values["shift_x"]
-            noise = sim_values["noise"]
-            fwhm = sim_values["fwhm"]
-
-            shift_x_train_val = shift_x[:no_of_train_val, :]
-            shift_x_test = shift_x[no_of_train_val:, :]
-            noise_train_val = noise[:no_of_train_val, :]
-            noise_test = noise[no_of_train_val:, :]
-            fwhm_train_val = fwhm[:no_of_train_val, :]
-            fwhm_test = fwhm[no_of_train_val:, :]
-
-            shift_x_train = shift_x_train_val[:no_of_train, :]
-            shift_x_val = shift_x_train_val[no_of_train:, :]
-            noise_train = noise_train_val[:no_of_train, :]
-            noise_val = noise_train_val[no_of_train:, :]
-            fwhm_train = fwhm_train_val[:no_of_train, :]
-            fwhm_val = fwhm_train_val[no_of_train:, :]
-
-            sim_values_train = {
-                "shift_x": shift_x_train,
-                "noise": noise_train,
-                "fwhm": fwhm_train,
-            }
-            sim_values_val = {
-                "shift_x": shift_x_val,
-                "noise": noise_val,
-                "fwhm": fwhm_val,
-            }
-            sim_values_test = {
-                "shift_x": shift_x_test,
-                "noise": noise_test,
-                "fwhm": fwhm_test,
-            }
-
-            if "scatterer" in sim_values.keys():
-                # Also split the scatterer, distance, and pressure
-                # arrays if they are present in the in the 'sim_values'
-                # dictionary.
-                scatterer = sim_values["scatterer"]
-                distance = sim_values["distance"]
-                pressure = sim_values["pressure"]
-
-                scatterer_train_val = scatterer[:no_of_train_val, :]
-                scatterer_test = scatterer[no_of_train_val:, :]
-                distance_train_val = distance[:no_of_train_val, :]
-                distance_test = distance[no_of_train_val:, :]
-                pressure_train_val = pressure[:no_of_train_val, :]
-                pressure_test = pressure[no_of_train_val:, :]
-
-                scatterer_train = scatterer_train_val[:no_of_train, :]
-                scatterer_val = scatterer_train_val[no_of_train:, :]
-                distance_train = distance_train_val[:no_of_train, :]
-                distance_val = distance_train_val[no_of_train:, :]
-                pressure_train = pressure_train_val[:no_of_train, :]
-                pressure_val = pressure_train_val[no_of_train:, :]
-
-                sim_values_train["scatterer"] = scatterer_train
-                sim_values_train["distance"] = distance_train
-                sim_values_train["pressure"] = pressure_train
-
-                sim_values_val["scatterer"] = scatterer_val
-                sim_values_val["distance"] = distance_val
-                sim_values_val["pressure"] = pressure_val
-
-                sim_values_test["scatterer"] = scatterer_test
-                sim_values_test["distance"] = distance_test
-                sim_values_test["pressure"] = pressure_test
-
-            return (
-                X_train,
-                X_val,
-                X_test,
-                y_train,
-                y_val,
-                y_test,
-                sim_values_train,
-                sim_values_val,
-                sim_values_test,
-            )
-
-        if "names" in kwargs.keys():
-            # Also split the names array.
-            names = kwargs["names"]
-            names_train_val = names[:no_of_train_val, :]
-            names_test = names[no_of_train_val:, :]
-
-            names_train = names_train_val[:no_of_train, :]
-            names_val = names_train_val[no_of_train:, :]
-
-            return (
-                X_train,
-                X_val,
-                X_test,
-                y_train,
-                y_val,
-                y_test,
-                names_train,
-                names_val,
-                names_test,
-            )
-
-        return X_train, X_val, X_test, y_train, y_val, y_test
+        return (d_train, d_val, d_test)
 
     def _only_keep_classification_data(self):
         """
         Keep only data with just one species, i.e. with one label of 1.0
         and the rest of the labels = 0.0.
         """
-        indices = np.where(self.y == 0.0)[0]
+        indices = np.where(self.y == 1.0)[0]
+
+        print(indices)
 
         self.X, self.y = self.X[indices], self.y[indices]
 
-        if hasattr(self, "sim_values"):
+        self.X_train, self.X_val, self.X_test = self._split_test_val_train(self.X)
+        self.y_train, self.y_val, self.y_test = self._split_test_val_train(self.X)
+
+        return_data = [
+            self.X_train,
+            self.X_val,
+            self.X_test,
+            self.y_train,
+            self.y_val,
+            self.y_test,
+            ]
+
+        if self.sim_values:
             new_sim_values = {}
 
             for key, sim_arrays in self.sim_values.items():
@@ -519,78 +361,33 @@ class DataHandler:
 
             self.sim_values = new_sim_values
 
-            (
-                self.X_train,
-                self.X_val,
-                self.X_test,
-                self.y_train,
-                self.y_val,
-                self.y_test,
+            self.sim_values_train = {}
+            self.sim_values_val = {}
+            self.sim_values_test = {}
+
+            # Split in train, val, test.
+            for key, array in self.sim_values.items():
+                array_train, array_val, array_test = \
+                    self._split_test_val_train(array)
+
+                self.sim_values_train[key] = array_train
+                self.sim_values_val[key] = array_val
+                self.sim_values_test[key] = array_test
+
+            return_data.extend([
                 self.sim_values_train,
                 self.sim_values_val,
-                self.sim_values_test,
-            ) = self._split_test_val_train(
-                self.X, self.y, sim_values=self.sim_values
-            )
+                self.sim_values_test])
 
-            loaded_data = (
-                self.X_train,
-                self.X_val,
-                self.X_test,
-                self.y_train,
-                self.y_val,
-                self.y_test,
-                self.sim_values_train,
-                self.sim_values_val,
-                self.sim_values_test,
-            )
+        if self.names:
+            self.names = self.names[indices]
 
-        elif hasattr(self, "names"):
-            print("Hi")
-            self.names = [self.names[i] for i in indices]
-
-            (
-                self.X_train,
-                self.X_val,
-                self.X_test,
-                self.y_train,
-                self.y_val,
-                self.y_test,
+            self.names_train, self.names_val, self.names_test = self._split_test_val_train(self.names)
+            return_data.extend([
                 self.names_train,
                 self.names_val,
-                self.names_test,
-            ) = self._split_test_val_train(self.X, self.y, names=self.names)
+                self.names_test])
 
-            loaded_data = (
-                self.X_train,
-                self.X_val,
-                self.X_test,
-                self.y_train,
-                self.y_val,
-                self.y_test,
-                self.names_train,
-                self.names_val,
-                self.names_test,
-            )
-
-        else:
-            (
-                self.X_train,
-                self.X_val,
-                self.X_test,
-                self.y_train,
-                self.y_val,
-                self.y_test,
-            ) = self._split_test_val_train(self.X, self.y)
-
-            loaded_data = (
-                self.X_train,
-                self.X_val,
-                self.X_test,
-                self.y_train,
-                self.y_val,
-                self.y_test,
-            )
         print(
             f"Only spectra with one species were left in the data set! Test/val/train splits were kept."
         )
@@ -598,7 +395,7 @@ class DataHandler:
         print(f"Remaining no. of val examples: {self.y_val.shape[0]}")
         print(f"Remaining no. of test examples: {self.y_test.shape[0]}")
 
-        return loaded_data
+        return (return_data)
 
     def check_class_distribution(self, task):
         """
@@ -679,6 +476,7 @@ class DataHandler:
 
         for i in range(no_of_spectra):
             index = indices[i]
+            label = str(np.around(y[index], decimals=3))
             if self.intensity_only:
                 new_energies = np.reshape(np.array(self.energies), (-1, 1))
                 data.append(np.hstack((new_energies, X[index])))
