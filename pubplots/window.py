@@ -496,8 +496,8 @@ maae_test = wrapper.calculate_test_losses(loss_func=maximum_absolute_error)
 def print_diff(losses, threshold):
     correct = 0
     wrong = 0
-    for l in losses:
-        if l < threshold:
+    for loss in losses:
+        if loss < threshold:
             correct += 1
         else:
             wrong += 1
