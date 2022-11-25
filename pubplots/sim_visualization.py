@@ -79,9 +79,9 @@ sim_values = {
     "noise": [5, 15, 25, 50, 100, 200],
     "FWHM": [1.0, 3.0, 5.0, 7.0, 9.0, 11.0],
     "scatterers": {
-        #0: "He",
-        #1: "H2",
-        #2: "N2",
+        # 0: "He",
+        # 1: "H2",
+        # 2: "N2",
         3: "O2"
     },
     "pressure": [1, 5, 10],
@@ -249,7 +249,7 @@ for i in range(len(sim_values["pressure"])):
     spectrum.normalize()
     if i == 0:
         ax1_1.plot(spectrum.x, spectrum.lineshape, c="red", linewidth=2)
-        ax1_1.set_ylim(None, top=np.max(spectrum.lineshape)*1.2)
+        ax1_1.set_ylim(None, top=np.max(spectrum.lineshape) * 1.2)
         legend.append("original")
     scatterer = "O2"
     pressure = sim_values["pressure"][i]

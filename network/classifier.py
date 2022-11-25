@@ -99,7 +99,7 @@ class Classifier:
         train_test_split,
         train_val_split,
         select_random_subset=True,
-        shuffle=True
+        shuffle=True,
     ):
         """
         Load the data.
@@ -143,7 +143,7 @@ class Classifier:
             no_of_examples=no_of_examples,
             train_test_split=train_test_split,
             train_val_split=train_val_split,
-            shuffle=shuffle
+            shuffle=shuffle,
         )
 
         energy_range = [
@@ -176,7 +176,6 @@ class Classifier:
         self.logging.update_saved_hyperparams(data_params)
 
         return loaded_data
-
 
     def summary(self):
         """
@@ -666,7 +665,7 @@ class Classifier:
                 dataset=dataset,
                 indices=indices,
                 with_prediction=False,
-                )
+            )
 
     def plot_random(
         self, no_of_spectra, dataset="train", with_prediction=False
@@ -798,12 +797,17 @@ class Classifier:
             fig.savefig(filename)
             print("Saved to {}".format(filename))
 
-    def predict_probabilistic(self, dataset="test", no_of_predictions=100, verbose=0):
+    def predict_probabilistic(
+        self, dataset="test", no_of_predictions=100, verbose=0
+    ):
 
         X, y = self.datahandler._select_dataset(dataset_name=dataset)
 
         prob_pred = np.array(
-            [self.model.predict(X,verbose=verbose) for i in range(no_of_predictions)]
+            [
+                self.model.predict(X, verbose=verbose)
+                for i in range(no_of_predictions)
+            ]
         ).transpose(1, 0, 2)
 
         if dataset == "train":
@@ -819,26 +823,25 @@ class Classifier:
     def plot_prob_predictions(
         self, dataset="test", kind="random", no_of_spectra=10, to_file=True
     ):
-        if not hasattr(self.datahandler,f"prob_pred_{dataset}"):
+        if not hasattr(self.datahandler, f"prob_pred_{dataset}"):
             prob_preds = self.predict_probabilistic(
-                dataset=dataset,
-                no_of_predictions=500
-                )
+                dataset=dataset, no_of_predictions=500
+            )
         else:
-            prob_preds = getattr(self.datahandler,f"prob_pred_{dataset}")
+            prob_preds = getattr(self.datahandler, f"prob_pred_{dataset}")
 
-        filenames  = {
+        filenames = {
             "random": "random_probabilistic_predictions",
             "min": "probabilistic_predictions_with_lowest_std",
-            "max": "probabilistic_predictions_with_highest_std"
+            "max": "probabilistic_predictions_with_highest_std",
         }
 
         indices = self.datahandler._select_prob_predictions(
             kind=kind,
             prob_preds=prob_preds,
             dataset=dataset,
-            no_of_spectra=no_of_spectra
-            )
+            no_of_spectra=no_of_spectra,
+        )
 
         filename = filenames[kind]
 
@@ -846,15 +849,14 @@ class Classifier:
             prob_preds=prob_preds,
             indices=indices,
             dataset=dataset,
-            no_of_spectra=no_of_spectra
-            )
+            no_of_spectra=no_of_spectra,
+        )
 
         if to_file:
             epoch = self.logging.hyperparams["epochs_trained"]
 
             filepath = os.path.join(
-                self.logging.fig_dir,
-                f"{filename}_after_epoch{epoch}.png"
+                self.logging.fig_dir, f"{filename}_after_epoch{epoch}.png"
             )
 
             fig.savefig(filepath)
@@ -879,7 +881,7 @@ class Classifier:
             "test_loss",
             "class_distribution",
             "prob_pred_train",
-            "prob_pred_test",            
+            "prob_pred_test",
         ]
         if self.task != "regression":
             key_list.extend(

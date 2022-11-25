@@ -202,7 +202,7 @@ class Wrapper:
         table.set_fontsize(8.5)
 
         ax.set_xlim(hist_patches[0].xy[0], 0.4)
-        ax.tick_params(axis='x', pad=12)
+        ax.tick_params(axis="x", pad=12)
 
         return ax
 
@@ -265,7 +265,7 @@ classifiers = {
 wrapper = Wrapper(datafolder)
 wrapper.load_predictions(classifiers)
 results = wrapper.calculate_test_losses(loss_func=mean_absolute_error)
-#results_maae = wrapper.calculate_test_losses(loss_func=maximum_absolute_error)
+# results_maae = wrapper.calculate_test_losses(loss_func=maximum_absolute_error)
 fig, ax = wrapper.plot_all()
 plt.show()
 

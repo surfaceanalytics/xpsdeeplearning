@@ -56,13 +56,13 @@ class Wrapper(ParserWrapper):
             histtype="bar",
             fill=True,
             cumulative=False,
-            )
+        )
 
         ax.set_xlim(
             hist_patches[0].xy[0],
             hist_patches[-1].xy[0],
         )
-        ax.tick_params(axis='x', pad=12)
+        ax.tick_params(axis="x", pad=12)
 
         return ax
 
@@ -325,6 +325,7 @@ fig.savefig(fig_path)
 
 # %%
 dfs = {"Neural network": df_nn, "Lineshapes": df_fit}
+
 
 def print_diff(df, threshold, kind="average"):
     df_test = df.copy()

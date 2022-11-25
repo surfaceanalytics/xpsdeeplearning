@@ -390,20 +390,20 @@ class Wrapper(ParserWrapper):
 
         for w in window:
             con = ConnectionPatch(
-                xyA=(w,0.27*ymax),
-                xyB=(w,self.axs[1,0].get_ylim()[1]),
+                xyA=(w, 0.27 * ymax),
+                xyB=(w, self.axs[1, 0].get_ylim()[1]),
                 coordsA="data",
                 coordsB="data",
-                axesA=self.axs[0,0],
-                axesB=self.axs[1,0],
+                axesA=self.axs[0, 0],
+                axesB=self.axs[1, 0],
                 linestyle="dashed",
                 arrowstyle="-",
                 linewidth=2,
                 color=self.color_dict["window"],
-                alpha=0.5
-                )
-            self.axs[1,0].add_artist(con)
-        self.axs[0,0].set_axisbelow(False)
+                alpha=0.5,
+            )
+            self.axs[1, 0].add_artist(con)
+        self.axs[0, 0].set_axisbelow(False)
 
         # MAE of test spectrum
         y_true = np.array(list(self.parsers[0].quantification.values())) / 100
@@ -492,6 +492,7 @@ print_mae_info(losses_test, "Window", precision=4)
 
 maae_test = wrapper.calculate_test_losses(loss_func=maximum_absolute_error)
 
+
 def print_diff(losses, threshold):
     correct = 0
     wrong = 0
@@ -509,30 +510,8 @@ def print_diff(losses, threshold):
 
 
 threshold = 0.1  # percent
-losses = {
-    "MAE": losses_test,
-    "MaAE": maae_test
-    }
+losses = {"MAE": losses_test, "MaAE": maae_test}
 
 for name, losses in losses.items():
     print(name + ":")
     print_diff(losses, threshold)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

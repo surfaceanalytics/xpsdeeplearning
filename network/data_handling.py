@@ -108,17 +108,20 @@ class DataHandler:
 
         if self.shuffle:
             loaded_data = sklearn.utils.shuffle(
-                *loaded_data,
-                random_state=np.random.RandomState(seed=1)
-                )
+                *loaded_data, random_state=np.random.RandomState(seed=1)
+            )
 
         # Store shuffled data (if shuffle=True), then split in train, val, test.
         self.X = loaded_data[0]
-        self.X_train, self.X_val, self.X_test = self._split_test_val_train(self.X)
+        self.X_train, self.X_val, self.X_test = self._split_test_val_train(
+            self.X
+        )
 
         self.y = loaded_data[1]
 
-        self.y_train, self.y_val, self.y_test = self._split_test_val_train(self.y)
+        self.y_train, self.y_val, self.y_test = self._split_test_val_train(
+            self.y
+        )
 
         return_data = [
             self.X_train,
@@ -127,7 +130,7 @@ class DataHandler:
             self.y_train,
             self.y_val,
             self.y_test,
-            ]
+        ]
 
         # Determine the shape of the training features,
         # needed for model building in Keras.
@@ -140,27 +143,36 @@ class DataHandler:
 
             # Store shuffled data
             for i, key in enumerate(self.sim_values.keys()):
-                self.sim_values[key] = loaded_data[i+2]
+                self.sim_values[key] = loaded_data[i + 2]
 
             # Split in train, val, test.
             for key, array in self.sim_values.items():
-                array_train, array_val, array_test = \
-                    self._split_test_val_train(array)
+                (
+                    array_train,
+                    array_val,
+                    array_test,
+                ) = self._split_test_val_train(array)
                 self.sim_values_train[key] = array_train
                 self.sim_values_val[key] = array_val
                 self.sim_values_test[key] = array_test
-            return_data.extend([
-                self.sim_values_train,
-                self.sim_values_val,
-                self.sim_values_test])
+            return_data.extend(
+                [
+                    self.sim_values_train,
+                    self.sim_values_val,
+                    self.sim_values_test,
+                ]
+            )
 
         if len(self.names):
             self.names = loaded_data[-1]
-            self.names_train, self.names_val, self.names_test = self._split_test_val_train(self.names)
-            return_data.extend([
+            (
                 self.names_train,
                 self.names_val,
-                self.names_test])
+                self.names_test,
+            ) = self._split_test_val_train(self.names)
+            return_data.extend(
+                [self.names_train, self.names_val, self.names_test]
+            )
 
         print("Data was loaded!")
         print("Total no. of samples: " + str(self.X.shape[0]))
@@ -174,10 +186,9 @@ class DataHandler:
             + " + "
             + str(self.y_train.shape[1])
             + " labels (y)"
-            )
+        )
 
-        return (return_data)
-
+        return return_data
 
     def _load_data_from_file(self):
         """
@@ -225,7 +236,7 @@ class DataHandler:
                 if self.select_random_subset:
                     r = np.random.randint(
                         0, dataset_size - self.no_of_examples + 1
-                        )
+                    )
                 else:
                     r = 0
 
@@ -292,7 +303,6 @@ class DataHandler:
 
         return loaded_data
 
-
     def _split_test_val_train(self, data_array):
         """
         Split a numpy array into train, val, and test sets.
@@ -319,7 +329,9 @@ class DataHandler:
 
         """
         # First split into train+val and test sets
-        no_of_train_val = int((1 - self.train_test_split) * data_array.shape[0])
+        no_of_train_val = int(
+            (1 - self.train_test_split) * data_array.shape[0]
+        )
         d_train_val = data_array[:no_of_train_val]
         d_test = data_array[no_of_train_val:]
 
@@ -341,8 +353,12 @@ class DataHandler:
 
         self.X, self.y = self.X[indices], self.y[indices]
 
-        self.X_train, self.X_val, self.X_test = self._split_test_val_train(self.X)
-        self.y_train, self.y_val, self.y_test = self._split_test_val_train(self.X)
+        self.X_train, self.X_val, self.X_test = self._split_test_val_train(
+            self.X
+        )
+        self.y_train, self.y_val, self.y_test = self._split_test_val_train(
+            self.X
+        )
 
         return_data = [
             self.X_train,
@@ -351,7 +367,7 @@ class DataHandler:
             self.y_train,
             self.y_val,
             self.y_test,
-            ]
+        ]
 
         if self.sim_values:
             new_sim_values = {}
@@ -367,26 +383,35 @@ class DataHandler:
 
             # Split in train, val, test.
             for key, array in self.sim_values.items():
-                array_train, array_val, array_test = \
-                    self._split_test_val_train(array)
+                (
+                    array_train,
+                    array_val,
+                    array_test,
+                ) = self._split_test_val_train(array)
 
                 self.sim_values_train[key] = array_train
                 self.sim_values_val[key] = array_val
                 self.sim_values_test[key] = array_test
 
-            return_data.extend([
-                self.sim_values_train,
-                self.sim_values_val,
-                self.sim_values_test])
+            return_data.extend(
+                [
+                    self.sim_values_train,
+                    self.sim_values_val,
+                    self.sim_values_test,
+                ]
+            )
 
         if self.names:
             self.names = self.names[indices]
 
-            self.names_train, self.names_val, self.names_test = self._split_test_val_train(self.names)
-            return_data.extend([
+            (
                 self.names_train,
                 self.names_val,
-                self.names_test])
+                self.names_test,
+            ) = self._split_test_val_train(self.names)
+            return_data.extend(
+                [self.names_train, self.names_val, self.names_test]
+            )
 
         print(
             f"Only spectra with one species were left in the data set! Test/val/train splits were kept."
@@ -395,7 +420,7 @@ class DataHandler:
         print(f"Remaining no. of val examples: {self.y_val.shape[0]}")
         print(f"Remaining no. of test examples: {self.y_test.shape[0]}")
 
-        return (return_data)
+        return return_data
 
     def check_class_distribution(self, task):
         """
@@ -716,11 +741,7 @@ class DataHandler:
             fig, axs = graphic.plot()
 
     def plot_prob_predictions(
-        self,
-        prob_preds,
-        indices,
-        dataset="test",
-        no_of_spectra=10
+        self, prob_preds, indices, dataset="test", no_of_spectra=10
     ):
 
         X, y = self._select_dataset(dataset_name="test")
@@ -734,7 +755,6 @@ class DataHandler:
             ncols=5,
             figsize=(22, 5 * no_of_spectra),
         )
-
 
         for i in range(no_of_spectra):
             ax0 = axs[i, 0]
@@ -816,20 +836,16 @@ class DataHandler:
                 ax.set_xticks(np.arange(self.num_classes))
                 ax.set_xticklabels(self.labels)
             for ax in [ax1, ax2, ax3, ax4]:
-                ax.set_ylim(0,1.05)
+                ax.set_ylim(0, 1.05)
 
         fig.tight_layout()
 
         return fig
 
     def _select_prob_predictions(
-        self,
-        prob_preds,
-        kind,
-        dataset="test",
-        no_of_spectra=10
-        ):
-      
+        self, prob_preds, kind, dataset="test", no_of_spectra=10
+    ):
+
         if kind == "random":
             X, y = self._select_dataset(dataset_name="test")
             indices = []
@@ -839,12 +855,34 @@ class DataHandler:
                     r = np.random.randint(0, X.shape[0])
                 indices.append(r)
             return indices
-        
+
         elif kind == "min":
-              return [j[1] for j in sorted([(p, i) for (i, p) in enumerate(np.std(prob_preds, axis=1)[:,0])], reverse=False)]
+            return [
+                j[1]
+                for j in sorted(
+                    [
+                        (p, i)
+                        for (i, p) in enumerate(
+                            np.std(prob_preds, axis=1)[:, 0]
+                        )
+                    ],
+                    reverse=False,
+                )
+            ]
 
         elif kind == "max":
-              return [j[1] for j in sorted([(p, i) for (i, p) in enumerate(np.std(prob_preds, axis=1)[:,0])], reverse=True)]
+            return [
+                j[1]
+                for j in sorted(
+                    [
+                        (p, i)
+                        for (i, p) in enumerate(
+                            np.std(prob_preds, axis=1)[:, 0]
+                        )
+                    ],
+                    reverse=True,
+                )
+            ]
 
         else:
             print("Select a valid kind!")

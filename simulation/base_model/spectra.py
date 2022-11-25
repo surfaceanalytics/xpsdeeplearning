@@ -637,7 +637,6 @@ class SimulatedSpectrum(Spectrum):
 
         """
         if fwhm:
-            #fwhm = np.mean(self.x) / float(resolution)
             sigma = fwhm / (2.0 * np.sqrt(2.0 * np.log(2.0)))
 
             # To preserve the position of spectral lines, the

@@ -19,7 +19,7 @@ input_filepath = r"C:\Users\pielsticker\Simulations\20210528_Ni_linear_combinati
 datahandler = DataHandler(intensity_only=False)
 train_test_split = 0.2
 train_val_split = 0.2
-no_of_examples = 200#250000
+no_of_examples = 200000  # 250000
 
 (
     X_train,
@@ -46,3 +46,5 @@ print("No. of classes: " + str(datahandler.num_classes))
 datahandler.plot_random(
     no_of_spectra=15, dataset="train", with_prediction=False
 )
+
+print(np.average(y_test), np.std(y_test))

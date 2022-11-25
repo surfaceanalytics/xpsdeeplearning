@@ -165,7 +165,7 @@ class Wrapper(ParserWrapper):
 
             ax.set_title(parser.title, fontdict=self.fontdict)
             ax.set_xlim(left=np.max(x), right=np.min(x))
-            ax.set_ylim(bottom=np.min(y)*0.8)
+            ax.set_ylim(bottom=np.min(y) * 0.8)
 
             percentages = [
                 [f"{p[0]} %", f"{p[1]} %"]

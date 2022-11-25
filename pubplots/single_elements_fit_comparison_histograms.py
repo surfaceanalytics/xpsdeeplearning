@@ -49,6 +49,7 @@ def print_for_one_spectrum(number, method):
         f"\t MAE = {mae_one}",
     )
 
+
 def _add_loss_histogram(ax, mae, title):
     fontdict = {"size": 40}
     ax.set_title(title, fontdict=fontdict, multialignment="center")
@@ -78,9 +79,10 @@ def _add_loss_histogram(ax, mae, title):
     )
 
     ax.set_xlim(hist_patches[0].xy[0], 0.5)  # hist_patches[-1].xy[0],)
-    ax.tick_params(axis='x', pad=12)
+    ax.tick_params(axis="x", pad=12)
 
     return ax
+
 
 #%%
 cols = ["Fe metal", "FeO", "Fe3O4", "Fe2O3"]
@@ -149,9 +151,7 @@ df_nn = pd.read_csv(get_xlsxpath(fit_datafolder, "nn"), index_col=0, sep=";")
 mae_nn = mean_absolute_error(
     df_nn.to_numpy().T, df_true.to_numpy().T, multioutput="raw_values"
 )
-maae_nn = maximum_absolute_error(
-    df_nn.to_numpy().T, df_true.to_numpy().T
-    )
+maae_nn = maximum_absolute_error(df_nn.to_numpy().T, df_true.to_numpy().T)
 df_nn["MAE"] = mae_nn
 df_nn["MaAE"] = maae_nn
 print_mae_info(mae_nn, "Neural network")
@@ -162,7 +162,7 @@ fig, axs = plt.subplots(
     squeeze=False,
     figsize=(40, 16),
     gridspec_kw={"wspace": 0.3},
-    dpi=300
+    dpi=300,
 )
 
 axs[0, 0] = _add_loss_histogram(
@@ -174,7 +174,9 @@ axs[0, 1] = _add_loss_histogram(
     axs[0, 1], mae_fit_model, title="(b) M2: Manual peak \n fit model"
 )
 axs[0, 2] = _add_loss_histogram(
-    axs[0, 2], mae_lineshapes, title="(c) M3: Fit with reference \n lineshapes"
+    axs[0, 2],
+    mae_lineshapes,
+    title="(c) M3: Fit with reference \n lineshapes",
 )
 axs[0, 3] = _add_loss_histogram(
     axs[0, 3], mae_nn, title="(D) Convolutional \n Neural network"

@@ -93,8 +93,8 @@ class Wrapper(ParserWrapper):
 
             self.axs[row, col].set_title(parser.title, fontdict=self.fontdict)
             self.axs[row, col].set_xlim(left=np.max(x), right=np.min(x))
-            if (row == 1 and col == 0):
-                self.axs[row, col].set_ylim(bottom=np.min(y)*0.999)
+            if row == 1 and col == 0:
+                self.axs[row, col].set_ylim(bottom=np.min(y) * 0.999)
 
             self.axs[row, col].set_title(parser.title, fontdict=self.fontdict)
 

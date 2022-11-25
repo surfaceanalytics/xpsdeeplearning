@@ -10,6 +10,7 @@ def maximum_absolute_error(y_true, y_pred):
 
     return np.max(np.abs(y_pred - y_true), axis=0)
 
+
 def filter_header_list(header_list):
     header_list = list(filter(None, header_list))
 
@@ -20,6 +21,7 @@ def filter_header_list(header_list):
             header_list[i] = hn.strip("\n")
 
     return header_list
+
 
 def get_xlsxpath(fit_datafolder, method):
     return os.path.join(fit_datafolder, method + ".csv")
@@ -32,6 +34,7 @@ def sort_with_index(array, reverse=True):
             [(x, i) for (i, x) in enumerate(array)], reverse=reverse
         )
     ]
+
 
 def print_mae_info(mae, name, precision=3):
     print(name + ":")
