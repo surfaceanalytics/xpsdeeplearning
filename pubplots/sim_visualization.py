@@ -350,12 +350,24 @@ for sim_vals in sim_params.values():
         linewidth=2,
     )
 
-    legend.append(
-        f"{int(sim_vals['linear_params'][0]*100)} % Fe$^{0}$, "
-        + f"{int(sim_vals['linear_params'][1]*100)} % FeO,\n"
-        + f"{int(sim_vals['linear_params'][2]*100)} % Fe$_{3}$O$_{4}$, "
-        + f"{int(sim_vals['linear_params'][3]*100)} % Fe$_{2}$O$_{3}$"
-    )
+    # Only use labels in legend if they were used in the simulation.
+    labels = [
+        "Fe$^{0}$",
+        "FeO",
+        "Fe$_{3}$O$_{4}$",
+        "Fe$_{2}$O$_{3}$"
+        ]
+    legend_text = ""
+    counter = 0
+    for (linear_param, label) in zip(sim_vals['linear_params'], labels):
+        if linear_param > 0:
+            counter += 1
+            if counter == 3:
+                legend_text += "\n"
+            legend_text += f"{int(linear_param*100)} % {label}, "
+    legend_text = legend_text.rstrip(", ")
+    legend.append(legend_text)
+
     ax2.set_xlim(
         left=np.max(sim.output_spectrum.x),
         right=np.min(sim.output_spectrum.x),

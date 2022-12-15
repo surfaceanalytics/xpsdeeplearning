@@ -27,7 +27,7 @@ class Wrapper(ParserWrapper):
         )
         self.fontdict = {"size": 38}
         self.fontdict_inset = {"size": 30}
-        self.fontdict_small = {"size": 20}
+        self.fontdict_small = {"size": 25}
         self.fontdict_mae = {"size": 28}
 
     def parse_data(self, bg=True, envelope=True):
@@ -165,7 +165,7 @@ class Wrapper(ParserWrapper):
 
             ax.set_title(parser.title, fontdict=self.fontdict)
             ax.set_xlim(left=np.max(x), right=np.min(x))
-            ax.set_ylim(bottom=np.min(y) * 0.8)
+            ax.set_ylim(bottom=np.min(y) * 0.55)
 
             percentages = [
                 [f"{p[0]} %", f"{p[1]} %"]
@@ -180,7 +180,7 @@ class Wrapper(ParserWrapper):
                 cellLoc="center",
                 colLabels=["Truth", "CNN"],
                 rowLabels=row_labels,
-                bbox=[0.15, 0.025, 0.2, 0.45],
+                bbox=[0.2, 0.025, 0.28, 0.45],
                 zorder=500,
             )
             table.set_fontsize(self.fontdict_small["size"])
@@ -201,7 +201,7 @@ class Wrapper(ParserWrapper):
         nrows = 2
         ncols = 3
 
-        self.fig = plt.figure(figsize=(32, 15), dpi=300)
+        self.fig = plt.figure(figsize=(32, 20), dpi=150)
         gs = gridspec.GridSpec(
             nrows=nrows, ncols=ncols, wspace=0.1, hspace=0.3
         )
