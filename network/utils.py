@@ -739,12 +739,3 @@ class Report:
         """
         self.document.save(self.filename)
         print("Report saved!")
-
-
-#%%
-if __name__ == "__main__":
-    dir_name = "20210226_16h07m_Fe_4_classes_linear_comb_new_noise"
-    rep = Report(dir_name)
-    data = rep.get_results()
-    summary = rep.model_summary
-    rep.write()

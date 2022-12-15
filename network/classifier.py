@@ -965,33 +965,3 @@ def restore_clf_from_logs(runpath):
     print("Recovered classifier from file.")
 
     return clf
-
-
-#%%
-if __name__ == "__main__":
-    np.random.seed(502)
-    time = "20210218_09h21m"
-    exp_name = "Fe_4_classes_linear_comb_new_noise_small_resnet"
-
-    clf = Classifier(time=time, exp_name=exp_name)
-    input_filepath = r"C:\Users\pielsticker\Simulations\20210222_Fe_linear_combination_small_gas_phase.h5"
-    train_test_split = 0.2
-    train_val_split = 0.2
-    no_of_examples = 1000
-
-    (
-        X_train,
-        X_val,
-        X_test,
-        y_train,
-        y_val,
-        y_test,
-        sim_values_train,
-        sim_values_val,
-        sim_values_test,
-    ) = clf.datahandler.load_data_preprocess(
-        input_filepath=input_filepath,
-        no_of_examples=no_of_examples,
-        train_test_split=train_test_split,
-        train_val_split=train_val_split,
-    )
