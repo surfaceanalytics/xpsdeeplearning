@@ -1,0 +1,60 @@
+{
+   "output_datafolder":"C:\\Users\\pielsticker\\Simulations\\",
+   "name":"CoFe_combined_without_auger_peaks",
+   "labels":[
+      "Co metal",
+      "CoO",
+      "Co3O4",
+      "Fe metal",
+      "FeO",
+      "Fe3O4",
+      "Fe2O3"
+   ],
+   "spectra":[
+      "Co2pFe2p Co metal",
+      "Co2pFe2p CoO",
+      "Co2pFe2p Co3O4",
+      "Co2pFe2p Fe metal",
+      "Co2pFe2p FeO",
+      "Co2pFe2p Fe3O4",
+      "Co2pFe2p Fe2O3"
+   ],
+   "input_filenames":{
+      "reference_set_0":[
+         "NiCoFe/Co2pFe2p_Fe_metal.txt",
+         "NiCoFe/Co2pFe2p_FeO.txt",
+         "NiCoFe/Co2pFe2p_Fe3O4.txt",
+         "NiCoFe/Co2pFe2p_Fe2O3.txt",
+         "NiCoFe/Co2pFe2p_Co_metal.txt",
+         "NiCoFe/Co2pFe2p_CoO.txt",
+         "NiCoFe/Co2pFe2p_Co3O4.txt"
+      ]
+   },
+   "no_of_simulations":250000,
+   "single":false,
+   "variable_no_of_inputs":true,
+   "always_auger":false,
+   "always_core":true,
+   "same_auger_core_percentage":true,
+   "ensure_same_length":false,
+   "eV_window":null, 
+   "normalize_inputs":false,
+   "normalize_outputs":true,
+   "broaden":false,
+   "shift_x":true,
+   "noise":true,
+   "scatter":false,
+   "sim_ranges":{
+      "shift_x":[-5,5],
+      "noise":[4,35],
+      "FWHM":[145,722],
+      "scatterers":{
+         "0":"He",
+         "1":"H2",
+         "2":"N2",
+         "3":"O2"
+      },
+      "pressure":[0.1,0.5],
+      "distance":[0.1,1]
+   }
+}
