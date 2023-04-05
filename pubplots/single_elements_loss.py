@@ -175,8 +175,9 @@ def plot_metric(
 
     if to_file:
         # fig_name = os.path.join(fig_dir, f"{metric}.png")
-        fig_name = os.path.join(fig_dir, "training_loss_single.png")
-        fig.savefig(fig_name)
+        for ext in [".png", ".eps"]:
+            fig_path = os.path.join(fig_dir, "training_loss_single" + ext)
+            fig.savefig(fig_path, bbox_inches="tight")
 
 
 fig_dir = r"C:\Users\pielsticker\Lukas\MPI-CEC\Publications\DeepXPS paper\Manuscript - Automatic Quantification\figures"

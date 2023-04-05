@@ -96,7 +96,7 @@ class FlippedFigure:
         self.fig.patch.set_facecolor("white")
         self.fig.patch.set_edgecolor("none")
 
-        self.ax.scatter(y, x, c=cm.hot(y), edgecolor="none")
+        self.ax.scatter(y, x, c="black")#cm.hot(y), edgecolor="none")
 
         self.ax.set_ylim(bottom=np.min(x), top=np.max(x))
         if axis_off:
@@ -129,7 +129,9 @@ figure2 = FlippedFigure(
 )
 
 
-save_dir = r"C:\Users\pielsticker\Lukas\MPI-CEC\Publications\DeepXPS paper\Manuscript - Automatic Quantification\figures"
-fig_filename = "test_spectrum.tif"
-fig_path = os.path.join(save_dir, fig_filename)
-figure.fig.savefig(fig_path)
+# =============================================================================
+# save_dir = r"C:\Users\pielsticker\Lukas\MPI-CEC\Publications\DeepXPS paper\Manuscript - Automatic Quantification\figures"
+# fig_filename = "test_spectrum2.tif"
+# fig_path = os.path.join(save_dir, fig_filename)
+# figure.fig.savefig(fig_path)
+# =============================================================================

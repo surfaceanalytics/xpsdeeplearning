@@ -165,7 +165,7 @@ class Wrapper:
             )
 
             self.axs[0, i].scatter(
-                np.abs(sorted_arrays[:, 0]), sorted_arrays[:, 1]
+                np.abs(sorted_arrays[:, 0]), sorted_arrays[:, 1]#, rasterized=True
             )
 
             self.axs[0, i].set_ylim(0, None)
@@ -201,9 +201,9 @@ sim_values_test = wrapper.load_sim_values(datapath)
 fig, ax = wrapper.plot_all(keys=["shift_x", "noise", "fwhm"])
 
 save_dir = r"C:\Users\pielsticker\Lukas\MPI-CEC\Publications\DeepXPS paper\Manuscript - Automatic Quantification\figures"
-fig_filename = "sim_values_effect.png"
-fig_path = os.path.join(save_dir, fig_filename)
-fig.savefig(fig_path)
+for ext in [".png", ".eps", ".pdf"]:
+    fig_path = os.path.join(save_dir, "sim_values_effect" + ext)
+    fig.savefig(fig_path, bbox_inches="tight")
 
 # %% See MAE results for individual parameter.
 def print_threshold_info(param_name, th_param, ths_mae, reverse=False):

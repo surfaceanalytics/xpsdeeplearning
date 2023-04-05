@@ -150,6 +150,6 @@ def plot_prob_predictions_together(normalize=False):
 fig = plot_prob_predictions_together(normalize=False)
 
 save_dir = r"C:\Users\pielsticker\Lukas\MPI-CEC\Publications\DeepXPS paper\Manuscript - Automatic Quantification\figures"
-fig_filename = "uncertainty_ni.png"
-fig_path = os.path.join(save_dir, fig_filename)
-fig.savefig(fig_path, bbox_inches="tight")
+for ext in [".png", ".eps"]:
+    fig_path = os.path.join(save_dir, "uncertainty_ni" + ext)
+    fig.savefig(fig_path, bbox_inches="tight")

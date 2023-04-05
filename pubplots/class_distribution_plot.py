@@ -134,5 +134,9 @@ class_distribution = UpdatedClassDistribution(
 labels_legend = ["Fe metal", "FeO", "$Fe_{3}O_{4}$", "$Fe_{2}O_{3}$"]
 fig = class_distribution.plot(labels=labels_legend)
 
-output_file = r"C:\Users\pielsticker\Lukas\MPI-CEC\Publications\DeepXPS paper\Manuscript - Automatic Quantification\figures\label_distribution.png"
-fig.savefig(output_file, bbox_inches="tight")
+save_dir = r"C:\Users\pielsticker\Lukas\MPI-CEC\Publications\DeepXPS paper\Manuscript - Automatic Quantification\figures"
+
+for ext in [".png", ".eps"]:
+    fig_path = os.path.join(save_dir, "label_distribution" + ext)
+    fig.savefig(fig_path, bbox_inches="tight")
+

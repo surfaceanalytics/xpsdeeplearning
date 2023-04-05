@@ -185,9 +185,9 @@ axs[0, 3] = _add_loss_histogram(
 fig.tight_layout()
 
 save_dir = r"C:\Users\pielsticker\Lukas\MPI-CEC\Publications\DeepXPS paper\Manuscript - Automatic Quantification\figures"
-fig_filename = "hist_fits_single.png"
-fig_path = os.path.join(save_dir, fig_filename)
-fig.savefig(fig_path, bbox_inches="tight")
+for ext in [".png", ".eps"]:
+    fig_path = os.path.join(save_dir, "hist_fits_single" + ext)
+    fig.savefig(fig_path, bbox_inches="tight")
 
 dfs = {
     "Neural network": df_nn,

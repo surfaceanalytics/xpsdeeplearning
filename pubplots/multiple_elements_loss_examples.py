@@ -337,5 +337,7 @@ history = wrapper.get_total_history(classifier)
 fig, axs = wrapper.plot_all()
 
 save_dir = r"C:\Users\pielsticker\Lukas\MPI-CEC\Publications\DeepXPS paper\Manuscript - Automatic Quantification\figures"
-fig_path = os.path.join(save_dir, "loss_examples_multiple.png")
-fig.savefig(fig_path, bbox_inches="tight")
+
+for ext in [".png", ".eps"]:
+    fig_path = os.path.join(save_dir, "loss_examples_multiple" + ext)
+    fig.savefig(fig_path, bbox_inches="tight")

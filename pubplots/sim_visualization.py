@@ -389,8 +389,9 @@ outer.tight_layout(fig)
 fig.show()
 
 save_dir = r"C:\Users\pielsticker\Lukas\MPI-CEC\Publications\DeepXPS paper\Manuscript - Automatic Quantification\figures"
-fig_path = os.path.join(save_dir, "sim_visualization.png")
-fig.savefig(fig_path, bbox_inches="tight")
+for ext in [".png", ".eps"]:
+    fig_path = os.path.join(save_dir, "sim_visualization" + ext)
+    fig.savefig(fig_path, bbox_inches="tight")
 
 # =============================================================================
 # # %% Only linear combination

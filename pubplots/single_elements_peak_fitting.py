@@ -46,7 +46,7 @@ class Wrapper(ParserWrapper):
 
         infile = os.path.join(
             r"C:\Users\pielsticker\Lukas\MPI-CEC\Publications\DeepXPS paper\Manuscript - Automatic Quantification\figures",
-            "neural_net_peak_fitting.png",
+            "neural_net_peak_fitting.tif",
         )
         with Image.open(infile) as im:
             ax.imshow(im)
@@ -249,8 +249,9 @@ fig, axs = wrapper.plot_all()
 plt.show()
 
 save_dir = r"C:\Users\pielsticker\Lukas\MPI-CEC\Publications\DeepXPS paper\Manuscript - Automatic Quantification\figures"
-fig_path = os.path.join(save_dir, "peak_fitting_single.png")
-fig.savefig(fig_path, bbox_inches="tight")
+for ext in [".png", ".eps"]:
+    fig_path = os.path.join(save_dir, "peak_fitting_single" + ext)
+    fig.savefig(fig_path, bbox_inches="tight")
 
 q_true = np.array(list(file_dict["true"]["quantification"].values())) / 100
 q_biesinger = (

@@ -184,8 +184,8 @@ class Wrapper:
 
         col_labels = [
             "MAE threshold",
-            "% of correct \n quantications",
-            "% of wrong \n quantications",
+            "% correct",
+            "% wrong",
         ]
 
         field_height = 0.1
@@ -199,7 +199,7 @@ class Wrapper:
             zorder=500,
         )
         table.auto_set_font_size(False)
-        table.set_fontsize(8.5)
+        table.set_fontsize(12)
 
         ax.set_xlim(hist_patches[0].xy[0], 0.4)
         ax.tick_params(axis="x", pad=12)
@@ -270,6 +270,6 @@ fig, ax = wrapper.plot_all()
 plt.show()
 
 save_dir = r"C:\Users\pielsticker\Lukas\MPI-CEC\Publications\DeepXPS paper\Manuscript - Automatic Quantification\figures"
-fig_filename = "hist_cnn_single.png"
-fig_path = os.path.join(save_dir, fig_filename)
-fig.savefig(fig_path)
+for ext in [".png", ".eps"]:
+    fig_path = os.path.join(save_dir, "hist_cnn_single" + ext)
+    fig.savefig(fig_path, bbox_inches="tight")

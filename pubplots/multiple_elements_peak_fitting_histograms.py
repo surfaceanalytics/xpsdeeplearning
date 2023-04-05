@@ -291,8 +291,9 @@ fig, ax = wrapper.plot_all(with_fits=True)
 plt.show()
 
 save_dir = r"C:\Users\pielsticker\Lukas\MPI-CEC\Publications\DeepXPS paper\Manuscript - Automatic Quantification\figures"
-fig_path = os.path.join(save_dir, "fit_histograms_multiple.png")
-fig.savefig(fig_path)
+for ext in [".png", ".eps"]:
+    fig_path = os.path.join(save_dir, "fit_histograms_multiple" + ext)
+    fig.savefig(fig_path, bbox_inches="tight")
 
 # =============================================================================
 # indices = [
