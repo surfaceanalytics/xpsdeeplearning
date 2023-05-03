@@ -57,7 +57,7 @@ classifiers_Ni = {
     150: "20230427_20h42m_Ni_linear_combination_normalized_inputs_small_gas_phase_150k",
     200: "20230427_20h43m_Ni_linear_combination_normalized_inputs_small_gas_phase_200k",
     250: "20230427_20h45m_Ni_linear_combination_normalized_inputs_small_gas_phase_250k",
-    }
+}
 
 classifiers_Mn = {
     25: "20230502_09h44m_Mn_linear_combination_normalized_inputs_small_gas_phase_25k",
@@ -66,7 +66,7 @@ classifiers_Mn = {
     150: "20230502_09h55m_Mn_linear_combination_normalized_inputs_small_gas_phase_150k",
     200: "20230502_10h23m_Mn_linear_combination_normalized_inputs_small_gas_phase_200k",
     250: "20230427_20h48m_Mn_linear_combination_normalized_inputs_small_gas_phase_250k",
-    }
+}
 
 #%%
 def load_test_loss_for_one_run(pickle_filepath):
@@ -84,19 +84,24 @@ def load_test_loss_for_one_run(pickle_filepath):
 
     return results["test_loss"]
 
+
 history_Ni = {}
 history_Mn = {}
 
 for clf_name, clf_path in classifiers_Ni.items():
     logpath = os.path.join(*[input_datafolder, clf_path, "logs/log.csv"])
     history_Ni[clf_name] = _get_total_history(logpath)
-    pkl_path = os.path.join(*[input_datafolder, clf_path, "logs", "results.pkl"])
+    pkl_path = os.path.join(
+        *[input_datafolder, clf_path, "logs", "results.pkl"]
+    )
     test_loss = load_test_loss_for_one_run(pkl_path)
     history_Ni[clf_name]["test_loss"] = test_loss
 for clf_name, clf_path in classifiers_Mn.items():
     logpath = os.path.join(*[input_datafolder, clf_path, "logs/log.csv"])
     history_Mn[clf_name] = _get_total_history(logpath)
-    pkl_path = os.path.join(*[input_datafolder, clf_path, "logs", "results.pkl"])
+    pkl_path = os.path.join(
+        *[input_datafolder, clf_path, "logs", "results.pkl"]
+    )
     test_loss = load_test_loss_for_one_run(pkl_path)
     history_Mn[clf_name]["test_loss"] = test_loss
 
@@ -142,7 +147,7 @@ def plot_metric(
     ax.xaxis.set_major_locator(MaxNLocator(integer=False, nbins=4))
     ax.yaxis.set_major_locator(MaxNLocator(integer=False, nbins=4))
 
-    ax.set_ylim(0,0.35)
+    ax.set_ylim(0, 0.35)
 
     for i, (clf_name, clf_history) in enumerate(history.items()):
         metric_history = clf_history[metric]
@@ -169,17 +174,14 @@ def plot_metric(
         mode=None,
     )
 
-def plot_test_loss_after_1000_epochs(
-    ax,
-    histories,
-    norm = False
-    ):
 
-    markers= ['o',"v"]
+def plot_test_loss_after_1000_epochs(ax, histories, norm=False):
+
+    markers = ["o", "v"]
 
     if norm:
-       title = "(d)"
-       ylabel = "Test loss$_{1000 \; \mathrm{ep.}}$ / \n Data set size"
+        title = "(d)"
+        ylabel = "Test loss$_{1000 \; \mathrm{ep.}}$ / \n Data set size"
     else:
         title = "(c)"
         ylabel = "Test loss after 1000 epochs"
@@ -189,11 +191,11 @@ def plot_test_loss_after_1000_epochs(
         losses = []
 
         for sample_no, clf_history in history.items():
-           test_loss = clf_history["test_loss"]
+            test_loss = clf_history["test_loss"]
 
-           if norm:
-               test_loss /= (sample_no * 1000)
-           losses.append(test_loss)
+            if norm:
+                test_loss /= sample_no * 1000
+            losses.append(test_loss)
 
         ax.scatter(
             no_of_samples,
@@ -201,7 +203,7 @@ def plot_test_loss_after_1000_epochs(
             c=colors[i],
             marker=markers[i],
             linewidth=5,
-            )
+        )
 
     ax.set_title(title, fontdict=fontdict)
     ax.set_xlabel("Data set size / 1000", fontdict=fontdict)
@@ -225,15 +227,17 @@ def plot_test_loss_after_1000_epochs(
         mode=None,
     )
 
+
 def plot_epochs(
     ax,
     history,
-    ):
+):
     for key, values in history.items():
         v = np.array(values["val_loss"])
         pos = np.where(v < 0.1)[0][0]
 
         ax.scatter(key, pos)
+
 
 #%%
 fig, axs = plt.subplots(
@@ -241,8 +245,8 @@ fig, axs = plt.subplots(
     ncols=2,
     figsize=(30, 22),
     gridspec_kw={"hspace": 0.3, "wspace": 0.3},
-    dpi=300
-    )
+    dpi=300,
+)
 
 metric = "loss"
 titles = ["(a) Ni", "(b) Mn"]
@@ -251,25 +255,17 @@ histories = [history_Ni, history_Mn]
 
 for j, hist_dict in enumerate(histories):
     plot_metric(
-        axs[0,j],
+        axs[0, j],
         hist_dict,
         metric,
         title=titles[j],
         zoom=False,
         zoom_x=(None, None),
         zoom_y=(None, None),
-        )
+    )
 
-plot_test_loss_after_1000_epochs(
-    axs[1,0],
-    histories,
-    norm=False
-    )
-plot_test_loss_after_1000_epochs(
-    axs[1,1],
-    histories,
-    norm=True
-    )
+plot_test_loss_after_1000_epochs(axs[1, 0], histories, norm=False)
+plot_test_loss_after_1000_epochs(axs[1, 1], histories, norm=True)
 
 
 fig.tight_layout()

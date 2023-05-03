@@ -167,7 +167,8 @@ class Wrapper:
             )
 
             self.axs[0, i].scatter(
-                np.abs(sorted_arrays[:, 0]), sorted_arrays[:, 1]#, rasterized=True
+                np.abs(sorted_arrays[:, 0]),
+                sorted_arrays[:, 1],  # , rasterized=True
             )
 
             self.axs[0, i].set_ylim(0, None)

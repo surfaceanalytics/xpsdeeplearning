@@ -14,14 +14,13 @@ from matplotlib.ticker import MaxNLocator
 
 from common import save_dir
 
-#os.chdir(r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps")
-
 #%%
 def load_pickled_data(filepath):
     with open(filepath, "rb") as pickle_file:
         pickle_data = pickle.load(pickle_file)
 
     return pickle_data
+
 
 folder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\runs\20221123_18h55m_Ni_2_classes_MC_dropout_test_predict_using_20220224_16h08m\logs"
 filename = "results_synthetic.pkl"
@@ -46,11 +45,13 @@ shift_x = pickle_data["shift_x"]
 def _normalize_min_max(data):
     return (data - np.min(data)) / (np.max(data) - np.min(data))
 
+
 def create_grid_suptitle(fig, grid, title, fontdict):
     row = fig.add_subplot(grid)
     row.set_title(f"{title}\n", fontweight="semibold", fontdict=fontdict)
     row.set_frame_on(False)
     row.axis("off")
+
 
 def plot_prob_predictions_together(normalize=False):
     legend = []

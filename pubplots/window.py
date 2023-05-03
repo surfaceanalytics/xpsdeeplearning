@@ -20,8 +20,8 @@ from common import (
     ParserWrapper,
     print_mae_info,
     maximum_absolute_error,
-    save_dir
-    )
+    save_dir,
+)
 
 #%%
 class Wrapper(ParserWrapper):

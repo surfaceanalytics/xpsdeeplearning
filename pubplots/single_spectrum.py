@@ -96,7 +96,7 @@ class FlippedFigure:
         self.fig.patch.set_facecolor("white")
         self.fig.patch.set_edgecolor("none")
 
-        self.ax.scatter(y, x, c="black")#cm.hot(y), edgecolor="none")
+        self.ax.scatter(y, x, c="black")  # cm.hot(y), edgecolor="none")
 
         self.ax.set_ylim(bottom=np.min(x), top=np.max(x))
         if axis_off:

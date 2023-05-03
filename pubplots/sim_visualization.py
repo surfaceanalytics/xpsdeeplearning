@@ -353,15 +353,10 @@ for sim_vals in sim_params.values():
     )
 
     # Only use labels in legend if they were used in the simulation.
-    labels = [
-        "Fe$^{0}$",
-        "FeO",
-        "Fe$_{3}$O$_{4}$",
-        "Fe$_{2}$O$_{3}$"
-        ]
+    labels = ["Fe$^{0}$", "FeO", "Fe$_{3}$O$_{4}$", "Fe$_{2}$O$_{3}$"]
     legend_text = ""
     counter = 0
-    for (linear_param, label) in zip(sim_vals['linear_params'], labels):
+    for (linear_param, label) in zip(sim_vals["linear_params"], labels):
         if linear_param > 0:
             counter += 1
             if counter == 3:

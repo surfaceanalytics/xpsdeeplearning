@@ -16,8 +16,8 @@ from common import (
     get_xlsxpath,
     print_mae_info,
     maximum_absolute_error,
-    save_dir
-    )
+    save_dir,
+)
 
 os.chdir(
     os.path.join(os.path.abspath(__file__).split("deepxps")[0], "deepxps")

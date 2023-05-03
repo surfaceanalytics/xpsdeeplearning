@@ -139,4 +139,3 @@ fig = class_distribution.plot(labels=labels_legend)
 for ext in [".png", ".eps"]:
     fig_path = os.path.join(save_dir, "label_distribution" + ext)
     fig.savefig(fig_path, bbox_inches="tight")
-
