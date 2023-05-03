@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 from PIL import Image
 
-from common import ParserWrapper
+from common import ParserWrapper, save_dir
 
 datafolder = (
     r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\utils\exports"
@@ -45,7 +45,7 @@ class Wrapper(ParserWrapper):
         )
 
         infile = os.path.join(
-            r"C:\Users\pielsticker\Lukas\MPI-CEC\Publications\DeepXPS paper\Manuscript - Automatic Quantification\figures",
+            save_dir,
             "neural_net_peak_fitting.tif",
         )
         with Image.open(infile) as im:
@@ -248,7 +248,6 @@ wrapper.parse_data(bg=True, envelope=True)
 fig, axs = wrapper.plot_all()
 plt.show()
 
-save_dir = r"C:\Users\pielsticker\Lukas\MPI-CEC\Publications\DeepXPS paper\Manuscript - Automatic Quantification\figures"
 for ext in [".png", ".eps"]:
     fig_path = os.path.join(save_dir, "peak_fitting_single" + ext)
     fig.savefig(fig_path, bbox_inches="tight")

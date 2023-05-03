@@ -4,6 +4,8 @@ import os
 import numpy as np
 
 #%%
+save_dir = r"C:\Users\pielsticker\Lukas\MPI-CEC\Publications\DeepXPS paper\Manuscript - Automatic Quantification\manuscript\figures"
+
 def maximum_absolute_error(y_true, y_pred):
     y_true = np.array(y_true)
     y_pred = np.array(y_pred)

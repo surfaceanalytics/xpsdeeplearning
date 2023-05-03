@@ -13,7 +13,7 @@ from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 
 import csv
 
-from common import TextParser, ParserWrapper
+from common import TextParser, ParserWrapper, save_dir
 
 datafolder = (
     r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\utils\exports"
@@ -335,8 +335,6 @@ classifier = (
 history = wrapper.get_total_history(classifier)
 
 fig, axs = wrapper.plot_all()
-
-save_dir = r"C:\Users\pielsticker\Lukas\MPI-CEC\Publications\DeepXPS paper\Manuscript - Automatic Quantification\figures"
 
 for ext in [".png", ".eps"]:
     fig_path = os.path.join(save_dir, "loss_examples_multiple" + ext)

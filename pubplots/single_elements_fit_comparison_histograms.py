@@ -12,8 +12,12 @@ import matplotlib.pyplot as plt
 
 from sklearn.metrics import mean_absolute_error
 
-from common import get_xlsxpath, print_mae_info, maximum_absolute_error
-
+from common import (
+    get_xlsxpath,
+    print_mae_info,
+    maximum_absolute_error,
+    save_dir
+    )
 
 os.chdir(
     os.path.join(os.path.abspath(__file__).split("deepxps")[0], "deepxps")
@@ -184,7 +188,6 @@ axs[0, 3] = _add_loss_histogram(
 
 fig.tight_layout()
 
-save_dir = r"C:\Users\pielsticker\Lukas\MPI-CEC\Publications\DeepXPS paper\Manuscript - Automatic Quantification\figures"
 for ext in [".png", ".eps"]:
     fig_path = os.path.join(save_dir, "hist_fits_single" + ext)
     fig.savefig(fig_path, bbox_inches="tight")

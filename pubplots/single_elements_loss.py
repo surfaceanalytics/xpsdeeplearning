@@ -10,8 +10,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 
-# from mpl_toolkits.axes_grid1.inset_locator import mark_inset
 import csv
+
+from common import save_dir
 
 os.chdir(
     os.path.join(os.path.abspath(__file__).split("deepxps")[0], "deepxps")
@@ -93,7 +94,6 @@ def plot_metric(
     zoom_x=(None, None),
     zoom_y=(None, None),
     to_file=False,
-    fig_dir=None,
 ):
     """
     Plots the training and validation values of a metric
@@ -176,11 +176,9 @@ def plot_metric(
     if to_file:
         # fig_name = os.path.join(fig_dir, f"{metric}.png")
         for ext in [".png", ".eps"]:
-            fig_path = os.path.join(fig_dir, "training_loss_single" + ext)
+            fig_path = os.path.join(save_dir, "training_loss_single" + ext)
             fig.savefig(fig_path, bbox_inches="tight")
 
-
-fig_dir = r"C:\Users\pielsticker\Lukas\MPI-CEC\Publications\DeepXPS paper\Manuscript - Automatic Quantification\figures"
 
 plot_metric(
     history=history,
@@ -191,5 +189,4 @@ plot_metric(
     zoom_x=[100, None],
     zoom_y=[None, 0.1],
     to_file=True,
-    fig_dir=fig_dir,
 )

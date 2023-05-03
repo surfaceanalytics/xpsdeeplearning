@@ -13,6 +13,8 @@ import string
 
 from sklearn.metrics import mean_absolute_error
 
+from common import save_dir
+
 os.chdir(
     os.path.join(os.path.abspath(__file__).split("deepxps")[0], "deepxps")
 )
@@ -200,7 +202,6 @@ losses_test = wrapper.calculate_test_losses(loss_func=mean_absolute_error)
 sim_values_test = wrapper.load_sim_values(datapath)
 fig, ax = wrapper.plot_all(keys=["shift_x", "noise", "fwhm"])
 
-save_dir = r"C:\Users\pielsticker\Lukas\MPI-CEC\Publications\DeepXPS paper\Manuscript - Automatic Quantification\figures"
 for ext in [".png", ".eps", ".pdf"]:
     fig_path = os.path.join(save_dir, "sim_values_effect" + ext)
     fig.savefig(fig_path, bbox_inches="tight")

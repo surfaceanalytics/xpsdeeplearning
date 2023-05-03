@@ -9,7 +9,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 
-from common import TextParser, ParserWrapper
+from common import TextParser, ParserWrapper, save_dir
 
 datafolder = (
     r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\utils\exports"
@@ -340,7 +340,6 @@ wrapper.parse_data(bg=False, envelope=False)
 fig, ax = wrapper.plot_all()
 plt.show()
 
-save_dir = r"C:\Users\pielsticker\Lukas\MPI-CEC\Publications\DeepXPS paper\Manuscript - Automatic Quantification\figures"
 for ext in [".png", ".eps"]:
     fig_path = os.path.join(save_dir, "examples_single" + ext)
     fig.savefig(fig_path, bbox_inches="tight")

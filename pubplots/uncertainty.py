@@ -12,7 +12,9 @@ import matplotlib.gridspec as gridspec
 from string import ascii_lowercase
 from matplotlib.ticker import MaxNLocator
 
-os.chdir(r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps")
+from common import save_dir
+
+#os.chdir(r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps")
 
 #%%
 def load_pickled_data(filepath):
@@ -20,7 +22,6 @@ def load_pickled_data(filepath):
         pickle_data = pickle.load(pickle_file)
 
     return pickle_data
-
 
 folder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\runs\20221123_18h55m_Ni_2_classes_MC_dropout_test_predict_using_20220224_16h08m\logs"
 filename = "results_synthetic.pkl"
@@ -45,13 +46,11 @@ shift_x = pickle_data["shift_x"]
 def _normalize_min_max(data):
     return (data - np.min(data)) / (np.max(data) - np.min(data))
 
-
 def create_grid_suptitle(fig, grid, title, fontdict):
     row = fig.add_subplot(grid)
     row.set_title(f"{title}\n", fontweight="semibold", fontdict=fontdict)
     row.set_frame_on(False)
     row.axis("off")
-
 
 def plot_prob_predictions_together(normalize=False):
     legend = []
@@ -149,7 +148,6 @@ def plot_prob_predictions_together(normalize=False):
 
 fig = plot_prob_predictions_together(normalize=False)
 
-save_dir = r"C:\Users\pielsticker\Lukas\MPI-CEC\Publications\DeepXPS paper\Manuscript - Automatic Quantification\figures"
 for ext in [".png", ".eps"]:
     fig_path = os.path.join(save_dir, "uncertainty_ni" + ext)
     fig.savefig(fig_path, bbox_inches="tight")
