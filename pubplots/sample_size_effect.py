@@ -200,6 +200,7 @@ def plot_test_loss_after_1000_epochs(ax, histories, norm=False):
         ax.scatter(
             no_of_samples,
             losses,
+            s=40,
             c=colors[i],
             marker=markers[i],
             linewidth=5,
