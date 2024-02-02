@@ -73,9 +73,7 @@ class EmptyModel(models.Model):
         self.num_classes = num_classes
         self.no_of_inputs = no_of_inputs
 
-        super(EmptyModel, self).__init__(
-            inputs=inputs, outputs=outputs, name=name
-        )
+        super(EmptyModel, self).__init__(inputs=inputs, outputs=outputs, name=name)
 
     def get_config(self):
         """
@@ -122,12 +120,10 @@ class CustomMLP(EmptyModel):
 
         self.flatten_1 = layers.Flatten(name="flatten1")(self.input_1)
         self.drop_1 = layers.Dropout(rate=0.5, name="drop_1")(self.flatten_1)
-        self.dense_1 = layers.Dense(
-            units=64, activation="relu", name="dense1"
-        )(self.drop_1)
-        self.batch_norm_1 = layers.BatchNormalization(name="batch_norm_1")(
-            self.dense_1
+        self.dense_1 = layers.Dense(units=64, activation="relu", name="dense1")(
+            self.drop_1
         )
+        self.batch_norm_1 = layers.BatchNormalization(name="batch_norm_1")(self.dense_1)
         self.dense_2 = layers.Dense(
             units=num_classes, activation="softmax", name="dense2"
         )(self.batch_norm_1)
@@ -221,9 +217,9 @@ class ClassificationCNN(EmptyModel):
 
         self.flatten_1 = layers.Flatten(name="flatten1")(self.average_pool_1)
         self.drop_1 = layers.Dropout(rate=0.2, name="drop_1")(self.flatten_1)
-        self.dense_1 = layers.Dense(
-            units=1000, activation="relu", name="dense_1"
-        )(self.drop_1)
+        self.dense_1 = layers.Dense(units=1000, activation="relu", name="dense_1")(
+            self.drop_1
+        )
         self.dense_2 = layers.Dense(
             units=num_classes, activation="softmax", name="dense_2"
         )(self.dense_1)
@@ -309,9 +305,9 @@ class RegressionCNN(EmptyModel):
 
         self.flatten_1 = layers.Flatten(name="flatten1")(self.average_pool_1)
         self.drop_1 = layers.Dropout(rate=0.2, name="drop_1")(self.flatten_1)
-        self.dense_1 = layers.Dense(
-            units=4000, activation="relu", name="dense_1"
-        )(self.drop_1)
+        self.dense_1 = layers.Dense(units=4000, activation="relu", name="dense_1")(
+            self.drop_1
+        )
         self.dense_2 = layers.Dense(
             units=num_classes, activation="sigmoid", name="dense_2"
         )(self.dense_1)
@@ -345,7 +341,6 @@ class ClassificationCNN2D(EmptyModel):
     """
 
     def __init__(self, inputshape, num_classes):
-
         self.input_1 = layers.Input(shape=inputshape)
 
         self.conv_1_short = layers.Conv2D(
@@ -391,9 +386,9 @@ class ClassificationCNN2D(EmptyModel):
 
         self.flatten_1 = layers.Flatten(name="flatten1")(self.average_pool_1)
         self.drop_1 = layers.Dropout(rate=0.2, name="drop_1")(self.flatten_1)
-        self.dense_1 = layers.Dense(
-            units=1000, activation="relu", name="dense_1"
-        )(self.drop_1)
+        self.dense_1 = layers.Dense(units=1000, activation="relu", name="dense_1")(
+            self.drop_1
+        )
         self.dense_2 = layers.Dense(
             units=num_classes, activation="softmax", name="dense_2"
         )(self.dense_1)
@@ -608,9 +603,7 @@ class ConvBlock(models.Model):
             kernel_initializer=glorot_uniform(seed=0),
             name=name + "_conv_short",
         )
-        self.batch_short = layers.BatchNormalization(
-            axis=1, name=name + "_bn_short"
-        )
+        self.batch_short = layers.BatchNormalization(axis=1, name=name + "_bn_short")
 
     def call(self, inputs, training=False):
         """
@@ -704,9 +697,7 @@ class ResNet1D(EmptyModel):
             kernel_initializer=glorot_uniform(seed=0),
             name="stage1_conv",
         )(self.zero_pad_1)
-        self.batch_1 = layers.BatchNormalization(axis=1, name="stage1_bn")(
-            self.conv_1
-        )
+        self.batch_1 = layers.BatchNormalization(axis=1, name="stage1_bn")(self.conv_1)
         self.act_1 = layers.Activation(activation="relu", name="stage1_act")(
             self.batch_1
         )
@@ -790,9 +781,9 @@ class ResNet1D(EmptyModel):
 
         # Average pooling
         if self.ap:
-            self.avg_pool = layers.AveragePooling1D(
-                pool_size=3, name="avg_pool"
-            )(self.id_block_5c)
+            self.avg_pool = layers.AveragePooling1D(pool_size=3, name="avg_pool")(
+                self.id_block_5c
+            )
             self.flatten = layers.Flatten(name="flatten")(self.avg_pool)
 
         else:
@@ -949,9 +940,7 @@ class ResNet1DSubclassed(models.Model):
 
         # Average pooling
         if self.ap:
-            self.avg_pool = layers.AveragePooling1D(
-                pool_size=3, name="avg_pool"
-            )
+            self.avg_pool = layers.AveragePooling1D(pool_size=3, name="avg_pool")
 
         # output layer
         self.flatten = layers.Flatten(name="flatten")
@@ -1046,7 +1035,6 @@ class BayesianClassificationCNN2D(EmptyModel):
         kl_divergence_function,
         bias_divergence_fn,
     ):
-
         self.input_1 = layers.Input(shape=inputshape)
 
         self.conv_1_short = tfp.layers.Convolution2DFlipout(
@@ -1222,9 +1210,7 @@ class BayesianCNN(EmptyModel):
             activation=prob_act,
             name="conv_3",
         )(self.conv_2)
-        self.average_pool_1 = average_pool_layer(name="average_pool_1")(
-            self.conv_3
-        )
+        self.average_pool_1 = average_pool_layer(name="average_pool_1")(self.conv_3)
 
         self.flatten_1 = layers.Flatten(name="flatten1")(self.average_pool_1)
         self.drop_1 = layers.Dropout(rate=0.2, name="drop_1")(self.flatten_1)

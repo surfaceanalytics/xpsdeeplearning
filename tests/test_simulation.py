@@ -27,21 +27,26 @@ import pytest
 
 from click.testing import CliRunner
 
-from xpsdeeplearning.simulation.sim.base_model.converters.data_converter import DataConverter
+from xpsdeeplearning.simulation.sim.base_model.converters.data_converter import (
+    DataConverter,
+)
 from xpsdeeplearning.simulation.sim.base_model.spectra import MeasuredSpectrum
 from xpsdeeplearning.simulation.sim import Simulation
 from xpsdeeplearning.simulation.creator import Creator
 from xpsdeeplearning.simulation.run import simulate_cli
+
 
 def test_vms_load():
     converter = DataConverter()
 
     sys.stdout.write("Test on vms load okay.\n")
 
+
 def test_vms_write():
     converter = DataConverter()
 
     sys.stdout.write("Test on vms write okay.\n")
+
 
 def test_txt_load():
     label = "NiCoFe\\Fe2p_Fe_metal"
@@ -59,6 +64,7 @@ def test_txt_load():
     fig = Figure(measured_spectrum.x, measured_spectrum.lineshape, title=label)
 
     sys.stdout.write("Test on txt load okay.\n")
+
 
 def test_txt_write():
     converter = DataConverter()
@@ -100,14 +106,15 @@ def test_single_sim():
 
     sim.output_spectrum
 
-    #np.savez_compressed('filename.npz', array1=array1, array2=array2)
-    ref_sim_file = "tests/data/ref_sim_spectrum.npz" ######
+    # np.savez_compressed('filename.npz', array1=array1, array2=array2)
+    ref_sim_file = "tests/data/ref_sim_spectrum.npz"  ######
     ref_x, ref_lineshape = np.load(ref_sim_file)
 
     assert sim.output_spectrum.x == ref_x
     assert sim.output_spectrum.lineshape == ref_lineshape
 
     sys.stdout.write("Test on single simulation okay.\n")
+
 
 def test_creator():
     """Test creator class."""
@@ -132,6 +139,7 @@ def test_creator():
 
     sys.stdout.write("Test on creator okay.\n")
 
+
 @pytest.mark.parametrize(
     "cli_inputs",
     [
@@ -151,7 +159,6 @@ def test_simulate_cli(cli_inputs):
     hdf5_file = f"{timestamp}_Ni_linear_combination_small_gas_phase.h5"
     ref_hdf5_file = "tests/data/20240202_Ni_linear_combination_small_gas_phase.h5"
 
-
     with h5py.File(ref_hdf5_file, "r") as hf:
         energies = hf["energies"][:]
         X = hf["X"][0].astype(float)
@@ -169,4 +176,3 @@ def test_simulate_cli(cli_inputs):
 
     os.remove(hdf5_file)
     sys.stdout.write("Test on simulate_cli okay.\n")
-

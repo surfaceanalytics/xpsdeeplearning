@@ -45,9 +45,7 @@ class TextWriter:
                 str(np.round(x, 3)) + " " + str(y)
                 for x, y in zip(d["data"]["x"], d["data"]["y0"])
             ]
-            lines.append(
-                {"header_line": header_line, "data_lines": data_lines}
-            )
+            lines.append({"header_line": header_line, "data_lines": data_lines})
 
         return lines
 
@@ -142,20 +140,15 @@ class VamasWriter:
                 setting["scan_mode"] != "FixedEnergies"
             ):
                 block.abscissaStart = str(
-                    float(block.sourceEnergy)
-                    - float(setting["binding_energy"])
+                    float(block.sourceEnergy) - float(setting["binding_energy"])
                 )
             else:
                 block.abscissaStart = spec["data"]["x"][0]
-            block.abscissaStep = abs(
-                spec["data"]["x"][1] - spec["data"]["x"][0]
-            )
+            block.abscissaStep = abs(spec["data"]["x"][1] - spec["data"]["x"][0])
 
             if "nr_values" not in setting.keys():
                 nr_values = len(spec["data"]["y0"])
-                block.numOrdValues = str(
-                    int(nr_values * int(block.noAdditionalParams))
-                )
+                block.numOrdValues = str(int(nr_values * int(block.noAdditionalParams)))
             else:
                 block.numOrdValues = str(
                     int(setting["nr_values"]) * int(block.noAdditionalParams)

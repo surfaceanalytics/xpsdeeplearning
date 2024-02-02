@@ -126,15 +126,11 @@ class DataHandler:
 
         # Store shuffled data (if shuffle=True), then split in train, val, test.
         self.X = loaded_data[0]
-        self.X_train, self.X_val, self.X_test = self._split_test_val_train(
-            self.X
-        )
+        self.X_train, self.X_val, self.X_test = self._split_test_val_train(self.X)
 
         self.y = loaded_data[1]
 
-        self.y_train, self.y_val, self.y_test = self._split_test_val_train(
-            self.y
-        )
+        self.y_train, self.y_val, self.y_test = self._split_test_val_train(self.y)
 
         return_data = [
             self.X_train,
@@ -183,9 +179,7 @@ class DataHandler:
                 self.names_val,
                 self.names_test,
             ) = self._split_test_val_train(self.names)
-            return_data.extend(
-                [self.names_train, self.names_val, self.names_test]
-            )
+            return_data.extend([self.names_train, self.names_val, self.names_test])
 
         print("Data was loaded!")
         print("Total no. of samples: " + str(self.X.shape[0]))
@@ -230,9 +224,7 @@ class DataHandler:
                 )
             try:
                 try:
-                    self.labels = [
-                        label.decode("utf-8") for label in hf["labels"][:]
-                    ]
+                    self.labels = [label.decode("utf-8") for label in hf["labels"][:]]
                 except AttributeError:
                     self.labels = [str(label) for label in hf["labels"][:]]
                 self.num_classes = len(self.labels)
@@ -247,9 +239,7 @@ class DataHandler:
             # Randomly choose a subset of the whole data set.
             try:
                 if self.select_random_subset:
-                    r = np.random.randint(
-                        0, dataset_size - self.no_of_examples + 1
-                    )
+                    r = np.random.randint(0, dataset_size - self.no_of_examples + 1)
                 else:
                     r = 0
 
@@ -342,9 +332,7 @@ class DataHandler:
 
         """
         # First split into train+val and test sets
-        no_of_train_val = int(
-            (1 - self.train_test_split) * data_array.shape[0]
-        )
+        no_of_train_val = int((1 - self.train_test_split) * data_array.shape[0])
         d_train_val = data_array[:no_of_train_val]
         d_test = data_array[no_of_train_val:]
 
@@ -366,12 +354,8 @@ class DataHandler:
 
         self.X, self.y = self.X[indices], self.y[indices]
 
-        self.X_train, self.X_val, self.X_test = self._split_test_val_train(
-            self.X
-        )
-        self.y_train, self.y_val, self.y_test = self._split_test_val_train(
-            self.X
-        )
+        self.X_train, self.X_val, self.X_test = self._split_test_val_train(self.X)
+        self.y_train, self.y_val, self.y_test = self._split_test_val_train(self.X)
 
         return_data = [
             self.X_train,
@@ -422,9 +406,7 @@ class DataHandler:
                 self.names_val,
                 self.names_test,
             ) = self._split_test_val_train(self.names)
-            return_data.extend(
-                [self.names_train, self.names_val, self.names_test]
-            )
+            return_data.extend([self.names_train, self.names_val, self.names_test])
 
         print(
             "Only spectra with one species were left in the data set! Test/val/train splits were kept."
@@ -620,10 +602,7 @@ class DataHandler:
                     [
                         (x, i)
                         for (i, x) in enumerate(losses)
-                        if (
-                            len(np.where(y[i] == 0.0)[0]) == 3
-                            and x >= threshold
-                        )
+                        if (len(np.where(y[i] == 0.0)[0]) == 3 and x >= threshold)
                     ],
                     reverse=True,
                 )
@@ -644,10 +623,7 @@ class DataHandler:
                     [
                         (x, i)
                         for (i, x) in enumerate(losses)
-                        if (
-                            len(np.where(y[i] == 0.0)[0]) != 3
-                            and x >= threshold
-                        )
+                        if (len(np.where(y[i] == 0.0)[0]) != 3 and x >= threshold)
                     ],
                     reverse=True,
                 )
@@ -706,10 +682,7 @@ class DataHandler:
         if argmax_class_true != argmax_class_pred:
             wrong_pred_args.append(i)
         no_of_wrong_pred = len(wrong_pred_args)
-        print(
-            "No. of wrong predictions on the test data: "
-            + str(no_of_wrong_pred)
-        )
+        print("No. of wrong predictions on the test data: " + str(no_of_wrong_pred))
 
         if no_of_wrong_pred > 0:
             for i in range(no_of_wrong_pred):
@@ -723,9 +696,7 @@ class DataHandler:
                 # tmp_array = np.around(tmp_array, decimals=2)
                 pred_y = "Prediction: " + str(tmp_array) + "\n"
                 pred_label = (
-                    "Predicted label: "
-                    + str(self.pred_test_classes[index, 0])
-                    + "\n"
+                    "Predicted label: " + str(self.pred_test_classes[index, 0]) + "\n"
                 )
                 labels = self.y_test[index]
                 for j, value in enumerate(labels):
@@ -739,9 +710,7 @@ class DataHandler:
                 except AttributeError:
                     pass
                 try:
-                    name = self._write_measured_text(
-                        dataset="test", index=index
-                    )
+                    name = self._write_measured_text(dataset="test", index=index)
                     text += name
                 except AttributeError:
                     pass
@@ -756,7 +725,6 @@ class DataHandler:
     def plot_prob_predictions(
         self, prob_preds, indices, dataset="test", no_of_spectra=10
     ):
-
         X, y = self._select_dataset(dataset_name="test")
 
         if no_of_spectra > y.shape[0]:
@@ -858,7 +826,6 @@ class DataHandler:
     def _select_prob_predictions(
         self, prob_preds, kind, dataset="test", no_of_spectra=10
     ):
-
         if kind == "random":
             X, y = self._select_dataset(dataset_name="test")
             indices = []
@@ -873,12 +840,7 @@ class DataHandler:
             return [
                 j[1]
                 for j in sorted(
-                    [
-                        (p, i)
-                        for (i, p) in enumerate(
-                            np.std(prob_preds, axis=1)[:, 0]
-                        )
-                    ],
+                    [(p, i) for (i, p) in enumerate(np.std(prob_preds, axis=1)[:, 0])],
                     reverse=False,
                 )
             ]
@@ -887,12 +849,7 @@ class DataHandler:
             return [
                 j[1]
                 for j in sorted(
-                    [
-                        (p, i)
-                        for (i, p) in enumerate(
-                            np.std(prob_preds, axis=1)[:, 0]
-                        )
-                    ],
+                    [(p, i) for (i, p) in enumerate(np.std(prob_preds, axis=1)[:, 0])],
                     reverse=True,
                 )
             ]
@@ -1003,9 +960,7 @@ class DataHandler:
             pass
 
         if with_prediction:
-            loss_text = (
-                "\n" + "Loss: " + str(np.around(losses[index], decimals=3))
-            )
+            loss_text = "\n" + "Loss: " + str(np.around(losses[index], decimals=3))
             text += loss_text
 
         return text
@@ -1044,9 +999,7 @@ class DataHandler:
             fwhm = self.sim_values_test["fwhm"][index]
 
         if fwhm is not None and fwhm != 0:
-            fwhm_text = (
-                "FHWM: " + str(np.round(float(fwhm), decimals=2)) + ", "
-            )
+            fwhm_text = "FHWM: " + str(np.round(float(fwhm), decimals=2)) + ", "
         else:
             fwhm_text = "FHWM: not changed" + ", "
 

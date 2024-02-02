@@ -56,12 +56,12 @@ def test_hdf5_load():
 
     assert 0 == 0
 
-# =============================================================================
-#     assert X_train.shape == (200,1)
-#     assert X_val.shape == (200,1)
-#     assert X_test.shape == (200,1)
-#     assert y_train.shape == (200,1)
-#     assert y_val.shape == (200,1)
-#     assert y_test.shape == (200,1)
-# =============================================================================
+    # =============================================================================
+    #     assert X_train.shape == (200,1)
+    #     assert X_val.shape == (200,1)
+    #     assert X_test.shape == (200,1)
+    #     assert y_train.shape == (200,1)
+    #     assert y_val.shape == (200,1)
+    #     assert y_test.shape == (200,1)
+    # =============================================================================
     sys.stdout.write("HDF5 loading test okay.\n")

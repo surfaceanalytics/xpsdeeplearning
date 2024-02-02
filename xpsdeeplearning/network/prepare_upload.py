@@ -172,7 +172,7 @@ class Uploader:
         )
 
 
-#%%
+# %%
 if __name__ == "__main__":
     model_path = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\runs\20210531_16h27m_Co_3_classes_linear_comb_small_gas_phase"
     dataset_path = r"C:\Users\pielsticker\Simulations\20210528_Co_linear_combination_small_gas_phase_metadata.json"

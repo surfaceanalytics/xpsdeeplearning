@@ -22,7 +22,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-class Figure():
+class Figure:
     """Class for plotting an XPS spectrum."""
 
     def __init__(self, x, y, title):

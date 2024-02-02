@@ -334,9 +334,7 @@ class TrainingGraphs:
         None.
 
         """
-        self.plot_metric(
-            metric="mse", title="MSE", ylabel="MSE", to_file=to_file
-        )
+        self.plot_metric(metric="mse", title="MSE", ylabel="MSE", to_file=to_file)
 
 
 class WeightDistributions:
@@ -355,36 +353,26 @@ class WeightDistributions:
         self.fig_dir = fig_dir
 
     def plot_weight_priors(self, to_file=True):
-        qm_vals = [
-            layer.kernel_prior.mean().numpy() for layer in self.bayesian_layers
-        ]
+        qm_vals = [layer.kernel_prior.mean().numpy() for layer in self.bayesian_layers]
         qs_vals = [
-            layer.kernel_prior.stddev().numpy()
-            for layer in self.bayesian_layers
+            layer.kernel_prior.stddev().numpy() for layer in self.bayesian_layers
         ]
 
-        return self.plot_distribution(
-            qm_vals, qs_vals, kind="prior", to_file=to_file
-        )
+        return self.plot_distribution(qm_vals, qs_vals, kind="prior", to_file=to_file)
 
     def plot_weight_posteriors(self, to_file=True):
         qm_vals = [
-            layer.kernel_posterior.mean().numpy()
-            for layer in self.bayesian_layers
+            layer.kernel_posterior.mean().numpy() for layer in self.bayesian_layers
         ]
         qs_vals = [
-            layer.kernel_posterior.stddev().numpy()
-            for layer in self.bayesian_layers
+            layer.kernel_posterior.stddev().numpy() for layer in self.bayesian_layers
         ]
 
         return self.plot_distribution(
             qm_vals, qs_vals, kind="posterior", to_file=to_file
         )
 
-    def plot_distribution(
-        self, qm_vals, qs_vals, kind="posterior", to_file=True
-    ):
-
+    def plot_distribution(self, qm_vals, qs_vals, kind="posterior", to_file=True):
         fig, _ = plt.subplots(figsize=(12, 6))
         colors = iter(mcolors.TABLEAU_COLORS.keys())
 
@@ -505,9 +493,7 @@ class Report:
         # Add the names and basic information.
         self.document.add_heading("Data:", 1)
 
-        name_table = self.document.add_table(
-            rows=len(self.name_data.keys()), cols=2
-        )
+        name_table = self.document.add_table(rows=len(self.name_data.keys()), cols=2)
         for key, value in self.name_data.items():
             j = int(list(self.name_data.keys()).index(key))
             name_table.cell(j, 0).text = key + ":"
@@ -535,9 +521,7 @@ class Report:
         # Add information about the training parameters
         self.document.add_heading("Training parameters:", 1)
 
-        train_table = self.document.add_table(
-            rows=len(self.train_data.keys()), cols=2
-        )
+        train_table = self.document.add_table(rows=len(self.train_data.keys()), cols=2)
 
         for key, value in self.train_data.items():
             j = int(list(self.train_data.keys()).index(key))
@@ -658,9 +642,7 @@ class Report:
 
         for i, name in enumerate(self.name_data["Labels"]):
             new_table.cell(0, i).text = name
-            new_table.cell(0, i).paragraphs[
-                0
-            ].alignment = WD_ALIGN_PARAGRAPH.CENTER
+            new_table.cell(0, i).paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
 
         if data_array.dtype == "float32":
             a = np.around(data_array, decimals=4)
@@ -691,9 +673,7 @@ class Report:
             Summary of the model in str format.
 
         """
-        hyperparam_file_name = os.path.join(
-            self.log_dir, "hyperparameters.json"
-        )
+        hyperparam_file_name = os.path.join(self.log_dir, "hyperparameters.json")
         with open(hyperparam_file_name, "r") as json_file:
             data_dict = json.load(json_file)
 
@@ -706,9 +686,7 @@ class Report:
             "Train-test-split": data_dict["train_test_split"],
             "Train-val-split": data_dict["train_val_split"],
             "No. of training samples": data_dict["No. of training samples"],
-            "No. of validation samples": data_dict[
-                "No. of validation samples"
-            ],
+            "No. of validation samples": data_dict["No. of validation samples"],
             "No. of test samples": data_dict["No. of test samples"],
             "Shape of each sample": data_dict["Shape of each sample"],
         }

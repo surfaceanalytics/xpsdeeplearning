@@ -20,7 +20,10 @@ Dataconverter for XPS data.
 """
 from xpsdeeplearning.simulation.base_model.converters.vamas_parser import VamasParser
 from xpsdeeplearning.simulation.base_model.converters.text_parser import TextParser
-from xpsdeeplearning.simulation.base_model.converters.writers import TextWriter, VamasWriter
+from xpsdeeplearning.simulation.base_model.converters.writers import (
+    TextWriter,
+    VamasWriter,
+)
 
 
 class DataConverter:

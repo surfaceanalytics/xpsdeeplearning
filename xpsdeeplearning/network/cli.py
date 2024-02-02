@@ -34,12 +34,15 @@ from xpsdeeplearning.network.models import RegressionCNN
 def init_clf(exp_params):
     """Init a blank classifier."""
     return Classifier(
-        time=datetime.datetime.now().astimezone(pytz.timezone('Europe/Berlin')).strftime("%Y%m%d_%Hh%Mm"),
+        time=datetime.datetime.now()
+        .astimezone(pytz.timezone("Europe/Berlin"))
+        .strftime("%Y%m%d_%Hh%Mm"),
         exp_name=exp_params["exp_name"],
         task=exp_params["task"],
         intensity_only=exp_params["intensity_only"],
         labels=exp_params["labels"],
-        )
+    )
+
 
 def init_clf_with_data(input_filepath, exp_params):
     """Init a classifier and load some data."""
@@ -50,13 +53,22 @@ def init_clf_with_data(input_filepath, exp_params):
     train_val_split = exp_params["train_test_split"]
     no_of_examples = exp_params["no_of_examples"]
 
-    X_train, X_val, X_test, y_train, y_val, y_test, aug_values_train, aug_values_val, aug_values_test =\
-        clf.load_data_preprocess(
-            input_filepath = input_filepath,
-            no_of_examples = no_of_examples,
-            train_test_split = train_test_split,
-            train_val_split = train_val_split
-        )
+    (
+        X_train,
+        X_val,
+        X_test,
+        y_train,
+        y_val,
+        y_test,
+        aug_values_train,
+        aug_values_val,
+        aug_values_test,
+    ) = clf.load_data_preprocess(
+        input_filepath=input_filepath,
+        no_of_examples=no_of_examples,
+        train_test_split=train_test_split,
+        train_val_split=train_val_split,
+    )
 
     return clf
 
@@ -81,22 +93,19 @@ def init_clf_with_data(input_filepath, exp_params):
     default=None,
     help="The path to the output folder of the training results.",
 )
-def train_cli(
-    hdf5_file: str,
-    exp_param_file: str,
-    output_folder: str):
+def train_cli(hdf5_file: str, exp_param_file: str, output_folder: str):
     with open(exp_param_file, "r") as json_file:
         training_params = json.load(json_file)
 
     ## open training params
     clf = init_clf_with_data(hdf5_file, training_params)
-    clf.model = RegressionCNN(
-        clf.datahandler.input_shape,
-        clf.datahandler.num_classes)
+    clf.model = RegressionCNN(clf.datahandler.input_shape, clf.datahandler.num_classes)
 
-    clf.model.compile(loss=MeanAbsoluteError(),
-                  optimizer=Adam(learning_rate=1e-05),
-                  metrics=[MeanSquaredError(name="mse")])
+    clf.model.compile(
+        loss=MeanAbsoluteError(),
+        optimizer=Adam(learning_rate=1e-05),
+        metrics=[MeanSquaredError(name="mse")],
+    )
 
     hist = clf.train(
         epochs=1,
@@ -105,8 +114,10 @@ def train_cli(
         early_stopping=False,
         tb_log=False,
         csv_log=True,
-        verbose = 1)
+        verbose=1,
+    )
     clf.save_results()
+
 
 @click.option(
     "--hdf5-file",
@@ -129,12 +140,7 @@ def train_cli(
     type=click.File("r"),
     help="The path to the existing classifier.",
 )
-
-def predict_cli(
-    hdf5_file: str,
-    exp_param_file: str,
-    clf_path: str
-    ):
+def predict_cli(hdf5_file: str, exp_param_file: str, clf_path: str):
     """Predict using an existing classifier."""
     with open(exp_param_file, "r") as json_file:
         test_params = json.load(json_file)

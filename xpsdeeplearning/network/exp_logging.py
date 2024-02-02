@@ -270,9 +270,7 @@ class ExperimentLogging:
         None.
 
         """
-        hyperparam_file_name = os.path.join(
-            self.log_dir, "hyperparameters.json"
-        )
+        hyperparam_file_name = os.path.join(self.log_dir, "hyperparameters.json")
 
         with open(hyperparam_file_name, "w", encoding="utf-8") as json_file:
             json.dump(
@@ -377,8 +375,7 @@ class CustomModelCheckpoint(callbacks.ModelCheckpoint):
                     current = logs.get(self.monitor)
                     if current is None:
                         logging.warning(
-                            "Can save best model only with %s available, "
-                            "skipping.",
+                            "Can save best model only with %s available, " "skipping.",
                             self.monitor,
                         )
                     else:
@@ -430,8 +427,7 @@ class CustomModelCheckpoint(callbacks.ModelCheckpoint):
                 else:
                     if self.verbose > 0:
                         print(
-                            "\nEpoch %05d: saving model to %s"
-                            % (epoch + 1, filepath)
+                            "\nEpoch %05d: saving model to %s" % (epoch + 1, filepath)
                         )
                     if self.save_weights_only:
                         self.model.save_weights(
@@ -446,9 +442,7 @@ class CustomModelCheckpoint(callbacks.ModelCheckpoint):
                             encoding="utf-8",
                         ) as json_file:
                             json_file.write(self.model.to_json())
-                        self.model.save_weights(
-                            os.path.join(filepath, "weights.h5")
-                        )
+                        self.model.save_weights(os.path.join(filepath, "weights.h5"))
                         self.model.save(
                             filepath,
                             overwrite=True,

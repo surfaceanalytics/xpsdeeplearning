@@ -22,6 +22,7 @@ import numpy as np
 
 from xpsdeeplearning.simulation.base_model.converters.vamas import VamasHeader, Block
 
+
 class VamasParser:
     """Parser for XPS data stored in Vamas files."""
 

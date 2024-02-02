@@ -22,7 +22,7 @@ import warnings
 import numpy as np
 
 
-class Peak():
+class Peak:
     """Basic class for a peak."""
 
     def __init__(self, position, width, intensity):
@@ -118,9 +118,7 @@ class Lorentz(Peak):
         """
         if self.width != 0:
             lorentzian = (
-                self.intensity
-                * 1
-                / (1 + ((self.position - x) / (self.width / 2)) ** 2)
+                self.intensity * 1 / (1 + ((self.position - x) / (self.width / 2)) ** 2)
             )
             return lorentzian
 
@@ -173,9 +171,7 @@ class Voigt(Peak):
                 * Gauss(self.position, self.width, self.intensity).function(x)
             ) + (
                 (1 - self.fraction_gauss)
-                * Lorentz(self.position, self.width, self.intensity).function(
-                    x
-                )
+                * Lorentz(self.position, self.width, self.intensity).function(x)
             )
             return voigt
 

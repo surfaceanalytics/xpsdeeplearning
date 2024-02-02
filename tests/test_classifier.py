@@ -42,8 +42,12 @@ def init_clf():
         exp_name="test",
         task="regression",
         intensity_only=True,
-        labels=["Ni metal", "NiO",],
-        )
+        labels=[
+            "Ni metal",
+            "NiO",
+        ],
+    )
+
 
 def init_clf_with_data():
     """Init a classifier and load some data."""
@@ -54,15 +58,25 @@ def init_clf_with_data():
     train_val_split = 0.2
     no_of_examples = 200
 
-    X_train, X_val, X_test, y_train, y_val, y_test, aug_values_train, aug_values_val, aug_values_test =\
-        clf.load_data_preprocess(
-            input_filepath = input_filepath,
-            no_of_examples = no_of_examples,
-            train_test_split = train_test_split,
-            train_val_split = train_val_split
-        )
+    (
+        X_train,
+        X_val,
+        X_test,
+        y_train,
+        y_val,
+        y_test,
+        aug_values_train,
+        aug_values_val,
+        aug_values_test,
+    ) = clf.load_data_preprocess(
+        input_filepath=input_filepath,
+        no_of_examples=no_of_examples,
+        train_test_split=train_test_split,
+        train_val_split=train_val_split,
+    )
 
     return clf
+
 
 def del_clf_dirs(clf):
     """Remove classifier dirs (to be used after test)."""
@@ -70,9 +84,10 @@ def del_clf_dirs(clf):
     os.remove(clf.logging.log_dir)
     os.remove(clf.logging.fig_dir)
 
+
 def load_reference_model(clf):
     """Load a trained reference TF model."""
-    ref_model_dir = "tests/data/test_clf/model" #########
+    ref_model_dir = "tests/data/test_clf/model"  #########
     return clf.load_model(model_path=ref_model_dir)
 
 
@@ -84,9 +99,7 @@ def test_init_clf():
     hyperparams = []
 
     for log_dir in [ref_log_dir, clf.logging.log_dir]:
-        hyperparam_file_name = os.path.join(
-            log_dir, "hyperparameters.json"
-        )
+        hyperparam_file_name = os.path.join(log_dir, "hyperparameters.json")
     with open(hyperparam_file_name, "r") as json_file:
         hyperparams += [json.load(json_file)]
 
@@ -94,12 +107,13 @@ def test_init_clf():
     del_clf_dirs(clf)
     sys.stdout.write("Test on classifier init okay.\n")
 
+
 def test_load_model():
     """Test for classifier model loading."""
     clf = init_clf()
     clf.model = load_reference_model(clf)
 
-    ref_model_summary_file = "tests/data/test_clf/model/model_summary.txt"        #########
+    ref_model_summary_file = "tests/data/test_clf/model/model_summary.txt"  #########
     with open(ref_model_summary_file, "r") as file:
         ref_model_summary = file.read()
 
@@ -107,17 +121,18 @@ def test_load_model():
     del_clf_dirs()
     sys.stdout.write("Test for classifier model loading okay.\n")
 
+
 def test_train():
     """Test for classifier model training."""
     clf = init_clf_with_data()
 
-    clf.model = RegressionCNN(
-        clf.datahandler.input_shape,
-        clf.datahandler.num_classes)
+    clf.model = RegressionCNN(clf.datahandler.input_shape, clf.datahandler.num_classes)
 
-    clf.model.compile(loss=MeanAbsoluteError(),
-                  optimizer=Adam(learning_rate=1e-05),
-                  metrics=[MeanSquaredError(name="mse")])
+    clf.model.compile(
+        loss=MeanAbsoluteError(),
+        optimizer=Adam(learning_rate=1e-05),
+        metrics=[MeanSquaredError(name="mse")],
+    )
 
     hist = clf.train(
         epochs=1,
@@ -126,7 +141,8 @@ def test_train():
         early_stopping=False,
         tb_log=False,
         csv_log=True,
-        verbose = 1)
+        verbose=1,
+    )
 
     ref_log_dir = "tests/data/test_clf/logs"
 
@@ -145,6 +161,7 @@ def test_train():
     del_clf_dirs()
     sys.stdout.write("Test on classifier training okay.\n")
 
+
 def test_evaluate():
     """Test for classifier evaluation."""
     clf = init_clf_with_data()
@@ -156,6 +173,7 @@ def test_evaluate():
     del_clf_dirs()
     sys.stdout.write("Test on classifier evaluation okay.\n")
 
+
 def test_predict():
     """Test for classifier predicition."""
     clf = init_clf_with_data()
@@ -163,25 +181,25 @@ def test_predict():
 
     pred_train, pred_test = clf.predict()
 
-    ref_pred_file = "tests/data/ref_pred_test.npz" ######
+    ref_pred_file = "tests/data/ref_pred_test.npz"  ######
 
-    #np.savez_compressed('filename.npz', array1=array1, array2=array2)
+    # np.savez_compressed('filename.npz', array1=array1, array2=array2)
     ref_pred_test = np.load(ref_pred_file)
 
     assert clf.pred_test == ref_pred_test
     del_clf_dirs()
     sys.stdout.write("Test on classifier predicition okay.\n")
 
+
 def test_upload():
     """Test for classifier evaluation."""
     clf_root_dir = "tests/data/test_clf/"
-
 
     hyperparam_file_name = "tests/data/test_clf/logs/hyperparameters.json"
     with open(hyperparam_file_name, "r") as json_file:
         hyperparams = json.load(json_file)
 
-    dataset_path = hyperparams["input_filepath"].rsplit(".",1)[0] + "_metadata.json"
+    dataset_path = hyperparams["input_filepath"].rsplit(".", 1)[0] + "_metadata.json"
 
     uploader = Uploader(clf_root_dir, dataset_path)
     uploader.prepare_upload_params()
@@ -189,7 +207,6 @@ def test_upload():
     ref_upload_file = "tests/data/test_clf/ref_upload_params"
     with open(ref_upload_file, "r") as ref_json_file:
         ref_upload_params = json.load(ref_json_file)
-
 
     assert uploader.upload_params == ref_upload_params
     sys.stdout.write("Test on upload okay.\n")
@@ -215,8 +232,9 @@ def test_train_cli(cli_inputs):
     result = runner.invoke(train_cli, cli_inputs)
 
     assert result.exit_code == 0
-    #os.remove(hdf5_file)
+    # os.remove(hdf5_file)
     sys.stdout.write("Test on train_cli okay.\n")
+
 
 @pytest.mark.parametrize(
     "cli_inputs",

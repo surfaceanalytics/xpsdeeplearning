@@ -355,8 +355,7 @@ class Classifier:
             # Save the model and the history in case of interruption.
             print("Training interrupted!")
             if all(
-                checkpoint
-                not in [type(cb).__name__ for cb in self.logging.active_cbs]
+                checkpoint not in [type(cb).__name__ for cb in self.logging.active_cbs]
                 for checkpoint in (
                     "ModelCheckpoint",
                     "CustomModelCheckpoint",
@@ -390,7 +389,10 @@ class Classifier:
         print("Evaluation done! \n")
 
         try:
-            (self.datahandler.test_loss, self.datahandler.test_accuracy,) = (
+            (
+                self.datahandler.test_loss,
+                self.datahandler.test_accuracy,
+            ) = (
                 score[0],
                 score[1],
             )
@@ -446,8 +448,7 @@ class Classifier:
         """
         if self.task == "regression":
             print(
-                "Regression was chosen as task. "
-                + "No prediction of classes possible!"
+                "Regression was chosen as task. " + "No prediction of classes possible!"
             )
         if self.task == "multi_class_detection":
             self.datahandler.pred_train_classes = []
@@ -476,20 +477,18 @@ class Classifier:
 
             for i, pred in enumerate(self.datahandler.pred_train):
                 argmax_class = np.argmax(pred, axis=0)
-                pred_train_classes.append(
-                    self.datahandler.labels[argmax_class]
-                )
+                pred_train_classes.append(self.datahandler.labels[argmax_class])
 
             for i, pred in enumerate(self.datahandler.pred_test):
                 argmax_class = np.argmax(pred, axis=0)
                 pred_test_classes.append(self.datahandler.labels[argmax_class])
 
-            self.datahandler.pred_train_classes = np.array(
-                pred_train_classes
-            ).reshape(-1, 1)
-            self.datahandler.pred_test_classes = np.array(
-                pred_test_classes
-            ).reshape(-1, 1)
+            self.datahandler.pred_train_classes = np.array(pred_train_classes).reshape(
+                -1, 1
+            )
+            self.datahandler.pred_test_classes = np.array(pred_test_classes).reshape(
+                -1, 1
+            )
 
             print("Class prediction done!")
 
@@ -523,9 +522,7 @@ class Classifier:
 
         print("Saved model to disk.")
 
-    def load_model(
-        self, model_path=None, drop_last_layers=None, compile_model=True
-    ):
+    def load_model(self, model_path=None, drop_last_layers=None, compile_model=True):
         """
         Reload the model from file.
 
@@ -572,9 +569,7 @@ class Classifier:
         optimizer = loaded_model.optimizer
         loss = loaded_model.loss
         metrics = [
-            metric.name
-            for metric in loaded_model.metrics
-            if metric.name != "loss"
+            metric.name for metric in loaded_model.metrics if metric.name != "loss"
         ]
 
         # Instantiate a new EmptyModel and implement it with the loaded
@@ -585,9 +580,9 @@ class Classifier:
             outputs=loaded_model.layers[-1].output,
             inputshape=self.datahandler.input_shape,
             num_classes=self.datahandler.num_classes,
-            no_of_inputs=loaded_model._serialized_attributes["metadata"][
-                "config"
-            ]["no_of_inputs"],
+            no_of_inputs=loaded_model._serialized_attributes["metadata"]["config"][
+                "no_of_inputs"
+            ],
             name="Loaded_Model",
         )
 
@@ -617,17 +612,13 @@ class Classifier:
 
             else:
                 print(
-                    "The last {} layers were dropped.\n".format(
-                        str(drop_last_layers)
-                    )
+                    "The last {} layers were dropped.\n".format(str(drop_last_layers))
                 )
 
         if compile_model:
             self.model.compile(optimizer=optimizer, loss=loss, metrics=metrics)
 
-    def plot_spectra_by_indices(
-        self, indices, dataset="train", with_prediction=False
-    ):
+    def plot_spectra_by_indices(self, indices, dataset="train", with_prediction=False):
         """
         Plot XPS spectra out of one of the data set by indices.
 
@@ -679,9 +670,7 @@ class Classifier:
                 with_prediction=False,
             )
 
-    def plot_random(
-        self, no_of_spectra, dataset="train", with_prediction=False
-    ):
+    def plot_random(self, no_of_spectra, dataset="train", with_prediction=False):
         """
         Plot random XPS spectra out of one of the data set.
 
@@ -717,9 +706,7 @@ class Classifier:
                     no_of_spectra, dataset, with_prediction=True
                 )
         else:
-            self.datahandler.plot_random(
-                no_of_spectra, dataset, with_prediction
-            )
+            self.datahandler.plot_random(no_of_spectra, dataset, with_prediction)
 
     def show_worst_predictions(self, no_of_spectra, kind="all", threshold=0.0):
         """
@@ -750,14 +737,10 @@ class Classifier:
 
         """
         try:
-            self.datahandler.show_worst_predictions(
-                no_of_spectra, kind, threshold
-            )
+            self.datahandler.show_worst_predictions(no_of_spectra, kind, threshold)
         except AttributeError:
             self.datahandler.calculate_losses(self.model.loss)
-            self.datahandler.show_worst_predictions(
-                no_of_spectra, kind, threshold
-            )
+            self.datahandler.show_worst_predictions(no_of_spectra, kind, threshold)
 
     def show_wrong_classification(self):
         """
@@ -784,7 +767,6 @@ class Classifier:
         self.datahandler.class_distribution.plot(self.datahandler.labels)
 
     def plot_weight_distribution(self, kind="posterior", to_file=True):
-
         bayesian_layers = [
             layer
             for layer in self.model.layers
@@ -809,17 +791,11 @@ class Classifier:
             fig.savefig(filename)
             print("Saved to {}".format(filename))
 
-    def predict_probabilistic(
-        self, dataset="test", no_of_predictions=100, verbose=0
-    ):
-
+    def predict_probabilistic(self, dataset="test", no_of_predictions=100, verbose=0):
         X, y = self.datahandler._select_dataset(dataset_name=dataset)
 
         prob_pred = np.array(
-            [
-                self.model.predict(X, verbose=verbose)
-                for i in range(no_of_predictions)
-            ]
+            [self.model.predict(X, verbose=verbose) for i in range(no_of_predictions)]
         ).transpose(1, 0, 2)
 
         if dataset == "train":
@@ -953,9 +929,7 @@ def restore_clf_from_logs(runpath):
         Classifier object.
 
     """
-    hyperparam_file_name = os.path.join(
-        runpath, "logs", "hyperparameters.json"
-    )
+    hyperparam_file_name = os.path.join(runpath, "logs", "hyperparameters.json")
 
     with open(hyperparam_file_name, "r") as json_file:
         hyperparams = json.load(json_file)

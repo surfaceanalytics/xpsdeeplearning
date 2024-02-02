@@ -21,11 +21,16 @@ Basic definition of scattering objects for simulating spectra.
 import json
 import numpy as np
 
-from xpsdeeplearning.simulation.base_model.converters.peaks import Gauss, Lorentz, VacuumExcitation, Tougaard
+from xpsdeeplearning.simulation.base_model.converters.peaks import (
+    Gauss,
+    Lorentz,
+    VacuumExcitation,
+    Tougaard,
+)
 from xpsdeeplearning.simulation.base_model.spectra import SyntheticSpectrum
 
 
-class Scatterer():
+class Scatterer:
     """Basic class for creating a scatterer."""
 
     def __init__(self, label):
@@ -120,7 +125,7 @@ class Scatterer():
         self.loss_function.rebuild()
 
 
-class ScatteringMedium():
+class ScatteringMedium:
     """A scattering medium to simulate scattering of photoelectrons."""
 
     def __init__(self, label):

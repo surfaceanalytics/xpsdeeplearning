@@ -24,7 +24,9 @@ from scipy.signal import fftconvolve
 from scipy.interpolate import interp1d
 
 from xpsdeeplearning.simulation.base_model.peaks import Gauss
-from xpsdeeplearning.simulation.base_model.converters.data_converter import DataConverter
+from xpsdeeplearning.simulation.base_model.converters.data_converter import (
+    DataConverter,
+)
 
 
 def safe_arange_with_edges(start, stop, step):
@@ -104,9 +106,7 @@ class Spectrum:
         self.start = start
         self.stop = stop
         self.step = step
-        self.x = np.flip(
-            safe_arange_with_edges(self.start, self.stop, self.step)
-        )
+        self.x = np.flip(safe_arange_with_edges(self.start, self.stop, self.step))
         self.clear_lineshape()
         self.label = label
         self.spectrum_type = None
@@ -130,9 +130,7 @@ class Spectrum:
                 )
             )
         )
-        self.x = np.flip(
-            safe_arange_with_edges(self.start, self.stop, self.step)
-        )
+        self.x = np.flip(safe_arange_with_edges(self.start, self.stop, self.step))
 
     def normalize(self):
         """
@@ -157,9 +155,7 @@ class Spectrum:
         None.
 
         """
-        self.x = np.flip(
-            safe_arange_with_edges(self.start, self.stop, self.step)
-        )
+        self.x = np.flip(safe_arange_with_edges(self.start, self.stop, self.step))
 
     def resample(self, start, stop, step):
         """
@@ -301,13 +297,8 @@ class MeasuredSpectrum(Spectrum):
                 self.x,
             )
 
-            if (
-                self.converter.data[0]["settings"]["x_units"]
-                == "binding energy"
-            ):
-                self.converter.data[0]["settings"][
-                    "x_units"
-                ] = "kinetic energy"
+            if self.converter.data[0]["settings"]["x_units"] == "binding energy":
+                self.converter.data[0]["settings"]["x_units"] = "kinetic energy"
                 excitation_energy = self.converter.data[0]["settings"][
                     "excitation_energy"
                 ]
@@ -397,9 +388,7 @@ class FittedSpectrum(MeasuredSpectrum):
         # This takes the species given in the first line
         self.label = str(lines[0]).split(" ", maxsplit=2)[2].split(":")[0]
         species = str(lines[0]).split(":")[-1].split("\n")[0]
-        self.number = int(
-            str(lines[0]).split(" ", maxsplit=2)[1].split(":")[1]
-        )
+        self.number = int(str(lines[0]).split(" ", maxsplit=2)[1].split(":")[1])
         lines = [[float(i) for i in line.split()] for line in lines[8:]]
         xy_data = np.array(lines)[:, 2:]
 
@@ -616,9 +605,7 @@ class SimulatedSpectrum(Spectrum):
             # A poisson distributed noise is multplied by the noise
             # factor and added to the lineshape.
             lamb = 1000
-            poisson_noise = (
-                noise * np.random.poisson(lamb, self.lineshape.shape) / lamb
-            )
+            poisson_noise = noise * np.random.poisson(lamb, self.lineshape.shape) / lamb
 
             self.lineshape = self.lineshape + poisson_noise
 
@@ -724,9 +711,7 @@ class SimulatedSpectrum(Spectrum):
             # Build the loss function using the parameters in a
             # json file.
             input_datapath = (
-                os.path.dirname(os.path.abspath(__file__)).partition(
-                    "simulation"
-                )[0]
+                os.path.dirname(os.path.abspath(__file__)).partition("simulation")[0]
                 + "\\data\\scatterers.json"
             )
             medium.scatterer.build_loss_from_json(input_datapath)
@@ -761,9 +746,7 @@ class SimulatedSpectrum(Spectrum):
 
             # Calculate the poisson factor for inelastic scattering.
             poisson_factor = (
-                medium.distance
-                * medium.scatterer.inelastic_xsect
-                * medium.density
+                medium.distance * medium.scatterer.inelastic_xsect * medium.density
             )
             norm_factor = medium.scatterer.norm_factor
             total_factor = poisson_factor * norm_factor

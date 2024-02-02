@@ -35,11 +35,9 @@ from xpsdeeplearning.simulation.creator import (
 
 
 def simulate(
-    input_param_file: str,
-    reload_from_previous_folder: str = None,
-    plot: bool = True
-    ):
-    """ Create multiple sets of similar spectra with the same settings."""
+    input_param_file: str, reload_from_previous_folder: str = None, plot: bool = True
+):
+    """Create multiple sets of similar spectra with the same settings."""
     with open(input_param_file, "r") as param_file:
         params = json.load(param_file)
         params["init_param_filepath"] = init_param_filepath
@@ -91,7 +89,6 @@ def simulate(
     default="output.nxs",
     help="The path to the output NeXus file to be generated.",
 )
-
 def simulate_cli(
     input_param_file: str,
     reload_from_previous_folder: str,
@@ -112,9 +109,7 @@ def simulate_cli(
 
 
 if __name__ == "__main__":
-    os.chdir(
-        os.path.join(os.path.abspath(__file__).split("deepxps")[0], "deepxps")
-    )
+    os.chdir(os.path.join(os.path.abspath(__file__).split("deepxps")[0], "deepxps"))
     # Change the following two lines according to your folder structure ###
     init_param_folder = r"C:/Users/pielsticker/Lukas/MPI-CEC/Projects/deepxps/xpsdeeplearning/xpsdeeplearning/simulation/params/"
     init_param_filename = "init_params_Co_core_small_gas_phase.json"

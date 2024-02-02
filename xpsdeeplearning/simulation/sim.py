@@ -190,12 +190,10 @@ class Simulation:
                 shifted_auger_spectrum.lineshape[
                     n - m : n + m
                 ] = auger_spectrum.lineshape[: 2 * m]
-                shifted_auger_spectrum.lineshape[
-                    : n - m
-                ] = auger_spectrum.lineshape[0]
-                shifted_auger_spectrum.lineshape[
-                    n + m :
-                ] = auger_spectrum.lineshape[2 * m]
+                shifted_auger_spectrum.lineshape[: n - m] = auger_spectrum.lineshape[0]
+                shifted_auger_spectrum.lineshape[n + m :] = auger_spectrum.lineshape[
+                    2 * m
+                ]
             elif n < m:
                 shifted_auger_spectrum.lineshape = auger_spectrum.lineshape[
                     m - n : n + m + 1
@@ -252,9 +250,7 @@ class Simulation:
             stop = spectrum.stop
             step = spectrum.step
             self.label = spectrum.label
-            self.output_spectrum.x = np.flip(
-                np.arange(start, stop + step, step)
-            )
+            self.output_spectrum.x = np.flip(np.arange(start, stop + step, step))
         else:
             pass
 

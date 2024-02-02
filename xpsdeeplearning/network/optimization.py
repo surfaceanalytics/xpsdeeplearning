@@ -53,9 +53,7 @@ class Hyperoptimization:
 
         root_dir = os.getcwd()
         self.dir_name = self.time + "_" + self.exp_name
-        self.test_dir = os.path.join(
-            *[root_dir, "runs", self.dir_name, "param_tests"]
-        )
+        self.test_dir = os.path.join(*[root_dir, "runs", self.dir_name, "param_tests"])
 
         self.scans = []
         self.full_data = pd.DataFrame()
@@ -63,15 +61,9 @@ class Hyperoptimization:
         if os.path.isdir(self.test_dir) is False:
             os.makedirs(self.test_dir)
             if os.path.isdir(self.test_dir):
-                print(
-                    "Test folder created at "
-                    + str(self.test_dir.split(root_dir)[1])
-                )
+                print("Test folder created at " + str(self.test_dir.split(root_dir)[1]))
         else:
-            print(
-                "Test folder was already at "
-                + str(self.test_dir.split(root_dir)[1])
-            )
+            print("Test folder was already at " + str(self.test_dir.split(root_dir)[1]))
 
         self.save_full_data()
 
@@ -205,7 +197,7 @@ class Hyperoptimization:
             reduction_metric="val_loss",
             minimize_loss=True,
             number=number,
-            **kwargs
+            **kwargs,
         )
         self.scans.append(scan)
 
@@ -213,12 +205,7 @@ class Hyperoptimization:
             from talos.scan.scan_run import scan_run
 
             scan_run(scan)
-            print(
-                (
-                    "\n Parameter space was scanned. "
-                    + "Training log was saved."
-                )
-            )
+            print(("\n Parameter space was scanned. " + "Training log was saved."))
 
         except KeyboardInterrupt:
             # In case of interruption, still finish the scan round.
@@ -361,9 +348,7 @@ class Hyperoptimization:
 
         return self.best_params
 
-    def load_model_from_scans(
-        self, best=False, model_id=None, metric="val_loss"
-    ):
+    def load_model_from_scans(self, best=False, model_id=None, metric="val_loss"):
         """
         Reload a model from all scans.
 
@@ -579,9 +564,7 @@ class RestoredScan:
         round_file = os.path.join(scan_dir, "round_log.csv")
         model_file = os.path.join(scan_dir, "saved_models.txt")
 
-        self.details = pd.read_csv(
-            detail_file, header=None, squeeze=True, index_col=0
-        )
+        self.details = pd.read_csv(detail_file, header=None, squeeze=True, index_col=0)
 
         self.saved_weights = np.load(weights_file, allow_pickle=True)
 
@@ -678,9 +661,7 @@ class Analysis:
 
     def _cols(self, metric, exclude):
         """Remove other than desired metric from data table."""
-        cols = [
-            col for col in self.df.columns if col not in exclude + [metric]
-        ]
+        cols = [col for col in self.df.columns if col not in exclude + [metric]]
 
         # make sure only unique values in col list
         cols = list(set(cols))
@@ -903,9 +884,7 @@ class LinePlot(Plot):
             alpha=1,
         )
 
-        self.ax.xaxis.set_major_locator(
-            ticker.MaxNLocator(nbins=5, integer=True)
-        )
+        self.ax.xaxis.set_major_locator(ticker.MaxNLocator(nbins=5, integer=True))
 
         self.ax.set_xlabel("Round", self.font_dict)
 
@@ -956,9 +935,7 @@ class HistPlot(Plot):
         self.ax.hist(self.data, bins=bins)
 
         self.ax.set_title(
-            "Histogram of the {0} across all rounds".format(
-                self.metric_display_name
-            ),
+            "Histogram of the {0} across all rounds".format(self.metric_display_name),
             self.font_dict,
         )
 
@@ -1129,14 +1106,7 @@ class BarPlot(Plot):
         self.hue = hue
         self.col = col
         self.name = (
-            "bar_plot-"
-            + self.x
-            + "-"
-            + self.y
-            + "-"
-            + self.hue
-            + "-"
-            + self.col
+            "bar_plot-" + self.x + "-" + self.y + "-" + self.hue + "-" + self.col
         )
 
     def plot(self):
