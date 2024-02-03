@@ -1,7 +1,5 @@
 [build-system]
 requires = ["setuptools>=64.0.1", "setuptools-scm[toml]>=6.2"]
-backend-path = ["xpsdeeplearning"]
-build-backend = "_build_wrapper"
 
 [project]
 name = "xpsdeeplearning"
@@ -31,9 +29,7 @@ dependencies = [
     "python-docx",
     "seaborn",
     "scipy",
-    "sklearn",
-    "shutil",
-    "talos@git+git://github.com/lukaspie/talos.git@1.0#egg=talos",
+    "scikit-learn",
     "tensorflow>=2.8.0",
     "tensorflow_probability"
 ]
@@ -60,7 +56,9 @@ simulate = "xpsdeeplearning.simulation.run:simulate_cli"
 train = "xpsdeeplearning.network.cli:train_cli"
 predict = "xpsdeeplearning.network.cli:predict_cli"
 
-[tool.setuptools.package-data]
+[tool.setuptools]
+packages = ["xpsdeeplearning"]
+
 
 [tool.setuptools_scm]
 version_scheme = "no-guess-dev"

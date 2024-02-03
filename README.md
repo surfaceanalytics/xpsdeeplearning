@@ -43,9 +43,11 @@ The quickest way to get started is to clone this repository into a folder called
 mkdir deepxps
 cd ./deepxps
 git clone https://github.com/surfaceanalytics/xpsdeeplearning.git
+cd 
 ```
 
 ...and install this repository with pip:
+```shell
 pip install ./xpsdeeplearning
 
 
@@ -58,9 +60,9 @@ The code for convolutional neural network training and quantitative prediction i
 
 ## Command line tools
 There are several tools available that allow the user to run the simulation, training, and quantification routines from the command line:
-- [**simulate**](https://github.com/FAIRmat-NFDI/pynxtools/blob/master/pynxtools/dataconverter/README.md): .
-- [**train**](https://github.com/FAIRmat-NFDI/pynxtools/blob/master/pynxtools/nexus/README.md):
-- [**predict**](https://github.com/FAIRmat-NFDI/pynxtools/blob/master/pynxtools/nexus/README.md):
+- [**simulate**](https://github.com/surfaceanalytics/xpsdeeplearning/tree/main/xpsdeeplearning/simulation/README.md): .
+- [**train**](https://github.com/surfaceanalytics/xpsdeeplearning/tree/main/xpsdeeplearning/network/README.md): .
+- [**predict**](https://github.com/surfaceanalytics/xpsdeeplearning/tree/main/xpsdeeplearning/network/README.md): .
 
 You can find more information on how to use these tools in the individual READMEs available through the links above.
 

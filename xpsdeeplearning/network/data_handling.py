@@ -26,7 +26,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 
-from xpspdeeplearning.network.utils import ClassDistribution, SpectraPlot
+from xpsdeeplearning.network.utils import ClassDistribution, SpectraPlot
 
 
 class DataHandler:
