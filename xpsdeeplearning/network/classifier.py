@@ -201,9 +201,6 @@ class Classifier:
         None.
 
         """
-
-        print(self.model.summary())
-
         # Save model summary to a string
         stringlist = []
         self.model.summary(print_fn=lambda x: stringlist.append(x))

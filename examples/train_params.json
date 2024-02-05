@@ -1,0 +1,12 @@
+{
+  "input_filepath":"20210903_CoFe_combined_without_auger_peaks.h5",
+  "exp_name":"FeCo_combined_without_auger_7_classes",
+  "task":"regression",
+  "intensity_only":true,
+  "no_of_examples":500,
+  "train_test_split":0.2,
+  "train_val_split":0.2,
+  "learning_rate":1e-05,
+  "epochs":2,
+  "batch_size":32
+}

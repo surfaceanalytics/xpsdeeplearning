@@ -18,17 +18,23 @@
 """
 CLI tools for classification and prediction.
 """
+import os
 import json
 import datetime
 import pytz
 import click
+import numpy as np
 
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
+
+# Import tensorflow
+import tensorflow as tf
 from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.losses import MeanAbsoluteError
-from tensorflow.keras.metrics import MeanSquaredError
+import tensorflow.keras.losses as tf_losses
+import tensorflow.keras.metrics as tf_metrics
 
 from xpsdeeplearning.network.classifier import Classifier
-from xpsdeeplearning.network.models import RegressionCNN
+from xpsdeeplearning.network import models
 
 
 def init_clf(exp_params):
@@ -40,18 +46,17 @@ def init_clf(exp_params):
         exp_name=exp_params["exp_name"],
         task=exp_params["task"],
         intensity_only=exp_params["intensity_only"],
-        labels=exp_params["labels"],
     )
 
 
-def init_clf_with_data(input_filepath, exp_params):
+def init_clf_with_data(exp_params: dict):
     """Init a classifier and load some data."""
     clf = init_clf(exp_params)
 
-    input_filepath = input_filepath
-    train_test_split = exp_params["train_test_split"]
-    train_val_split = exp_params["train_test_split"]
+    input_filepath = exp_params["input_filepath"]
     no_of_examples = exp_params["no_of_examples"]
+    train_test_split = exp_params["train_test_split"]
+    train_val_split = exp_params["train_val_split"]
 
     (
         X_train,
@@ -69,85 +74,125 @@ def init_clf_with_data(input_filepath, exp_params):
         train_test_split=train_test_split,
         train_val_split=train_val_split,
     )
+    class_distribution = clf.datahandler.check_class_distribution(clf.task)
 
     return clf
+
+def select_model_class(task: str = "regression"):
+    if task == "regression":
+        return models.RegressionCNN
+    elif task == "classification":
+        return models.ClassificationCNN
+    elif task == "multi_class_detection":
+        return models.ClassificationCNN
+
+def select_loss_and_metrics(task: str = "regression"):
+    if task == "regression":
+        loss = tf_losses.MeanAbsoluteError()
+        metrics=[tf_metrics.MeanSquaredError(name="mse")]
+    elif task == "classification":
+        loss = tf_losses.CategoricalCrossentropy()
+        metrics = [tf_metrics.CategoricalCrossentropy(name="accuracy")]
+    elif task == "multi_class_detection":
+        loss = tf_losses.BinaryCrossentropy()
+        metrics = [tf_metrics.BinaryAccuracy(name="accuracy")]
+
+    return loss, metrics
 
 
 @click.command()
 @click.option(
-    "--hdf5-file",
+    "--param-file",
     default=None,
     required=True,
-    type=click.File("r"),
-    help="The path to the HDF5 file with the training data.",
-)
-@click.option(
-    "--exp-param-file",
-    default=None,
-    required=True,
-    type=click.File("r"),
     help="The path to the training parameter file.",
 )
-@click.option(
-    "--output-folder",
-    default=None,
-    help="The path to the output folder of the training results.",
-)
-def train_cli(hdf5_file: str, exp_param_file: str, output_folder: str):
-    with open(exp_param_file, "r") as json_file:
+def train_cli(param_file: str):
+    """Train a CNN on new data."""
+    with open(param_file, "r") as json_file:
         training_params = json.load(json_file)
 
-    ## open training params
-    clf = init_clf_with_data(hdf5_file, training_params)
-    clf.model = RegressionCNN(clf.datahandler.input_shape, clf.datahandler.num_classes)
+    clf = init_clf_with_data(training_params)
+
+    model_class = select_model_class(clf.task)
+    clf.model = model_class(clf.datahandler.input_shape, clf.datahandler.num_classes)
+
+    loss, metrics = select_loss_and_metrics(clf.task)
+    learning_rate = training_params["learning_rate"]
 
     clf.model.compile(
-        loss=MeanAbsoluteError(),
-        optimizer=Adam(learning_rate=1e-05),
-        metrics=[MeanSquaredError(name="mse")],
+        loss=loss,
+        optimizer=Adam(learning_rate = learning_rate),
+        metrics=metrics,
     )
+    clf.summary()
 
     hist = clf.train(
-        epochs=1,
-        batch_size=32,
-        checkpoint=False,
+        checkpoint=True,
         early_stopping=False,
-        tb_log=False,
+        tb_log=True,
         csv_log=True,
-        verbose=1,
-    )
-    clf.save_results()
+        hyperparam_log=True,
+        epochs=training_params["epochs"],
+        batch_size=training_params["batch_size"],
+        verbose = 1
+        )
+    if clf.task == "regression":
+        test_loss = clf.evaluate()
+        print("Test loss: " + str(np.round(test_loss, decimals=8)))
 
+    else:
+        score = clf.evaluate()
+        test_loss, test_accuracy = score[0], score[1]
+        print("Test loss: " + str(np.round(test_loss, decimals=8)))
+        print("Test accuracy: " + str(np.round(test_accuracy, decimals=3)))
 
+    pred_train, pred_test = clf.predict()
+    if clf.task != "regression":
+        pred_train_classes, pred_test_classes = clf.predict_classes()
+
+    clf.pickle_results()
+
+@click.command()
 @click.option(
-    "--hdf5-file",
+    "--param-file",
     default=None,
     required=True,
-    type=click.File("r"),
-    help="The path to the HDF5 file with the test data.",
-)
-@click.option(
-    "--exp-param-file",
-    default=None,
-    required=True,
-    type=click.File("r"),
     help="The path to the parameter file for this experiment.",
 )
 @click.option(
-    "--clf_path",
+    "--clf-path",
     default=None,
     required=True,
-    type=click.File("r"),
     help="The path to the existing classifier.",
 )
-def predict_cli(hdf5_file: str, exp_param_file: str, clf_path: str):
+def predict_cli(param_file: str, clf_path: str):
     """Predict using an existing classifier."""
-    with open(exp_param_file, "r") as json_file:
+    with open(param_file, "r") as json_file:
         test_params = json.load(json_file)
+    clf_param_file = os.path.join(clf_path, "training_params.json")
+    with open(clf_param_file, "r") as clf_json_file:
+        clf_train_params = json.load(clf_json_file)
 
-    clf = init_clf_with_data(hdf5_file, test_params)
+    print(clf_train_params)
+
+    clf = init_clf_with_data(test_params)
     clf.load_model(model_path=clf_path)
+    clf.summary()
 
-    test_loss = clf.evaluate()
+    clf.logging.hyperparams["batch_size"] = clf_train_params["train_params"]["batch_size"]
+
+    if clf.task == "regression":
+        test_loss = clf.evaluate()
+        print("Test loss: " + str(np.round(test_loss, decimals=8)))
+
+    else:
+        score = clf.evaluate()
+        test_loss, test_accuracy = score[0], score[1]
+        print("Test loss: " + str(np.round(test_loss, decimals=8)))
+        print("Test accuracy: " + str(np.round(test_accuracy, decimals=3)))
+
     pred_train, pred_test = clf.predict()
-    clf.save_results()
+    if clf.task != "regression":
+        pred_train_classes, pred_test_classes = clf.predict_classes()
+    clf.pickle_results()
