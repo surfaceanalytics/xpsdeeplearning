@@ -49,7 +49,7 @@ cd
 ...and install this repository with pip:
 ```shell
 pip install ./xpsdeeplearning
-
+```
 
 # Usage
 ## Data simulation

@@ -27,10 +27,10 @@ import pytest
 
 from click.testing import CliRunner
 
-from xpsdeeplearning.simulation.sim.base_model.converters.data_converter import (
+from xpsdeeplearning.simulation.base_model.converters.data_converter import (
     DataConverter,
 )
-from xpsdeeplearning.simulation.sim.base_model.spectra import MeasuredSpectrum
+from xpsdeeplearning.simulation.base_model.spectra import MeasuredSpectrum
 from xpsdeeplearning.simulation.sim import Simulation
 from xpsdeeplearning.simulation.creator import Creator
 from xpsdeeplearning.simulation.run import simulate_cli

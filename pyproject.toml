@@ -5,9 +5,13 @@ requires = ["setuptools>=64.0.1", "setuptools-scm[toml]>=6.2"]
 name = "xpsdeeplearning"
 dynamic = ["version"]
 authors = [
-    { name = "Lukas Pielsticker" },
+    {name = "Lukas Pielsticker", email = "lukas.pielsticker@cec.mpg.de"},
+    {name = "Rachel L. Nicholls"},
+    {name = "Serena DeBeer"},
+    {name = "Mark Greiner"},
 ]
-description = "."
+
+description = "A toolbox for XPS data analysis using Convolutional Neural Networks."
 readme = "README.md"
 license = { file = "LICENSE" }
 requires-python = ">=3.9,!=3.12"
@@ -19,19 +23,23 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 dependencies = [
-    "click",
-    "h5py",
-    "matplotlib",
-    "numpy",
-    "pandas",
-    "pillow",
-    "pytz",
-    "python-docx",
-    "seaborn",
-    "scipy",
-    "scikit-learn",
+    "click>=8.1.0",
+    "graphviz>=0.20.1,
+    "h5py>=3.10.0",
+    "matplotlib>=3.8.0",
+    "numpy>=1.25",
+    "nbconvert>=7.14.2",
+    "pandas>=2.2.0",
+    "pillow>=10.2.0",
+    "pydot>=2.0.0",
+    "pydotplus>=2.0.2",
+    "pytz>=2024.1",
+    "python-docx>=1.1.0",
+    "seaborn>=0.13",
+    "scipy>=1.12",
+    "scikit-learn>=1.4",
     "tensorflow>=2.8.0",
-    "tensorflow_probability"
+    "tensorflow_probability>=0.23"
 ]
 
 [project.urls]
@@ -58,7 +66,6 @@ predict = "xpsdeeplearning.network.cli:predict_cli"
 
 [tool.setuptools]
 packages = ["xpsdeeplearning"]
-
 
 [tool.setuptools_scm]
 version_scheme = "no-guess-dev"
