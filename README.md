@@ -12,7 +12,10 @@
 # <strong> Deep learning for XPS spectra </strong>
 
 <p>
-    <a href="https://scholar.google.de/citations?user=cAhrkhwAAAAJ&hl=de&oi=sra">Dr. Lukas Pielsticker </a>
+    Dr. Lukas Pielsticker, 
+    Dr. Rachel L. Nicholls, 
+    Dr. SerenaDeBeer, 
+    Dr. Mark Greiner
     <br>
 </p>
 
@@ -53,16 +56,18 @@ pip install ./xpsdeeplearning
 
 # Usage
 ## Data simulation
-The software tools for data simulation are located inside [`simulation`](https://github.com/surfaceanalytics/xpsdeeplearning/tree/main/simulation), with exemplary JSON files containing the parameters used during simulation available in the [`params`](https://github.com/surfaceanalytics/xpsdeeplearning/tree/main/simulation/params) subfolder. The reference data that is used as input for the simulation is available inside [`data`](https://github.com/surfaceanalytics/xpsdeeplearning/tree/main/data).
+The software tools for data simulation are located inside [`simulation`](https://github.com/surfaceanalytics/xpsdeeplearning/tree/main/simulation), with exemplary JSON files containing the parameters used during simulation available in the [`params`](https://github.com/surfaceanalytics/xpsdeeplearning/tree/main/simulation/params) subfolder. The reference data that is used as input for the simulation is available inside [`data`](https://github.com/surfaceanalytics/xpsdeeplearning/tree/main/data). Simulation runs can be performed using the [`run`](https://github.com/surfaceanalytics/xpsdeeplearning/tree/main/simulation/run.py) script or the `simulate` tool from the command line (see below.)
 
 ## Model training and prediction
-The code for convolutional neural network training and quantitative prediction is located inside [`network`](https://github.com/surfaceanalytics/xpsdeeplearning/tree/main/network). The design of the model architectures as well as the training and testing of the neural networks were performed using [TensorFlow](https://www.tensorflow.org/) and [Keras](https://keras.io/). In order to run the training and prediction, it is generally advised to use the [`notebooks`](https://github.com/surfaceanalytics/xpsdeeplearning/tree/main/notebooks), either through your local Jupyter installation or through [`Google Colab`](https://colab.research.google.com/). These notebooks allow visualization of the training/prediction inputs and outputs as well as 
+The code for convolutional neural network training and quantitative prediction is located inside [`network`](https://github.com/surfaceanalytics/xpsdeeplearning/tree/main/network). The design of the model architectures as well as the training and testing of the neural networks were performed using [TensorFlow](https://www.tensorflow.org/) and [Keras](https://keras.io/). In order to run the training and prediction pipelines, it is generally advised to use the [`notebooks`](https://github.com/surfaceanalytics/xpsdeeplearning/tree/main/notebooks), either through your local Jupyter installation or through [`Google Colab`](https://colab.research.google.com/). These notebooks allow visualization of the training/prediction inputs and outputs as well as saving of all results.
+
+In addition, both training and prediction can be run from the command line using JSON files as input (see the [README](https://github.com/surfaceanalytics/xpsdeeplearning/tree/main/xpsdeeplearning/network/README.md) for more information.
 
 ## Command line tools
 There are several tools available that allow the user to run the simulation, training, and quantification routines from the command line:
-- [**simulate**](https://github.com/surfaceanalytics/xpsdeeplearning/tree/main/xpsdeeplearning/simulation/README.md): .
-- [**train**](https://github.com/surfaceanalytics/xpsdeeplearning/tree/main/xpsdeeplearning/network/README.md): .
-- [**predict**](https://github.com/surfaceanalytics/xpsdeeplearning/tree/main/xpsdeeplearning/network/README.md): .
+- [**simulate**](https://github.com/surfaceanalytics/xpsdeeplearning/tree/main/xpsdeeplearning/simulation/README.md): Simulate large artificial XPS data sets.
+- [**train**](https://github.com/surfaceanalytics/xpsdeeplearning/tree/main/xpsdeeplearning/network/README.md): Simplified pipeline for tensorflow model training.
+- [**predict**](https://github.com/surfaceanalytics/xpsdeeplearning/tree/main/xpsdeeplearning/network/README.md): Simplified pipeline for quantitative prediction using trained models.
 
 You can find more information on how to use these tools in the individual READMEs available through the links above.
 
@@ -114,7 +119,7 @@ To ask further questions, to make suggestions how we can improve `xpsdeeplearnin
 on how to build on this work, or to get your data ready for neural analysis, you can:
 
 - Open an issue on the [xpsdeeplearning GitHub](https://github.com/surfaceanalytics/xpsdeeplearning)
-- Contact directly the lead developers (Lukas Pielsticker).
+- Contact directly the lead developer (Lukas Pielsticker).
 
 # License
 

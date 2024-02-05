@@ -24,7 +24,7 @@ classifiers = [
 ]
 dependencies = [
     "click>=8.1.0",
-    "graphviz>=0.20.1,
+    "graphviz>=0.20.1",
     "h5py>=3.10.0",
     "matplotlib>=3.8.0",
     "numpy>=1.25",
