@@ -116,7 +116,7 @@ python -m pytest -sv tests
 # Questions, suggestions?
 
 To ask further questions, to make suggestions how we can improve `xpsdeeplearning`, to get advice
-on how to build on this work, or to get your data ready for neural analysis, you can:
+on how to build on this work, or to get your XPS data ready for neural network analysis, you can:
 
 - Open an issue on the [xpsdeeplearning GitHub](https://github.com/surfaceanalytics/xpsdeeplearning)
 - Contact directly the lead developer (Lukas Pielsticker).
