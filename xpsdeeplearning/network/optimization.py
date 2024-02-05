@@ -18,13 +18,14 @@
 """
 Hyperoptimation of keras models using Talos.
 """
-import numpy as np
-import talos
 import os
+
+import numpy as np
 import pandas as pd
+import seaborn as sns
+import talos
 from matplotlib import pyplot as plt
 from matplotlib import ticker
-import seaborn as sns
 
 import xpsdeeplearning.network.classifier as classifier
 
@@ -76,7 +77,7 @@ class Hyperoptimization:
         label_values : list
             List of strings of the labels of the XPS spectra.
             Example:
-                label_values = ['Fe metal', 'FeO', 'Fe3O4', 'Fe2O3']
+                label_values = ["Fe metal", "FeO", "Fe3O4", "Fe2O3"]
 
         Returns
         -------
@@ -117,9 +118,9 @@ class Hyperoptimization:
            in the Talos Scan, a subset of which will be selected at
            random for training and evaluation.
            For example:
-            p = {'lr': (0.5, 5, 10),
-                 'first_neuron':[4, 8, 16, 32, 64],
-                 'hidden_layers':[0, 1, 2]}.
+            p = {"lr": (0.5, 5, 10),
+                 "first_neuron":[4, 8, 16, 32, 64],
+                 "hidden_layers":[0, 1, 2]}.
            Need to know the model architecture beforehand.
 
         Returns
@@ -164,7 +165,7 @@ class Hyperoptimization:
             Parameter space to be scanned.
         **kwargs : str
             Limiter arguments in Talos (see Talos doc), e.g.
-            'fraction_limit', 'round_limit', 'time_limit'
+            "fraction_limit", "round_limit", "time_limit"
 
         Returns
         -------
@@ -335,7 +336,7 @@ class Hyperoptimization:
         Parameters
         ----------
         metric : str
-            Metric to evaluate. Typically 'val_acc' or 'val_loss'.
+            Metric to evaluate. Typically "val_acc" or "val_loss".
 
         Returns
         -------
@@ -364,7 +365,7 @@ class Hyperoptimization:
             The default is None.
         metric : str, optional
             If best, the metric for which to choose the best model.
-            The default is 'val_loss'.
+            The default is "val_loss".
 
         Returns
         -------
@@ -631,7 +632,7 @@ class Analysis:
         Parameters
         ----------
         metric : str
-            Metric to evaluate. Typically 'val_acc' or 'val_loss'.
+            Metric to evaluate. Typically "val_acc" or "val_loss".
         low : bool, optional
             If low, the minimum value of the metric in the results df
             is searched.
@@ -675,7 +676,7 @@ class Analysis:
         Parameters
         ----------
         metric : str
-            Metric to evaluate. Typically 'val_acc' or 'val_loss'.
+            Metric to evaluate. Typically "val_acc" or "val_loss".
 
         Returns
         -------
@@ -692,7 +693,7 @@ class Analysis:
         Parameters
         ----------
         metric : str
-            Metric to evaluate. Typically 'val_acc' or 'val_loss'.
+            Metric to evaluate. Typically "val_acc" or "val_loss".
 
         Returns
         -------
@@ -716,7 +717,7 @@ class Analysis:
         Parameters
         ----------
         metric : str
-            Metric to evaluate. Typically 'val_acc' or 'val_loss'.
+            Metric to evaluate. Typically "val_acc" or "val_loss".
 
         Returns
         -------

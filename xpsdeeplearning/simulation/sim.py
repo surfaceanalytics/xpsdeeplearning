@@ -19,8 +19,9 @@
 Simulate a single spectrum from reference spectra.
 """
 import numpy as np
-from xpsdeeplearning.simulation.base_model.spectra import SimulatedSpectrum
+
 from xpsdeeplearning.simulation.base_model.figures import Figure
+from xpsdeeplearning.simulation.base_model.spectra import SimulatedSpectrum
 
 
 class Simulation:
@@ -230,11 +231,11 @@ class Simulation:
                 To shift the spectrum by some eV.
             scatterer: dict
                 To simulate scattering in a scattering medium defined
-                in the dictionary of the format {'label' : str,
-                                                 'distance' : float,
-                                                 'pressure' : float}.
-                'label' is the name of the scatterer.
-                 Allowed values: 'default', 'H2', 'He', 'O2', 'N2.'
+                in the dictionary of the format {"label" : str,
+                                                 "distance" : float,
+                                                 "pressure" : float}.
+                "label" is the name of the scatterer.
+                 Allowed values: "default", "H2", "He", "O2", "N2."
 
         Returns
         -------

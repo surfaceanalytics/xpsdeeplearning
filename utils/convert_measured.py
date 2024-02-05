@@ -29,17 +29,16 @@ files and store them in a hdf5 file as a test data set for the neural
 network studies.
 """
 import os
-import h5py
-import pandas as pd
-import numpy as np
 
-from xpsdeeplearning.simulation.base_model.spectra import (
-    Spectrum,
-    MeasuredSpectrum,
-    FittedSpectrum,
-    SimulatedSpectrum,
-)
+import h5py
+import numpy as np
+import pandas as pd
+
 from xpsdeeplearning.simulation.base_model.figures import Figure
+from xpsdeeplearning.simulation.base_model.spectra import (FittedSpectrum,
+                                                           MeasuredSpectrum,
+                                                           SimulatedSpectrum,
+                                                           Spectrum)
 
 #%% For one reference spectrum.
 input_datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\utils"
@@ -99,21 +98,21 @@ ref_spectrum.write(input_datafolder, new_filename)
 # =============================================================================
 #%% For one fitted XPS spectrum
 # =============================================================================
-# input_datafolder = r'C:\Users\pielsticker\Desktop\Mixed Fe spectra\exported'
-# filename = 'measured0001.txt'
+# input_datafolder = r"C:\Users\pielsticker\Desktop\Mixed Fe spectra\exported"
+# filename = "measured0001.txt"
 # energies = []
 #
 # filepath = os.path.join(input_datafolder, filename)
 # fit_spectrum = FittedSpectrum(filepath)
 # fig_old = Figure(x=fit_spectrum.x,
 #                  y=fit_spectrum.lineshape,
-#                  title='old')
+#                  title="old")
 # energies.append(fit_spectrum.x[np.argmax(fit_spectrum.lineshape)])
 #
 # fit_spectrum.resample(start=694, stop=750, step=0.05)
 # fig_new = Figure(x=fit_spectrum.x,
 #                  y=fit_spectrum.lineshape,
-#                  title='new')
+#                  title="new")
 # energies.append(fit_spectrum.x[np.argmax(fit_spectrum.lineshape)])
 # # fit_spectrum.write(input_datafolder)
 # =============================================================================

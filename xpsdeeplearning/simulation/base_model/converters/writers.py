@@ -18,10 +18,12 @@
 Write for XPS data to vms/txt format.
 """
 import re
-import numpy as np
 from copy import copy
 
-from xpsdeeplearning.simulation.base_model.converters.vamas import VamasHeader, Block
+import numpy as np
+
+from xpsdeeplearning.simulation.base_model.converters.vamas import (
+    Block, VamasHeader)
 
 
 class TextWriter:
@@ -110,7 +112,7 @@ class VamasWriter:
             if len(block.year) == 2:
                 block.year = int(block.year) + self.millenium
             block.hour, block.minute, block.second = time.split(":")
-            block.noHrsInAdvanceOfGMT = "0"  # zone.strip('UTC')
+            block.noHrsInAdvanceOfGMT = "0"  # zone.strip("UTC")
             setting = spec["settings"]
             block.technique = setting["analysis_method"]
             block.sourceLabel = setting["source_label"]

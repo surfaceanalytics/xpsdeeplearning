@@ -18,15 +18,15 @@
 """
 Basic definition of classes and peak shapes for simulating spectra.
 """
-import numpy as np
 import os
-from scipy.signal import fftconvolve
-from scipy.interpolate import interp1d
 
+import numpy as np
+from scipy.interpolate import interp1d
+from scipy.signal import fftconvolve
+
+from xpsdeeplearning.simulation.base_model.converters.data_converter import \
+    DataConverter
 from xpsdeeplearning.simulation.base_model.peaks import Gauss
-from xpsdeeplearning.simulation.base_model.converters.data_converter import (
-    DataConverter,
-)
 
 
 def safe_arange_with_edges(start, stop, step):
@@ -456,7 +456,7 @@ class SyntheticSpectrum(Spectrum):
         Parameters
         ----------
         component : Peak
-            A peak object that needs to have a method 'function'.
+            A peak object that needs to have a method "function".
         rebuild : bool, optional
             If rebuild, the lineshape is rebuild including the
             new component. The default is True.
@@ -679,8 +679,8 @@ class SimulatedSpectrum(Spectrum):
         Parameters
         ----------
         label : str, optional
-            Label of the scatterer. Can be 'He','H2','N2' or 'default'.
-            The default is 'He'.
+            Label of the scatterer. Can be "He","H2","N2" or "default".
+            The default is "He".
         distance : float, optional
             Distance (in mm) the electrons travel in the gas.
             The default is 0.8.

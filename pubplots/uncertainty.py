@@ -36,7 +36,7 @@ prob_pred_syn = pickle_data["prob_pred_syn"]
 
 energies = pickle_data["energies"]
 spectrum_descriptions = pickle_data["spectrum_descriptions"]
-spectrum_descriptions = [f"S3: {pickle_data['spectrum_descriptions'][0]}"]
+spectrum_descriptions = [f"S3: {pickle_data["spectrum_descriptions"][0]}"]
 labels = pickle_data["labels"]
 indices = pickle_data["indices"]
 shift_x = pickle_data["shift_x"]

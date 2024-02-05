@@ -97,7 +97,7 @@ class Creator:
                         self.sim_ranges[subkey] = params["sim_ranges"][subkey]
 
         # Print parameter file name.
-        print("Parameters were taken from " f"{self.params['init_param_filepath']}.")
+        print("Parameters were taken from " f"{self.params["init_param_filepath"]}.")
         del self.params["init_param_filepath"]
 
         self.name = self.params["timestamp"] + "_" + self.params["name"]
@@ -112,7 +112,7 @@ class Creator:
             warnings.warn(
                 "Auger and core spectra of the same species are not scaled"
                 " together. If you have Auger spectra, you may want to set"
-                ' "same_auger_core_percentage" to True!'
+                " "same_auger_core_percentage" to True!"
             )
 
         # Load input spectra from all reference sets.
@@ -190,7 +190,7 @@ class Creator:
         """
         Create matrix for multiple simulations.
 
-        Creates the numpy array 'simulation_matrix' (instance
+        Creates the numpy array "simulation_matrix" (instance
         variable) that is used to simulate the new spectra.
         simulation_matrix has the dimensions (n x p), where:
         n: no. of spectra that will be created
@@ -357,7 +357,7 @@ class Creator:
                     params = [np.random.uniform(0.1, 1.0) for j in range(no_of_spectra)]
 
                     params = self._normalize_float_list(params)
-                    # Don't allow parameters below 0.1.
+                    # Don"t allow parameters below 0.1.
                     for p in params:
                         if p <= 0.1:
                             params[params.index(p)] = 0.0
@@ -993,7 +993,7 @@ class FileWriter:
         filepath : str
             Filepath of the output file.
         filetype : str
-            Options: 'excel', 'json', 'txt', 'pickle'
+            Options: "excel", "json", "txt", "pickle"
         Returns
         -------
         None.
@@ -1159,8 +1159,8 @@ class FileWriter:
         except IndexError:
             raise IndexError(
                 "Could not concatenate individual spectra because their"
-                'sizes are different. Either set "ensure_same_length"'
-                'to True or "eV_window" to a finite integer!'
+                "sizes are different. Either set "ensure_same_length""
+                "to True or "eV_window" to a finite integer!"
             )
 
         y = self._one_hot_encode(y)

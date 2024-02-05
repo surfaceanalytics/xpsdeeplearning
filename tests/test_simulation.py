@@ -17,23 +17,22 @@
 """
 Tests for simulation
 """
+import datetime
+import json
 import os
 import sys
-import json
+
 import h5py
-import datetime
 import numpy as np
 import pytest
-
 from click.testing import CliRunner
 
-from xpsdeeplearning.simulation.base_model.converters.data_converter import (
-    DataConverter,
-)
+from xpsdeeplearning.simulation.base_model.converters.data_converter import \
+    DataConverter
 from xpsdeeplearning.simulation.base_model.spectra import MeasuredSpectrum
-from xpsdeeplearning.simulation.sim import Simulation
 from xpsdeeplearning.simulation.creator import Creator
 from xpsdeeplearning.simulation.run import simulate_cli
+from xpsdeeplearning.simulation.sim import Simulation
 
 
 def test_vms_load():
@@ -106,7 +105,7 @@ def test_single_sim():
 
     sim.output_spectrum
 
-    # np.savez_compressed('filename.npz', array1=array1, array2=array2)
+    # np.savez_compressed("filename.npz", array1=array1, array2=array2)
     ref_sim_file = "tests/data/ref_sim_spectrum.npz"  ######
     ref_x, ref_lineshape = np.load(ref_sim_file)
 

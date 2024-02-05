@@ -17,22 +17,22 @@
 """
 Tests for classification and prediction.
 """
-import os
-import sys
 import csv
 import json
-import pytest
-import numpy as np
-from click.testing import CliRunner
+import os
+import sys
 
-from tensorflow.keras.optimizers import Adam
+import numpy as np
+import pytest
+from click.testing import CliRunner
 from tensorflow.keras.losses import MeanAbsoluteError
 from tensorflow.keras.metrics import MeanSquaredError
+from tensorflow.keras.optimizers import Adam
 
 from xpsdeeplearning.network.classifier import Classifier
+from xpsdeeplearning.network.cli import predict_cli, train_cli
 from xpsdeeplearning.network.models import RegressionCNN
 from xpsdeeplearning.network.prepare_upload import Uploader
-from xpsdeeplearning.network.cli import train_cli, predict_cli
 
 
 def init_clf():
@@ -183,7 +183,7 @@ def test_predict():
 
     ref_pred_file = "tests/data/ref_pred_test.npz"  ######
 
-    # np.savez_compressed('filename.npz', array1=array1, array2=array2)
+    # np.savez_compressed("filename.npz", array1=array1, array2=array2)
     ref_pred_test = np.load(ref_pred_file)
 
     assert clf.pred_test == ref_pred_test

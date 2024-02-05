@@ -18,12 +18,12 @@
 """
 Dataconverter for XPS data.
 """
-from xpsdeeplearning.simulation.base_model.converters.vamas_parser import VamasParser
-from xpsdeeplearning.simulation.base_model.converters.text_parser import TextParser
+from xpsdeeplearning.simulation.base_model.converters.text_parser import \
+    TextParser
+from xpsdeeplearning.simulation.base_model.converters.vamas_parser import \
+    VamasParser
 from xpsdeeplearning.simulation.base_model.converters.writers import (
-    TextWriter,
-    VamasWriter,
-)
+    TextWriter, VamasWriter)
 
 
 class DataConverter:
@@ -34,12 +34,12 @@ class DataConverter:
         Initialize the parser methods.
 
         All objects of the Dataset class should have the methods
-        specificed in the attribute 'self.class_methods'.
+        specificed in the attribute "self.class_methods".
 
         This class parses files of type:
-            'Text', 'Vamas'
+            "Text", "Vamas"
         And writes files of type:
-            'Text', 'Vamas', ''
+            "Text", "Vamas", ""
         """
         self._parsers = {"Vamas": VamasParser, "Text": TextParser}
         self._writers = {"Text": TextWriter, "Vamas": VamasWriter}

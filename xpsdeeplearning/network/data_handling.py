@@ -18,13 +18,12 @@
 """
 Data handler for Classifier class.
 """
-import numpy as np
 import h5py
-import sklearn
-
-import seaborn as sns
-import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
+import matplotlib.pyplot as plt
+import numpy as np
+import seaborn as sns
+import sklearn
 
 from xpsdeeplearning.network.utils import ClassDistribution, SpectraPlot
 
@@ -100,8 +99,8 @@ class DataHandler:
                 self.sim_values_test : dicts
                     Dictionaries containing information about the parameters
                     used during the artificical construction of the dataset.
-                    Keys : 'shiftx', 'noise', 'FWHM',
-                           'scatterer', 'distance', 'pressure'
+                    Keys : "shiftx", "noise", "FWHM",
+                           "scatterer", "distance", "pressure"
                     Split in the same way as the features and labels.
                 self.names_train,
                 self.names_val,
@@ -424,9 +423,9 @@ class DataHandler:
         Parameters
         ----------
         task : str
-            If task == 'regression', an average distribution is
+            If task == "regression", an average distribution is
             calculated.
-            If task == 'classification' or 'multi_class_detection',
+            If task == "classification" or "multi_class_detection",
             the distribution of the labels across the different data
             sets is calculated.
 
@@ -475,8 +474,8 @@ class DataHandler:
         no_of_spectra : int
             No. of plots to create.
         dataset : str
-            Either 'train', 'val', or 'test'.
-            The default is 'train'.
+            Either "train", "val", or "test".
+            The default is "train".
         indices: list
             List
         with_prediction : bool, optional
@@ -528,8 +527,8 @@ class DataHandler:
         no_of_spectra : int
             No. of plots to create.
         dataset : str
-            Either 'train', 'val', or 'test'.
-            The default is 'train'.
+            Either "train", "val", or "test".
+            The default is "train".
         with_prediction : bool, optional
             If True, information about the predicted values are also
             shown in the plot.
@@ -568,11 +567,11 @@ class DataHandler:
             No. of spectra to plot.
         kind : str, optional
             Choice of sub set in test data.
-            'all': all test data.
-            'single': only test data with single species.
-            'linear_comb': only test data with linear combination
+            "all": all test data.
+            "single": only test data with single species.
+            "linear_comb": only test data with linear combination
                            of  species.
-            The default is 'all'.
+            The default is "all".
         threshold : float
             Threshold value for loss.
 
@@ -864,7 +863,7 @@ class DataHandler:
         Parameters
         ----------
         name : str
-            Name of the data set. Options: 'train', 'val', 'test'.
+            Name of the data set. Options: "train", "val", "test".
 
         Returns
         -------
@@ -896,7 +895,7 @@ class DataHandler:
         Parameters
         ----------
         name : str
-            Name of the data set. Options: 'train', 'val', 'test'.
+            Name of the data set. Options: "train", "val", "test".
 
         Returns
         -------
@@ -921,7 +920,7 @@ class DataHandler:
         Parameters
         ----------
         dataset : str
-            Name of the data set. Options: 'train', 'val', 'test'..
+            Name of the data set. Options: "train", "val", "test"..
         index : int
             Index of the spectrum.
         with_prediction : bol, optional
@@ -972,7 +971,7 @@ class DataHandler:
         Parameters
         ----------
         dataset : str
-            Either 'train', 'val', or 'test.
+            Either "train", "val", or "test.
             Needed for taking the correct sim_values.
         index : int
             Index of the example for which the text shall be created.
@@ -1029,7 +1028,7 @@ class DataHandler:
         Parameters
         ----------
         dataset : str
-            Either 'train', 'val', or 'test.
+            Either "train", "val", or "test.
             Needed for taking the correct sim_values.
         index : int
             Index of the example for which the text shall be created.
@@ -1078,7 +1077,7 @@ class DataHandler:
         Parameters
         ----------
         dataset : str
-            Either 'train', 'val', or 'test.
+            Either "train", "val", or "test.
             Needed for taking the correct names.
         index : int
             Index of the example for which the text shall be created.

@@ -20,18 +20,18 @@ Utils for model training:
     1) Plotting
     2) Reporting in .docx format
 """
+import json
 import os
 import pickle
-import numpy as np
-import json
-from matplotlib import pyplot as plt
-import matplotlib.colors as mcolors
-import seaborn as sns
 
+import matplotlib.colors as mcolors
+import numpy as np
+import seaborn as sns
 from docx import Document
-from docx.enum.table import WD_TABLE_ALIGNMENT, WD_ROW_HEIGHT_RULE
+from docx.enum.table import WD_ROW_HEIGHT_RULE, WD_TABLE_ALIGNMENT
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.shared import Cm, Pt
+from matplotlib import pyplot as plt
 
 
 class SpectraPlot:
@@ -135,20 +135,20 @@ class ClassDistribution:
         are calculated. If the task is "classification", calculate how
         many examples of each class are in the different data ses.
 
-        Save the distribution in a dict called 'cd'.
-        cd: Dictionary of the format {'all data': dict,
-                                      'training data': dict,
-                                      'validation data': dict,
-                                      'test data': dict}.
+        Save the distribution in a dict called "cd".
+        cd: Dictionary of the format {"all data": dict,
+                                      "training data": dict,
+                                      "validation data": dict,
+                                      "test data": dict}.
         Each of the sub-dicts contains the distribution of the labels
         in the data sub-set.
 
         Parameters
         ----------
         task : str
-            If task == 'regression', an average distribution is
+            If task == "regression", an average distribution is
             calculated.
-            If task == 'classification' or 'multi_class_detection',
+            If task == "classification" or "multi_class_detection",
             the distribution of the labels across the different data
             sets is calculated.
         data_list : list
@@ -443,7 +443,7 @@ class Report:
         ----------
         dir_name : str, optional
             The name of the directory where the report shall be saved.
-            The default is ''.
+            The default is "".
 
         Returns
         -------

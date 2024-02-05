@@ -20,7 +20,8 @@ Dataconverter for XPS data in vms format.
 """
 import numpy as np
 
-from xpsdeeplearning.simulation.base_model.converters.vamas import VamasHeader, Block
+from xpsdeeplearning.simulation.base_model.converters.vamas import (
+    Block, VamasHeader)
 
 
 class VamasParser:
@@ -207,7 +208,7 @@ class VamasParser:
 
     def parse_file(self, filepath):
         """
-        Parse .xy into a list of dictionaries caleld 'self.data'.
+        Parse .xy into a list of dictionaries caleld "self.data".
 
         Each dictionary is a grouping of related attributes.
         These are later put into a heirarchical nested dictionary that
@@ -327,7 +328,7 @@ class VamasParser:
         # start = time.time()
         block = Block()
         # stop = time.time()
-        # print('Block instantiated in time: ' + str(stop-start))
+        # print("Block instantiated in time: " + str(stop-start))
 
         # start = time.time()
 
@@ -398,12 +399,12 @@ class VamasParser:
             setattr(block, name, float(self.data.pop(0).strip()))
 
         # stop = time.time()
-        # print('Block metadata added in time: ' + str(stop-start))
+        # print("Block metadata added in time: " + str(stop-start))
 
         # start = time.time()
         self._add_data_values(block)
         # stop = time.time()
-        # print('Block data added in time: ' + str(stop-start))
+        # print("Block data added in time: " + str(stop-start))
 
         return block
 
@@ -528,7 +529,7 @@ class VamasParser:
         # =============================================================================
         #         for r in range(int(block.numOrdValues / block.noVariables)):
         #             for v in range(block.noVariables):
-        #                 name = 'y' + str(v)
+        #                 name = "y" + str(v)
         #                 data_dict[name] += [float(self.data.pop(0).strip())]
         # =============================================================================
 
@@ -544,7 +545,7 @@ class VamasParser:
         Construct a list of dictionaries.
 
         Each dictionary contains all the data and metadata of a spectrum.
-        vamas.sampleID -> group['name']
+        vamas.sampleID -> group["name"]
         vamas.
         """
         group_id = -1

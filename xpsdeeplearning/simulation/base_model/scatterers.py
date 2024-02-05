@@ -19,14 +19,11 @@
 Basic definition of scattering objects for simulating spectra.
 """
 import json
+
 import numpy as np
 
 from xpsdeeplearning.simulation.base_model.converters.peaks import (
-    Gauss,
-    Lorentz,
-    VacuumExcitation,
-    Tougaard,
-)
+    Gauss, Lorentz, Tougaard, VacuumExcitation)
 from xpsdeeplearning.simulation.base_model.spectra import SyntheticSpectrum
 
 
@@ -44,7 +41,7 @@ class Scatterer:
         ----------
         label : str
             String value for labeling the scatterer.
-            Allowed values: 'default', 'He', 'H2', 'O2', 'N2'.
+            Allowed values: "default", "He", "H2", "O2", "N2".
 
         Returns
         -------
@@ -140,7 +137,7 @@ class ScatteringMedium:
         ----------
         label : str
             String value for choosing the scatterer.
-            Allowed values: 'default', 'He', 'H2', 'O2', 'N2'
+            Allowed values: "default", "He", "H2", "O2", "N2"
 
         Returns
         -------

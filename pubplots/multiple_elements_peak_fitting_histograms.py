@@ -6,13 +6,12 @@ Created on Fri Jul 15 10:13:54 2022
 """
 
 import os
-import numpy as np
+
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
-
-from sklearn.metrics import mean_absolute_error
-
 from common import ParserWrapper, get_xlsxpath, print_mae_info, save_dir
+from sklearn.metrics import mean_absolute_error
 
 datafolder = (
     r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\utils\exports"
@@ -337,7 +336,7 @@ def print_diff(df, threshold, kind="average"):
         )  # .reset_index()
         df_print.columns = ["true", "nn"]
         df_print["diff"] = (df_true.loc[index] - df_test.loc[index]) * 100
-        # print(f"{index}: max diff.: {max(df_print['diff'])}, mean diff.: {np.mean(np.abs(df_print['diff']))}")
+        # print(f"{index}: max diff.: {max(df_print["diff"])}, mean diff.: {np.mean(np.abs(df_print["diff"]))}")
         if kind == "average":
             metric = np.mean(np.abs(df_print["diff"]))
         elif kind == "max":

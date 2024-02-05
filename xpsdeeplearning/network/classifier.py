@@ -59,11 +59,11 @@ class Classifier:
         exp_name : str, optional
             Name of the experiment. Should include sufficient information
             for distinguishing runs on different data on the same day.
-            The default is ''.
+            The default is "".
         task : str, optional
-            Task to perform. Either 'classification',
-            "multi_class_detection or 'regression'.
-            The default is 'regression'.
+            Task to perform. Either "classification",
+            "multi_class_detection or "regression".
+            The default is "regression".
         intensity_only : boolean, optional
             If True, then only the intensity scale is loaded into X.
             If False, the intensity and the BE scale is loaded into X.
@@ -72,7 +72,7 @@ class Classifier:
             List of strings of the labels of the XPS spectra.
             Can also be loaded from file.
             Example:
-                labels = ['Fe metal', 'FeO', 'Fe3O4', 'Fe2O3']
+                labels = ["Fe metal", "FeO", "Fe3O4", "Fe2O3"]
             Can be empty if the labels are stored in the data file.
 
         Returns
@@ -633,8 +633,8 @@ class Classifier:
         no_of_spectra : int
             No. of plots to create.
         dataset : str, optional
-            Either 'train', 'val', or 'test'.
-            The default is 'train'.
+            Either "train", "val", or "test".
+            The default is "train".
         with_prediction : bool, optional
             If True, information about the predicted values are also
             shown in the plot.
@@ -685,8 +685,8 @@ class Classifier:
         no_of_spectra : int
             No. of plots to create.
         dataset : str, optional
-            Either 'train', 'val', or 'test'.
-            The default is 'train'.
+            Either "train", "val", or "test".
+            The default is "train".
         with_prediction : bool, optional
             If True, information about the predicted values are also
             shown in the plot.
@@ -725,11 +725,11 @@ class Classifier:
             No. of spectra to plot.
         kind : str, optional
             Choice of sub set in test data.
-            'all': all test data.
-            'single': only test data with single species.
-            'linear_comb': only test data with linear combination
+            "all": all test data.
+            "single": only test data with single species.
+            "linear_comb": only test data with linear combination
                            of  species.
-            The default is 'all'.
+            The default is "all".
         threshold : float
             Threshold value for loss.
 
@@ -890,12 +890,12 @@ class Classifier:
                         cd = getattr(self.datahandler, key)
                         pickle_data[key] = cd.cd
                     except AttributeError:
-                        print(f"'DataHandler' object has no attribute {key}.")
+                        print(f""DataHandler" object has no attribute {key}.")
                 else:
                     try:
                         pickle_data[key] = getattr(self.datahandler, key)
                     except AttributeError:
-                        print(f"'DataHandler' object has no attribute {key}.")
+                        print(f""DataHandler" object has no attribute {key}.")
             except KeyError:
                 pass
 

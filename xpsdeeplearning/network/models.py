@@ -20,8 +20,7 @@ Keras models used for XPS data analysis.
 """
 import tensorflow as tf
 import tensorflow_probability as tfp
-from tensorflow.keras import models
-from tensorflow.keras import layers
+from tensorflow.keras import layers, models
 from tensorflow.keras.initializers import glorot_uniform
 from tensorflow.python.keras import backend as K
 
@@ -62,7 +61,7 @@ class EmptyModel(models.Model):
             The default is 1.
         name : str, optional
             Name of the model.
-            The default is 'New_Model'.
+            The default is "New_Model".
 
         Returns
         -------
@@ -88,7 +87,7 @@ class EmptyModel(models.Model):
             Configuration of the model.
 
         """
-        # For serialization with 'custom_objects'
+        # For serialization with "custom_objects"
         config = super(EmptyModel, self).get_config()
         config["inputshape"] = self.inputshape
         config["num_classes"] = self.num_classes

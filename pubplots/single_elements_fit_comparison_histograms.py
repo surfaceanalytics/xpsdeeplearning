@@ -213,7 +213,7 @@ for index in indices:
     )  # .reset_index()
     df_print["diff"] = (df_true.loc[index] - df_nn.loc[index]) * 100
     print(df_print)
-    print(f"Max diff.: {max(df_print['diff'])}")
+    print(f"Max diff.: {max(df_print["diff"])}")
 
 
 def print_diff(df, threshold, kind="average"):
@@ -226,7 +226,7 @@ def print_diff(df, threshold, kind="average"):
         )  # .reset_index()
         df_print.columns = ["true", "nn"]
         df_print["diff"] = (df_true.loc[index] - df_test.loc[index]) * 100
-        # print(f"{index}: max diff.: {max(df_print['diff'])}, mean diff.: {np.mean(np.abs(df_print['diff']))}")
+        # print(f"{index}: max diff.: {max(df_print["diff"])}, mean diff.: {np.mean(np.abs(df_print["diff"]))}")
         if kind == "average":
             metric = np.mean(np.abs(df_print["diff"]))
         elif kind == "max":
