@@ -12,7 +12,7 @@
 # <strong> Deep learning for XPS spectra </strong>
 
 <p>
-    <a href="https://linkedin.com/in/conorrankine">Dr. Lukas Pielsticker </a>
+    <a href="https://scholar.google.de/citations?user=cAhrkhwAAAAJ&hl=de&oi=sra">Dr. Lukas Pielsticker </a>
     <br>
 </p>
 
