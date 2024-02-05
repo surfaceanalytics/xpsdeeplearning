@@ -78,6 +78,7 @@ def init_clf_with_data(exp_params: dict):
 
     return clf
 
+
 def select_model_class(task: str = "regression"):
     if task == "regression":
         return models.RegressionCNN
@@ -86,10 +87,11 @@ def select_model_class(task: str = "regression"):
     elif task == "multi_class_detection":
         return models.ClassificationCNN
 
+
 def select_loss_and_metrics(task: str = "regression"):
     if task == "regression":
         loss = tf_losses.MeanAbsoluteError()
-        metrics=[tf_metrics.MeanSquaredError(name="mse")]
+        metrics = [tf_metrics.MeanSquaredError(name="mse")]
     elif task == "classification":
         loss = tf_losses.CategoricalCrossentropy()
         metrics = [tf_metrics.CategoricalCrossentropy(name="accuracy")]
@@ -122,7 +124,7 @@ def train_cli(param_file: str):
 
     clf.model.compile(
         loss=loss,
-        optimizer=Adam(learning_rate = learning_rate),
+        optimizer=Adam(learning_rate=learning_rate),
         metrics=metrics,
     )
     clf.summary()
@@ -135,8 +137,8 @@ def train_cli(param_file: str):
         hyperparam_log=True,
         epochs=training_params["epochs"],
         batch_size=training_params["batch_size"],
-        verbose = 1
-        )
+        verbose=1,
+    )
     if clf.task == "regression":
         test_loss = clf.evaluate()
         print("Test loss: " + str(np.round(test_loss, decimals=8)))
@@ -152,6 +154,7 @@ def train_cli(param_file: str):
         pred_train_classes, pred_test_classes = clf.predict_classes()
 
     clf.pickle_results()
+
 
 @click.command()
 @click.option(
@@ -180,7 +183,9 @@ def predict_cli(param_file: str, clf_path: str):
     clf.load_model(model_path=clf_path)
     clf.summary()
 
-    clf.logging.hyperparams["batch_size"] = clf_train_params["train_params"]["batch_size"]
+    clf.logging.hyperparams["batch_size"] = clf_train_params["train_params"][
+        "batch_size"
+    ]
 
     if clf.task == "regression":
         test_loss = clf.evaluate()

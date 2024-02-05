@@ -71,7 +71,7 @@ version_scheme = "no-guess-dev"
 local_scheme = "node-and-date"
 
 [tool.ruff]
-include = ["xpsdeeplearning/*.py", "tests/*.py"]
+include = ["xpsdeeplearning/*.py", "xpsdeeplearning/notebooks/*.ipynb", "tests/*.py"]
 select = [
     "E", # pycodestyle
     "W", # pycodestyle

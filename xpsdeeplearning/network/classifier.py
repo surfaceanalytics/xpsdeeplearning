@@ -232,7 +232,9 @@ class Classifier:
             plt.tight_layout()
             plt.show()
         except FileNotFoundError:
-            raise FileNotFoundError("Model image could not be saved. Please install graphviz first.")
+            raise FileNotFoundError(
+                "Model image could not be saved. Please install graphviz first."
+            )
 
     def train(
         self,
