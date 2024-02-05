@@ -46,12 +46,19 @@ The quickest way to get started is to clone this repository into a folder called
 mkdir deepxps
 cd ./deepxps
 git clone https://github.com/surfaceanalytics/xpsdeeplearning.git
+cd xpsdeeplearning
 cd 
 ```
 
 ...and install this repository with pip:
 ```shell
-pip install ./xpsdeeplearning
+pip install .
+```
+
+## A note on model visualization
+In case you want to save and plot an image of your Tensorflow/Keras model during training/prediction, you can call the `save_and_print_model_image` method of the [`Classifier`](https://github.com/surfaceanalytics/xpsdeeplearning/tree/main/network/classifier.py) class. This method utilizes the [`plot_model `](https://keras.io/api/utils/model_plotting_utils/) function of Keras to convert the model to dot format and save the image to a file. However, for the conversion to work, you need to have [`graphviz`](https://www.graphviz.org/download/source/) installed locally. You can simply download the binary and install. For conda users, it is also possible to install the binary in a a decicated environemnt by running 
+```shell
+conda install anaconda::graphviz
 ```
 
 # Usage

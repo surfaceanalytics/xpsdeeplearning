@@ -228,11 +228,14 @@ class Classifier:
             show_shapes=True,
             show_layer_names=True,
         )
-        model_plot = plt.imread(fig_file_name)
-        fig, ax = plt.subplots(figsize=(18, 2))
-        ax.imshow(model_plot, interpolation="nearest")
-        plt.tight_layout()
-        plt.show()
+        try:
+            model_plot = plt.imread(fig_file_name)
+            fig, ax = plt.subplots(figsize=(18, 2))
+            ax.imshow(model_plot, interpolation="nearest")
+            plt.tight_layout()
+            plt.show()
+        except FileNotFoundError:
+            raise FileNotFoundError("Model image could not be saved. Please install graphviz first.")
 
     def train(
         self,
