@@ -22,10 +22,10 @@ jobs:
           python -m pip install -r dev-requirements.txt
       - name: ruff
         run: |
-          ruff xpsdeeplearning pubplots tests
+          ruff xpsdeeplearning pubplots notebooks tests
       - name: ruff formatting
         run: |
-          ruff format --check xpsdeeplearning pubplots tests
+          ruff format --check xpsdeeplearning pubplots notebooks tests
       - name: mypy
         run: |
           mypy xpsdeeplearning pubplots tests
