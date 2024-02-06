@@ -127,4 +127,4 @@ on how to build on this work, or to get your XPS data ready for neural network a
 
 # License
 
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
