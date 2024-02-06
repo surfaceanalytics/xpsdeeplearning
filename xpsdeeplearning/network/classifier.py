@@ -18,24 +18,25 @@
 """
 Main classifier for training and testing a Keras model.
 """
+import json
 import os
 import pickle
-import json
-from matplotlib import pyplot as plt
+
 import numpy as np
+from matplotlib import pyplot as plt
 
 # Disable tf warnings
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 
 import tensorflow as tf
+from tensorflow.keras import backend as K
 from tensorflow.keras.models import Model, load_model
 from tensorflow.keras.utils import plot_model
-from tensorflow.keras import backend as K
 
+from xpsdeeplearning.network import models
 from xpsdeeplearning.network.data_handling import DataHandler
 from xpsdeeplearning.network.exp_logging import ExperimentLogging
 from xpsdeeplearning.network.utils import WeightDistributions
-from xpsdeeplearning.network import models
 
 
 class Classifier:
@@ -890,12 +891,12 @@ class Classifier:
                         cd = getattr(self.datahandler, key)
                         pickle_data[key] = cd.cd
                     except AttributeError:
-                        print(f""DataHandler" object has no attribute {key}.")
+                        print(f"DataHandler object has no attribute {key}.")
                 else:
                     try:
                         pickle_data[key] = getattr(self.datahandler, key)
                     except AttributeError:
-                        print(f""DataHandler" object has no attribute {key}.")
+                        print(f"DataHandler object has no attribute {key}.")
             except KeyError:
                 pass
 

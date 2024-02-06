@@ -636,7 +636,7 @@ class SimulatedSpectrum(Spectrum):
             len_x = len(self.x)
             step = self.step
             gauss_x = (
-                np.arange(len_x, dtype=np.int) - sum(divmod(len_x, 2)) + 1
+                np.arange(len_x, dtype=int) - sum(divmod(len_x, 2)) + 1
             ) * step
 
             # The broadening spectrum is a synthetic spectrum.

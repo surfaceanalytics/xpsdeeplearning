@@ -493,6 +493,9 @@ class DataHandler:
 
         X, y = self._select_dataset(dataset)
 
+        if len(indices) < no_of_spectra:
+            no_of_spectra = len(indices)
+
         for i in range(no_of_spectra):
             index = indices[i]
             label = str(np.around(y[index], decimals=3))
@@ -651,12 +654,13 @@ class DataHandler:
         else:
             indices = indices[:no_of_spectra]
 
-        self.plot_spectra(
-            no_of_spectra=no_of_spectra,
-            dataset="test",
-            indices=indices,
-            with_prediction=True,
-        )
+        if indices:
+            self.plot_spectra(
+                no_of_spectra=no_of_spectra,
+                dataset="test",
+                indices=indices,
+                with_prediction=True,
+            )
 
     def show_wrong_classification(self):
         """
