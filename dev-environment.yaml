@@ -268,4 +268,4 @@ dependencies:
       - widgetsnbextension==4.0.9
       - wrapt==1.14.1
       - xlsxwriter==3.1.9
-      - xpsdeeplearning==1.0.post1.dev52+g5b12246.d20240206
+      - xpsdeeplearning==1.1.0.post1.dev0+ga4e1cce.d20240206
