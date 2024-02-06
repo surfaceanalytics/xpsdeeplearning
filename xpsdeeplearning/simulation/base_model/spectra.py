@@ -24,8 +24,9 @@ import numpy as np
 from scipy.interpolate import interp1d
 from scipy.signal import fftconvolve
 
-from xpsdeeplearning.simulation.base_model.converters.data_converter import \
-    DataConverter
+from xpsdeeplearning.simulation.base_model.converters.data_converter import (
+    DataConverter,
+)
 from xpsdeeplearning.simulation.base_model.peaks import Gauss
 
 
@@ -635,9 +636,7 @@ class SimulatedSpectrum(Spectrum):
             # N//2 - (1-N%2) = N//2 + N%2 - 1.
             len_x = len(self.x)
             step = self.step
-            gauss_x = (
-                np.arange(len_x, dtype=int) - sum(divmod(len_x, 2)) + 1
-            ) * step
+            gauss_x = (np.arange(len_x, dtype=int) - sum(divmod(len_x, 2)) + 1) * step
 
             # The broadening spectrum is a synthetic spectrum.
             broadening_spectrum = SyntheticSpectrum(
@@ -713,7 +712,7 @@ class SimulatedSpectrum(Spectrum):
             input_datapath = os.path.join(
                 os.path.dirname(os.path.abspath(__file__)).partition("simulation")[0],
                 "data",
-                "scatterers.json"
+                "scatterers.json",
             )
             medium.scatterer.build_loss_from_json(input_datapath)
             loss_fn = medium.scatterer.loss_function

@@ -23,7 +23,11 @@ import json
 import numpy as np
 
 from xpsdeeplearning.simulation.base_model.peaks import (
-    Gauss, Lorentz, Tougaard, VacuumExcitation)
+    Gauss,
+    Lorentz,
+    Tougaard,
+    VacuumExcitation,
+)
 from xpsdeeplearning.simulation.base_model.spectra import SyntheticSpectrum
 
 

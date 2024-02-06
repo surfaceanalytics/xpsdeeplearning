@@ -22,10 +22,10 @@ jobs:
           python -m pip install -r dev-requirements.txt
       - name: ruff
         run: |
-          ruff nyaml tests
+          ruff xpsdeeplearning tests
       - name: ruff formatting
         run: |
-          ruff format --check nyaml tests
+          ruff format --check xpsdeeplearning tests
       - name: mypy
         run: |
-          mypy nyaml tests
+          mypy xpsdeeplearning tests

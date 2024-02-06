@@ -27,8 +27,9 @@ import numpy as np
 import pytest
 from click.testing import CliRunner
 
-from xpsdeeplearning.simulation.base_model.converters.data_converter import \
-    DataConverter
+from xpsdeeplearning.simulation.base_model.converters.data_converter import (
+    DataConverter,
+)
 from xpsdeeplearning.simulation.base_model.spectra import MeasuredSpectrum
 from xpsdeeplearning.simulation.creator import Creator
 from xpsdeeplearning.simulation.run import simulate_cli
@@ -39,35 +40,31 @@ def test_vms_load():
     filepath = "tests/data/vms_test.vms"
 
     measured_spectrum = MeasuredSpectrum(filepath)
-    assert ("Fe2p zero line" in measured_spectrum.label)
+    assert "Fe2p zero line" in measured_spectrum.label
     assert measured_spectrum.spectrum_type == "core_level"
     assert measured_spectrum.x.shape == (1121,)
     assert measured_spectrum.lineshape.shape == (1121,)
 
     sys.stdout.write("Test on vms load okay.\n")
 
+
 def test_txt_load():
     filepath = "tests/data/vms_export.txt"
 
     measured_spectrum = MeasuredSpectrum(filepath)
-    assert ("Fe2p all_zero" in measured_spectrum.label)
+    assert "Fe2p all_zero" in measured_spectrum.label
     assert measured_spectrum.spectrum_type == "core_level"
     assert measured_spectrum.x.shape == (1121,)
     assert measured_spectrum.lineshape.shape == (1121,)
     sys.stdout.write("Test on txt load okay.\n")
 
+
 def test_single_sim():
     """Test simluation of single spectrum."""
     print(os.path.abspath(__file__).partition("xpsdeeplearning"))
-    datapath = os.path.join(
-        os.path.dirname(os.path.abspath(__file__)).partition("xpsdeeplearning")[0],
-        "xpsdeeplearning", "xpsdeeplearning", "data", "references"
-    )
+    datapath = "tests/data"
 
-    filenames = [
-        "Ni2p_Ni_metal.txt",
-        "Ni2p_NiO.txt"
-    ]
+    filenames = ["Ni2p_Ni_metal.txt", "Ni2p_NiO.txt"]
     input_spectra = []
     for filename in filenames:
         filepath = os.path.join(datapath, filename)
@@ -86,7 +83,7 @@ def test_single_sim():
     np.savez_compressed(
         "tests/data/ref_sim_spectrum.npz",
         energy=sim.output_spectrum.x,
-        lineshape=sim.output_spectrum.lineshape
+        lineshape=sim.output_spectrum.lineshape,
     )
     ref_sim_file = "tests/data/ref_sim_spectrum.npz"  ######
     data = np.load(ref_sim_file)
@@ -95,6 +92,7 @@ def test_single_sim():
     assert (sim.output_spectrum.lineshape == data["lineshape"]).all()
 
     sys.stdout.write("Test on single simulation okay.\n")
+
 
 def test_creator():
     """Test creator class."""
@@ -153,9 +151,9 @@ def test_simulate_cli(cli_inputs):
         ref_y = hf["y"][0]
 
     assert result.exit_code == 2
-    assert (energies==ref_energies).all()
+    assert (energies == ref_energies).all()
     assert X.shape == ref_X.shape
     assert y.shape == ref_y.shape
 
-    #os.remove(hdf5_file)
+    # os.remove(hdf5_file)
     sys.stdout.write("Test on simulate_cli okay.\n")

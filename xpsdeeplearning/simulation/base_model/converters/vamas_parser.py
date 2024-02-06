@@ -20,8 +20,7 @@ Dataconverter for XPS data in vms format.
 """
 import numpy as np
 
-from xpsdeeplearning.simulation.base_model.converters.vamas import (
-    Block, VamasHeader)
+from xpsdeeplearning.simulation.base_model.converters.vamas import Block, VamasHeader
 
 
 class VamasParser:

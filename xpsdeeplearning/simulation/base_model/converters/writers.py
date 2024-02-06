@@ -22,8 +22,7 @@ from copy import copy
 
 import numpy as np
 
-from xpsdeeplearning.simulation.base_model.converters.vamas import (
-    Block, VamasHeader)
+from xpsdeeplearning.simulation.base_model.converters.vamas import Block, VamasHeader
 
 
 class TextWriter:
