@@ -27,9 +27,6 @@ import numpy as np
 import pytest
 from click.testing import CliRunner
 
-from xpsdeeplearning.simulation.base_model.converters.data_converter import (
-    DataConverter,
-)
 from xpsdeeplearning.simulation.base_model.spectra import MeasuredSpectrum
 from xpsdeeplearning.simulation.creator import Creator
 from xpsdeeplearning.simulation.run import simulate_cli
