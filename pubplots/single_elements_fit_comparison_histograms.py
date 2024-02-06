@@ -88,11 +88,12 @@ def main():
     mae_biesinger = mean_absolute_error(
         df_biesinger.to_numpy().T, df_true.to_numpy().T, multioutput="raw_values"
     )
-    maae_biesinger = maximum_absolute_error(df_biesinger.to_numpy().T, df_true.to_numpy().T)
+    maae_biesinger = maximum_absolute_error(
+        df_biesinger.to_numpy().T, df_true.to_numpy().T
+    )
     df_biesinger["MAE"] = mae_biesinger
     df_biesinger["MaAE"] = maae_biesinger
     print_mae_info(mae_biesinger, "Biesinger")
-
 
     df_fit_model = pd.read_csv(
         get_xlsxpath(fit_datafolder, "fit_model"), index_col=0, sep=";"
@@ -105,11 +106,12 @@ def main():
     mae_fit_model = mean_absolute_error(
         df_fit_model.to_numpy().T, df_true.to_numpy().T, multioutput="raw_values"
     )
-    maae_fit_model = maximum_absolute_error(df_fit_model.to_numpy().T, df_true.to_numpy().T)
+    maae_fit_model = maximum_absolute_error(
+        df_fit_model.to_numpy().T, df_true.to_numpy().T
+    )
     df_fit_model["MAE"] = mae_fit_model
     df_fit_model["MaAE"] = maae_fit_model
     print_mae_info(mae_fit_model, "Fit model")
-
 
     df_lineshapes = pd.read_csv(
         get_xlsxpath(fit_datafolder, "lineshapes"), index_col=0, sep=";"
@@ -126,7 +128,6 @@ def main():
     df_lineshapes["MAE"] = mae_lineshapes
     df_lineshapes["MaAE"] = maae_lineshapes
     print_mae_info(mae_lineshapes, "lineshapes")
-
 
     df_nn = pd.read_csv(get_xlsxpath(fit_datafolder, "nn"), index_col=0, sep=";")
     mae_nn = mean_absolute_error(
@@ -204,7 +205,9 @@ def main():
 
     threshold = 0.05
     indices = (
-        df_nn[df_nn["MAE"] < threshold].sort_values(by=["MAE"], ascending=False).index[:10]
+        df_nn[df_nn["MAE"] < threshold]
+        .sort_values(by=["MAE"], ascending=False)
+        .index[:10]
     )
 
     for index in indices:

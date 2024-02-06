@@ -160,8 +160,8 @@ class Wrapper:
             sorted_arrays = np.array(
                 sorted(
                     [
-                        (s[0], l)
-                        for (s, l) in zip(
+                        (s[0], loss)
+                        for (s, loss) in zip(
                             self.sim_values_test[key],
                             self.results["losses_test"],
                         )
@@ -220,9 +220,12 @@ class Wrapper:
 
                 no_both_th = both_th.shape[0]
                 ratio = np.round((no_both_th / no_sim_th) * 100, 2)
-                print(f"\t{no_both_th} ({ratio} %) had a " f"MAE smaller than {th_mae}.")
+                print(
+                    f"\t{no_both_th} ({ratio} %) had a " f"MAE smaller than {th_mae}."
+                )
         else:
             print(f"No test spectrum had {param_name} {comp} {th_param}.")
+
 
 def main():
     """Plot effect of simulation parameters on model training."""

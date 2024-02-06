@@ -26,6 +26,7 @@ from common import TextParser, ParserWrapper, save_dir
 
 datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\utils\exports"
 
+
 # %%
 class Wrapper(ParserWrapper):
     def __init__(self, datafolder, file_dict):

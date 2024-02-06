@@ -131,14 +131,12 @@ def main():
         x=ref_spectrum.x, y=ref_spectrum.lineshape, title="", axis_off=False
     )
 
-    file_names = {
-        figure: "test_spectrum.tif",
-        figure2: "test_spectrum_flipped.tif"
-        }
+    file_names = {figure: "test_spectrum.tif", figure2: "test_spectrum_flipped.tif"}
 
     for fig, file_name in file_names.items():
         fig_path = os.path.join(save_dir, file_name)
         fig.fig.savefig(fig_path)
+
 
 if __name__ == "__main__":
     os.chdir(os.path.join(os.path.abspath(__file__).split("deepxps")[0], "deepxps"))

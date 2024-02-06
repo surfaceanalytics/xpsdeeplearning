@@ -150,7 +150,7 @@ class Wrapper(ParserWrapper):
                 handle_dict[name] = handle
                 labels.append(name)
 
-        handles = [x for l in list(handle_dict.values()) for x in l]
+        handles = [x for handle_list in list(handle_dict.values()) for x in handle_list]
         labels = self._reformat_label_list(labels)
 
         # Only for this plot: Sort by oxidation state
@@ -201,6 +201,7 @@ def main():
     for ext in [".png", ".eps"]:
         fig_path = os.path.join(save_dir, "references_multiple" + ext)
         fig.savefig(fig_path, bbox_inches="tight")
+
 
 if __name__ == "__main__":
     os.chdir(os.path.join(os.path.abspath(__file__).split("deepxps")[0], "deepxps"))

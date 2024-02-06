@@ -20,7 +20,7 @@ Visualization of XPS data set simulation.
 
 import os
 import matplotlib.pyplot as plt
-import matplotlib.gridspec as gridspec
+from matplotlib import gridspec
 import numpy as np
 
 from common import save_dir
@@ -130,7 +130,9 @@ def main():
             ax0_0.plot(spectrum.x, spectrum.lineshape, c="red", linewidth=2)
             legend.append("original")
         spectrum.shift_horizontal(shift_x)
-        ax0_0.plot(spectrum.x, spectrum.lineshape, c=colors[i], alpha=alpha, linewidth=2)
+        ax0_0.plot(
+            spectrum.x, spectrum.lineshape, c=colors[i], alpha=alpha, linewidth=2
+        )
         ax0_0.set_xlim(left=np.max(spectrum.x), right=np.min(spectrum.x))
         legend.append(f"x = {shift_x}")
     legend0_0 = ax0_0.legend(
@@ -172,7 +174,9 @@ def main():
             legend.append("original")
         spectrum.add_noise(noise)
         spectrum.normalize()
-        ax0_1.plot(spectrum.x, spectrum.lineshape, c=colors[i], alpha=alpha, linewidth=2)
+        ax0_1.plot(
+            spectrum.x, spectrum.lineshape, c=colors[i], alpha=alpha, linewidth=2
+        )
         ax0_1.set_xlim(left=np.max(spectrum.x), right=np.min(spectrum.x))
         legend.append(str(noise))
     legend0_1 = ax0_1.legend(
@@ -215,7 +219,9 @@ def main():
 
         spectrum.change_resolution(FWHM)
         spectrum.normalize()
-        ax1_0.plot(spectrum.x, spectrum.lineshape, c=colors[i], alpha=alpha, linewidth=2)
+        ax1_0.plot(
+            spectrum.x, spectrum.lineshape, c=colors[i], alpha=alpha, linewidth=2
+        )
         ax1_0.set_xlim(left=np.max(spectrum.x), right=np.min(spectrum.x))
         legend.append(f"{np.round(FWHM,0)} eV")
     legend1_0 = ax1_0.legend(
@@ -233,7 +239,6 @@ def main():
         mode=None,
     )
     legend1_0._legend_box.align = "left"
-
 
     # Scattering
     ax1_1.set_title("(e) Gas phase scattering", fontdict=fontdict)
@@ -262,7 +267,9 @@ def main():
         distance = sim_values["distance"][i]
         spectrum.scatter_in_gas(label=scatterer, distance=distance, pressure=pressure)
         spectrum.normalize()
-        ax1_1.plot(spectrum.x, spectrum.lineshape, c=colors[i], alpha=alpha, linewidth=2)
+        ax1_1.plot(
+            spectrum.x, spectrum.lineshape, c=colors[i], alpha=alpha, linewidth=2
+        )
         ax1_1.set_xlim(left=np.max(spectrum.x), right=np.min(spectrum.x))
         legend.append(f"d = {distance} mm,\nP = {pressure} mbar")
 
@@ -391,25 +398,25 @@ def main():
 
     # Only linear combination
     fig, ax3 = plt.subplots(figsize=(5, 4), dpi=300)
-    ax3.set_xlabel("Binding energy (eV)",
-                  fontdict=fontdict)
-    ax3.set_ylabel("Intensity (arb. units)",
-                  fontdict=fontdict)
+    ax3.set_xlabel("Binding energy (eV)", fontdict=fontdict)
+    ax3.set_ylabel("Intensity (arb. units)", fontdict=fontdict)
     ax3.tick_params(axis="x", labelsize=fontdict["size"])
     ax3.set_yticklabels([])
-    ax3.tick_params(
-        axis="y",
-        which="both",
-        right=False,
-        left=False)
-    colors = iter(["tab:orange","tab:purple","grey","turquoise"])
+    ax3.tick_params(axis="y", which="both", right=False, left=False)
+    colors = iter(["tab:orange", "tab:purple", "grey", "turquoise"])
     for sim_values in sim_params.values():
         sim = Simulation(measured_spectra)
         sim.combine_linear(sim_values["linear_params"])
         sim.output_spectrum.normalize()
-        ax3.plot(sim.output_spectrum.x, sim.output_spectrum.lineshape, c=next(colors), linewidth=2)
-    ax3.set_xlim(left=np.max(sim.output_spectrum.x),
-                right=np.min(sim.output_spectrum.x))
+        ax3.plot(
+            sim.output_spectrum.x,
+            sim.output_spectrum.lineshape,
+            c=next(colors),
+            linewidth=2,
+        )
+    ax3.set_xlim(
+        left=np.max(sim.output_spectrum.x), right=np.min(sim.output_spectrum.x)
+    )
     fig.tight_layout()
     plt.show()
 

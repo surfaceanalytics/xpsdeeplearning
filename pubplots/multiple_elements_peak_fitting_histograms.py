@@ -15,7 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-Plot of data class distribution.
+Peak fitting histograms for spectra with more than one element.
 """
 import os
 
@@ -114,7 +114,9 @@ class Wrapper(ParserWrapper):
                             handle_dict[name] = handle
                             labels.append(name)
 
-            handles = [x for l in list(handle_dict.values()) for x in l]
+            handles = [
+                x for handle_list in list(handle_dict.values()) for x in handle_list
+            ]
             labels = self._reformat_label_list(labels)
 
             if with_fits:
@@ -211,147 +213,123 @@ class Wrapper(ParserWrapper):
         return self.fig, self.axs
 
 
-# %% Plot of spectrum with multiple elements
+def main():
+    """Peak fitting histograms for spectra with more than one element."""
 
-datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\utils\exports"
-file_dict = {
-    "nicofe": {
-        "filename": "nicofe_fit.txt",
-        "title": "(a)",
-        "fit_start": 15,
-        "fit_end": -15,
-        "shift_x": 0.0,
-        "noise": 0.0,
-        "FWHM": 0.0,
-        "scatterer": None,
-        "distance": 0.0,
-        "pressure": 0.0,
-        "quantification": {
-            "Ni metal": [25.9, 20.4, 21.3],
-            "NiO": [19.1, 18.5, 20.5],
-            "Co metal": [15.0, 13.1, 15.9],
-            "CoO": [20.1, 30.1, 23.7],
-            "Co3O4": [0.0, 2.2, 0.0],
-            "Fe metal": [19.9, 15.0, 18.6],
-            "FeO": [0.0, 0.1, 0.0],
-            "Fe3O4": [0.0, 0.0, 0.0],
-            "Fe2O3": [0.0, 0.6, 0.0],
-        },
+    datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\utils\exports"
+    file_dict = {
+        "nicofe": {
+            "filename": "nicofe_fit.txt",
+            "title": "(a)",
+            "fit_start": 15,
+            "fit_end": -15,
+            "shift_x": 0.0,
+            "noise": 0.0,
+            "FWHM": 0.0,
+            "scatterer": None,
+            "distance": 0.0,
+            "pressure": 0.0,
+            "quantification": {
+                "Ni metal": [25.9, 20.4, 21.3],
+                "NiO": [19.1, 18.5, 20.5],
+                "Co metal": [15.0, 13.1, 15.9],
+                "CoO": [20.1, 30.1, 23.7],
+                "Co3O4": [0.0, 2.2, 0.0],
+                "Fe metal": [19.9, 15.0, 18.6],
+                "FeO": [0.0, 0.1, 0.0],
+                "Fe3O4": [0.0, 0.0, 0.0],
+                "Fe2O3": [0.0, 0.6, 0.0],
+            },
+        }
     }
-}
 
-wrapper = Wrapper(datafolder, file_dict)
-wrapper.parse_data(bg=True, envelope=True)
+    wrapper = Wrapper(datafolder, file_dict)
+    wrapper.parse_data(bg=True, envelope=True)
 
-fit_datafolder = (
-    r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\utils\fit_comparison"
-)
-cols = [
-    "Ni metal",
-    "NiO",
-    "Co metal",
-    "CoO",
-    "Co3O4",
-    "Fe metal",
-    "FeO",
-    "Fe3O4",
-    "Fe2O3",
-]
-cols2 = ["Fe metal", "FeO", "Fe3O4", "Fe2O3"]
-df_true = pd.read_csv(
-    get_xlsxpath(fit_datafolder, "truth_multiple"), index_col=0, sep=";"
-)
-df_true = df_true[cols]
-
-df_fit = pd.read_csv(
-    get_xlsxpath(fit_datafolder, "lineshapes_multiple"), index_col=0, sep=";"
-)
-df_fit = df_fit.divide(100)
-df_fit.columns = df_fit.columns.str.replace(" %", "")
-df_fit = df_fit[cols]
-mae_fit = mean_absolute_error(
-    df_fit.to_numpy().T, df_true.to_numpy().T, multioutput="raw_values"
-)
-wrapper.losses_test["Peak fit"] = mae_fit
-print_mae_info(mae_fit, "Lineshapes")
-
-df_nn = pd.read_csv(get_xlsxpath(fit_datafolder, "nn_multiple"), index_col=0, sep=";")
-df_nn = df_nn[cols]
-mae_nn = mean_absolute_error(
-    df_nn.to_numpy().T, df_true.to_numpy().T, multioutput="raw_values"
-)
-wrapper.losses_test["Neural network"] = mae_nn
-print_mae_info(mae_nn, "Neural network")
-
-fig, ax = wrapper.plot_all(with_fits=True)
-plt.show()
-
-for ext in [".png", ".eps"]:
-    fig_path = os.path.join(save_dir, "fit_histograms_multiple" + ext)
-    fig.savefig(fig_path, bbox_inches="tight")
-
-# =============================================================================
-# indices = [
-#     j[1]
-#     for j in sorted(
-#         [
-#             (x, i)
-#             for (i, x) in enumerate(mae_nn)
-#             if (
-#                 len(np.where(df_true.to_numpy()[i] == 0.0)[0])
-#                 < 5
-#                 # and x >= threshold
-#             )
-#         ],
-#         reverse=True,
-#     )
-# ]
-#
-# for i in [81, 45, 71, 18]:
-#     print(i, mae_nn[i])
-#     list_true = list(
-#         df_true.loc[f"Synthetic spectrum no. {i}"].to_numpy().round(3) * 100
-#     )
-#     list_nn = list(
-#         df_nn.loc[f"Synthetic spectrum no. {i}"].to_numpy().round(3) * 100
-#     )
-#     out = [[t, n] for t, n in zip(list_true, list_nn)]
-#     print(out)
-# =============================================================================
-
-# %%
-dfs = {"Neural network": df_nn, "Lineshapes": df_fit}
-
-
-def print_diff(df, threshold, kind="average"):
-    df_test = df.copy()
-    correct = 0
-    wrong = 0
-    for index in df.index:
-        df_print = pd.concat(
-            [df_true.loc[index], df_test.loc[index]], axis=1
-        )  # .reset_index()
-        df_print.columns = ["true", "nn"]
-        df_print["diff"] = (df_true.loc[index] - df_test.loc[index]) * 100
-        # print(f"{index}: max diff.: {max(df_print["diff"])}, mean diff.: {np.mean(np.abs(df_print["diff"]))}")
-        if kind == "average":
-            metric = np.mean(np.abs(df_print["diff"]))
-        elif kind == "max":
-            metric = np.max(df_print["diff"])
-        if metric < threshold:
-            correct += 1
-        else:
-            wrong += 1
-    print(
-        f"No. of correct classifications ({kind}): {correct}/{len(df_nn.index)} = {correct/len(df_nn.index)*100} %"
+    fit_datafolder = (
+        r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\utils\fit_comparison"
     )
-    print(
-        f"No. of wrong classifications ({kind}): {wrong}/{len(df_nn.index)} = {wrong/len(df_nn.index)*100} %"
+    cols = [
+        "Ni metal",
+        "NiO",
+        "Co metal",
+        "CoO",
+        "Co3O4",
+        "Fe metal",
+        "FeO",
+        "Fe3O4",
+        "Fe2O3",
+    ]
+    cols2 = ["Fe metal", "FeO", "Fe3O4", "Fe2O3"]
+    df_true = pd.read_csv(
+        get_xlsxpath(fit_datafolder, "truth_multiple"), index_col=0, sep=";"
     )
+    df_true = df_true[cols]
+
+    df_fit = pd.read_csv(
+        get_xlsxpath(fit_datafolder, "lineshapes_multiple"), index_col=0, sep=";"
+    )
+    df_fit = df_fit.divide(100)
+    df_fit.columns = df_fit.columns.str.replace(" %", "")
+    df_fit = df_fit[cols]
+    mae_fit = mean_absolute_error(
+        df_fit.to_numpy().T, df_true.to_numpy().T, multioutput="raw_values"
+    )
+    wrapper.losses_test["Peak fit"] = mae_fit
+    print_mae_info(mae_fit, "Lineshapes")
+
+    df_nn = pd.read_csv(
+        get_xlsxpath(fit_datafolder, "nn_multiple"), index_col=0, sep=";"
+    )
+    df_nn = df_nn[cols]
+    mae_nn = mean_absolute_error(
+        df_nn.to_numpy().T, df_true.to_numpy().T, multioutput="raw_values"
+    )
+    wrapper.losses_test["Neural network"] = mae_nn
+    print_mae_info(mae_nn, "Neural network")
+
+    fig, ax = wrapper.plot_all(with_fits=True)
+    plt.show()
+
+    for ext in [".png", ".eps"]:
+        fig_path = os.path.join(save_dir, "fit_histograms_multiple" + ext)
+        fig.savefig(fig_path, bbox_inches="tight")
+
+    dfs = {"Neural network": df_nn, "Lineshapes": df_fit}
+
+    def print_diff(df, threshold, kind="average"):
+        df_test = df.copy()
+        correct = 0
+        wrong = 0
+        for index in df.index:
+            df_print = pd.concat(
+                [df_true.loc[index], df_test.loc[index]], axis=1
+            )  # .reset_index()
+            df_print.columns = ["true", "nn"]
+            df_print["diff"] = (df_true.loc[index] - df_test.loc[index]) * 100
+            # print(f"{index}: max diff.: {max(df_print["diff"])}, mean diff.: {np.mean(np.abs(df_print["diff"]))}")
+            if kind == "average":
+                metric = np.mean(np.abs(df_print["diff"]))
+            elif kind == "max":
+                metric = np.max(df_print["diff"])
+            if metric < threshold:
+                correct += 1
+            else:
+                wrong += 1
+        print(
+            f"No. of correct classifications ({kind}): {correct}/{len(df_nn.index)} = {correct/len(df_nn.index)*100} %"
+        )
+        print(
+            f"No. of wrong classifications ({kind}): {wrong}/{len(df_nn.index)} = {wrong/len(df_nn.index)*100} %"
+        )
+
+    threshold = 10.0  # percent
+    for method, df in dfs.items():
+        print(f"{method}:")
+        print_diff(df, threshold, kind="average")
+        print_diff(df, threshold, kind="max")
 
 
-threshold = 10.0  # percent
-for method, df in dfs.items():
-    print(f"{method}:")
-    print_diff(df, threshold, kind="average")
-    print_diff(df, threshold, kind="max")
+if __name__ == "__main__":
+    os.chdir(os.path.join(os.path.abspath(__file__).split("deepxps")[0], "deepxps"))
+    main()

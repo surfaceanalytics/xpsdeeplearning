@@ -22,8 +22,8 @@ import os
 import csv
 import pickle
 import matplotlib.pyplot as plt
-import matplotlib.patches as patches
-import matplotlib.gridspec as gridspec
+from matplotlib import patches
+from matplotlib import gridspec
 from matplotlib.patches import ConnectionPatch
 from sklearn.metrics import mean_absolute_error
 import numpy as np

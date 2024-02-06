@@ -54,6 +54,7 @@ def _get_total_history(csv_filepath):
 
     return history
 
+
 def plot_metric(
     history,
     metric,
@@ -200,7 +201,7 @@ def main():
         to_file=True,
     )
 
+
 if __name__ == "__main__":
     os.chdir(os.path.join(os.path.abspath(__file__).split("deepxps")[0], "deepxps"))
     main()
-

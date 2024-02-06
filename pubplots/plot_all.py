@@ -22,6 +22,7 @@ import os
 
 import class_distribution_plot
 import multiple_elements_loss_examples
+import multiple_elements_peak_fitting_histograms
 import multiple_elements_references
 import sample_size_effect
 import sim_values_effect
@@ -37,12 +38,14 @@ import single_spectrum
 import uncertainty
 import window
 
+
 def run_all():
     """Run main plot function of all pubplots scripts."""
 
     modules = [
         class_distribution_plot,
         multiple_elements_loss_examples,
+        multiple_elements_peak_fitting_histograms,
         multiple_elements_references,
         sample_size_effect,
         sim_values_effect,
@@ -57,7 +60,7 @@ def run_all():
         # single_spectrum,
         uncertainty,
         window,
-        ]
+    ]
 
     for module in modules:
         module.main()

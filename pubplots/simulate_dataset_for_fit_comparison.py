@@ -35,6 +35,7 @@ init_param_folder = r"C:\Users\pielsticker\Simulations\paper"
 # init_param_filename = "init_params_Fe_core_small_gas_phase.json"
 init_param_filename = "init_params_NiCoFe_combined_core_small_gas_phase.json"
 
+
 def main():
     """Simulation of data set for fit comparison.."""
     init_param_filepath = os.path.join(init_param_folder, init_param_filename)
@@ -72,7 +73,6 @@ def main():
     df_true = pd.DataFrame(y_h5, index=indices, columns=creator.labels)
     df_true.to_csv(filepath_output, index=True, sep=";")
 
-
     filename = "ones.vms"
     # input_datafolder = os.path.join(os.getcwd(), "utils")
     input_datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\utils"
@@ -109,6 +109,7 @@ def main():
         spectrum.write(datafolder_vms, new_filename)
 
         print(spectrum.label)
+
 
 if __name__ == "__main__":
     os.chdir(os.path.join(os.path.abspath(__file__).split("deepxps")[0], "deepxps"))

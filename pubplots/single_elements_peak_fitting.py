@@ -22,10 +22,11 @@ Fe 2p XP spectrum.
 import os
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.gridspec as gridspec
+from matplotlib import gridspec
 from PIL import Image
 
 from common import ParserWrapper, save_dir
+
 
 class Wrapper(ParserWrapper):
     def __init__(self, datafolder, file_dict):
@@ -121,7 +122,9 @@ class Wrapper(ParserWrapper):
                     handle_dict[name] = handle
                     labels.append(name)
 
-            handles = [x for l in list(handle_dict.values()) for x in l]
+            handles = [
+                x for handle_list in list(handle_dict.values()) for x in handle_list
+            ]
             labels = self._reformat_label_list(labels)
 
             if i > 0:  # "spectrum.txt" not in self.parsers[i].filepath:
@@ -255,12 +258,15 @@ def main():
         fig.savefig(fig_path, bbox_inches="tight")
 
     q_true = np.array(list(file_dict["true"]["quantification"].values())) / 100
-    q_biesinger = np.array(list(file_dict["Biesinger"]["quantification"].values())) / 100
+    q_biesinger = (
+        np.array(list(file_dict["Biesinger"]["quantification"].values())) / 100
+    )
     q_fit_model = (
         np.array(list(file_dict["Peak fit model"]["quantification"].values())) / 100
     )
     q_lineshapes = (
-        np.array(list(file_dict["Tougaard lineshapes"]["quantification"].values())) / 100
+        np.array(list(file_dict["Tougaard lineshapes"]["quantification"].values()))
+        / 100
     )
     q_nn = np.array([29.9, 16.9, 23.4, 29.8]) / 100
 

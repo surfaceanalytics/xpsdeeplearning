@@ -21,7 +21,7 @@ Plot uncertainty prediction.
 import os
 import pickle
 import matplotlib.pyplot as plt
-import matplotlib.gridspec as gridspec
+from matplotlib import gridspec
 from string import ascii_lowercase
 from matplotlib.ticker import MaxNLocator
 import numpy as np
@@ -34,6 +34,7 @@ def load_pickled_data(filepath):
         pickle_data = pickle.load(pickle_file)
 
     return pickle_data
+
 
 def _normalize_min_max(data):
     return (data - np.min(data)) / (np.max(data) - np.min(data))
@@ -149,6 +150,7 @@ def plot_prob_predictions_together(data, normalize=False):
 
     return fig
 
+
 def main():
     """Plot uncertainty prediction."""
 
@@ -162,6 +164,7 @@ def main():
     for ext in [".png", ".eps"]:
         fig_path = os.path.join(save_dir, "uncertainty_ni" + ext)
         fig.savefig(fig_path, bbox_inches="tight")
+
 
 if __name__ == "__main__":
     os.chdir(os.path.join(os.path.abspath(__file__).split("deepxps")[0], "deepxps"))

@@ -54,6 +54,7 @@ def _get_total_history(csv_filepath):
 
     return history
 
+
 def load_test_loss_for_one_run(pickle_filepath):
     """
     Load the test loss after 1000 epochs.
@@ -156,7 +157,7 @@ def plot_test_loss_after_1000_epochs(ax, histories, norm=False):
 
     if norm:
         title = "(d)"
-        ylabel = "Test loss$_{1000 \; \mathrm{ep.}}$ / \n Data set size"
+        ylabel = r"Test loss$_{1000 \; \mathrm{ep.}}$ / \n Data set size"
     else:
         title = "(c)"
         ylabel = "Test loss after 1000 epochs"
@@ -214,6 +215,7 @@ def plot_epochs(
 
         ax.scatter(key, pos)
 
+
 def main():
     """Plot effect of data set size on model training."""
     input_datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\runs"
@@ -235,8 +237,6 @@ def main():
         200: "20230502_10h23m_Mn_linear_combination_normalized_inputs_small_gas_phase_200k",
         250: "20230427_20h48m_Mn_linear_combination_normalized_inputs_small_gas_phase_250k",
     }
-
-
 
     history_Ni = {}
     history_Mn = {}
@@ -281,7 +281,6 @@ def main():
     plot_test_loss_after_1000_epochs(axs[1, 0], histories, norm=False)
     plot_test_loss_after_1000_epochs(axs[1, 1], histories, norm=True)
 
-
     fig.tight_layout()
     plt.show()
 
@@ -289,8 +288,7 @@ def main():
         fig_path = os.path.join(save_dir, "sample_size_effect" + ext)
         fig.savefig(fig_path, bbox_inches="tight")
 
+
 if __name__ == "__main__":
     os.chdir(os.path.join(os.path.abspath(__file__).split("deepxps")[0], "deepxps"))
     main()
-
-
