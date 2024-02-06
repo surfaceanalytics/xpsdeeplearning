@@ -35,7 +35,7 @@ The package combines
 2) a supervised machine learning framework based on artificial convolutional neural networks that is able to accurately perform automated quantitative analysis of the phases present in such XP spectra.
 
 # Installation
-It is recommended to use python 3.11 with a dedicated virtual environment for this package.
+It is recommended to use **python 3.11** with a dedicated virtual environment for this package.
 Learn how to manage [python versions](https://github.com/pyenv/pyenv) and
 [virtual environments](https://realpython.com/python-virtual-environments-a-primer/).
 
