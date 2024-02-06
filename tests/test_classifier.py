@@ -53,7 +53,7 @@ def init_clf_with_data():
     """Init a classifier and load some data."""
     clf = init_clf()
 
-    input_filepath = "tests/data/20240202_Ni_linear_combination_small_gas_phase.h5"
+    input_filepath = "tests/data/20240206_Ni_linear_combination_small_gas_phase.h5"
     train_test_split = 0.2
     train_val_split = 0.2
     no_of_examples = 200

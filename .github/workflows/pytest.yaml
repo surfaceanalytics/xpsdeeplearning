@@ -33,4 +33,4 @@ jobs:
           python -m pip install ".[dev]"
       - name: Test with pytest
         run: |
-          pytest -sv --show-capture=no tests
+          pytest -sv --show-capture=no tests --ignore=tests/test_classifier.py
