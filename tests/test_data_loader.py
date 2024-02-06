@@ -18,6 +18,7 @@
 Tests for data loader.
 """
 import sys
+
 import numpy as np
 
 from xpsdeeplearning.network.data_handling import DataHandler
@@ -25,12 +26,13 @@ from xpsdeeplearning.network.data_handling import DataHandler
 
 def test_hdf5_load():
     np.random.seed(1)
-    input_filepath = "tests/data/20240202_Ni_linear_combination_small_gas_phase.h5"
+
+    input_filepath = "tests/data/20240206_Ni_linear_combination_small_gas_phase.h5"
 
     datahandler = DataHandler(intensity_only=False)
     train_test_split = 0.2
     train_val_split = 0.2
-    no_of_examples = 200
+    no_of_examples = 20
 
     (
         X_train,
@@ -54,14 +56,10 @@ def test_hdf5_load():
     print("Labels: " + str(datahandler.labels))
     print("No. of classes: " + str(datahandler.num_classes))
 
-    assert 0 == 0
-
-    # =============================================================================
-    #     assert X_train.shape == (200,1)
-    #     assert X_val.shape == (200,1)
-    #     assert X_test.shape == (200,1)
-    #     assert y_train.shape == (200,1)
-    #     assert y_val.shape == (200,1)
-    #     assert y_test.shape == (200,1)
-    # =============================================================================
+    assert X_train.shape == (12, 501, 2)
+    assert X_val.shape == (4, 501, 2)
+    assert X_test.shape == (4, 501, 2)
+    assert y_train.shape == (12, 2)
+    assert y_val.shape == (4, 2)
+    assert y_test.shape == (4, 2)
     sys.stdout.write("HDF5 loading test okay.\n")

@@ -1,5 +1,5 @@
 {
-   "output_datafolder":"tests\data",
+   "output_datafolder":"tests/data",
    "name":"Ni_linear_combination_small_gas_phase",
    "labels":[
       "Ni metal",
@@ -15,7 +15,7 @@
          "Ni2p_NiO.txt"
       ]
    },
-   "no_of_simulations":200,
+   "no_of_simulations":20,
    "single":false,
    "variable_no_of_inputs":true,
    "always_auger":false,
