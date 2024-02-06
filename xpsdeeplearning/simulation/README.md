@@ -8,6 +8,14 @@ This tool contains tools for creating large data sets of synthetic (yet realisti
 user@box:~$ simulate --help
 Usage: simulate [OPTIONS]
 
-  The CLI entrypoint for the simulate function
+  The CLI entrypoint for the convert function
+
+Options:
+  --param-file TEXT               The path to the input parameter file to
+                                  read.  [required]
+  --reload-from-previous-folder TEXT
+                                  The path to a previous run which is to be
+                                  continued.
+  --help                          Show this message and exit.
 
 
