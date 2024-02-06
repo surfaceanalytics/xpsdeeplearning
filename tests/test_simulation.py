@@ -61,7 +61,6 @@ def test_txt_load():
 
 def test_single_sim():
     """Test simluation of single spectrum."""
-    print(os.path.abspath(__file__).partition("xpsdeeplearning"))
     datapath = "tests/data"
 
     filenames = ["Ni2p_Ni_metal.txt", "Ni2p_NiO.txt"]

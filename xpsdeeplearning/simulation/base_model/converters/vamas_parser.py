@@ -210,7 +210,7 @@ class VamasParser:
         Parse .xy into a list of dictionaries caleld "self.data".
 
         Each dictionary is a grouping of related attributes.
-        These are later put into a heirarchical nested dictionary that
+        These are later put into a hierarchical nested dictionary that
         represents the native data structure of the export, and is
         well represented by JSON.
         """
@@ -238,15 +238,18 @@ class VamasParser:
 
         with open(filepath, "rb") as fp:
             for line in fp:
-                if line.endswith(b"\r\n"):
+                if line.endswith(b"\r\n") or line.endswith(b"\n"):
                     self.data += [line.decode("utf-8").strip()]
+                    import sys
+
+                    sys.stdout.write(str(self.data))
 
     def _parse_header(self):
         """
         Parse the vamas header into a VamasHeader object.
 
         The common_header_attr are the header attributes that are common
-        to both types of Vama format (NORM and MAP).
+        to both types of Vamas format (NORM and MAP).
 
         Returns
         -------
