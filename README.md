@@ -45,13 +45,15 @@ The quickest way to get started is to clone this repository:
 git clone https://github.com/surfaceanalytics/xpsdeeplearning.git
 cd xpsdeeplearning
 ```
-...and install this repository with pip:
+...and install it with pip:
 ```shell
 pip install .
 ```
 
 ## A note on model visualization
-In case you want to save and plot an image of your Tensorflow/Keras model during training/prediction, you can call the `save_and_print_model_image` method of the [`Classifier`](https://github.com/surfaceanalytics/xpsdeeplearning/tree/main/network/classifier.py) class. This method utilizes the [`plot_model `](https://keras.io/api/utils/model_plotting_utils/) function of Keras to convert the model to dot format and save the image to a file. However, for the conversion to work, you need to have [`graphviz`](https://www.graphviz.org/download/source/) installed locally. You can simply download the binary and install. For conda users, it is also possible to install the binary in a a decicated environemnt by running
+In case you want to save and plot an image of your Tensorflow/Keras model during training/prediction, you can call the `save_and_print_model_image` method of the [`Classifier`](https://github.com/surfaceanalytics/xpsdeeplearning/tree/main/network/classifier.py) class. This method utilizes the [`plot_model`](https://keras.io/api/utils/model_plotting_utils/) function of Keras to convert the model to dot format and save the image to a file. However, for the conversion to work, you need to have `graphviz` installed locally. You can simply [download the binary](https://www.graphviz.org/download/source/) and install.
+
+For conda users, it is also possible to install the binary in a a decicated environment by running
 ```shell
 conda install anaconda::graphviz
 ```
@@ -63,7 +65,7 @@ The software tools for data simulation are located inside [`simulation`](https:/
 ## Model training and prediction
 The code for convolutional neural network training and quantitative prediction is located inside [`network`](https://github.com/surfaceanalytics/xpsdeeplearning/tree/main/network). The design of the model architectures as well as the training and testing of the neural networks were performed using [TensorFlow](https://www.tensorflow.org/) and [Keras](https://keras.io/). In order to run the training and prediction pipelines, it is generally advised to use the [`notebooks`](https://github.com/surfaceanalytics/xpsdeeplearning/tree/main/notebooks), either through your local Jupyter installation or through [`Google Colab`](https://colab.research.google.com/). These notebooks allow visualization of the training/prediction inputs and outputs as well as saving of all results.
 
-In addition, both training and prediction can be run from the command line using JSON files as input (see the [README](https://github.com/surfaceanalytics/xpsdeeplearning/tree/main/xpsdeeplearning/network/README.md) for more information.
+In addition, both training and prediction can be run from the command line using JSON files as input (see the [README](https://github.com/surfaceanalytics/xpsdeeplearning/tree/main/xpsdeeplearning/network/README.md)) for more information.
 
 ## Command line tools
 There are several tools available that allow the user to run the simulation, training, and quantification routines from the command line:
