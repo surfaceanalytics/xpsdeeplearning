@@ -1,26 +1,33 @@
-# -*- coding: utf-8 -*-
+#
+# Copyright the xpsdeeplearning authors.
+#
+# This file is part of xpsdeeplearning.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 """
-Created on Thu Apr 27 15:26:43 2023
-
-@author: pielsticker
+Plot effect of data set size on model training.
 """
 
 import os
-import numpy as np
 import matplotlib.pyplot as plt
 import pickle
 import csv
-
 from matplotlib.ticker import MaxNLocator
+import numpy as np
 
 from common import save_dir
 
-os.chdir(
-    os.path.join(os.path.abspath(__file__).split("deepxps")[0], "deepxps")
-)
-cw = os.getcwd()
 
-# %% Loading
 def _get_total_history(csv_filepath):
     """
     Load the previous training history from the CSV log file.
@@ -47,28 +54,6 @@ def _get_total_history(csv_filepath):
 
     return history
 
-
-input_datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\runs"
-
-classifiers_Ni = {
-    25: "20230427_14h58m_Ni_linear_combination_normalized_inputs_small_gas_phase_25k",
-    50: "20230427_20h37m_Ni_linear_combination_normalized_inputs_small_gas_phase_50k",
-    100: "20230427_20h39m_Ni_linear_combination_normalized_inputs_small_gas_phase_100k",
-    150: "20230427_20h42m_Ni_linear_combination_normalized_inputs_small_gas_phase_150k",
-    200: "20230427_20h43m_Ni_linear_combination_normalized_inputs_small_gas_phase_200k",
-    250: "20230427_20h45m_Ni_linear_combination_normalized_inputs_small_gas_phase_250k",
-}
-
-classifiers_Mn = {
-    25: "20230502_09h44m_Mn_linear_combination_normalized_inputs_small_gas_phase_25k",
-    50: "20230428_11h19m_Mn_linear_combination_normalized_inputs_small_gas_phase_50k",
-    100: "20230502_09h33m_Mn_linear_combination_normalized_inputs_small_gas_phase_100k",
-    150: "20230502_09h55m_Mn_linear_combination_normalized_inputs_small_gas_phase_150k",
-    200: "20230502_10h23m_Mn_linear_combination_normalized_inputs_small_gas_phase_200k",
-    250: "20230427_20h48m_Mn_linear_combination_normalized_inputs_small_gas_phase_250k",
-}
-
-#%%
 def load_test_loss_for_one_run(pickle_filepath):
     """
     Load the test loss after 1000 epochs.
@@ -83,41 +68,6 @@ def load_test_loss_for_one_run(pickle_filepath):
         )
 
     return results["test_loss"]
-
-
-history_Ni = {}
-history_Mn = {}
-
-for clf_name, clf_path in classifiers_Ni.items():
-    logpath = os.path.join(*[input_datafolder, clf_path, "logs/log.csv"])
-    history_Ni[clf_name] = _get_total_history(logpath)
-    pkl_path = os.path.join(
-        *[input_datafolder, clf_path, "logs", "results.pkl"]
-    )
-    test_loss = load_test_loss_for_one_run(pkl_path)
-    history_Ni[clf_name]["test_loss"] = test_loss
-for clf_name, clf_path in classifiers_Mn.items():
-    logpath = os.path.join(*[input_datafolder, clf_path, "logs/log.csv"])
-    history_Mn[clf_name] = _get_total_history(logpath)
-    pkl_path = os.path.join(
-        *[input_datafolder, clf_path, "logs", "results.pkl"]
-    )
-    test_loss = load_test_loss_for_one_run(pkl_path)
-    history_Mn[clf_name]["test_loss"] = test_loss
-
-# %% Plot metric vs. epochs
-fontdict = {"size": 35}
-fontdict_legend = {"size": 28}
-
-colors = [
-    "cornflowerblue",
-    "red",
-    "forestgreen",
-    "darkgrey",
-    "deeppink",
-    "darkviolet",
-    "orange",
-]
 
 
 def plot_metric(
@@ -138,6 +88,19 @@ def plot_metric(
     None.
 
     """
+    fontdict = {"size": 35}
+    fontdict_legend = {"size": 28}
+
+    colors = [
+        "cornflowerblue",
+        "red",
+        "forestgreen",
+        "darkgrey",
+        "deeppink",
+        "darkviolet",
+        "orange",
+    ]
+
     legend = []
 
     ax.set_xlabel("Epochs", fontdict=fontdict)
@@ -176,6 +139,18 @@ def plot_metric(
 
 
 def plot_test_loss_after_1000_epochs(ax, histories, norm=False):
+    fontdict = {"size": 35}
+    fontdict_legend = {"size": 28}
+
+    colors = [
+        "cornflowerblue",
+        "red",
+        "forestgreen",
+        "darkgrey",
+        "deeppink",
+        "darkviolet",
+        "orange",
+    ]
 
     markers = ["o", "v"]
 
@@ -239,39 +214,83 @@ def plot_epochs(
 
         ax.scatter(key, pos)
 
+def main():
+    """Plot effect of data set size on model training."""
+    input_datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\runs"
 
-#%%
-fig, axs = plt.subplots(
-    nrows=2,
-    ncols=2,
-    figsize=(30, 22),
-    gridspec_kw={"hspace": 0.3, "wspace": 0.3},
-    dpi=300,
-)
+    classifiers_Ni = {
+        25: "20230427_14h58m_Ni_linear_combination_normalized_inputs_small_gas_phase_25k",
+        50: "20230427_20h37m_Ni_linear_combination_normalized_inputs_small_gas_phase_50k",
+        100: "20230427_20h39m_Ni_linear_combination_normalized_inputs_small_gas_phase_100k",
+        150: "20230427_20h42m_Ni_linear_combination_normalized_inputs_small_gas_phase_150k",
+        200: "20230427_20h43m_Ni_linear_combination_normalized_inputs_small_gas_phase_200k",
+        250: "20230427_20h45m_Ni_linear_combination_normalized_inputs_small_gas_phase_250k",
+    }
 
-metric = "loss"
-titles = ["(a) Ni", "(b) Mn"]
+    classifiers_Mn = {
+        25: "20230502_09h44m_Mn_linear_combination_normalized_inputs_small_gas_phase_25k",
+        50: "20230428_11h19m_Mn_linear_combination_normalized_inputs_small_gas_phase_50k",
+        100: "20230502_09h33m_Mn_linear_combination_normalized_inputs_small_gas_phase_100k",
+        150: "20230502_09h55m_Mn_linear_combination_normalized_inputs_small_gas_phase_150k",
+        200: "20230502_10h23m_Mn_linear_combination_normalized_inputs_small_gas_phase_200k",
+        250: "20230427_20h48m_Mn_linear_combination_normalized_inputs_small_gas_phase_250k",
+    }
 
-histories = [history_Ni, history_Mn]
 
-for j, hist_dict in enumerate(histories):
-    plot_metric(
-        axs[0, j],
-        hist_dict,
-        metric,
-        title=titles[j],
-        zoom=False,
-        zoom_x=(None, None),
-        zoom_y=(None, None),
+
+    history_Ni = {}
+    history_Mn = {}
+
+    for clf_name, clf_path in classifiers_Ni.items():
+        logpath = os.path.join(*[input_datafolder, clf_path, "logs/log.csv"])
+        history_Ni[clf_name] = _get_total_history(logpath)
+        pkl_path = os.path.join(*[input_datafolder, clf_path, "logs", "results.pkl"])
+        test_loss = load_test_loss_for_one_run(pkl_path)
+        history_Ni[clf_name]["test_loss"] = test_loss
+    for clf_name, clf_path in classifiers_Mn.items():
+        logpath = os.path.join(*[input_datafolder, clf_path, "logs/log.csv"])
+        history_Mn[clf_name] = _get_total_history(logpath)
+        pkl_path = os.path.join(*[input_datafolder, clf_path, "logs", "results.pkl"])
+        test_loss = load_test_loss_for_one_run(pkl_path)
+        history_Mn[clf_name]["test_loss"] = test_loss
+
+    fig, axs = plt.subplots(
+        nrows=2,
+        ncols=2,
+        figsize=(30, 22),
+        gridspec_kw={"hspace": 0.3, "wspace": 0.3},
+        dpi=300,
     )
 
-plot_test_loss_after_1000_epochs(axs[1, 0], histories, norm=False)
-plot_test_loss_after_1000_epochs(axs[1, 1], histories, norm=True)
+    metric = "loss"
+    titles = ["(a) Ni", "(b) Mn"]
+
+    histories = [history_Ni, history_Mn]
+
+    for j, hist_dict in enumerate(histories):
+        plot_metric(
+            axs[0, j],
+            hist_dict,
+            metric,
+            title=titles[j],
+            zoom=False,
+            zoom_x=(None, None),
+            zoom_y=(None, None),
+        )
+
+    plot_test_loss_after_1000_epochs(axs[1, 0], histories, norm=False)
+    plot_test_loss_after_1000_epochs(axs[1, 1], histories, norm=True)
 
 
-fig.tight_layout()
-plt.show()
-#%%
-for ext in [".png", ".eps"]:
-    fig_path = os.path.join(save_dir, "sample_size_effect" + ext)
-    fig.savefig(fig_path, bbox_inches="tight")
+    fig.tight_layout()
+    plt.show()
+
+    for ext in [".png", ".eps"]:
+        fig_path = os.path.join(save_dir, "sample_size_effect" + ext)
+        fig.savefig(fig_path, bbox_inches="tight")
+
+if __name__ == "__main__":
+    os.chdir(os.path.join(os.path.abspath(__file__).split("deepxps")[0], "deepxps"))
+    main()
+
+

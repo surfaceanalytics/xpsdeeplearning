@@ -1,8 +1,21 @@
-# -*- coding: utf-8 -*-
+#
+# Copyright the xpsdeeplearning authors.
+#
+# This file is part of xpsdeeplearning.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 """
-Created on Fri Jul 15 10:13:54 2022
-
-@author: pielsticker
+Plot of reference spectra with more than one element.
 """
 
 import os
@@ -11,11 +24,7 @@ import matplotlib.pyplot as plt
 
 from common import TextParser, ParserWrapper, save_dir
 
-datafolder = (
-    r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\utils\exports"
-)
 
-#%%
 class FitTextParser(TextParser):
     """Parser for XPS data stored in TXT files."""
 
@@ -30,9 +39,7 @@ class FitTextParser(TextParser):
 
         """
         self.header_names = [
-            hn.split(":")[1]
-            for hn in self.header[6].split("\t")
-            if "Cycle" in hn
+            hn.split(":")[1] for hn in self.header[6].split("\t") if "Cycle" in hn
         ]
 
         for i, hn in enumerate(self.header_names):
@@ -64,12 +71,9 @@ class FitTextParser(TextParser):
         return self.data
 
 
-# %%
 class Wrapper(ParserWrapper):
     def __init__(self, datafolder, file_dict):
-        super(Wrapper, self).__init__(
-            datafolder=datafolder, file_dict=file_dict
-        )
+        super(Wrapper, self).__init__(datafolder=datafolder, file_dict=file_dict)
         self.fontdict_legend = {"size": 17}
 
         self.color_dict = {
@@ -88,12 +92,12 @@ class Wrapper(ParserWrapper):
         }
 
     def parse_data(self):
-        filepath = os.path.join(self.datafolder, file_dict["filename"])
+        filepath = os.path.join(self.datafolder, self.file_dict["filename"])
         self.parser = FitTextParser()
         self.parser.parse_file(filepath)
-        self.parser.title = file_dict["title"]
-        self.parser.fit_start = file_dict["fit_start"]
-        self.parser.fit_end = file_dict["fit_end"]
+        self.parser.title = self.file_dict["title"]
+        self.parser.fit_start = self.file_dict["fit_start"]
+        self.parser.fit_end = self.file_dict["fit_end"]
 
     def plot_all(self):
         self.fig, self.axs = plt.subplots(
@@ -119,15 +123,11 @@ class Wrapper(ParserWrapper):
             elif "Fe" in header_name:
                 row = 2
 
-            self.axs[row, 0].set_xlabel(
-                "Binding energy (eV)", fontdict=self.fontdict
-            )
+            self.axs[row, 0].set_xlabel("Binding energy (eV)", fontdict=self.fontdict)
             self.axs[row, 0].set_ylabel(
                 "Intensity (arb. units)", fontdict=self.fontdict
             )
-            self.axs[row, 0].tick_params(
-                axis="x", labelsize=self.fontdict["size"]
-            )
+            self.axs[row, 0].tick_params(axis="x", labelsize=self.fontdict["size"])
             self.axs[row, 0].tick_params(
                 axis="y", which="both", right=False, left=False
             )
@@ -142,9 +142,7 @@ class Wrapper(ParserWrapper):
             start = self.parser.fit_start
             end = self.parser.fit_end
 
-            handle = self.axs[row, 0].plot(
-                x[start:end], y[start:end, j], c=color
-            )
+            handle = self.axs[row, 0].plot(x[start:end], y[start:end, j], c=color)
 
             self.axs[row, 0].set_xlim(left=np.max(x), right=np.min(x))
 
@@ -183,20 +181,27 @@ class Wrapper(ParserWrapper):
         return self.fig, self.axs
 
 
-# %% Plot of spectrum with multiple elements
-file_dict = {
-    "filename": "nicofe_references.txt",
-    "title": "",
-    "fit_start": 0,
-    "fit_end": -1,
-}
+def main():
+    """Plot of reference data with multiple elements."""
+    datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\utils\exports"
 
-wrapper = Wrapper(datafolder, file_dict)
-wrapper.parse_data()
-fig, ax = wrapper.plot_all()
+    file_dict = {
+        "filename": "nicofe_references.txt",
+        "title": "",
+        "fit_start": 0,
+        "fit_end": -1,
+    }
 
-plt.show()
+    wrapper = Wrapper(datafolder, file_dict)
+    wrapper.parse_data()
+    fig, ax = wrapper.plot_all()
 
-for ext in [".png", ".eps"]:
-    fig_path = os.path.join(save_dir, "references_multiple" + ext)
-    fig.savefig(fig_path, bbox_inches="tight")
+    plt.show()
+
+    for ext in [".png", ".eps"]:
+        fig_path = os.path.join(save_dir, "references_multiple" + ext)
+        fig.savefig(fig_path, bbox_inches="tight")
+
+if __name__ == "__main__":
+    os.chdir(os.path.join(os.path.abspath(__file__).split("deepxps")[0], "deepxps"))
+    main()

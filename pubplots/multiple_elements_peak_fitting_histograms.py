@@ -1,10 +1,22 @@
-# -*- coding: utf-8 -*-
+#
+# Copyright the xpsdeeplearning authors.
+#
+# This file is part of xpsdeeplearning.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 """
-Created on Fri Jul 15 10:13:54 2022
-
-@author: pielsticker
+Plot of data class distribution.
 """
-
 import os
 
 import matplotlib.pyplot as plt
@@ -13,16 +25,10 @@ import pandas as pd
 from common import ParserWrapper, get_xlsxpath, print_mae_info, save_dir
 from sklearn.metrics import mean_absolute_error
 
-datafolder = (
-    r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\utils\exports"
-)
 
-# %%
 class Wrapper(ParserWrapper):
     def __init__(self, datafolder, file_dict):
-        super(Wrapper, self).__init__(
-            datafolder=datafolder, file_dict=file_dict
-        )
+        super(Wrapper, self).__init__(datafolder=datafolder, file_dict=file_dict)
         self.fontdict_small = {"size": 13}
         self.fontdict_legend = {"size": 14.5}
         self.losses_test = {}
@@ -102,9 +108,7 @@ class Wrapper(ParserWrapper):
                                 linewidth=2,
                             )
                         except IndexError:
-                            handle = ax.plot(
-                                x[start:end], y[start:end], c=color
-                            )
+                            handle = ax.plot(x[start:end], y[start:end], c=color)
 
                         if name not in handle_dict:
                             handle_dict[name] = handle
@@ -144,12 +148,8 @@ class Wrapper(ParserWrapper):
         for i, parser in enumerate(self.parsers):
             self.axs[0, i].set_title(parser.title, fontdict=self.fontdict)
 
-            q_true = [
-                f"{p[0]} %" for p in list(parser.quantification.values())
-            ]
-            q_fitting = [
-                f"{p[1]} %" for p in list(parser.quantification.values())
-            ]
+            q_true = [f"{p[0]} %" for p in list(parser.quantification.values())]
+            q_fitting = [f"{p[1]} %" for p in list(parser.quantification.values())]
             q_cnn = [f"{p[2]} %" for p in list(parser.quantification.values())]
 
             keys = list(parser.quantification.keys())
@@ -178,7 +178,6 @@ class Wrapper(ParserWrapper):
         ax.set_ylim(top=np.max(parser.data["y"] * 1.1))
 
     def plot_all(self, with_fits=True):
-
         self.fig, self.axs = plt.subplots(
             nrows=1,
             ncols=2,
@@ -188,9 +187,7 @@ class Wrapper(ParserWrapper):
             gridspec_kw={"width_ratios": [2, 1]},
         )
 
-        self.axs[0, 0] = self._add_peak_fits(
-            self.axs[0, 0], with_fits=with_fits
-        )
+        self.axs[0, 0] = self._add_peak_fits(self.axs[0, 0], with_fits=with_fits)
 
         loss_legend = []
         for method, losses_test in self.losses_test.items():
@@ -215,6 +212,8 @@ class Wrapper(ParserWrapper):
 
 
 # %% Plot of spectrum with multiple elements
+
+datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\utils\exports"
 file_dict = {
     "nicofe": {
         "filename": "nicofe_fit.txt",
@@ -276,9 +275,7 @@ mae_fit = mean_absolute_error(
 wrapper.losses_test["Peak fit"] = mae_fit
 print_mae_info(mae_fit, "Lineshapes")
 
-df_nn = pd.read_csv(
-    get_xlsxpath(fit_datafolder, "nn_multiple"), index_col=0, sep=";"
-)
+df_nn = pd.read_csv(get_xlsxpath(fit_datafolder, "nn_multiple"), index_col=0, sep=";")
 df_nn = df_nn[cols]
 mae_nn = mean_absolute_error(
     df_nn.to_numpy().T, df_true.to_numpy().T, multioutput="raw_values"

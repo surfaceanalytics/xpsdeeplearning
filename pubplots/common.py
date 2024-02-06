@@ -3,7 +3,7 @@
 import os
 import numpy as np
 
-#%%
+# %%
 save_dir = r"C:\Users\pielsticker\Lukas\MPI-CEC\Publications\DeepXPS paper\Manuscript - Automatic Quantification\manuscript\figures"
 
 
@@ -33,9 +33,7 @@ def get_xlsxpath(fit_datafolder, method):
 def sort_with_index(array, reverse=True):
     return [
         f"No. {j} : {k}"
-        for (k, j) in sorted(
-            [(x, i) for (i, x) in enumerate(array)], reverse=reverse
-        )
+        for (k, j) in sorted([(x, i) for (i, x) in enumerate(array)], reverse=reverse)
     ]
 
 
@@ -222,7 +220,5 @@ class ParserWrapper:
 
         return formatted_label_list
 
-    def plot_all(
-        self, with_fits=True, with_nn_col=True, with_quantification=True
-    ):
+    def plot_all(self, with_fits=True, with_nn_col=True, with_quantification=True):
         pass

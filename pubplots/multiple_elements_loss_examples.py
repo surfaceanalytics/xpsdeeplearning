@@ -1,30 +1,36 @@
-# -*- coding: utf-8 -*-
+#
+# Copyright the xpsdeeplearning authors.
+#
+# This file is part of xpsdeeplearning.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 """
-Created on Thu Sep 23 09:50:14 2021
-
-@author: pielsticker
+Plot of example predictions on a dataset with more than one element.
 """
 
 import os
-import numpy as np
+import csv
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
-
-import csv
+import numpy as np
 
 from common import TextParser, ParserWrapper, save_dir
 
-datafolder = (
-    r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\utils\exports"
-)
 
-# %%
 class Wrapper(ParserWrapper):
     def __init__(self, datafolder, file_dict):
-        super(Wrapper, self).__init__(
-            datafolder=datafolder, file_dict=file_dict
-        )
+        super(Wrapper, self).__init__(datafolder=datafolder, file_dict=file_dict)
         self.fontdict = {"size": 38}
         self.fontdict_inset = {"size": 30}
         self.fontdict_small = {"size": 25}
@@ -52,12 +58,8 @@ class Wrapper(ParserWrapper):
             Dictionary containing the previous training history.
 
         """
-        input_datafolder = (
-            r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\runs"
-        )
-        csv_filepath = os.path.join(
-            *[input_datafolder, clf_name, "logs/log.csv"]
-        )
+        input_datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\runs"
+        csv_filepath = os.path.join(*[input_datafolder, clf_name, "logs/log.csv"])
 
         self.history = {}
         try:
@@ -168,8 +170,7 @@ class Wrapper(ParserWrapper):
             ax.set_ylim(bottom=np.min(y) * 0.55)
 
             percentages = [
-                [f"{p[0]} %", f"{p[1]} %"]
-                for p in parser.quantification.values()
+                [f"{p[0]} %", f"{p[1]} %"] for p in parser.quantification.values()
             ]
 
             keys = list(parser.quantification.keys())
@@ -197,14 +198,12 @@ class Wrapper(ParserWrapper):
 
         return ax
 
-    def plot_all(self):
+    def plot_all(self, history):
         nrows = 2
         ncols = 3
 
         self.fig = plt.figure(figsize=(32, 20), dpi=150)
-        gs = gridspec.GridSpec(
-            nrows=nrows, ncols=ncols, wspace=0.1, hspace=0.3
-        )
+        gs = gridspec.GridSpec(nrows=nrows, ncols=ncols, wspace=0.1, hspace=0.3)
 
         ax0 = self.fig.add_subplot(gs[:, 0])
         ax0_1 = self.fig.add_subplot(gs[0, 1])
@@ -228,114 +227,113 @@ class Wrapper(ParserWrapper):
             zoom_y=[None, 0.04],
         )
 
-        ax0_1 = self._add_spectrum_examples(
-            ax0_1, self.parsers[0], color="green"
-        )
-        ax0_2 = self._add_spectrum_examples(
-            ax0_2, self.parsers[1], color="green"
-        )
-        ax1_1 = self._add_spectrum_examples(
-            ax1_1, self.parsers[2], color="red"
-        )
-        ax1_2 = self._add_spectrum_examples(
-            ax1_2, self.parsers[3], color="red"
-        )
+        ax0_1 = self._add_spectrum_examples(ax0_1, self.parsers[0], color="green")
+        ax0_2 = self._add_spectrum_examples(ax0_2, self.parsers[1], color="green")
+        ax1_1 = self._add_spectrum_examples(ax1_1, self.parsers[2], color="red")
+        ax1_2 = self._add_spectrum_examples(ax1_2, self.parsers[3], color="red")
 
         gs.tight_layout(self.fig)
 
         return self.fig, self.axs
 
 
-# %%
-file_dict = {
-    "sucesses": {
-        "NiCoFe_good_0": {
-            "filename": "nicofe_good_fit_no_81.txt",
-            "title": "(b)",
-            "fit_start": 0,
-            "fit_end": -1,
-            "mae": 0.00833,
-            "quantification": {
-                "Ni metal": [0.0, 0.0],
-                "NiO": [35.9, 35.1],
-                "Co metal": [29.0, 26.1],
-                "CoO": [0.0, 0.0],
-                "Co3O4": [35.1, 38.8],
-                "Fe metal": [0.0, 0.0],
-                "FeO": [0.0, 0.0],
-                "Fe3O4": [0.0, 0.0],
-                "Fe2O3": [0.0, 0.0],
+def main():
+    """Plot of example predictions on a dataset with more than one element."""
+
+    datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\utils\exports"
+
+    file_dict = {
+        "sucesses": {
+            "NiCoFe_good_0": {
+                "filename": "nicofe_good_fit_no_81.txt",
+                "title": "(b)",
+                "fit_start": 0,
+                "fit_end": -1,
+                "mae": 0.00833,
+                "quantification": {
+                    "Ni metal": [0.0, 0.0],
+                    "NiO": [35.9, 35.1],
+                    "Co metal": [29.0, 26.1],
+                    "CoO": [0.0, 0.0],
+                    "Co3O4": [35.1, 38.8],
+                    "Fe metal": [0.0, 0.0],
+                    "FeO": [0.0, 0.0],
+                    "Fe3O4": [0.0, 0.0],
+                    "Fe2O3": [0.0, 0.0],
+                },
+            },
+            "NiCoFe_good_1": {
+                "filename": "nicofe_good_fit_no_45.txt",
+                "title": "(c)",
+                "fit_start": 0,
+                "fit_end": -1,
+                "mae": 0.0132,
+                "quantification": {
+                    "Ni metal": [25.9, 21.3],
+                    "NiO": [19.1, 20.5],
+                    "Co metal": [15.0, 15.9],
+                    "CoO": [20.1, 23.7],
+                    "Co3O4": [0.0, 0.0],
+                    "Fe metal": [19.9, 18.6],
+                    "FeO": [0.0, 0.0],
+                    "Fe3O4": [0.0, 0.0],
+                    "Fe2O3": [0.0, 0.0],
+                },
             },
         },
-        "NiCoFe_good_1": {
-            "filename": "nicofe_good_fit_no_45.txt",
-            "title": "(c)",
-            "fit_start": 0,
-            "fit_end": -1,
-            "mae": 0.0132,
-            "quantification": {
-                "Ni metal": [25.9, 21.3],
-                "NiO": [19.1, 20.5],
-                "Co metal": [15.0, 15.9],
-                "CoO": [20.1, 23.7],
-                "Co3O4": [0.0, 0.0],
-                "Fe metal": [19.9, 18.6],
-                "FeO": [0.0, 0.0],
-                "Fe3O4": [0.0, 0.0],
-                "Fe2O3": [0.0, 0.0],
+        "fails": {
+            "NiCoFe_bad_0": {
+                "filename": "nicofe_bad_fit_no_71.txt",
+                "title": "(d)",
+                "fit_start": 0,
+                "fit_end": -1,
+                "mae": 0.06984,
+                "quantification": {
+                    "Ni metal": [0.0, 0.0],
+                    "NiO": [32.6, 22.5],
+                    "Co metal": [0.0, 0.0],
+                    "CoO": [0.0, 0.0],
+                    "Co3O4": [0.0, 0.0],
+                    "Fe metal": [0.0, 0.0],
+                    "FeO": [0.0, 12.9],
+                    "Fe3O4": [28.2, 6.9],
+                    "Fe2O3": [39.2, 57.7],
+                },
+            },
+            "NiCoFe_bad_1": {
+                "filename": "nicofe_bad_fit_no_18.txt",
+                "title": "(e)",
+                "fit_start": 0,
+                "fit_end": -1,
+                "mae": 0.05695,
+                "quantification": {
+                    "Ni metal": [20.5, 12.2],
+                    "NiO": [20.7, 16.9],
+                    "Co metal": [0.0, 0.0],
+                    "CoO": [0.0, 0.0],
+                    "Co3O4": [0.0, 0.0],
+                    "Fe metal": [22.5, 16.6],
+                    "FeO": [0.0, 11.2],
+                    "Fe3O4": [21.5, 13.9],
+                    "Fe2O3": [14.8, 29.2],
+                },
             },
         },
-    },
-    "fails": {
-        "NiCoFe_bad_0": {
-            "filename": "nicofe_bad_fit_no_71.txt",
-            "title": "(d)",
-            "fit_start": 0,
-            "fit_end": -1,
-            "mae": 0.06984,
-            "quantification": {
-                "Ni metal": [0.0, 0.0],
-                "NiO": [32.6, 22.5],
-                "Co metal": [0.0, 0.0],
-                "CoO": [0.0, 0.0],
-                "Co3O4": [0.0, 0.0],
-                "Fe metal": [0.0, 0.0],
-                "FeO": [0.0, 12.9],
-                "Fe3O4": [28.2, 6.9],
-                "Fe2O3": [39.2, 57.7],
-            },
-        },
-        "NiCoFe_bad_1": {
-            "filename": "nicofe_bad_fit_no_18.txt",
-            "title": "(e)",
-            "fit_start": 0,
-            "fit_end": -1,
-            "mae": 0.05695,
-            "quantification": {
-                "Ni metal": [20.5, 12.2],
-                "NiO": [20.7, 16.9],
-                "Co metal": [0.0, 0.0],
-                "CoO": [0.0, 0.0],
-                "Co3O4": [0.0, 0.0],
-                "Fe metal": [22.5, 16.6],
-                "FeO": [0.0, 11.2],
-                "Fe3O4": [21.5, 13.9],
-                "Fe2O3": [14.8, 29.2],
-            },
-        },
-    },
-}
+    }
 
-wrapper = Wrapper(datafolder, file_dict)
-wrapper.parse_data(bg=False, envelope=False)
+    wrapper = Wrapper(datafolder, file_dict)
+    wrapper.parse_data(bg=False, envelope=False)
 
-classifier = (
-    "20210604_23h09m_NiCoFe_9_classes_long_linear_comb_small_gas_phase"
-)
-history = wrapper.get_total_history(classifier)
+    classifier = "20210604_23h09m_NiCoFe_9_classes_long_linear_comb_small_gas_phase"
+    history = wrapper.get_total_history(classifier)
 
-fig, axs = wrapper.plot_all()
+    fig, axs = wrapper.plot_all(history)
 
-for ext in [".png", ".eps"]:
-    fig_path = os.path.join(save_dir, "loss_examples_multiple" + ext)
-    fig.savefig(fig_path, bbox_inches="tight")
+    for ext in [".png", ".eps"]:
+        fig_path = os.path.join(save_dir, "loss_examples_multiple" + ext)
+        fig.savefig(fig_path, bbox_inches="tight")
+
+
+if __name__ == "__main__":
+    os.chdir(os.path.join(os.path.abspath(__file__).split("deepxps")[0], "deepxps"))
+    main()

@@ -1,22 +1,32 @@
-# -*- coding: utf-8 -*-
+#
+# Copyright the xpsdeeplearning authors.
+#
+# This file is part of xpsdeeplearning.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 """
-Created on Fri Jul 15 10:13:54 2022
-
-@author: pielsticker
+Plot reference spectra of different transition metals.
 """
 
 import os
-import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
+import numpy as np
+
 
 from common import TextParser, ParserWrapper, save_dir
 
-datafolder = (
-    r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\utils\exports"
-)
 
-#%%
 class FitTextParser(TextParser):
     """Parser for XPS data stored in TXT files."""
 
@@ -31,9 +41,7 @@ class FitTextParser(TextParser):
 
         """
         self.header_names = [
-            hn.split(":")[1]
-            for hn in self.header[6].split("\t")
-            if "Cycle" in hn
+            hn.split(":")[1] for hn in self.header[6].split("\t") if "Cycle" in hn
         ]
 
         if bg:
@@ -57,12 +65,9 @@ class FitTextParser(TextParser):
         return self.data
 
 
-# %%
 class Wrapper(ParserWrapper):
     def __init__(self, datafolder, file_dict):
-        super(Wrapper, self).__init__(
-            datafolder=datafolder, file_dict=file_dict
-        )
+        super(Wrapper, self).__init__(datafolder=datafolder, file_dict=file_dict)
         self.fontdict["size"] = 30
         self.fontdict_legend["size"] = 24
 
@@ -127,15 +132,11 @@ class Wrapper(ParserWrapper):
 
             row, col = int(i / ncols), i % ncols
 
-            self.axs[row, col].set_xlabel(
-                "Binding energy (eV)", fontdict=self.fontdict
-            )
+            self.axs[row, col].set_xlabel("Binding energy (eV)", fontdict=self.fontdict)
             self.axs[row, col].set_ylabel(
                 "Intensity (arb. units)", fontdict=self.fontdict
             )
-            self.axs[row, col].tick_params(
-                axis="x", labelsize=self.fontdict["size"]
-            )
+            self.axs[row, col].tick_params(axis="x", labelsize=self.fontdict["size"])
             self.axs[row, col].tick_params(
                 axis="y", which="both", right=False, left=False
             )
@@ -182,58 +183,65 @@ class Wrapper(ParserWrapper):
         return self.fig, self.axs
 
 
-# %% Plot of spectrum with multiple elements
-file_dict = {
-    "Co": {
-        "filename": "references_co.txt",
-        "title": "(a) Co 2p",
-        "fit_start": 1,
-        "fit_end": -1,
-    },
-    "Cu": {
-        "filename": "references_cu.txt",
-        "title": "(b) Cu 2p",
-        "fit_start": 0,
-        "fit_end": -1,
-    },
-    "Fe": {
-        "filename": "references_fe.txt",
-        "title": "(c) Fe 2p",
-        "fit_start": 0,
-        "fit_end": -20,
-    },
-    "Mn": {
-        "filename": "references_mn.txt",
-        "title": "(d) Mn 2p",
-        "fit_start": 0,
-        "fit_end": -1,
-    },
-    "Ni": {
-        "filename": "references_ni.txt",
-        "title": "(e) Ni 2p",
-        "fit_start": 1,
-        "fit_end": -1,
-    },
-    "Pd": {
-        "filename": "references_pd.txt",
-        "title": "(f) Pd 3d",
-        "fit_start": 0,
-        "fit_end": -1,
-    },
-    "Ti": {
-        "filename": "references_ti.txt",
-        "title": "(g) Ti 2p",
-        "fit_start": 20,
-        "fit_end": -1,
-    },
-}
+def main():
+    """Plot referene spectra of different transition metals."""
+    datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\utils\exports"
 
-wrapper = Wrapper(datafolder, file_dict)
-wrapper.parse_data(bg=False, envelope=False)
-fig, ax = wrapper.plot_all()
+    file_dict = {
+        "Co": {
+            "filename": "references_co.txt",
+            "title": "(a) Co 2p",
+            "fit_start": 1,
+            "fit_end": -1,
+        },
+        "Cu": {
+            "filename": "references_cu.txt",
+            "title": "(b) Cu 2p",
+            "fit_start": 0,
+            "fit_end": -1,
+        },
+        "Fe": {
+            "filename": "references_fe.txt",
+            "title": "(c) Fe 2p",
+            "fit_start": 0,
+            "fit_end": -20,
+        },
+        "Mn": {
+            "filename": "references_mn.txt",
+            "title": "(d) Mn 2p",
+            "fit_start": 0,
+            "fit_end": -1,
+        },
+        "Ni": {
+            "filename": "references_ni.txt",
+            "title": "(e) Ni 2p",
+            "fit_start": 1,
+            "fit_end": -1,
+        },
+        "Pd": {
+            "filename": "references_pd.txt",
+            "title": "(f) Pd 3d",
+            "fit_start": 0,
+            "fit_end": -1,
+        },
+        "Ti": {
+            "filename": "references_ti.txt",
+            "title": "(g) Ti 2p",
+            "fit_start": 20,
+            "fit_end": -1,
+        },
+    }
 
-plt.show()
+    wrapper = Wrapper(datafolder, file_dict)
+    wrapper.parse_data(bg=False, envelope=False)
+    fig, ax = wrapper.plot_all()
 
-for ext in [".png", ".eps"]:
-    fig_path = os.path.join(save_dir, "references_single" + ext)
-    fig.savefig(fig_path, bbox_inches="tight")
+    plt.show()
+
+    for ext in [".png", ".eps"]:
+        fig_path = os.path.join(save_dir, "references_single" + ext)
+        fig.savefig(fig_path, bbox_inches="tight")
+
+if __name__ == "__main__":
+    os.chdir(os.path.join(os.path.abspath(__file__).split("deepxps")[0], "deepxps"))
+    main()

@@ -1,20 +1,32 @@
-# -*- coding: utf-8 -*-
+#
+# Copyright the xpsdeeplearning authors.
+#
+# This file is part of xpsdeeplearning.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 """
-Created on Mon Jul 11 16:51:00 2022
+Plot visualization of window fitting.
+"""
 
-@author: pielsticker
-"""
 import os
 import csv
 import pickle
-import numpy as np
-
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import matplotlib.gridspec as gridspec
 from matplotlib.patches import ConnectionPatch
-
 from sklearn.metrics import mean_absolute_error
+import numpy as np
 
 from common import (
     ParserWrapper,
@@ -23,7 +35,7 @@ from common import (
     save_dir,
 )
 
-#%%
+
 class Wrapper(ParserWrapper):
     """Parser for XPS data stored in TXT files."""
 
@@ -39,9 +51,7 @@ class Wrapper(ParserWrapper):
         None.
 
         """
-        super(Wrapper, self).__init__(
-            datafolder=datafolder, file_dict=file_dict
-        )
+        super(Wrapper, self).__init__(datafolder=datafolder, file_dict=file_dict)
         self.fontdict = {"size": 25}
         self.fontdict_small = {"size": 14}
         self.fontdict_legend = {"size": 16}
@@ -104,9 +114,7 @@ class Wrapper(ParserWrapper):
         ax.tick_params(axis="x", labelsize=fontdict["size"])
         ax.tick_params(axis="y", labelsize=fontdict["size"])
 
-        ax.plot(
-            self.history[metric], linewidth=3, c=self.color_dict["train_loss"]
-        )
+        ax.plot(self.history[metric], linewidth=3, c=self.color_dict["train_loss"])
         val_key = "val_" + metric
         ax.plot(
             self.history[val_key],
@@ -262,7 +270,7 @@ class Wrapper(ParserWrapper):
 
         self.axs[0, 1] = self._add_metric_plot(
             ax=self.axs[0, 1],
-            history=history,
+            history=self.history,
             metric="loss",
             title="MAE loss",
             ylabel="MAE loss",
@@ -270,25 +278,17 @@ class Wrapper(ParserWrapper):
 
         self.axs[1, 1] = self._add_loss_histogram(
             ax=self.axs[1, 1],
-            losses_test=losses_test,
+            losses_test=self.losses_test,
         )
 
         for i, parser in enumerate(self.parsers):
             x, y = parser.data["x"], parser.data["y"]
 
-            self.axs[i, 0].set_xlabel(
-                "Binding energy (eV)", fontdict=self.fontdict
-            )
-            self.axs[i, 0].set_ylabel(
-                "Intensity (arb. units)", fontdict=self.fontdict
-            )
-            self.axs[i, 0].tick_params(
-                axis="x", labelsize=self.fontdict["size"]
-            )
+            self.axs[i, 0].set_xlabel("Binding energy (eV)", fontdict=self.fontdict)
+            self.axs[i, 0].set_ylabel("Intensity (arb. units)", fontdict=self.fontdict)
+            self.axs[i, 0].tick_params(axis="x", labelsize=self.fontdict["size"])
             self.axs[i, 0].set_yticklabels([])
-            self.axs[i, 0].tick_params(
-                axis="y", which="both", right=False, left=False
-            )
+            self.axs[i, 0].tick_params(axis="y", which="both", right=False, left=False)
 
             if not with_fits:
                 parser.header_names = ["CPS"]
@@ -314,9 +314,7 @@ class Wrapper(ParserWrapper):
 
             self.axs[i, 0].set_title(parser.title, fontdict=self.fontdict)
 
-            quantification = [
-                f"{p} %" for p in list(parser.quantification.values())
-            ]
+            quantification = [f"{p} %" for p in list(parser.quantification.values())]
 
             keys = list(parser.quantification.keys())
             col_labels = self._reformat_label_list(keys)
@@ -429,73 +427,6 @@ class Wrapper(ParserWrapper):
         return self.fig, self.axs
 
 
-#%% Plot of spectrum with multiple elements with window
-datafolder = (
-    r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\utils\exports"
-)
-clfpath = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\runs\20210914_19h13m_FeCo_combined_without_auger_7_classes_100eV_window\logs"
-logpath = os.path.join(clfpath, "log.csv")
-predpath = os.path.join(clfpath, "results.pkl")
-
-file_dict = {
-    "true": {
-        "filename": "cofe_sim.txt",
-        "title": "(a) Simulated spectrum with window",
-        "fit_start": 0,
-        "fit_end": -1,
-        "shift_x": 0.0,
-        "noise": 32.567,
-        "FWHM": 1.28,
-        "scatterer": "N2",
-        "distance": 0.18,
-        "pressure": 0.3,
-        "quantification": {
-            "Co metal": 26.7,
-            "CoO": 22.2,
-            "Co3O4": 24.0,
-            "Fe metal": 0.0,
-            "FeO": 14.4,
-            "Fe3O4": 12.7,
-            "Fe2O3": 0.0,
-        },
-    },
-    "neural_net": {
-        "filename": "cofe_sim.txt",
-        "title": "(c) Neural network quantifcation on one example",
-        "fit_start": 0,
-        "fit_end": -1,
-        "shift_x": 0.0,
-        "quantification": {
-            "Co metal": 25.7,
-            "CoO": 22.8,
-            "Co3O4": 28.3,
-            "Fe metal": 4.1,
-            "FeO": 10.5,
-            "Fe3O4": 5.8,
-            "Fe2O3": 2.8,
-        },
-    },
-}
-
-wrapper = Wrapper(datafolder, file_dict)
-wrapper.parse_data(bg=True, envelope=True)
-history = wrapper.load_history(logpath)
-y_test, pred_test = wrapper.load_predictions(predpath)
-losses_test = wrapper.calculate_test_losses(loss_func=mean_absolute_error)
-
-fig, ax = wrapper.plot_all()
-plt.show()
-
-for ext in [".png", ".eps"]:
-    fig_path = os.path.join(save_dir, "window" + ext)
-    fig.savefig(fig_path, bbox_inches="tight")
-
-#%%
-print_mae_info(losses_test, "Window", precision=4)
-
-maae_test = wrapper.calculate_test_losses(loss_func=maximum_absolute_error)
-
-
 def print_diff(losses, threshold):
     correct = 0
     wrong = 0
@@ -512,9 +443,78 @@ def print_diff(losses, threshold):
     )
 
 
-threshold = 0.1  # percent
-losses = {"MAE": losses_test, "MaAE": maae_test}
+def main():
+    """Plot visualization of window fitting."""
+    datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\utils\exports"
+    clfpath = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\runs\20210914_19h13m_FeCo_combined_without_auger_7_classes_100eV_window\logs"
+    logpath = os.path.join(clfpath, "log.csv")
+    predpath = os.path.join(clfpath, "results.pkl")
 
-for name, losses in losses.items():
-    print(name + ":")
-    print_diff(losses, threshold)
+    file_dict = {
+        "true": {
+            "filename": "cofe_sim.txt",
+            "title": "(a) Simulated spectrum with window",
+            "fit_start": 0,
+            "fit_end": -1,
+            "shift_x": 0.0,
+            "noise": 32.567,
+            "FWHM": 1.28,
+            "scatterer": "N2",
+            "distance": 0.18,
+            "pressure": 0.3,
+            "quantification": {
+                "Co metal": 26.7,
+                "CoO": 22.2,
+                "Co3O4": 24.0,
+                "Fe metal": 0.0,
+                "FeO": 14.4,
+                "Fe3O4": 12.7,
+                "Fe2O3": 0.0,
+            },
+        },
+        "neural_net": {
+            "filename": "cofe_sim.txt",
+            "title": "(c) Neural network quantifcation on one example",
+            "fit_start": 0,
+            "fit_end": -1,
+            "shift_x": 0.0,
+            "quantification": {
+                "Co metal": 25.7,
+                "CoO": 22.8,
+                "Co3O4": 28.3,
+                "Fe metal": 4.1,
+                "FeO": 10.5,
+                "Fe3O4": 5.8,
+                "Fe2O3": 2.8,
+            },
+        },
+    }
+
+    wrapper = Wrapper(datafolder, file_dict)
+    wrapper.parse_data(bg=True, envelope=True)
+    history = wrapper.load_history(logpath)
+    y_test, pred_test = wrapper.load_predictions(predpath)
+    losses_test = wrapper.calculate_test_losses(loss_func=mean_absolute_error)
+
+    fig, ax = wrapper.plot_all()
+    plt.show()
+
+    for ext in [".png", ".eps"]:
+        fig_path = os.path.join(save_dir, "window" + ext)
+        fig.savefig(fig_path, bbox_inches="tight")
+
+    print_mae_info(losses_test, "Window", precision=4)
+
+    maae_test = wrapper.calculate_test_losses(loss_func=maximum_absolute_error)
+
+    threshold = 0.1  # percent
+    losses = {"MAE": losses_test, "MaAE": maae_test}
+
+    for name, losses in losses.items():
+        print(name + ":")
+        print_diff(losses, threshold)
+
+
+if __name__ == "__main__":
+    os.chdir(os.path.join(os.path.abspath(__file__).split("deepxps")[0], "deepxps"))
+    main()
