@@ -35,12 +35,12 @@ from xpsdeeplearning.simulation.creator import (
 
 
 def simulate(
-    input_param_file: str, reload_from_previous_folder: str = None, plot: bool = True
+    param_file: str, reload_from_previous_folder: str = None, plot: bool = True
 ):
     """Create multiple sets of similar spectra with the same settings."""
-    with open(input_param_file, "r") as param_file:
-        params = json.load(param_file)
-        params["init_param_filepath"] = init_param_filepath
+    with open(param_file, "r") as file:
+        params = json.load(file)
+        params["init_param_filepath"] = param_file
 
     creator = Creator(params)
 
@@ -78,24 +78,23 @@ def simulate(
 
 @click.command()
 @click.option(
-    "--input-param-file",
+    "--param-file",
     default=None,
     required=True,
-    type=click.File("r"),
     help="The path to the input parameter file to read.",
 )
 @click.option(
-    "--output",
-    default="output.nxs",
-    help="The path to the output NeXus file to be generated.",
+    "--reload-from-previous-folder",
+    default=None,
+    help="The path to a previous run which is to be continued.",
 )
 def simulate_cli(
-    input_param_file: str,
+    param_file: str,
     reload_from_previous_folder: str,
 ):
     """The CLI entrypoint for the convert function"""
     try:
-        simulate(input_param_file, reload_from_previous_folder)
+        simulate(param_file, reload_from_previous_folder, plot=False)
     except TypeError as exc:
         sys.tracebacklimit = 0
         raise TypeError(
@@ -109,7 +108,8 @@ def simulate_cli(
 
 
 if __name__ == "__main__":
-    os.chdir(os.path.join(os.path.abspath(__file__).split("deepxps")[0], "deepxps"))
+    working_dir = os.path.join(os.path.abspath(__file__).split("deepxps")[0], "deepxps")
+    os.chdir(working_dir)
     # Change the following two lines according to your folder structure ###
     init_param_folder = r"C:/Users/pielsticker/Lukas/MPI-CEC/Projects/deepxps/xpsdeeplearning/xpsdeeplearning/simulation/params/"
     init_param_filename = "init_params_Co_core_small_gas_phase.json"

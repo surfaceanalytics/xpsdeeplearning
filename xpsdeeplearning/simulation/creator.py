@@ -1153,7 +1153,7 @@ class FileWriter:
 
             print("Prepare HDF5 upload: " + str(index) + "/" + str(df.shape[0]))
 
-        X = np.array(X, dtype=np.float)
+        X = np.array(X, dtype=float)
         try:
             X = np.reshape(X, (X.shape[0], X.shape[1], -1))
         except IndexError:
