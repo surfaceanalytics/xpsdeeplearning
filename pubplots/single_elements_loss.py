@@ -1,25 +1,33 @@
-# -*- coding: utf-8 -*-
+#
+# Copyright the xpsdeeplearning authors.
+#
+# This file is part of xpsdeeplearning.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 """
-Created on Thu Sep 23 09:50:14 2021
-
-@author: pielsticker
+Plot training loss for models trained on artificial data sets of
+different elements.
 """
 
 import os
-import numpy as np
+import csv
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
-
-import csv
+import numpy as np
 
 from common import save_dir
 
-os.chdir(
-    os.path.join(os.path.abspath(__file__).split("deepxps")[0], "deepxps")
-)
-cw = os.getcwd()
 
-# %% Loading
 def _get_total_history(csv_filepath):
     """
     Load the previous training history from the CSV log file.
@@ -47,44 +55,6 @@ def _get_total_history(csv_filepath):
     return history
 
 
-input_datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\runs"
-
-classifiers = {
-    "Co": "20220628_08h58m_Co_linear_combination_normalized_inputs_small_gas_phase",
-    "Cu": "20220628_09h58m_Cu_linear_combination_normalized_inputs_small_gas_phase",
-    "Fe": "20220629_09h36m_Fe_linear_combination_normalized_inputs_small_gas_phase",
-    # "Fe_1000": "20220629_09h36m_Fe_linear_combination_normalized_inputs_small_gas_phase_after_1000_epochs",
-    "Mn": "20220628_11h57m_Mn_linear_combination_normalized_inputs_small_gas_phase",
-    # "Mn_1000": "20220628_11h57m_Mn_linear_combination_normalized_inputs_small_gas_phase_after_1000_epochs",
-    "Ni": "20220627_16h49m_Ni_linear_combination_normalized_inputs_small_gas_phase",
-    "Pd": "20220627_16h50m_Pd_linear_combination_normalized_inputs_small_gas_phase",
-    "Ti": "20220628_11h55m_Ti_linear_combination_normalized_inputs_small_gas_phase",
-    # "CoFe": "20210914_19h11m_FeCo_combined_without_auger_7_classes_no_window",
-    # "NiCoFe": "20210604_23h09m_NiCoFe_9_classes_long_linear_comb_small_gas_phase",
-}
-
-history = {}
-
-for clf_name, clf_path in classifiers.items():
-    logpath = os.path.join(*[input_datafolder, clf_path, "logs/log.csv"])
-    history[clf_name] = _get_total_history(logpath)
-
-# %% Plot metric vs. epochs
-fontdict = {"size": 25}
-fontdict_small = {"size": 20}
-fontdict_legend = {"size": 17}
-
-colors = [
-    "cornflowerblue",
-    "red",
-    "forestgreen",
-    "darkgrey",
-    "deeppink",
-    "darkviolet",
-    "orange",
-]
-
-
 def plot_metric(
     history,
     metric,
@@ -104,6 +74,20 @@ def plot_metric(
     None.
 
     """
+    fontdict = {"size": 25}
+    fontdict_small = {"size": 20}
+    fontdict_legend = {"size": 17}
+
+    colors = [
+        "cornflowerblue",
+        "red",
+        "forestgreen",
+        "darkgrey",
+        "deeppink",
+        "darkviolet",
+        "orange",
+    ]
+
     fig, ax = plt.subplots(figsize=(15, 10), dpi=300)
 
     legend = []
@@ -144,9 +128,7 @@ def plot_metric(
 
         if zoom:
             axins.plot(metric_history, linewidth=3, c=colors[i])
-            axins.plot(
-                clf_history[val_key], linewidth=3, c=colors[i], alpha=0.5
-            )
+            axins.plot(clf_history[val_key], linewidth=3, c=colors[i], alpha=0.5)
             if zoom_x[1] is None:
                 zoom_end = len(metric_history) + 5
             else:
@@ -180,13 +162,46 @@ def plot_metric(
             fig.savefig(fig_path, bbox_inches="tight")
 
 
-plot_metric(
-    history=history,
-    metric="loss",
-    title="MAE (L$_1$) loss",
-    ylabel="MAE (L$_1$) loss",
-    zoom=True,
-    zoom_x=[100, None],
-    zoom_y=[None, 0.1],
-    to_file=True,
-)
+def main():
+    """
+    Plot training loss for models trained on artificial data sets of
+    different elements.
+    """
+    input_datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\runs"
+
+    classifiers = {
+        "Co": "20220628_08h58m_Co_linear_combination_normalized_inputs_small_gas_phase",
+        "Cu": "20220628_09h58m_Cu_linear_combination_normalized_inputs_small_gas_phase",
+        "Fe": "20220629_09h36m_Fe_linear_combination_normalized_inputs_small_gas_phase",
+        # "Fe_1000": "20220629_09h36m_Fe_linear_combination_normalized_inputs_small_gas_phase_after_1000_epochs",
+        "Mn": "20220628_11h57m_Mn_linear_combination_normalized_inputs_small_gas_phase",
+        # "Mn_1000": "20220628_11h57m_Mn_linear_combination_normalized_inputs_small_gas_phase_after_1000_epochs",
+        "Ni": "20220627_16h49m_Ni_linear_combination_normalized_inputs_small_gas_phase",
+        "Pd": "20220627_16h50m_Pd_linear_combination_normalized_inputs_small_gas_phase",
+        "Ti": "20220628_11h55m_Ti_linear_combination_normalized_inputs_small_gas_phase",
+        # "CoFe": "20210914_19h11m_FeCo_combined_without_auger_7_classes_no_window",
+        # "NiCoFe": "20210604_23h09m_NiCoFe_9_classes_long_linear_comb_small_gas_phase",
+    }
+
+    history = {}
+
+    for clf_name, clf_path in classifiers.items():
+        logpath = os.path.join(*[input_datafolder, clf_path, "logs/log.csv"])
+        history[clf_name] = _get_total_history(logpath)
+
+    #  Plot metric vs. epochs
+    plot_metric(
+        history=history,
+        metric="loss",
+        title="MAE (L$_1$) loss",
+        ylabel="MAE (L$_1$) loss",
+        zoom=True,
+        zoom_x=[100, None],
+        zoom_y=[None, 0.1],
+        to_file=True,
+    )
+
+
+if __name__ == "__main__":
+    os.chdir(os.path.join(os.path.abspath(__file__).split("deepxps")[0], "deepxps"))
+    main()

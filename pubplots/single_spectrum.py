@@ -1,26 +1,31 @@
-# -*- coding: utf-8 -*-
+#
+# Copyright the xpsdeeplearning authors.
+#
+# This file is part of xpsdeeplearning.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 """
-Created on Wed Jul 13 15:31:17 2022
-
-@author: pielsticker
+Plot a single Fe 2p spectrum.
 """
 
-import numpy as np
 import os
 import matplotlib.pyplot as plt
-from matplotlib import cm
+import numpy as np
 
-os.chdir(
-    os.path.join(os.path.abspath(__file__).split("deepxps")[0], "deepxps")
-)
-
+from common import save_dir
 from xpsdeeplearning.simulation.base_model.spectra import MeasuredSpectrum
 
-datafolder = (
-    r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\utils\exports"
-)
 
-#%% For one reference spectrum.
 class Figure:
     """Class for plotting an XPS spectrum."""
 
@@ -115,23 +120,24 @@ class FlippedFigure:
         self.fig.tight_layout()
 
 
-#%%
-input_datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\utils"
-filename = "fe2p_for_comparison_plot.vms"
+def main():
+    input_datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\utils"
+    filename = "fe2p_for_comparison_plot.vms"
 
-filepath = os.path.join(input_datafolder, filename)
-ref_spectrum = MeasuredSpectrum(filepath)
-figure = Figure(
-    x=ref_spectrum.x, y=ref_spectrum.lineshape, title="", axis_off=True
-)
-figure2 = FlippedFigure(
-    x=ref_spectrum.x, y=ref_spectrum.lineshape, title="", axis_off=False
-)
+    filepath = os.path.join(input_datafolder, filename)
+    ref_spectrum = MeasuredSpectrum(filepath)
+    figure = Figure(x=ref_spectrum.x, y=ref_spectrum.lineshape, title="", axis_off=True)
+    figure2 = FlippedFigure(
+        x=ref_spectrum.x, y=ref_spectrum.lineshape, title="", axis_off=False
+    )
+
+    file_names = {figure: "test_spectrum.tif", figure2: "test_spectrum_flipped.tif"}
+
+    for fig, file_name in file_names.items():
+        fig_path = os.path.join(save_dir, file_name)
+        fig.fig.savefig(fig_path)
 
 
-# =============================================================================
-# save_dir = r"C:\Users\pielsticker\Lukas\MPI-CEC\Publications\DeepXPS paper\Manuscript - Automatic Quantification\figures"
-# fig_filename = "test_spectrum2.tif"
-# fig_path = os.path.join(save_dir, fig_filename)
-# figure.fig.savefig(fig_path)
-# =============================================================================
+if __name__ == "__main__":
+    os.chdir(os.path.join(os.path.abspath(__file__).split("deepxps")[0], "deepxps"))
+    main()

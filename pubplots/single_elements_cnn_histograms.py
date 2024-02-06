@@ -1,20 +1,33 @@
-# -*- coding: utf-8 -*-
+#
+# Copyright the xpsdeeplearning authors.
+#
+# This file is part of xpsdeeplearning.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 """
-Created on Mon Jul 11 16:51:00 2022
-
-@author: pielsticker
+Histogram of predictions on XPS data with single elements.
 """
 
 import os
-import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.gridspec as gridspec
+from matplotlib import gridspec
 import pickle
 from sklearn.metrics import mean_absolute_error
+import numpy as np
 
 from common import save_dir
 
-#%%
+
 class Wrapper:
     """Parser for XPS data stored in TXT files."""
 
@@ -80,10 +93,7 @@ class Wrapper:
 
         """
         losses_test = np.array(
-            [
-                loss_func(y_test[i], pred_test[i])
-                for i in range(y_test.shape[0])
-            ]
+            [loss_func(y_test[i], pred_test[i]) for i in range(y_test.shape[0])]
         )
 
         return losses_test
@@ -100,9 +110,7 @@ class Wrapper:
         """
         self.results = {}
         for clf, clf_name in classifiers.items():
-            pkl_path = os.path.join(
-                *[self.datafolder, clf_name, "logs", "results.pkl"]
-            )
+            pkl_path = os.path.join(*[self.datafolder, clf_name, "logs", "results.pkl"])
 
             y_test, pred_test = self._load_predictions_for_one_run(pkl_path)
 
@@ -124,7 +132,6 @@ class Wrapper:
         """
         print("Calculating loss for each example...")
         for clf in self.results.keys():
-
             y_test = self.results[clf]["y_test"]
             pred_test = self.results[clf]["pred_test"]
             losses_test = self._calculate_test_losses_for_one_run(
@@ -222,9 +229,7 @@ class Wrapper:
         ncols = 2
 
         self.fig = plt.figure(figsize=(16, 24), dpi=300)
-        gs = gridspec.GridSpec(
-            nrows=4, ncols=2 * ncols, wspace=0.2, hspace=0.3
-        )
+        gs = gridspec.GridSpec(nrows=4, ncols=2 * ncols, wspace=0.2, hspace=0.3)
 
         # Set up 2 plots in first three row and 1 in last row.
         ax0_0 = self.fig.add_subplot(gs[0, :2])
@@ -253,25 +258,30 @@ class Wrapper:
         return self.fig, self.axs
 
 
-#%% Plot of spectrum with multiple elements with window
-datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\runs"
-classifiers = {
-    "Co": "20220628_08h58m_Co_linear_combination_normalized_inputs_small_gas_phase",
-    "Cu": "20220628_09h58m_Cu_linear_combination_normalized_inputs_small_gas_phase",
-    "Fe": "20220629_09h36m_Fe_linear_combination_normalized_inputs_small_gas_phase",
-    "Mn": "20220628_11h57m_Mn_linear_combination_normalized_inputs_small_gas_phase",
-    "Ni": "20220627_16h49m_Ni_linear_combination_normalized_inputs_small_gas_phase",
-    "Pd": "20220627_16h50m_Pd_linear_combination_normalized_inputs_small_gas_phase",
-    "Ti": "20220628_11h55m_Ti_linear_combination_normalized_inputs_small_gas_phase",
-}
+def main():
+    datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\runs"
+    classifiers = {
+        "Co": "20220628_08h58m_Co_linear_combination_normalized_inputs_small_gas_phase",
+        "Cu": "20220628_09h58m_Cu_linear_combination_normalized_inputs_small_gas_phase",
+        "Fe": "20220629_09h36m_Fe_linear_combination_normalized_inputs_small_gas_phase",
+        "Mn": "20220628_11h57m_Mn_linear_combination_normalized_inputs_small_gas_phase",
+        "Ni": "20220627_16h49m_Ni_linear_combination_normalized_inputs_small_gas_phase",
+        "Pd": "20220627_16h50m_Pd_linear_combination_normalized_inputs_small_gas_phase",
+        "Ti": "20220628_11h55m_Ti_linear_combination_normalized_inputs_small_gas_phase",
+    }
 
-wrapper = Wrapper(datafolder)
-wrapper.load_predictions(classifiers)
-results = wrapper.calculate_test_losses(loss_func=mean_absolute_error)
-# results_maae = wrapper.calculate_test_losses(loss_func=maximum_absolute_error)
-fig, ax = wrapper.plot_all()
-plt.show()
+    wrapper = Wrapper(datafolder)
+    wrapper.load_predictions(classifiers)
+    results = wrapper.calculate_test_losses(loss_func=mean_absolute_error)
+    # results_maae = wrapper.calculate_test_losses(loss_func=maximum_absolute_error)
+    fig, ax = wrapper.plot_all()
+    plt.show()
 
-for ext in [".png", ".eps"]:
-    fig_path = os.path.join(save_dir, "hist_cnn_single" + ext)
-    fig.savefig(fig_path, bbox_inches="tight")
+    for ext in [".png", ".eps"]:
+        fig_path = os.path.join(save_dir, "hist_cnn_single" + ext)
+        fig.savefig(fig_path, bbox_inches="tight")
+
+
+if __name__ == "__main__":
+    os.chdir(os.path.join(os.path.abspath(__file__).split("deepxps")[0], "deepxps"))
+    main()

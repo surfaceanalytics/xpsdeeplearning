@@ -1,0 +1,9 @@
+{
+  "input_filepath":"20210528_Ni_linear_combination_small_gas_phase.h5",
+  "exp_name":"Ni_small_gas_phase",
+  "task":"regression",
+  "intensity_only":true,
+  "no_of_examples":250000,
+  "train_test_split":0.99,
+  "train_val_split":0,
+}
