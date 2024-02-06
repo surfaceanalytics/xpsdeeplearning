@@ -2,8 +2,7 @@
 <a href="https://www.codefactor.io/repository/github/surfaceanalytics/xpsdeeplearning"><img src="https://www.codefactor.io/repository/github/surfaceanalytics/xpsdeeplearning/badge?s=e9dbf0ea5d4ce269c738ea85e856fd6811b425ce" alt="CodeFactor" /></a>
 ![](https://github.com/FAIRmat-NFDI/pynxtools/actions/workflows/pytest.yml/badge.svg)
 ![](https://github.com/FAIRmat-NFDI/pynxtools/actions/workflows/pylint.yml/badge.svg)
-![](https://github.com/FAIRmat-NFDI/pynxtools/actions/workflows/publish.yml/badge.svg)
-[![license: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/lukaspie/xpsdeeplearning/blob/main/LICENSE)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://github.com/lukaspie/xpsdeeplearning/blob/main/LICENSE)
 [![DOI](https://zenodo.org/badge/444112446.svg)](https://zenodo.org/badge/latestdoi/444112446)
 
 <table align="center">
@@ -12,9 +11,9 @@
 # <strong> Deep learning for XPS spectra </strong>
 
 <p>
-    Dr. Lukas Pielsticker, 
-    Dr. Rachel L. Nicholls, 
-    Dr. SerenaDeBeer, 
+    Dr. Lukas Pielsticker,
+    Dr. Rachel L. Nicholls,
+    Dr. SerenaDeBeer,
     Dr. Mark Greiner
     <br>
 </p>
@@ -31,7 +30,7 @@
 
 `xpsdeeplearning` is a toolbox for X-ray Photoelectron Spectroscopy (XPS) data analysis using Convolutional Neural Networks, designed for speeding up your XPS analysis.
 
-The package combines 
+The package combines
 1) simulation tools for creating large data sets of synthetic (yet realistic) transition-metal XP spectra base on reference data and
 2) a supervised machine learning framework based on artificial convolutional neural networks that is able to accurately perform automated quantitative analysis of the phases present in such XP spectra.
 
@@ -40,23 +39,19 @@ It is recommended to use python 3.11 with a dedicated virtual environment for th
 Learn how to manage [python versions](https://github.com/pyenv/pyenv) and
 [virtual environments](https://realpython.com/python-virtual-environments-a-primer/).
 
-The quickest way to get started is to clone this repository into a folder called `deepxps`:
+The quickest way to get started is to clone this repository:
 
 ```shell
-mkdir deepxps
-cd ./deepxps
 git clone https://github.com/surfaceanalytics/xpsdeeplearning.git
 cd xpsdeeplearning
-cd 
 ```
-
 ...and install this repository with pip:
 ```shell
 pip install .
 ```
 
 ## A note on model visualization
-In case you want to save and plot an image of your Tensorflow/Keras model during training/prediction, you can call the `save_and_print_model_image` method of the [`Classifier`](https://github.com/surfaceanalytics/xpsdeeplearning/tree/main/network/classifier.py) class. This method utilizes the [`plot_model `](https://keras.io/api/utils/model_plotting_utils/) function of Keras to convert the model to dot format and save the image to a file. However, for the conversion to work, you need to have [`graphviz`](https://www.graphviz.org/download/source/) installed locally. You can simply download the binary and install. For conda users, it is also possible to install the binary in a a decicated environemnt by running 
+In case you want to save and plot an image of your Tensorflow/Keras model during training/prediction, you can call the `save_and_print_model_image` method of the [`Classifier`](https://github.com/surfaceanalytics/xpsdeeplearning/tree/main/network/classifier.py) class. This method utilizes the [`plot_model `](https://keras.io/api/utils/model_plotting_utils/) function of Keras to convert the model to dot format and save the image to a file. However, for the conversion to work, you need to have [`graphviz`](https://www.graphviz.org/download/source/) installed locally. You can simply download the binary and install. For conda users, it is also possible to install the binary in a a decicated environemnt by running
 ```shell
 conda install anaconda::graphviz
 ```
