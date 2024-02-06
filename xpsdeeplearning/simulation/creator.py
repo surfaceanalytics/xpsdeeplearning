@@ -307,7 +307,7 @@ class Creator:
         # Select indices where a spectrum is available for this key.
         indices = [
             self.spectra.index(j)
-            for j in inputs.columns[inputs.isnull().any() == False].tolist()
+            for j in inputs.columns[inputs.isnull().any() is False].tolist()
         ]
         indices_empty = [
             self.spectra.index(j)

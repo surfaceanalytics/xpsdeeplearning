@@ -27,7 +27,7 @@ import talos
 from matplotlib import pyplot as plt
 from matplotlib import ticker
 
-import xpsdeeplearning.network.classifier as classifier
+from xpsdeeplearning.network import classifier
 
 
 class Hyperoptimization:
