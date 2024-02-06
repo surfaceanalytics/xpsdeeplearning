@@ -329,8 +329,6 @@ pytz==2024.1
     # via
     #   pandas
     #   xpsdeeplearning (pyproject.toml)
-pypiwin32==223
-    # via jupyter-core
 pywinpty==2.0.12
     # via
     #   jupyter-server
