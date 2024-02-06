@@ -58,6 +58,7 @@ def test_txt_load():
 
 def test_single_sim():
     """Test simluation of single spectrum."""
+    print(os.path.abspath(__file__).partition("xpsdeeplearning"))
     datapath = os.path.join(
         os.path.dirname(os.path.abspath(__file__)).partition("xpsdeeplearning")[0],
         "xpsdeeplearning", "xpsdeeplearning", "data", "references"
@@ -70,7 +71,6 @@ def test_single_sim():
     input_spectra = []
     for filename in filenames:
         filepath = os.path.join(datapath, filename)
-        print(filepath)
         input_spectra += [MeasuredSpectrum(filepath)]
 
     sim = Simulation(input_spectra)

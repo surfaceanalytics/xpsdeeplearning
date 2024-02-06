@@ -710,9 +710,10 @@ class SimulatedSpectrum(Spectrum):
 
             # Build the loss function using the parameters in a
             # json file.
-            input_datapath = (
-                os.path.dirname(os.path.abspath(__file__)).partition("simulation")[0]
-                + "\\data\\scatterers.json"
+            input_datapath = os.path.join(
+                os.path.dirname(os.path.abspath(__file__)).partition("simulation")[0],
+                "data",
+                "scatterers.json"
             )
             medium.scatterer.build_loss_from_json(input_datapath)
             loss_fn = medium.scatterer.loss_function
