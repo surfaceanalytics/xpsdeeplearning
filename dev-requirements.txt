@@ -422,10 +422,6 @@ tensorflow==2.15.0
     #   xpsdeeplearning (pyproject.toml)
 tensorflow-estimator==2.15.0
     # via tensorflow-intel
-tensorflow-intel==2.15.0
-    # via tensorflow
-tensorflow-io-gcs-filesystem==0.31.0
-    # via tensorflow-intel
 tensorflow-probability==0.23.0
     # via xpsdeeplearning (pyproject.toml)
 termcolor==2.4.0
