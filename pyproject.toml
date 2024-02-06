@@ -27,7 +27,7 @@ dependencies = [
     "h5py>=3.10.0",
     "matplotlib>=3.8.0",
     "nbconvert>=7.14.2",
-    "jupyter=1.0.0",
+    "jupyter==1.0.0",
     "numpy>=1.25",
     "pandas>=2.2.0",
     "pillow>=10.2.0",
