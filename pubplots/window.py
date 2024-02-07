@@ -39,7 +39,7 @@ from common import (
 class Wrapper(ParserWrapper):
     """Parser for XPS data stored in TXT files."""
 
-    def __init__(self, datafolder, file_dict):
+    def __init__(self, datafolder: str, file_dict: dict):
         """
         Initialize empty data dictionary.
 
@@ -55,6 +55,12 @@ class Wrapper(ParserWrapper):
         self.fontdict = {"size": 25}
         self.fontdict_small = {"size": 14}
         self.fontdict_legend = {"size": 16}
+
+        self.history = {}
+        self.y_test = np.array([])
+        self.pred_test = np.array([])
+        self.fig = plt.figure(figsize=(24, 16), dpi=300)
+        self.axs = np.array([])
 
         self.color_dict = {
             "CPS": "black",
@@ -251,8 +257,6 @@ class Wrapper(ParserWrapper):
         return ax
 
     def plot_all(self, with_fits=False):
-        self.fig = plt.figure(figsize=(24, 16), dpi=300)
-
         gs = gridspec.GridSpec(
             nrows=2,
             ncols=2,
