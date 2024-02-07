@@ -34,6 +34,7 @@ from xpsdeeplearning.simulation.sim import Simulation
 
 
 def main():
+    """Visualization of XPS data set simulation."""
     input_datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\xpsdeeplearning\xpsdeeplearning\data\references\NiCoFe"
 
     filenames = [

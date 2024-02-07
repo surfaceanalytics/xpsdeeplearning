@@ -21,7 +21,7 @@ Plot of example predictions on a dataset with more than one element.
 import os
 import csv
 import matplotlib.pyplot as plt
-import matplotlib.gridspec as gridspec
+from matplotlib import gridspec
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 import numpy as np
 
@@ -38,11 +38,11 @@ class Wrapper(ParserWrapper):
 
     def parse_data(self, bg=True, envelope=True):
         for result_dict in self.file_dict.values():
-            for method, d in result_dict.items():
-                filepath = os.path.join(self.datafolder, d["filename"])
+            for spectrum_dict in result_dict.values():
+                filepath = os.path.join(self.datafolder, spectrum_dict["filename"])
                 parser = TextParser()
                 parser.parse_file(filepath, bg=bg, envelope=envelope)
-                for key, value in d.items():
+                for key, value in spectrum_dict.items():
                     setattr(parser, key, value)
                 self.parsers.append(parser)
 
@@ -85,7 +85,6 @@ class Wrapper(ParserWrapper):
         zoom=False,
         zoom_x=(None, None),
         zoom_y=(None, None),
-        to_file=False,
     ):
         metric_cap = metric.capitalize()
 
@@ -156,14 +155,14 @@ class Wrapper(ParserWrapper):
 
         for j, header_name in enumerate(parser.header_names):
             if header_name == "CPS":
-                handle = ax.plot(x, y[:, j], c=color)
+                _ = ax.plot(x, y[:, j], c=color)
             else:
                 start = parser.fit_start
                 end = parser.fit_end
                 try:
-                    handle = ax.plot(x[start:end], y[start:end, j], c=color)
+                    _ = ax.plot(x[start:end], y[start:end, j], c=color)
                 except IndexError:
-                    handle = ax.plot(x[start:end], y[start:end], c=color)
+                    _ = ax.plot(x[start:end], y[start:end], c=color)
 
             ax.set_title(parser.title, fontdict=self.fontdict)
             ax.set_xlim(left=np.max(x), right=np.min(x))
@@ -234,7 +233,7 @@ class Wrapper(ParserWrapper):
 
         gs.tight_layout(self.fig)
 
-        return self.fig, self.axs
+        return self.fig
 
 
 def main():
@@ -327,7 +326,7 @@ def main():
     classifier = "20210604_23h09m_NiCoFe_9_classes_long_linear_comb_small_gas_phase"
     history = wrapper.get_total_history(classifier)
 
-    fig, axs = wrapper.plot_all(history)
+    fig = wrapper.plot_all(history)
 
     for ext in [".png", ".eps"]:
         fig_path = os.path.join(save_dir, "loss_examples_multiple" + ext)

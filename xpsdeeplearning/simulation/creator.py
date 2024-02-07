@@ -19,13 +19,14 @@
 Simulate artifical XPS spectra using the Creator class.
 """
 import warnings
-import numpy as np
 import os
 import pandas as pd
 import json
 import datetime
 import h5py
 import matplotlib.pyplot as plt
+import numpy as np
+from pandas.core.common import SettingWithCopyWarning
 
 from xpsdeeplearning.simulation.base_model.spectra import (
     safe_arange_with_edges,
@@ -134,6 +135,8 @@ class Creator:
             always_core=self.params["always_core"],
         )
 
+        self.df = pd.DataFrame()
+
     def load_input_spectra(self, filenames):
         """
         Load input spectra.
@@ -164,7 +167,7 @@ class Creator:
         )
 
         input_spectra_list = []
-        for set_key, value_list in filenames.items():
+        for value_list in filenames.values():
             ref_spectra_dict = {}
             for filename in value_list:
                 filepath = os.path.join(input_datapath, filename)
@@ -232,7 +235,11 @@ class Creator:
             self.simulation_matrix[
                 i, 1 : self.no_of_linear_params + 1
             ] = self.select_scaling_params(
-                key, single, variable_no_of_inputs, always_auger
+                key=key,
+                single=single,
+                variable_no_of_inputs=variable_no_of_inputs,
+                always_auger=always_auger,
+                always_core=always_core,
             )
 
             self.simulation_matrix[
@@ -569,7 +576,7 @@ class Creator:
         if not labels:
             return []
 
-        auger_regions = set([label.split(" ", 1)[0] for label in labels])
+        auger_regions = {label.split(" ", 1)[0] for label in labels}
         auger_regions = list(auger_regions)
 
         r = np.random.randint(0, len(auger_regions))
@@ -667,9 +674,9 @@ class Creator:
                 if str(p) != "nan"
             ]
 
-            self.sim = Simulation(sim_input_spectra)
+            sim = Simulation(sim_input_spectra)
 
-            self.sim.combine_linear(scaling_params=scaling_params)
+            sim.combine_linear(scaling_params=scaling_params)
 
             fwhm = self.simulation_matrix[i][-6]
             shift_x = self.simulation_matrix[i][-5]
@@ -685,7 +692,7 @@ class Creator:
             except ValueError:
                 scatterer_label = None
 
-            self.sim.change_spectrum(
+            sim.change_spectrum(
                 fwhm=fwhm,
                 shift_x=shift_x,
                 signal_to_noise=signal_to_noise,
@@ -697,10 +704,10 @@ class Creator:
             )
 
             if self.params["normalize_outputs"]:
-                self.sim.output_spectrum.normalize()
+                sim.output_spectrum.normalize()
 
             d1 = {"reference_set": ref_set_key}
-            d2 = self._dict_from_one_simulation(self.sim)
+            d2 = self._dict_from_one_simulation(sim)
             d = {**d1, **d2}
             dict_list.append(d)
             print("Simulation: " + str(i + 1) + "/" + str(self.no_of_simulations))
@@ -813,14 +820,6 @@ class Creator:
         None.
 
         """
-        """
-
-
-        Returns
-        -------
-        None.
-
-        """
 
         def start_stop_step_from_x(x):
             """
@@ -889,7 +888,7 @@ class Creator:
             no_of_spectra = self.no_of_simulations
 
         random_numbers = []
-        for i in range(no_of_spectra):
+        for _ in range(no_of_spectra):
             r = np.random.randint(0, self.no_of_simulations)
             while r in random_numbers:
                 # prevent repeating figures
@@ -1043,28 +1042,28 @@ class FileWriter:
 
         """
         if filetype == "excel":
-            self.excel_filepath = filename + ".xlsx"
-            with pd.ExcelWriter(self.excel_filepath) as writer:
+            excel_filepath = filename + ".xlsx"
+            with pd.ExcelWriter(excel_filepath) as writer:
                 df.to_excel(writer, sheet_name=filename)
 
         if filetype == "json":
-            self.json_filepath = filename + ".json"
+            json_filepath = filename + ".json"
 
-            with open(self.json_filepath, "w") as json_file:
+            with open(json_filepath, "w") as json_file:
                 df.to_json(json_file, orient="records")
 
         if filetype == "pickle":
-            self.pkl_filepath = filename + ".pkl"
-            with open(self.pkl_filepath, "wb") as pickle_file:
+            pkl_filepath = filename + ".pkl"
+            with open(pkl_filepath, "wb") as pickle_file:
                 df.to_pickle(pickle_file)
 
         if filetype == "hdf5":
             print("Saving data to HDF5...")
-            self.hdf5_filepath = filename + ".h5"
+            hdf5_filepath = filename + ".h5"
 
             hdf5_data = self.prepare_hdf5(self.df)
 
-            with h5py.File(self.hdf5_filepath, "w") as hf:
+            with h5py.File(hdf5_filepath, "w") as hf:
                 for key, value in hdf5_data.items():
                     try:
                         hf.create_dataset(
@@ -1115,8 +1114,6 @@ class FileWriter:
         for index, row in df.iterrows():
             X_one = row["y"]
             if self.params["eV_window"]:
-                from pandas.core.common import SettingWithCopyWarning
-
                 warnings.simplefilter(action="ignore", category=SettingWithCopyWarning)
                 # Only select a random window of some eV as output.
                 step = self.params["energy_range"][-1]

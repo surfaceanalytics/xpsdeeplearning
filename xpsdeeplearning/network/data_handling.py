@@ -498,7 +498,6 @@ class DataHandler:
 
         for i in range(no_of_spectra):
             index = indices[i]
-            label = str(np.around(y[index], decimals=3))
             if self.intensity_only:
                 new_energies = np.reshape(np.array(self.energies), (-1, 1))
                 data.append(np.hstack((new_energies, X[index])))
@@ -516,7 +515,7 @@ class DataHandler:
         data = np.array(data)
 
         graphic = SpectraPlot(data=data, annots=texts)
-        fig, axs = graphic.plot()
+        graphic.plot()
 
     def plot_random(self, no_of_spectra, dataset, with_prediction):
         """
@@ -545,7 +544,7 @@ class DataHandler:
         X, y = self._select_dataset(dataset)
 
         indices = []
-        for i in range(no_of_spectra):
+        for _ in range(no_of_spectra):
             r = np.random.randint(0, X.shape[0])
             indices.append(r)
 
@@ -830,7 +829,7 @@ class DataHandler:
         self, prob_preds, kind, dataset="test", no_of_spectra=10
     ):
         if kind == "random":
-            X, y = self._select_dataset(dataset_name="test")
+            X, y = self._select_dataset(dataset_name=dataset)
             indices = []
             for i in range(no_of_spectra):
                 r = np.random.randint(0, X.shape[0])

@@ -72,7 +72,7 @@ class EmptyModel(models.Model):
         self.num_classes = num_classes
         self.no_of_inputs = no_of_inputs
 
-        super(EmptyModel, self).__init__(inputs=inputs, outputs=outputs, name=name)
+        super().__init__(inputs=inputs, outputs=outputs, name=name)
 
     def get_config(self):
         """
@@ -88,7 +88,7 @@ class EmptyModel(models.Model):
 
         """
         # For serialization with "custom_objects"
-        config = super(EmptyModel, self).get_config()
+        config = super().get_config()
         config["inputshape"] = self.inputshape
         config["num_classes"] = self.num_classes
         config["no_of_inputs"] = self.no_of_inputs
@@ -127,7 +127,7 @@ class CustomMLP(EmptyModel):
             units=num_classes, activation="softmax", name="dense2"
         )(self.batch_norm_1)
 
-        super(CustomMLP, self).__init__(
+        super().__init__(
             inputs=self.input_1,
             outputs=self.dense_2,
             inputshape=inputshape,
@@ -225,7 +225,7 @@ class ClassificationCNN(EmptyModel):
 
         no_of_inputs = len(sublayers)
 
-        super(ClassificationCNN, self).__init__(
+        super().__init__(
             inputs=self.input_1,
             outputs=self.dense_2,
             inputshape=inputshape,
@@ -318,7 +318,7 @@ class RegressionCNN(EmptyModel):
 
         no_of_inputs = len(sublayers)
 
-        super(RegressionCNN, self).__init__(
+        super().__init__(
             inputs=self.input_1,
             outputs=self.output_norm,
             inputshape=inputshape,
@@ -394,7 +394,7 @@ class ClassificationCNN2D(EmptyModel):
 
         no_of_inputs = len(sublayers)
 
-        super(ClassificationCNN2D, self).__init__(
+        super().__init__(
             inputs=self.input_1,
             outputs=self.dense_2,
             inputshape=inputshape,
@@ -440,7 +440,7 @@ class IdentityBlock(models.Model):
 
         """
         name = str(stage) + str(block) + "_ID"
-        super(IdentityBlock, self).__init__(name=name)
+        super().__init__(name=name)
 
         # Store filters
         filter1, filter2, filter3 = filters
@@ -554,7 +554,7 @@ class ConvBlock(models.Model):
 
         """
         name = str(stage) + str(block) + "_CONV"
-        super(ConvBlock, self).__init__(name=name)
+        super().__init__(name=name)
 
         # Store filters
         filter1, filter2, filter3 = filters
@@ -802,7 +802,7 @@ class ResNet1D(EmptyModel):
             name="output_norm",
         )(self.dense)
 
-        super(ResNet1D, self).__init__(
+        super().__init__(
             inputs=self.input_1,
             outputs=self.output_norm,
             inputshape=inputshape,
@@ -844,7 +844,7 @@ class ResNet1DSubclassed(models.Model):
         """
         self.ap = ap
 
-        super(ResNet1DSubclassed, self).__init__(name="ResNet1D")
+        super().__init__(name="ResNet1D")
 
         # Zero-Padding
         self.zero_pad_1 = layers.ZeroPadding1D(padding=3)
@@ -1105,7 +1105,7 @@ class BayesianClassificationCNN2D(EmptyModel):
 
         no_of_inputs = len(sublayers)
 
-        super(BayesianClassificationCNN2D, self).__init__(
+        super().__init__(
             inputs=self.input_1,
             outputs=self.dense_2,
             inputshape=inputshape,
@@ -1231,7 +1231,7 @@ class BayesianCNN(EmptyModel):
 
         no_of_inputs = len(sublayers)
 
-        super(BayesianCNN, self).__init__(
+        super().__init__(
             inputs=self.input_1,
             outputs=self.dense_2,
             inputshape=inputshape,

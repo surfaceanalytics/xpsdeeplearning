@@ -21,6 +21,7 @@ Plot visualization of window fitting.
 import os
 import csv
 import pickle
+from typing import Dict, Any
 import matplotlib.pyplot as plt
 from matplotlib import patches
 from matplotlib import gridspec
@@ -51,14 +52,16 @@ class Wrapper(ParserWrapper):
         None.
 
         """
-        super(Wrapper, self).__init__(datafolder=datafolder, file_dict=file_dict)
+        super().__init__(datafolder=datafolder, file_dict=file_dict)
         self.fontdict = {"size": 25}
         self.fontdict_small = {"size": 14}
         self.fontdict_legend = {"size": 16}
 
-        self.history = {}
+        self.history: Dict[str, Any] = {}
         self.y_test = np.array([])
         self.pred_test = np.array([])
+        self.losses_test = np.array([])
+
         self.fig = plt.figure(figsize=(24, 16), dpi=300)
         self.axs = np.array([])
 
@@ -73,16 +76,9 @@ class Wrapper(ParserWrapper):
         """
         Load the previous training history from the CSV log file.
 
-        Useful for retraining.
-
-        Returns
-        -------
-        history : dict
-            Dictionary containing the previous training history.
-
         """
         history = {}
-        with open(csv_filepath, newline="") as csvfile:
+        with open(csv_filepath, encoding="utf8", newline="") as csvfile:
             reader = csv.DictReader(csvfile)
             for row in reader:
                 for key, item in row.items():
@@ -92,9 +88,7 @@ class Wrapper(ParserWrapper):
 
         self.history = history
 
-        return self.history
-
-    def _add_metric_plot(self, ax, history, metric, title=None, ylabel=None):
+    def _add_metric_plot(self, ax, metric, ylabel=None):
         """
         Plots the training and validation values of a metric
         against the epochs.
@@ -147,12 +141,7 @@ class Wrapper(ParserWrapper):
 
     def load_predictions(self, pickle_filepath):
         """
-        Load the previous training history from the CSV log file.
-
-        Useful for retraining.
-
-        Returns
-        -------
+        Load the predictions from the pickle file.
 
         """
         with open(pickle_filepath, "rb") as pickle_file:
@@ -162,8 +151,6 @@ class Wrapper(ParserWrapper):
             )
         self.y_test = results["y_test"]
         self.pred_test = results["pred_test"]
-
-        return self.y_test, self.pred_test
 
     def calculate_test_losses(self, loss_func):
         """
@@ -210,7 +197,7 @@ class Wrapper(ParserWrapper):
         ax.tick_params(axis="x", labelsize=self.fontdict["size"])
         ax.tick_params(axis="y", labelsize=self.fontdict["size"])
 
-        N, bins, hist_patches = ax.hist(
+        N, _, hist_patches = ax.hist(
             losses_test,
             bins=100,
             histtype="bar",
@@ -256,7 +243,7 @@ class Wrapper(ParserWrapper):
 
         return ax
 
-    def plot_all(self, with_fits=False):
+    def plot_all(self, with_fits=False):  #
         gs = gridspec.GridSpec(
             nrows=2,
             ncols=2,
@@ -274,9 +261,7 @@ class Wrapper(ParserWrapper):
 
         self.axs[0, 1] = self._add_metric_plot(
             ax=self.axs[0, 1],
-            history=self.history,
             metric="loss",
-            title="MAE loss",
             ylabel="MAE loss",
         )
 
@@ -348,7 +333,7 @@ class Wrapper(ParserWrapper):
         self.axs[0, 0].set_xlim(left=np.max(x), right=np.min(x))
         self.axs[1, 0].set_xlim(left=window[1], right=window[0])
 
-        ymin, ymax = self.axs[0, 0].get_ylim()
+        ymax = self.axs[0, 0].get_ylim()[1]
 
         rect = patches.Rectangle(
             (window[0], 0.27 * ymax),
@@ -428,10 +413,15 @@ class Wrapper(ParserWrapper):
 
         # gs.tight_layout(self.fig)
 
-        return self.fig, self.axs
+        return self.fig
 
 
 def print_diff(losses, threshold):
+    """
+    Print no. of wrong and correct classifications
+    (below loss threshold).
+
+    """
     correct = 0
     wrong = 0
     for loss in losses:
@@ -496,11 +486,11 @@ def main():
 
     wrapper = Wrapper(datafolder, file_dict)
     wrapper.parse_data(bg=True, envelope=True)
-    history = wrapper.load_history(logpath)
-    y_test, pred_test = wrapper.load_predictions(predpath)
+    wrapper.load_history(logpath)
+    wrapper.load_predictions(predpath)
     losses_test = wrapper.calculate_test_losses(loss_func=mean_absolute_error)
 
-    fig, ax = wrapper.plot_all()
+    fig = wrapper.plot_all()
     plt.show()
 
     for ext in [".png", ".eps"]:
