@@ -25,12 +25,12 @@ from matplotlib import gridspec
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 import numpy as np
 
-from common import TextParser, ParserWrapper, save_dir
+from common import TextParser, ParserWrapper, DATAFOLDER, RUNFOLDER, SAVE_DIR
 
 
 class Wrapper(ParserWrapper):
     def __init__(self, datafolder, file_dict):
-        super(Wrapper, self).__init__(datafolder=datafolder, file_dict=file_dict)
+        super().__init__(datafolder=datafolder, file_dict=file_dict)
         self.fontdict = {"size": 38}
         self.fontdict_inset = {"size": 30}
         self.fontdict_small = {"size": 25}
@@ -58,8 +58,7 @@ class Wrapper(ParserWrapper):
             Dictionary containing the previous training history.
 
         """
-        input_datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\runs"
-        csv_filepath = os.path.join(*[input_datafolder, clf_name, "logs/log.csv"])
+        csv_filepath = os.path.join(*[RUNFOLDER, clf_name, "logs/log.csv"])
 
         self.history = {}
         try:
@@ -238,9 +237,6 @@ class Wrapper(ParserWrapper):
 
 def main():
     """Plot of example predictions on a dataset with more than one element."""
-
-    datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\utils\exports"
-
     file_dict = {
         "sucesses": {
             "NiCoFe_good_0": {
@@ -320,7 +316,7 @@ def main():
         },
     }
 
-    wrapper = Wrapper(datafolder, file_dict)
+    wrapper = Wrapper(DATAFOLDER, file_dict)
     wrapper.parse_data(bg=False, envelope=False)
 
     classifier = "20210604_23h09m_NiCoFe_9_classes_long_linear_comb_small_gas_phase"
@@ -329,7 +325,7 @@ def main():
     fig = wrapper.plot_all(history)
 
     for ext in [".png", ".eps"]:
-        fig_path = os.path.join(save_dir, "loss_examples_multiple" + ext)
+        fig_path = os.path.join(SAVE_DIR, "loss_examples_multiple" + ext)
         fig.savefig(fig_path, bbox_inches="tight")
 
 

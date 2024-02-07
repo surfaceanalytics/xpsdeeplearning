@@ -23,8 +23,7 @@ import matplotlib.pyplot as plt
 from matplotlib import gridspec
 import numpy as np
 
-
-from common import TextParser, ParserWrapper, save_dir
+from common import TextParser, ParserWrapper, DATAFOLDER, SAVE_DIR
 
 
 class FitTextParser(TextParser):
@@ -67,7 +66,7 @@ class FitTextParser(TextParser):
 
 class Wrapper(ParserWrapper):
     def __init__(self, datafolder, file_dict):
-        super(Wrapper, self).__init__(datafolder=datafolder, file_dict=file_dict)
+        super().__init__(datafolder=datafolder, file_dict=file_dict)
         self.fontdict["size"] = 30
         self.fontdict_legend["size"] = 24
 
@@ -187,7 +186,6 @@ class Wrapper(ParserWrapper):
 
 def main():
     """Plot referene spectra of different transition metals."""
-    datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\utils\exports"
 
     file_dict = {
         "Co": {
@@ -234,14 +232,14 @@ def main():
         },
     }
 
-    wrapper = Wrapper(datafolder, file_dict)
+    wrapper = Wrapper(DATAFOLDER, file_dict)
     wrapper.parse_data(bg=False, envelope=False)
     fig, ax = wrapper.plot_all()
 
     plt.show()
 
     for ext in [".png", ".eps"]:
-        fig_path = os.path.join(save_dir, "references_single" + ext)
+        fig_path = os.path.join(SAVE_DIR, "references_single" + ext)
         fig.savefig(fig_path, bbox_inches="tight")
 
 

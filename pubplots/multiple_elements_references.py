@@ -22,7 +22,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 
-from common import TextParser, ParserWrapper, save_dir
+from common import TextParser, ParserWrapper, DATAFOLDER, SAVE_DIR
 
 
 class FitTextParser(TextParser):
@@ -73,7 +73,7 @@ class FitTextParser(TextParser):
 
 class Wrapper(ParserWrapper):
     def __init__(self, datafolder, file_dict):
-        super(Wrapper, self).__init__(datafolder=datafolder, file_dict=file_dict)
+        super().__init__(datafolder=datafolder, file_dict=file_dict)
         self.fontdict_legend = {"size": 17}
 
         self.color_dict = {
@@ -183,7 +183,6 @@ class Wrapper(ParserWrapper):
 
 def main():
     """Plot of reference data with multiple elements."""
-    datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\utils\exports"
 
     file_dict = {
         "filename": "nicofe_references.txt",
@@ -192,14 +191,14 @@ def main():
         "fit_end": -1,
     }
 
-    wrapper = Wrapper(datafolder, file_dict)
+    wrapper = Wrapper(DATAFOLDER, file_dict)
     wrapper.parse_data()
     fig, ax = wrapper.plot_all()
 
     plt.show()
 
     for ext in [".png", ".eps"]:
-        fig_path = os.path.join(save_dir, "references_multiple" + ext)
+        fig_path = os.path.join(SAVE_DIR, "references_multiple" + ext)
         fig.savefig(fig_path, bbox_inches="tight")
 
 

@@ -22,15 +22,12 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 
-from common import TextParser, ParserWrapper, save_dir
-
-datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\utils\exports"
+from common import TextParser, ParserWrapper, DATAFOLDER, SAVE_DIR
 
 
-# %%
 class Wrapper(ParserWrapper):
     def __init__(self, datafolder, file_dict):
-        super(Wrapper, self).__init__(datafolder=datafolder, file_dict=file_dict)
+        super().__init__(datafolder=datafolder, file_dict=file_dict)
         self.fontdict_small = {"size": 14}
         self.fontdict_mae = {"size": 14}
 
@@ -84,18 +81,16 @@ class Wrapper(ParserWrapper):
 
             for j, header_name in enumerate(parser.header_names):
                 if header_name == "CPS":
-                    handle = self.axs[row, col].plot(x, y[:, j], c=color)
+                    _ = self.axs[row, col].plot(x, y[:, j], c=color)
                 else:
                     start = parser.fit_start
                     end = parser.fit_end
                     try:
-                        handle = self.axs[row, col].plot(
+                        _ = self.axs[row, col].plot(
                             x[start:end], y[start:end, j], c=color
                         )
                     except IndexError:
-                        handle = self.axs[row, col].plot(
-                            x[start:end], y[start:end], c=color
-                        )
+                        _ = self.axs[row, col].plot(x[start:end], y[start:end], c=color)
 
             self.axs[row, col].set_title(parser.title, fontdict=self.fontdict)
             self.axs[row, col].set_xlim(left=np.max(x), right=np.min(x))
@@ -168,7 +163,7 @@ class Wrapper(ParserWrapper):
 
         self.fig.tight_layout()
 
-        return self.fig, self.axs
+        return self.fig
 
 
 def main():
@@ -340,13 +335,13 @@ def main():
         },
     }
 
-    wrapper = Wrapper(datafolder, file_dict)
+    wrapper = Wrapper(DATAFOLDER, file_dict)
     wrapper.parse_data(bg=False, envelope=False)
-    fig, ax = wrapper.plot_all()
+    fig = wrapper.plot_all()
     plt.show()
 
     for ext in [".png", ".eps"]:
-        fig_path = os.path.join(save_dir, "examples_single" + ext)
+        fig_path = os.path.join(SAVE_DIR, "examples_single" + ext)
         fig.savefig(fig_path, bbox_inches="tight")
 
 

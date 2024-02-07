@@ -18,17 +18,24 @@
 Peak fitting histograms for spectra with more than one element.
 """
 import os
-
 import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
-from common import ParserWrapper, get_xlsxpath, print_mae_info, save_dir
 from sklearn.metrics import mean_absolute_error
+import numpy as np
+
+from common import (
+    ParserWrapper,
+    get_xlsxpath,
+    print_mae_info,
+    UTILS_FOLDER,
+    DATAFOLDER,
+    SAVE_DIR,
+)
 
 
 class Wrapper(ParserWrapper):
     def __init__(self, datafolder, file_dict):
-        super(Wrapper, self).__init__(datafolder=datafolder, file_dict=file_dict)
+        super().__init__(datafolder=datafolder, file_dict=file_dict)
         self.fontdict_small = {"size": 13}
         self.fontdict_legend = {"size": 14.5}
         self.losses_test = {}
@@ -215,8 +222,6 @@ class Wrapper(ParserWrapper):
 
 def main():
     """Peak fitting histograms for spectra with more than one element."""
-
-    datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\utils\exports"
     file_dict = {
         "nicofe": {
             "filename": "nicofe_fit.txt",
@@ -243,12 +248,10 @@ def main():
         }
     }
 
-    wrapper = Wrapper(datafolder, file_dict)
+    wrapper = Wrapper(DATAFOLDER, file_dict)
     wrapper.parse_data(bg=True, envelope=True)
 
-    fit_datafolder = (
-        r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\utils\fit_comparison"
-    )
+    fit_datafolder = os.path.join(UTILS_FOLDER, "fit_comparison")
     cols = [
         "Ni metal",
         "NiO",
@@ -260,7 +263,6 @@ def main():
         "Fe3O4",
         "Fe2O3",
     ]
-    cols2 = ["Fe metal", "FeO", "Fe3O4", "Fe2O3"]
     df_true = pd.read_csv(
         get_xlsxpath(fit_datafolder, "truth_multiple"), index_col=0, sep=";"
     )
@@ -292,7 +294,7 @@ def main():
     plt.show()
 
     for ext in [".png", ".eps"]:
-        fig_path = os.path.join(save_dir, "fit_histograms_multiple" + ext)
+        fig_path = os.path.join(SAVE_DIR, "fit_histograms_multiple" + ext)
         fig.savefig(fig_path, bbox_inches="tight")
 
     dfs = {"Neural network": df_nn, "Lineshapes": df_fit}

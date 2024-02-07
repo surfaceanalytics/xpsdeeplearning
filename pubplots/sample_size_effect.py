@@ -25,7 +25,7 @@ import csv
 from matplotlib.ticker import MaxNLocator
 import numpy as np
 
-from common import save_dir
+from common import RUNFOLDER, SAVE_DIR
 
 
 def _get_total_history(csv_filepath):
@@ -218,7 +218,6 @@ def plot_epochs(
 
 def main():
     """Plot effect of data set size on model training."""
-    input_datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\runs"
 
     classifiers_Ni = {
         25: "20230427_14h58m_Ni_linear_combination_normalized_inputs_small_gas_phase_25k",
@@ -242,15 +241,15 @@ def main():
     history_Mn = {}
 
     for clf_name, clf_path in classifiers_Ni.items():
-        logpath = os.path.join(*[input_datafolder, clf_path, "logs/log.csv"])
+        logpath = os.path.join(*[RUNFOLDER, clf_path, "logs/log.csv"])
         history_Ni[clf_name] = _get_total_history(logpath)
-        pkl_path = os.path.join(*[input_datafolder, clf_path, "logs", "results.pkl"])
+        pkl_path = os.path.join(*[RUNFOLDER, clf_path, "logs", "results.pkl"])
         test_loss = load_test_loss_for_one_run(pkl_path)
         history_Ni[clf_name]["test_loss"] = test_loss
     for clf_name, clf_path in classifiers_Mn.items():
-        logpath = os.path.join(*[input_datafolder, clf_path, "logs/log.csv"])
+        logpath = os.path.join(*[RUNFOLDER, clf_path, "logs/log.csv"])
         history_Mn[clf_name] = _get_total_history(logpath)
-        pkl_path = os.path.join(*[input_datafolder, clf_path, "logs", "results.pkl"])
+        pkl_path = os.path.join(*[RUNFOLDER, clf_path, "logs", "results.pkl"])
         test_loss = load_test_loss_for_one_run(pkl_path)
         history_Mn[clf_name]["test_loss"] = test_loss
 
@@ -285,7 +284,7 @@ def main():
     plt.show()
 
     for ext in [".png", ".eps"]:
-        fig_path = os.path.join(save_dir, "sample_size_effect" + ext)
+        fig_path = os.path.join(SAVE_DIR, "sample_size_effect" + ext)
         fig.savefig(fig_path, bbox_inches="tight")
 
 

@@ -1,13 +1,38 @@
-# -*- coding: utf-8 -*-
-
+#
+# Copyright the xpsdeeplearning authors.
+#
+# This file is part of xpsdeeplearning.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+"""
+Common function for pubplots
+"""
 import os
 import numpy as np
 
-# %%
-save_dir = r"C:\Users\pielsticker\Lukas\MPI-CEC\Publications\DeepXPS paper\Manuscript - Automatic Quantification\manuscript\figures"
+
+REPO_PATH = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\xpsdeeplearning"
+UTILS_FOLDER = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\utils"
+DATAFOLDER = os.path.join(UTILS_FOLDER, "exports")
+RUNFOLDER = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\runs"
+SAVE_DIR = r"C:\Users\pielsticker\Lukas\MPI-CEC\Publications\DeepXPS paper\Manuscript - Automatic Quantification\manuscript\figures"
 
 
 def maximum_absolute_error(y_true, y_pred):
+    """
+    Get the highest absolute error between prediction and
+    ground truth.
+    """
     y_true = np.array(y_true)
     y_pred = np.array(y_pred)
 
@@ -15,6 +40,7 @@ def maximum_absolute_error(y_true, y_pred):
 
 
 def filter_header_list(header_list):
+    """Filter a list of strings to only have non-nan values."""
     header_list = list(filter(None, header_list))
 
     header_list = [hn for hn in header_list if hn != "\n"]
@@ -27,10 +53,39 @@ def filter_header_list(header_list):
 
 
 def get_xlsxpath(fit_datafolder, method):
+    """
+    Get the path of a fit result csv.
+
+    Parameters
+    ----------
+    fit_datafolder : str
+        Path containing fit result csv files.
+    method : str
+        Peak fitting method.
+
+    """
     return os.path.join(fit_datafolder, method + ".csv")
 
 
 def sort_with_index(array, reverse=True):
+    """
+    Sort a numpy array by value and return a list with the
+    indexes and values.
+
+    Parameters
+    ----------
+    array : np.ndarray
+        One dimensional numpy arra.
+    reverse : bool, optional
+        If True, the sorting is done in reverse.
+        The default is True.
+
+    Returns
+    -------
+    list
+        List of strings with indices and values.
+
+    """
     return [
         f"No. {j} : {k}"
         for (k, j) in sorted([(x, i) for (i, x) in enumerate(array)], reverse=reverse)
@@ -38,6 +93,7 @@ def sort_with_index(array, reverse=True):
 
 
 def print_mae_info(mae, name, precision=3):
+    """Print information about the MAE for a given name."""
     print(name + ":")
     print(
         f"\t Mean MAE = {np.round(np.mean(mae), precision)}"

@@ -25,7 +25,7 @@ import pickle
 from sklearn.metrics import mean_absolute_error
 import numpy as np
 
-from common import save_dir
+from common import RUNFOLDER, SAVE_DIR
 
 
 class Wrapper:
@@ -145,8 +145,6 @@ class Wrapper:
             )
         print("Done!")
 
-        return self.results
-
     def _add_loss_histogram(self, ax, losses_test, title):
         """
         Plots a histogram of the lossses for each example in the pred_test
@@ -259,7 +257,6 @@ class Wrapper:
 
 
 def main():
-    datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\runs"
     classifiers = {
         "Co": "20220628_08h58m_Co_linear_combination_normalized_inputs_small_gas_phase",
         "Cu": "20220628_09h58m_Cu_linear_combination_normalized_inputs_small_gas_phase",
@@ -270,15 +267,15 @@ def main():
         "Ti": "20220628_11h55m_Ti_linear_combination_normalized_inputs_small_gas_phase",
     }
 
-    wrapper = Wrapper(datafolder)
+    wrapper = Wrapper(RUNFOLDER)
     wrapper.load_predictions(classifiers)
-    results = wrapper.calculate_test_losses(loss_func=mean_absolute_error)
+    wrapper.calculate_test_losses(loss_func=mean_absolute_error)
     # results_maae = wrapper.calculate_test_losses(loss_func=maximum_absolute_error)
     fig, ax = wrapper.plot_all()
     plt.show()
 
     for ext in [".png", ".eps"]:
-        fig_path = os.path.join(save_dir, "hist_cnn_single" + ext)
+        fig_path = os.path.join(SAVE_DIR, "hist_cnn_single" + ext)
         fig.savefig(fig_path, bbox_inches="tight")
 
 

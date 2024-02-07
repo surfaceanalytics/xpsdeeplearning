@@ -20,17 +20,18 @@ Fe 2p XP spectrum.
 """
 
 import os
-import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import gridspec
+from sklearn.metrics import mean_absolute_error
+import numpy as np
 from PIL import Image
 
-from common import ParserWrapper, save_dir
+from common import ParserWrapper, DATAFOLDER, SAVE_DIR
 
 
 class Wrapper(ParserWrapper):
     def __init__(self, datafolder, file_dict):
-        super(Wrapper, self).__init__(datafolder=datafolder, file_dict=file_dict)
+        super().__init__(datafolder=datafolder, file_dict=file_dict)
         self.fontdict["size"] = 32
         self.fontdict_small["size"] = 18
         self.fontdict_legend["size"] = 16
@@ -51,7 +52,7 @@ class Wrapper(ParserWrapper):
         ax.set_title("(e) Convolutional Neural network", fontdict=self.fontdict)
 
         infile = os.path.join(
-            save_dir,
+            SAVE_DIR,
             "neural_net_peak_fitting.tif",
         )
         with Image.open(infile) as im:
@@ -186,7 +187,6 @@ class Wrapper(ParserWrapper):
 
 def main():
     """Plot of various different peak fitting methods."""
-    datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\utils\exports"
 
     file_dict = {
         "true": {
@@ -248,13 +248,13 @@ def main():
         },
     }
 
-    wrapper = Wrapper(datafolder, file_dict)
+    wrapper = Wrapper(DATAFOLDER, file_dict)
     wrapper.parse_data(bg=True, envelope=True)
     fig, axs = wrapper.plot_all()
     plt.show()
 
     for ext in [".png", ".eps"]:
-        fig_path = os.path.join(save_dir, "peak_fitting_single" + ext)
+        fig_path = os.path.join(SAVE_DIR, "peak_fitting_single" + ext)
         fig.savefig(fig_path, bbox_inches="tight")
 
     q_true = np.array(list(file_dict["true"]["quantification"].values())) / 100
@@ -269,8 +269,6 @@ def main():
         / 100
     )
     q_nn = np.array([29.9, 16.9, 23.4, 29.8]) / 100
-
-    from sklearn.metrics import mean_absolute_error
 
     mae_biesinger = mean_absolute_error(q_true, q_biesinger)
     mae_fit_model = mean_absolute_error(q_true, q_fit_model)

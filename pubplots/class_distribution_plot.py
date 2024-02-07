@@ -22,7 +22,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 
-from common import save_dir
+from common import SAVE_DIR
 
 # noqa: E402
 from xpsdeeplearning.network.data_handling import DataHandler
@@ -142,7 +142,7 @@ def main():
     fig = class_distribution.plot(labels=labels_legend)
 
     for ext in [".png", ".eps"]:
-        fig_path = os.path.join(save_dir, "label_distribution" + ext)
+        fig_path = os.path.join(SAVE_DIR, "label_distribution" + ext)
         fig.savefig(fig_path, bbox_inches="tight")
 
 

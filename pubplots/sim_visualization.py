@@ -23,8 +23,6 @@ import matplotlib.pyplot as plt
 from matplotlib import gridspec
 import numpy as np
 
-from common import save_dir
-
 # noqa: E402
 from xpsdeeplearning.simulation.base_model.spectra import (
     MeasuredSpectrum,
@@ -32,10 +30,14 @@ from xpsdeeplearning.simulation.base_model.spectra import (
 )
 from xpsdeeplearning.simulation.sim import Simulation
 
+from common import REPO_PATH, SAVE_DIR
+
 
 def main():
     """Visualization of XPS data set simulation."""
-    input_datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\xpsdeeplearning\xpsdeeplearning\data\references\NiCoFe"
+    input_datafolder = os.path.join(
+        REPO_PATH, "xpsdeeplearning", "data", "references", "NiCoFe"
+    )
 
     filenames = [
         "Fe2p_Fe_metal.txt",
@@ -394,7 +396,7 @@ def main():
     fig.show()
 
     for ext in [".png", ".eps"]:
-        fig_path = os.path.join(save_dir, "sim_visualization" + ext)
+        fig_path = os.path.join(SAVE_DIR, "sim_visualization" + ext)
         fig.savefig(fig_path, bbox_inches="tight")
 
     # Only linear combination

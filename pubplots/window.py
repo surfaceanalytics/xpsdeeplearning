@@ -33,7 +33,9 @@ from common import (
     ParserWrapper,
     print_mae_info,
     maximum_absolute_error,
-    save_dir,
+    DATAFOLDER,
+    RUNFOLDER,
+    SAVE_DIR,
 )
 
 
@@ -439,8 +441,11 @@ def print_diff(losses, threshold):
 
 def main():
     """Plot visualization of window fitting."""
-    datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\utils\exports"
-    clfpath = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\runs\20210914_19h13m_FeCo_combined_without_auger_7_classes_100eV_window\logs"
+    clfpath = os.path.join(
+        RUNFOLDER,
+        "20210914_19h13m_FeCo_combined_without_auger_7_classes_100eV_window",
+        "logs",
+    )
     logpath = os.path.join(clfpath, "log.csv")
     predpath = os.path.join(clfpath, "results.pkl")
 
@@ -484,7 +489,7 @@ def main():
         },
     }
 
-    wrapper = Wrapper(datafolder, file_dict)
+    wrapper = Wrapper(DATAFOLDER, file_dict)
     wrapper.parse_data(bg=True, envelope=True)
     wrapper.load_history(logpath)
     wrapper.load_predictions(predpath)
@@ -494,7 +499,7 @@ def main():
     plt.show()
 
     for ext in [".png", ".eps"]:
-        fig_path = os.path.join(save_dir, "window" + ext)
+        fig_path = os.path.join(SAVE_DIR, "window" + ext)
         fig.savefig(fig_path, bbox_inches="tight")
 
     print_mae_info(losses_test, "Window", precision=4)
