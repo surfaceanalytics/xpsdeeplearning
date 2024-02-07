@@ -732,8 +732,8 @@ class DataHandler:
 
         Parameters
         ----------
-        prob_preds : TYPE
-            DESCRIPTION.
+        prob_preds : np.ndarray
+            Array with probabilistic predictions.
         indices: list
             List of spectrum indices.
         dataset : str

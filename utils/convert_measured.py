@@ -30,7 +30,7 @@ network studies.
 """
 import os
 from typing import List
-
+import warnings
 import h5py
 import numpy as np
 import pandas as pd
@@ -188,7 +188,6 @@ def convert_and_resample_all_exported_spectra(
         1D array of binding energies
 
     """
-    import warnings
 
     warnings.filterwarnings("ignore")
     filenames = next(os.walk(input_datafolder))[2]

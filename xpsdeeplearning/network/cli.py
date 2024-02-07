@@ -77,6 +77,7 @@ def select_model_class(task: str = "regression"):
         return models.ClassificationCNN
     if task == "multi_class_detection":
         return models.ClassificationCNN
+    return models.RegressionCNN
 
 
 def select_loss_and_metrics(task: str = "regression"):
@@ -143,7 +144,7 @@ def train_cli(param_file: str):
 
     _ = clf.predict()
     if clf.task != "regression":
-        pred_train_classes, pred_test_classes = clf.predict_classes()
+        _ = clf.predict_classes()
 
     clf.pickle_results()
 

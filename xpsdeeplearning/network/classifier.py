@@ -20,6 +20,7 @@ Main classifier for training and testing a Keras model.
 """
 import json
 import os
+from typing import Dict
 import pickle
 import inspect
 from matplotlib import pyplot as plt
@@ -240,16 +241,16 @@ class Classifier:
 
     def train(
         self,
-        epochs,
-        batch_size,
-        checkpoint=True,
-        early_stopping=False,
-        tb_log=False,
-        csv_log=True,
-        hyperparam_log=True,
-        cb_parameters={},
-        verbose=1,
-        new_learning_rate=None,
+        epochs: int,
+        batch_size: int,
+        cb_parameters: Dict,
+        checkpoint: bool = True,
+        early_stopping: bool = False,
+        tb_log: bool = False,
+        csv_log: bool = True,
+        hyperparam_log: bool = True,
+        verbose: int = 1,
+        new_learning_rate: float = None,
         *args,
         **kwargs,
     ):
@@ -267,6 +268,8 @@ class Classifier:
         batch_size : int, optional
             Batch size for stochastic optimization.
             The default is 32.
+        cb_parameters: dict
+           Additional parameters to be passed to the keras Callbacks.
         checkpoint : bool, optional
             Determines if the model is saved when the val_loss is lowest.
             The default is True.
@@ -454,6 +457,7 @@ class Classifier:
             print(
                 "Regression was chosen as task. " + "No prediction of classes possible!"
             )
+            return None
         if self.task == "multi_class_detection":
             self.datahandler.pred_train_classes = []
             self.datahandler.pred_test_classes = []
@@ -809,6 +813,27 @@ class Classifier:
             print("Saved to {}".format(filename))
 
     def predict_probabilistic(self, dataset="test", no_of_predictions=100, verbose=0):
+        """
+        Run probabilistic prediction (i.e., run predictions multiple
+        times and store mean and std).
+
+        Parameters
+        ----------
+        dataset : str
+            Either "train", "val", or "test".
+            The default is "train".
+        no_of_predictions : int, optional
+            Number of predictions to run. The default is 100.
+        verbose : int, optional
+            Verbosity of keras prediction. The default is 0.
+
+        Returns
+        -------
+        prob_pred : np.ndarray
+            Probabilistic predicitions in the shape,
+            (no_of_predictions, no_of labels, 1).
+
+        """
         X, y = self.datahandler._select_dataset(dataset_name=dataset)
 
         prob_pred = np.array(
@@ -828,6 +853,32 @@ class Classifier:
     def plot_prob_predictions(
         self, dataset="test", kind="random", no_of_spectra=10, to_file=True
     ):
+        """
+        Generate a plot with the probabilistic predictions.
+
+        Parameters
+        ----------
+        dataset : str
+            Either "train", "val", or "test".
+            The default is "train".
+        kind : str, optional
+            One of "random", "min", "max"
+            Selects subsets of probabilistic predictions
+                "random": random probabilistic predictions",
+                "min": probabilistic predictions with lowest std",
+                "max": probabilistic predictions with highest std",
+            The default is "random".
+        no_of_spectra : int, optional
+            No. of spectra for which to create plot of
+            probabilistic predictions. The default is 10.
+        to_file : bool, optional
+            If True, the plot is stored as a file. The default is True.
+
+        Returns
+        -------
+        None.
+
+        """
         if not hasattr(self.datahandler, f"prob_pred_{dataset}"):
             prob_preds = self.predict_probabilistic(
                 dataset=dataset, no_of_predictions=500
@@ -924,6 +975,7 @@ class Classifier:
         print("Saved results to file.")
 
     def purge_history(self):
+        """Remove existing training history from logging."""
         self.logging._purge_history()
         print("Training history was deleted.")
 

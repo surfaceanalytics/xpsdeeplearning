@@ -25,6 +25,7 @@ import warnings
 import json
 import numpy as np
 import h5py
+from pandas.errors import SettingWithCopyWarning
 
 from xpsdeeplearning.simulation.creator import calculate_runtime
 
@@ -114,8 +115,6 @@ def load_data_preprocess(json_datafolder, label_list, start, end, window=None):
         for j, spec_data in enumerate(test):
             X_one = spec_data["y"]
             if window:
-                from pandas.core.common import SettingWithCopyWarning
-
                 warnings.simplefilter(action="ignore", category=SettingWithCopyWarning)
                 # Only select a random window of some eV as output.
                 energies = np.array(spec_data["y"])

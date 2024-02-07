@@ -261,11 +261,11 @@ class ParserWrapper(ABC):
 
     def parse_data(self, bg=True, envelope=True):
         """Parse data from file dict."""
-        for method, d in self.file_dict.items():
-            filepath = os.path.join(self.datafolder, d["filename"])
+        for single_dict in self.file_dict.values():
+            filepath = os.path.join(self.datafolder, single_dict["filename"])
             parser = TextParser()
             parser.parse_file(filepath, bg=bg, envelope=envelope)
-            for key, value in d.items():
+            for key, value in single_dict.items():
                 setattr(parser, key, value)
             self.parsers.append(parser)
 
@@ -281,6 +281,6 @@ class ParserWrapper(ABC):
 
         return formatted_label_list
 
+    @abstractmethod
     def plot_all(self, with_fits=True, with_nn_col=True, with_quantification=True):
         """Abstract method for plotting the results."""
-        pass

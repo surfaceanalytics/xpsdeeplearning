@@ -19,8 +19,8 @@ Histogram of predictions on XPS data with single elements.
 """
 
 import os
-import matplotlib.pyplot as plt
 import pickle
+import matplotlib.pyplot as plt
 from matplotlib import gridspec
 from sklearn.metrics import mean_absolute_error
 import numpy as np

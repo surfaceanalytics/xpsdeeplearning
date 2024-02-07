@@ -59,7 +59,7 @@ def simulate(
             creator.params = json.load(param_file)  # type: ignore
 
     t0_run = time()
-    df = creator.run()
+    _ = creator.run()
     t1_run = time()
 
     if plot:

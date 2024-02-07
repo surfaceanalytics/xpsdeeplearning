@@ -63,8 +63,8 @@ class UpdatedClassDistribution(ClassDistribution):
             # ax.set_title("Average distribution across the classes", fontdict=fontdict)
             # Plot of the average label distribution in the different
             # data sets.
-            for k, v in self.cd.items():
-                data.append(v)
+            for value in self.cd.values():
+                data.append(value)
             data = np.transpose(np.array(data))
             ax.set_ylabel("Average concentration", fontdict=fontdict)
 

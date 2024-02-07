@@ -43,7 +43,7 @@ def _add_loss_histogram(ax, mae, title):
     ax.tick_params(axis="x", labelsize=fontdict["size"])
     ax.tick_params(axis="y", labelsize=fontdict["size"])
 
-    N, bins, hist_patches = ax.hist(
+    _, _, hist_patches = ax.hist(
         mae,
         bins=30,
         range=(0, 0.5),

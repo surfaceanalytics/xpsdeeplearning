@@ -34,26 +34,6 @@ class Peak:
 class Gauss(Peak):
     """Gaussian peak with position, width, and intensity."""
 
-    def __init__(self, position, width, intensity):
-        """
-        Initialize basic Peak class.
-
-        Parameters
-        ----------
-        position : float
-            Position of the main peak.
-        width : float
-            FWHM of the main peak.
-        intensity : float
-            Intensity of the main peak.
-
-        Returns
-        -------
-        None.
-
-        """
-        super().__init__(position, width, intensity)
-
     def function(self, x):
         """
         Create a numpy array of a Gaussian peak.
@@ -76,30 +56,11 @@ class Gauss(Peak):
                 * np.exp(-0.5 * ((x - self.position) / self.width) ** 2)
             )
             return gaussian
+        return None
 
 
 class Lorentz(Peak):
     """Lorentzian peak with position, width, and intensity."""
-
-    def __init__(self, position, width, intensity):
-        """
-        Initialize basic Peak class.
-
-        Parameters
-        ----------
-        position : float
-            Position of the main peak.
-        width : float
-            FWHM of the main peak.
-        intensity : float
-            Intensity of the main peak.
-
-        Returns
-        -------
-        None.
-
-        """
-        super().__init__(position, width, intensity)
 
     def function(self, x):
         """
@@ -121,6 +82,7 @@ class Lorentz(Peak):
                 self.intensity * 1 / (1 + ((self.position - x) / (self.width / 2)) ** 2)
             )
             return lorentzian
+        return None
 
 
 class Voigt(Peak):
@@ -174,6 +136,7 @@ class Voigt(Peak):
                 * Lorentz(self.position, self.width, self.intensity).function(x)
             )
             return voigt
+        return None
 
 
 class VacuumExcitation:
@@ -265,6 +228,7 @@ class VacuumExcitation:
         if self.fermi_width != 0:
             vac_exc = (self.fermi_edge(x)) * self.power_law(x) * self.intensity
             return vac_exc
+        return None
 
 
 class Tougaard:
