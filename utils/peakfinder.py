@@ -71,7 +71,7 @@ class Peakfinder:
 
         """
         self.all_peaks = []
-        for i, x in enumerate(self.X):
+        for x in self.X:
             x = np.squeeze(x)
             peaks, _ = find_peaks(x, prominence=prominence)
             self.all_peaks.append(peaks)
@@ -147,7 +147,7 @@ class Peakfinder:
         """
         x = energies
 
-        for n in range(no_of_spectra):
+        for _ in range(no_of_spectra):
             if with_peaks:
                 p = self.peakfull_indices[0][
                     np.random.randint(0, self.peakfull_indices[0].shape[0])
@@ -203,9 +203,7 @@ class Peakfinder:
         with h5py.File(new_filepath, "w") as hf:
             for key, value in hdf5_data.items():
                 try:
-                    hf.create_dataset(
-                        key, data=value, compression="gzip", chunks=True
-                    )
+                    hf.create_dataset(key, data=value, compression="gzip", chunks=True)
                 except TypeError:
                     value = np.array(value, dtype=object)
                     string_dt = h5py.special_dtype(vlen=str)
@@ -216,6 +214,7 @@ class Peakfinder:
                         compression="gzip",
                         chunks=True,
                     )
+
 
 if __name__ == "__main__":
     # Data loading
@@ -250,9 +249,7 @@ if __name__ == "__main__":
         "distance": shiftx_h5,
     }
 
-    arrays_with_peaks, arrays_without_peak = peakfinder.distinguish_arrays(
-        array_dict
-    )
+    arrays_with_peaks, arrays_without_peak = peakfinder.distinguish_arrays(array_dict)
     peakfinder.write_new_file(original_filepath=hdf5_filepath)
 
     new_filepath = r"C:\Users\pielsticker\Simulations\20210915_CoFe_individual_with_auger_peaks_35eV_window\20210915_CoFe_individual_with_auger_peaks_35eV_window_peaks_only.h5"

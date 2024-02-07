@@ -20,12 +20,11 @@ stored in many JSON files and store it in one HDF5 file.
 """
 
 import os
-import numpy as np
-import json
-import h5py
 from time import time
-
 import warnings
+import json
+import numpy as np
+import h5py
 
 from xpsdeeplearning.simulation.creator import calculate_runtime
 
@@ -117,9 +116,7 @@ def load_data_preprocess(json_datafolder, label_list, start, end, window=None):
             if window:
                 from pandas.core.common import SettingWithCopyWarning
 
-                warnings.simplefilter(
-                    action="ignore", category=SettingWithCopyWarning
-                )
+                warnings.simplefilter(action="ignore", category=SettingWithCopyWarning)
                 # Only select a random window of some eV as output.
                 energies = np.array(spec_data["y"])
                 step = step_from_x(energies)
@@ -267,9 +264,7 @@ def step_from_x(x):
     return step
 
 
-def to_hdf5(
-    json_datafolder, output_file, no_of_files_per_load=50, window=None
-):
+def to_hdf5(json_datafolder, output_file, no_of_files_per_load=50, window=None):
     """
     Store all data in an input datafolder in an HDF5 file.
 
@@ -300,9 +295,7 @@ def to_hdf5(
         if window:
             step = step_from_x(energies)
             energies = np.flip(safe_arange_with_edges(0, window, step))
-        hf.create_dataset(
-            "energies", data=energies, compression="gzip", chunks=True
-        )
+        hf.create_dataset("energies", data=energies, compression="gzip", chunks=True)
 
         label_list = _load_labels(json_datafolder)
         labels = np.array(label_list, dtype=object)
@@ -326,9 +319,7 @@ def to_hdf5(
             scatterer,
             distance,
             pressure,
-        ) = load_data_preprocess(
-            json_datafolder, label_list, start, end, window
-        )
+        ) = load_data_preprocess(json_datafolder, label_list, start, end, window)
         hf.create_dataset(
             "X",
             data=X,
@@ -399,26 +390,18 @@ def to_hdf5(
                 scatterer_new,
                 distance_new,
                 pressure_new,
-            ) = load_data_preprocess(
-                json_datafolder, label_list, start, end, window
-            )
+            ) = load_data_preprocess(json_datafolder, label_list, start, end, window)
 
             hf["X"].resize((hf["X"].shape[0] + X_new.shape[0]), axis=0)
             hf["X"][-X_new.shape[0] :] = X_new
             hf["y"].resize((hf["y"].shape[0] + y_new.shape[0]), axis=0)
             hf["y"][-y_new.shape[0] :] = y_new
 
-            hf["shiftx"].resize(
-                (hf["shiftx"].shape[0] + shiftx_new.shape[0]), axis=0
-            )
+            hf["shiftx"].resize((hf["shiftx"].shape[0] + shiftx_new.shape[0]), axis=0)
             hf["shiftx"][-X_new.shape[0] :] = shiftx_new
-            hf["noise"].resize(
-                (hf["noise"].shape[0] + noise_new.shape[0]), axis=0
-            )
+            hf["noise"].resize((hf["noise"].shape[0] + noise_new.shape[0]), axis=0)
             hf["noise"][-X_new.shape[0] :] = noise_new
-            hf["FWHM"].resize(
-                (hf["FWHM"].shape[0] + FWHM_new.shape[0]), axis=0
-            )
+            hf["FWHM"].resize((hf["FWHM"].shape[0] + FWHM_new.shape[0]), axis=0)
             hf["FWHM"][-X_new.shape[0] :] = FWHM_new
 
             hf["scatterer"].resize(

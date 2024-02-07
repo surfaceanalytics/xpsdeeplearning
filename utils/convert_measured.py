@@ -35,12 +35,14 @@ import numpy as np
 import pandas as pd
 
 from xpsdeeplearning.simulation.base_model.figures import Figure
-from xpsdeeplearning.simulation.base_model.spectra import (FittedSpectrum,
-                                                           MeasuredSpectrum,
-                                                           SimulatedSpectrum,
-                                                           Spectrum)
+from xpsdeeplearning.simulation.base_model.spectra import (
+    FittedSpectrum,
+    MeasuredSpectrum,
+    SimulatedSpectrum,
+    Spectrum,
+)
 
-#%% For one reference spectrum.
+# %% For one reference spectrum.
 input_datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\utils"
 filename = "NiCoFe.vms"
 
@@ -96,7 +98,7 @@ ref_spectrum.write(input_datafolder, new_filename)
 # ref_spectrum.write(input_datafolder, new_filename)
 #
 # =============================================================================
-#%% For one fitted XPS spectrum
+# %% For one fitted XPS spectrum
 # =============================================================================
 # input_datafolder = r"C:\Users\pielsticker\Desktop\Mixed Fe spectra\exported"
 # filename = "measured0001.txt"
@@ -117,7 +119,8 @@ ref_spectrum.write(input_datafolder, new_filename)
 # # fit_spectrum.write(input_datafolder)
 # =============================================================================
 
-#%% For multiple fitted XPS spectra
+
+# %% For multiple fitted XPS spectra
 def _get_labels(filepath, label_list):
     """
     Take the labels and names from the excel file in the filepath.
@@ -133,7 +136,7 @@ def _get_labels(filepath, label_list):
 
     Returns
     -------
-    y : ndarray
+    labels : ndarray
         2D array of labels.
     names : ndarray
         Names of the spectra.
@@ -144,16 +147,14 @@ def _get_labels(filepath, label_list):
     columns = []
     for key in label_list:
         columns.append(df[key])
-    y = np.transpose(np.array(columns))
+    labels = np.transpose(np.array(columns))
 
     names = np.reshape(np.array(list(df["name"])), (-1, 1))
 
-    return y, names
+    return labels, names
 
 
-def convert_all_spectra(
-    input_datafolder, label_filepath, label_list, plot_all=True
-):
+def convert_all_spectra(input_datafolder, label_filepath, label_list, plot_all=True):
     """
     Take all xy files of measured spectra in the input_datafolder.
 
@@ -204,12 +205,7 @@ def convert_all_spectra(
         X[index] = np.reshape(spectrum.lineshape, (-1, 1))
 
         if plot_all:
-            text = (
-                "Spectrum no. "
-                + str(spectrum.number)
-                + "\n"
-                + str(spectrum.label)
-            )
+            text = "Spectrum no. " + str(spectrum.number) + "\n" + str(spectrum.label)
             Figure(spectrum.x, spectrum.lineshape, title=text)
 
     energies = spectrum.x
@@ -219,7 +215,9 @@ def convert_all_spectra(
 
 
 # Load the data into numpy arrays and save to hdf5 file.
-input_datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Data\NAP-XPS\analyzed data\Pd spectra\exported"
+input_datafolder = (
+    r"C:\Users\pielsticker\Lukas\MPI-CEC\Data\NAP-XPS\analyzed data\Pd spectra\exported"
+)
 label_filepath = r"C:\Users\pielsticker\Lukas\MPI-CEC\Data\NAP-XPS\analyzed data\Pd spectra\analysis_20210122\peak fits_20210122.xlsx"
 label_list = ["Pd metal", "PdO"]
 X, y, names, energies = convert_all_spectra(
@@ -251,9 +249,7 @@ with h5py.File(output_file, "w") as hf:
         chunks=True,
         maxshape=(None, names.shape[1]),
     )
-    hf.create_dataset(
-        "energies", data=energies, compression="gzip", chunks=True
-    )
+    hf.create_dataset("energies", data=energies, compression="gzip", chunks=True)
     labels = np.array(label_list, dtype=object)
     string_dt = h5py.special_dtype(vlen=str)
     hf.create_dataset(
@@ -273,7 +269,8 @@ with h5py.File(output_file, "r") as hf:
     energies_h5 = hf["energies"][:]
     labels_h5 = [str(label) for label in hf["labels"][:]]
 
-#%% For converting spectra where the composition is unknown.
+
+# %% For converting spectra where the composition is unknown.
 def load_data(filepath):
     """
     Overwrite load method from the MeasuredSpectrum class.
@@ -395,9 +392,7 @@ def convert_all_spectra(input_datafolder, plot_all=True):
 # X, names, energies = convert_all_spectra(input_datafolder, plot_all=True)
 # output_file = r"C:\Users\pielsticker\Simulations\20220609_AmmoMax_spectra.h5"
 # =============================================================================
-input_datafolder = (
-    r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\utils\exports"
-)
+input_datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\utils\exports"
 X, names, energies = convert_all_spectra(input_datafolder, plot_all=True)
 output_file = r"C:\Users\pielsticker\Simulations\20220721_NiCoFe.h5"
 
@@ -437,9 +432,7 @@ with h5py.File(output_file, "w") as hf:
         chunks=True,
         maxshape=(None, y.shape[1]),
     )
-    hf.create_dataset(
-        "energies", data=energies, compression="gzip", chunks=True
-    )
+    hf.create_dataset("energies", data=energies, compression="gzip", chunks=True)
     string_dt = h5py.special_dtype(vlen=str)
 
     labels = np.array(label_list, dtype=object)

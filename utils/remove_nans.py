@@ -23,10 +23,11 @@ import numpy as np
 import pandas as pd
 
 
-def get_total_history(filepath):
+def get_total_history(csv_filepath):
+    """Get training history from csv file."""
     history = {}
     try:
-        with open(csv_file, newline="") as csvfile:
+        with open(csv_filepath, newline="") as csvfile:
             reader = csv.DictReader(csvfile)
             for row in reader:
                 for key, item in row.items():
@@ -38,7 +39,9 @@ def get_total_history(filepath):
 
     return history
 
+
 def remove_nan_rows(history):
+    """Remove NaN values from training history."""
     nan_indices = []
 
     for key, data_list in history.items():
@@ -48,14 +51,14 @@ def remove_nan_rows(history):
 
     for key, data_list in history.items():
         history[key] = [
-            data_point
-            for i, data_point in enumerate(data_list)
-            if i not in nan_indices
+            data_point for i, data_point in enumerate(data_list) if i not in nan_indices
         ]
 
     return history
 
+
 def write_new_history(history):
+    """Write history back to new CSV file."""
     csv_file = r"C:\Users\pielsticker\Downloads\log_new.csv"
 
     pd.DataFrame(history).to_csv(csv_file, index=False)
