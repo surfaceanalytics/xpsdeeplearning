@@ -727,6 +727,28 @@ class DataHandler:
     def plot_prob_predictions(
         self, prob_preds, indices, dataset="test", no_of_spectra=10
     ):
+        """
+        Generate a plot with the probabilistic predictions.
+
+        Parameters
+        ----------
+        prob_preds : TYPE
+            DESCRIPTION.
+        indices: list
+            List of spectrum indices.
+        dataset : str
+            Either "train", "val", or "test".
+            The default is "train".
+        no_of_spectra : int
+            No. of spectra for which to create plot of
+            probabilistic predictions
+
+        Returns
+        -------
+        fig : plt.figure
+            Figure object.
+
+        """
         X, y = self._select_dataset(dataset_name=dataset)
 
         if no_of_spectra > y.shape[0]:

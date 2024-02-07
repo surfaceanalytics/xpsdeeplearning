@@ -639,8 +639,7 @@ class Analysis:
         """
         if low:
             return self.df[self.df[metric] == self.df[metric].min()].index[0]
-        else:
-            return self.df[self.df[metric] == self.df[metric].max()].index[0]
+        return self.df[self.df[metric] == self.df[metric].max()].index[0]
 
     def _minimum_value(self, metric):
         """Return the minimum value for a given metric."""

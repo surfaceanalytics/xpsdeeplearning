@@ -17,12 +17,15 @@
 #
 """
 Utils for model training:
-    1) Plotting
-    2) Reporting in .docx format
+    1) Plotting of spectra
+    2) Plotting of training results
+    3) Weight distribution of Bayesian models
+    4) Reporting in .docx format
 """
 import json
 import os
 import pickle
+import warnings
 
 import matplotlib.colors as mcolors
 import numpy as np
@@ -177,7 +180,7 @@ class ClassDistribution:
         if self.task == "classification":
             for i, dataset in enumerate(data_list):
                 key = list(self.cd.keys())[i]
-                for j, datapoint in enumerate(dataset):
+                for datapoint in dataset:
                     argmax_class = np.argmax(datapoint, axis=0)
                     self.cd[key][str(argmax_class)] += 1
 
@@ -190,7 +193,7 @@ class ClassDistribution:
         elif self.task == "multi_class_detection":
             for i, dataset in enumerate(data_list):
                 key = list(self.cd.keys())[i]
-                for j, datapoint in enumerate(dataset):
+                for datapoint in dataset:
                     non_zero_classes_args = np.where(datapoint > 0.0)[0]
                     for n in non_zero_classes_args:
                         self.cd[key][str(n)] += 1
@@ -218,16 +221,16 @@ class ClassDistribution:
             plt.title("Average distribution across the classes")
             # Plot of the average label distribution in the different
             # data sets.
-            for k, v in self.cd.items():
-                data.append(v)
+            for value in self.cd.values():
+                data.append(value)
             data = np.transpose(np.array(data))
             ax.set_ylabel("Average concentration")
 
         else:
             plt.title("Class distribution")
-            for k, v in self.cd.items():
+            for value_dict in self.cd.values():
                 data_list = []
-                for key, value in v.items():
+                for value in value_dict.values():
                     data_list.append(value)
             data.append(data_list)
             data = np.transpose(np.array(data))
@@ -343,8 +346,19 @@ class WeightDistributions:
     """
 
     def __init__(self, bayesian_layers, fig_dir):
-        import warnings
+        """
+        Parameters
+        ----------
+        bayesian_layers : list
+            List of tfp.layers objects.
+        fig_dir : str
+        .
 
+        Returns
+        -------
+        None.
+
+        """
         warnings.filterwarnings("ignore")
 
         self.bayesian_layers = bayesian_layers
@@ -353,6 +367,7 @@ class WeightDistributions:
         self.fig_dir = fig_dir
 
     def plot_weight_priors(self, to_file=True):
+        """Plot weight priors of all bayesian_layers."""
         qm_vals = [layer.kernel_prior.mean().numpy() for layer in self.bayesian_layers]
         qs_vals = [
             layer.kernel_prior.stddev().numpy() for layer in self.bayesian_layers
@@ -361,6 +376,7 @@ class WeightDistributions:
         return self.plot_distribution(qm_vals, qs_vals, kind="prior", to_file=to_file)
 
     def plot_weight_posteriors(self, to_file=True):
+        """Plot all weight posteriors of all bayesian_layers."""
         qm_vals = [
             layer.kernel_posterior.mean().numpy() for layer in self.bayesian_layers
         ]
@@ -373,6 +389,26 @@ class WeightDistributions:
         )
 
     def plot_distribution(self, qm_vals, qs_vals, kind="posterior", to_file=True):
+        """
+        Plot distribution of weights for all bayesian layers
+
+        Parameters
+        ----------
+        qm_vals : list
+            List of mean weights for all bayesian layers.
+        qs_vals : list
+            List of standard distribution of weights for all bayesian layers.
+        kind : str, optional
+            "prior" or "posterior". The default is "posterior".
+        to_file : bool, optional
+            If True, the plot is saved to a file. The default is True.
+
+        Returns
+        -------
+        fig : plt.figure
+            Figure object.
+
+        """
         fig, _ = plt.subplots(figsize=(12, 6))
         colors = iter(mcolors.TABLEAU_COLORS.keys())
 
@@ -425,7 +461,10 @@ class WeightDistributions:
         ax2.set_title(f"{kind.capitalize()}" + " weight standard deviations")
 
         fig.tight_layout()
-        # plt.show()
+
+        if to_file:
+            fig_name = os.path.join(self.fig_dir, f"weight_distribution_{kind}.png")
+            fig.savefig(fig_name)
 
         return fig
 
@@ -482,11 +521,6 @@ class Report:
     def create_document(self):
         """
         Add data from the results to the report.
-
-        Returns
-        -------
-        None.
-
         """
         self.document.add_heading("Training report", 0)
 
@@ -512,7 +546,7 @@ class Report:
             j = int(list(self.class_dist.keys()).index(item)) + 1
             dist_table.cell(j, 0).text = item
 
-            for key, value in enumerate(self.class_dist[item]):
+            for key, value in enumerate(param):
                 k = int(key) + 1
                 dist_table.cell(j, k).text = str(np.round(value, 3))
 
@@ -627,10 +661,6 @@ class Report:
         ----------
         data_array : ndarray
             Array with the results from training.
-
-        Returns
-        -------
-        None.
 
         """
         new_table = self.document.add_table(

@@ -58,37 +58,29 @@ def init_clf_with_data(exp_params: dict):
     train_test_split = exp_params["train_test_split"]
     train_val_split = exp_params["train_val_split"]
 
-    (
-        X_train,
-        X_val,
-        X_test,
-        y_train,
-        y_val,
-        y_test,
-        aug_values_train,
-        aug_values_val,
-        aug_values_test,
-    ) = clf.load_data_preprocess(
+    _ = clf.load_data_preprocess(
         input_filepath=input_filepath,
         no_of_examples=no_of_examples,
         train_test_split=train_test_split,
         train_val_split=train_val_split,
     )
-    class_distribution = clf.datahandler.check_class_distribution(clf.task)
+    _ = clf.datahandler.check_class_distribution(clf.task)
 
     return clf
 
 
 def select_model_class(task: str = "regression"):
+    """Select the correct pre-defined model for a given task."""
     if task == "regression":
         return models.RegressionCNN
-    elif task == "classification":
+    if task == "classification":
         return models.ClassificationCNN
-    elif task == "multi_class_detection":
+    if task == "multi_class_detection":
         return models.ClassificationCNN
 
 
 def select_loss_and_metrics(task: str = "regression"):
+    """Select loss and metric for a given task."""
     if task == "regression":
         loss = tf_losses.MeanAbsoluteError()
         metrics = [tf_metrics.MeanSquaredError(name="mse")]
@@ -129,7 +121,7 @@ def train_cli(param_file: str):
     )
     clf.summary()
 
-    hist = clf.train(
+    _ = clf.train(
         checkpoint=True,
         early_stopping=False,
         tb_log=True,
@@ -149,7 +141,7 @@ def train_cli(param_file: str):
         print("Test loss: " + str(np.round(test_loss, decimals=8)))
         print("Test accuracy: " + str(np.round(test_accuracy, decimals=3)))
 
-    pred_train, pred_test = clf.predict()
+    _ = clf.predict()
     if clf.task != "regression":
         pred_train_classes, pred_test_classes = clf.predict_classes()
 
@@ -197,7 +189,7 @@ def predict_cli(param_file: str, clf_path: str):
         print("Test loss: " + str(np.round(test_loss, decimals=8)))
         print("Test accuracy: " + str(np.round(test_accuracy, decimals=3)))
 
-    pred_train, pred_test = clf.predict()
+    _ = clf.predict()
     if clf.task != "regression":
-        pred_train_classes, pred_test_classes = clf.predict_classes()
+        _ = clf.predict_classes()
     clf.pickle_results()

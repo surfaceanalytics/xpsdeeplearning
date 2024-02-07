@@ -21,9 +21,9 @@ Main classifier for training and testing a Keras model.
 import json
 import os
 import pickle
-
-import numpy as np
+import inspect
 from matplotlib import pyplot as plt
+import numpy as np
 
 # Disable tf warnings
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
@@ -48,7 +48,7 @@ class Classifier:
         exp_name="",
         task="regression",
         intensity_only=True,
-        labels=[],
+        labels=None,
     ):
         """
         Initialize folder structure and an empty model.
@@ -157,6 +157,7 @@ class Classifier:
             train_test_split=train_test_split,
             train_val_split=train_val_split,
             shuffle=shuffle,
+            select_random_subset=select_random_subset,
         )
 
         energy_range = [
@@ -457,12 +458,12 @@ class Classifier:
             self.datahandler.pred_train_classes = []
             self.datahandler.pred_test_classes = []
 
-            for i, pred in enumerate(self.datahandler.pred_train):
+            for pred in self.datahandler.pred_train:
                 arg_max = list(np.where(pred > 0.05)[0])
                 classes = [self.datahandler.labels[arg] for arg in arg_max]
                 self.datahandler.pred_train_classes.append(classes)
 
-            for i, pred in enumerate(self.datahandler.pred_test):
+            for pred in self.datahandler.pred_test:
                 arg_max = list(np.where(pred > 0.05)[0])
                 classes = [self.datahandler.labels[arg] for arg in arg_max]
                 self.datahandler.pred_test_classes.append(classes)
@@ -474,15 +475,15 @@ class Classifier:
                 self.datahandler.pred_test_classes,
             )
 
-        else:
+        if self.task == "classification":
             pred_train_classes = []
             pred_test_classes = []
 
-            for i, pred in enumerate(self.datahandler.pred_train):
+            for pred in self.datahandler.pred_train:
                 argmax_class = np.argmax(pred, axis=0)
                 pred_train_classes.append(self.datahandler.labels[argmax_class])
 
-            for i, pred in enumerate(self.datahandler.pred_test):
+            for pred in self.datahandler.pred_test:
                 argmax_class = np.argmax(pred, axis=0)
                 pred_test_classes.append(self.datahandler.labels[argmax_class])
 
@@ -558,11 +559,9 @@ class Classifier:
         # Add the current model to the custom_objects dict. This is
         # done to ensure the load_model method from Keras works
         # properly.
-        import inspect
-
         custom_objects = {}
         custom_objects[str(type(self.model).__name__)] = self.model.__class__
-        for name, obj in inspect.getmembers(models):
+        for _, obj in inspect.getmembers(models):
             if inspect.isclass(obj):
                 if obj.__module__.startswith("xpsdeeplearning.network.models"):
                     custom_objects[obj.__module__ + "." + obj.__name__] = obj
@@ -770,6 +769,21 @@ class Classifier:
         self.datahandler.class_distribution.plot(self.datahandler.labels)
 
     def plot_weight_distribution(self, kind="posterior", to_file=True):
+        """
+        Plot weight distribution of Bayesian layers.
+
+        Parameters
+        ----------
+        kind : str, optional
+            "prior" or "posterior". The default is "posterior".
+        to_file : bool, optional
+            If True, the plot is saved to file. The default is True.
+
+        Returns
+        -------
+        None.
+
+        """
         bayesian_layers = [
             layer
             for layer in self.model.layers
