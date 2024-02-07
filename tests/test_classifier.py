@@ -58,17 +58,7 @@ def init_clf_with_data():
     train_val_split = 0.2
     no_of_examples = 200
 
-    (
-        X_train,
-        X_val,
-        X_test,
-        y_train,
-        y_val,
-        y_test,
-        aug_values_train,
-        aug_values_val,
-        aug_values_test,
-    ) = clf.load_data_preprocess(
+    _ = clf.load_data_preprocess(
         input_filepath=input_filepath,
         no_of_examples=no_of_examples,
         train_test_split=train_test_split,
@@ -179,7 +169,7 @@ def test_predict():
     clf = init_clf_with_data()
     clf.model = load_reference_model(clf)
 
-    pred_train, pred_test = clf.predict()
+    clf.predict()
 
     ref_pred_file = "tests/data/ref_pred_test.npz"  ######
 
@@ -228,6 +218,7 @@ def test_upload():
     ],
 )
 def test_train_cli(cli_inputs):
+    """Test CLI function for training."""
     runner = CliRunner()
     result = runner.invoke(train_cli, cli_inputs)
 
@@ -252,6 +243,7 @@ def test_train_cli(cli_inputs):
     ],
 )
 def test_predict_cli(cli_inputs):
+    """Test CLI function for prediction."""
     runner = CliRunner()
     result = runner.invoke(predict_cli, cli_inputs)
 
