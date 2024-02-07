@@ -26,10 +26,13 @@ from xpsdeeplearning.simulation.base_model.converters.vamas import Block, VamasH
 
 
 class TextWriter:
+    """Writer for txt format."""
+
     def __init__(self):
         pass
 
     def write(self, data, filename):
+        """Build header and data and write to txt file."""
         lines = self.build_lines(data)
 
         with open(str(filename), "w") as file:
@@ -39,6 +42,7 @@ class TextWriter:
                     file.writelines(str(data_line) + "\n")
 
     def build_lines(self, data):
+        """Build header and data to dict."""
         lines = []
         for d in data:
             header_line = d["spectrum_type"] + " " + d["group_name"]
@@ -52,6 +56,8 @@ class TextWriter:
 
 
 class VamasWriter:
+    """Writer for VAMAS format."""
+
     def __init__(self):
         self.normalize = 0
 
@@ -94,9 +100,7 @@ class VamasWriter:
             block.expVarValue = 0
             split_string = re.split(r"(\d)", spec["spectrum_type"])
             species = split_string[0]
-            transition = ""
-            for i in split_string[1:]:
-                transition += i
+            transition = "".join(split_string[1:])
             block.speciesLabel = species
             block.transitionLabel = transition
             block.noScans = spec["scans"]
@@ -111,7 +115,7 @@ class VamasWriter:
             if len(block.year) == 2:
                 block.year = int(block.year) + self.millenium
             block.hour, block.minute, block.second = time.split(":")
-            block.noHrsInAdvanceOfGMT = "0"  # zone.strip("UTC")
+            block.noHrsInAdvanceOfGMT = zone.strip("UTC")
             setting = spec["settings"]
             block.technique = setting["analysis_method"]
             block.sourceLabel = setting["source_label"]
@@ -129,7 +133,7 @@ class VamasWriter:
                     for i in spec["data"]["y0"]
                 ]
             else:
-                y = [i for i in spec["data"]["y0"]]
+                y = list(spec["data"]["y0"])
             if self.normalize != 0:
                 norm = self.normalize
                 y = [
@@ -167,10 +171,10 @@ class VamasWriter:
         self.vamas_header.noBlocks = self.num_spectra
 
         with open(str(filename), "w") as file:
-            for item in self.vamas_header.__dict__:
-                file.writelines(str(self.vamas_header.__dict__[item]) + "\n")
+            for item in self.vamas_header.__dict__.values():
+                file.writelines(str(item) + "\n")
             for block in self.blocks:
-                for item in block.__dict__:
-                    file.writelines(str(block.__dict__[item]) + "\n")
+                for item in block.__dict__.values():
+                    file.writelines(str(item) + "\n")
             file.writelines("end of experiment")
             file.close()

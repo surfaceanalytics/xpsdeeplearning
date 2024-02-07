@@ -68,7 +68,7 @@ class TextParser:
         None.
 
         """
-        self.header = str(self.data[0]).split("\n")[0]
+        self.header = str(self.data[0]).split("\n", maxsplit=1)[0]
         self.data = self.data[1:]
 
     def _build_dict(self):

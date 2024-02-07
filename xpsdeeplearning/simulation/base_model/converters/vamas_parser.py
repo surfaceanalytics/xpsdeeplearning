@@ -240,9 +240,6 @@ class VamasParser:
             for line in fp:
                 if line.endswith(b"\r\n") or line.endswith(b"\n"):
                     self.data += [line.decode("utf-8").strip()]
-                    import sys
-
-                    sys.stdout.write(str(self.data))
 
     def _parse_header(self):
         """
@@ -260,7 +257,7 @@ class VamasParser:
             setattr(self.header, attr, self.data.pop(0).strip())
         n = int(self.header.noCommentLines)
         comments = ""
-        for line_no in range(n):
+        for _ in range(n):
             comments += self.data.pop(0)
         self.header.commentLines = comments
         self.header.expMode = self.data.pop(0).strip()
@@ -285,7 +282,7 @@ class VamasParser:
         None.
 
         """
-        for v in range(int(self.header.nrExpVar)):
+        for _ in range(int(self.header.nrExpVar)):
             for attr in self.exp_var_attributes:
                 setattr(self.header, attr, self.data.pop(0).strip())
 
@@ -298,7 +295,7 @@ class VamasParser:
         None.
 
         """
-        for b in range(int(self.header.noBlocks)):
+        for _ in range(int(self.header.noBlocks)):
             self._parseOneBlock()
 
     def _parseOneBlock(self):
@@ -344,10 +341,10 @@ class VamasParser:
         block.second = int(self.data.pop(0).strip())
         block.noHrsInAdvanceOfGMT = int(self.data.pop(0).strip())
         block.noCommentLines = int(self.data.pop(0).strip())
-        for n in range(block.noCommentLines):
+        for _ in range(block.noCommentLines):
             block.commentLines += self.data.pop(0)
         block.technique = self.data.pop(0).strip()
-        for v in range(int(self.header.nrExpVar)):
+        for _ in range(int(self.header.nrExpVar)):
             block.expVarValue = self.data.pop(0).strip()
         block.sourceLabel = self.data.pop(0).strip()
         block.sourceEnergy = float(self.data.pop(0).strip())
@@ -431,7 +428,7 @@ class VamasParser:
         block.second = int(self.data.pop(0).strip())
         block.noHrsInAdvanceOfGMT = int(self.data.pop(0).strip())
         block.noCommentLines = int(self.data.pop(0).strip())
-        for n in range(block.noCommentLines):
+        for _ in range(block.noCommentLines):
             self.data.pop(0)
             block.commentLines += self.data.pop(0)
         block.technique = self.data.pop(0).strip()
@@ -527,13 +524,6 @@ class VamasParser:
         d = list(np.array(self.data[: block.numOrdValues], dtype=np.float32))
 
         self.data = self.data[block.numOrdValues :]
-
-        # =============================================================================
-        #         for r in range(int(block.numOrdValues / block.noVariables)):
-        #             for v in range(block.noVariables):
-        #                 name = "y" + str(v)
-        #                 data_dict[name] += [float(self.data.pop(0).strip())]
-        # =============================================================================
 
         for v in range(block.noVariables):
             n = block.noVariables

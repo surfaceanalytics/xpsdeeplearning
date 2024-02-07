@@ -52,7 +52,7 @@ class Gauss(Peak):
         None.
 
         """
-        super(Gauss, self).__init__(position, width, intensity)
+        super().__init__(position, width, intensity)
 
     def function(self, x):
         """
@@ -99,7 +99,7 @@ class Lorentz(Peak):
         None.
 
         """
-        super(Lorentz, self).__init__(position, width, intensity)
+        super().__init__(position, width, intensity)
 
     def function(self, x):
         """
@@ -147,7 +147,7 @@ class Voigt(Peak):
         None.
 
         """
-        super(Voigt, self).__init__(position, width, intensity)
+        super().__init__(position, width, intensity)
         self.fraction_gauss = fraction_gauss
 
     def function(self, x):
