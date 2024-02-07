@@ -26,7 +26,7 @@ import datetime
 import h5py
 import matplotlib.pyplot as plt
 import numpy as np
-from pandas.core.common import SettingWithCopyWarning
+from pandas.errors import SettingWithCopyWarning
 
 from xpsdeeplearning.simulation.base_model.spectra import (
     safe_arange_with_edges,
@@ -36,7 +36,6 @@ from xpsdeeplearning.simulation.base_model.figures import Figure
 from xpsdeeplearning.simulation.sim import Simulation
 
 
-# %%
 class Creator:
     """Class for simulating mixed XPS spectra."""
 

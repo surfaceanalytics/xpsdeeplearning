@@ -838,7 +838,7 @@ class DataHandler:
                 indices.append(r)
             return indices
 
-        elif kind == "min":
+        if kind == "min":
             return [
                 j[1]
                 for j in sorted(
@@ -847,7 +847,7 @@ class DataHandler:
                 )
             ]
 
-        elif kind == "max":
+        if kind == "max":
             return [
                 j[1]
                 for j in sorted(

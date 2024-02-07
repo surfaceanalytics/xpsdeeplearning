@@ -203,9 +203,7 @@ class Hyperoptimization:
         self.scans.append(scan)
 
         try:
-            from talos.scan.scan_run import scan_run
-
-            scan_run(scan)
+            talos.scan.scan_run.scan_run(scan)
             print(("\n Parameter space was scanned. " + "Training log was saved."))
 
         except KeyboardInterrupt:
@@ -429,7 +427,7 @@ class Scan(talos.Scan):
         In comparison to original talos.Scan, scan_round is
         not run on implementation (see talos docs),
         """
-        super(Scan, self).__init__(
+        super().__init__(
             x=x,
             y=y,
             params=params,
@@ -516,18 +514,12 @@ class Scan(talos.Scan):
         """Catch an interruption and still save the data."""
         self.round_params = self.param_object.round_parameters()
 
-        from talos.scan.scan_round import scan_round
-
-        scan_round(self)
+        talos.scan.scan_round.scan_round(self)
 
         self.pbar.close()
 
-        from talos.logging.logging_finish import logging_finish
-
-        logging_finish(self)
-        from talos.scan.scan_finish import scan_finish
-
-        scan_finish(self)
+        talos.logging.logging_finish.logging_finish(self)
+        talos.scan.scan_finish.scan_finish(self)
 
 
 class RestoredScan:
@@ -645,7 +637,10 @@ class Analysis:
             ID of the best round.
 
         """
-        return self.df[self.df[metric] == self.df[metric].min()].index[0]
+        if low:
+            return self.df[self.df[metric] == self.df[metric].min()].index[0]
+        else:
+            return self.df[self.df[metric] == self.df[metric].max()].index[0]
 
     def _minimum_value(self, metric):
         """Return the minimum value for a given metric."""
@@ -853,7 +848,7 @@ class LinePlot(Plot):
         None.
 
         """
-        super(LinePlot, self).__init__(data)
+        super().__init__(data)
         self.data = data
         self.name = "line plot_" + self.metric
 
@@ -914,7 +909,7 @@ class HistPlot(Plot):
         None.
 
         """
-        super(HistPlot, self).__init__(data)
+        super().__init__(data)
         self.name = "histogram_" + self.metric
 
     def plot(self, bins=10):
@@ -971,7 +966,7 @@ class CorrPlot(Plot):
         None.
 
         """
-        super(CorrPlot, self).__init__(data)
+        super().__init__(data)
         self.name = "correlation_plot"
 
     def plot(self):
@@ -1029,7 +1024,7 @@ class KDEPlot(Plot):
         None.
 
         """
-        super(KDEPlot, self).__init__(data)
+        super().__init__(data)
         self.x = x
         self.y = y
         self.name = "kde_plot_" + self.x
@@ -1101,7 +1096,7 @@ class BarPlot(Plot):
         None.
 
         """
-        super(BarPlot, self).__init__(data)
+        super().__init__(data)
         self.x = x
         self.y = y
         self.hue = hue
