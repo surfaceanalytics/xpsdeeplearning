@@ -41,13 +41,13 @@ class Wrapper(ParserWrapper):
         self.fig = plt.figure(figsize=(32, 20), dpi=300)
         self.history = {}
 
-    def parse_data(self, bg=True, envelope=True):
+    def parse_data(self, background=True, envelope=True):
         """Load data from file dict."""
         for result_dict in self.file_dict.values():
             for spectrum_dict in result_dict.values():
                 filepath = os.path.join(self.datafolder, spectrum_dict["filename"])
                 parser = TextParser()
-                parser.parse_file(filepath, bg=bg, envelope=envelope)
+                parser.parse_file(filepath, background=background, envelope=envelope)
                 for key, value in spectrum_dict.items():
                     setattr(parser, key, value)
                 self.parsers.append(parser)
@@ -318,7 +318,7 @@ def main():
     }
 
     wrapper = Wrapper(DATAFOLDER, file_dict)
-    wrapper.parse_data(bg=False, envelope=False)
+    wrapper.parse_data(background=False, envelope=False)
 
     classifier = "20210604_23h09m_NiCoFe_9_classes_long_linear_comb_small_gas_phase"
     history = wrapper.get_total_history(classifier)

@@ -103,7 +103,7 @@ def load_data_preprocess(json_datafolder, label_list, start, end, window=None):
     y = []
     shiftx = []
     noise = []
-    FWHM = []
+    fwhm = []
     scatterer = []
     distance = []
     pressure = []
@@ -126,7 +126,7 @@ def load_data_preprocess(json_datafolder, label_list, start, end, window=None):
             y_one = spec_data["label"]
             shiftx_one = spec_data["shift_x"]
             noise_one = spec_data["noise"]
-            FWHM_one = spec_data["FWHM"]
+            fwhm_one = spec_data["FWHM"]
             scatterer_name = spec_data["scatterer"]
             scatterers = {"He": 0, "H2": 1, "N2": 2, "O2": 3}
             try:
@@ -140,7 +140,7 @@ def load_data_preprocess(json_datafolder, label_list, start, end, window=None):
             y.append(y_one)
             shiftx.append(shiftx_one)
             noise.append(noise_one)
-            FWHM.append(FWHM_one)
+            fwhm.append(fwhm_one)
             scatterer.append(scatterer_one)
             distance.append(distance_one)
             pressure.append(pressure_one)
@@ -158,12 +158,12 @@ def load_data_preprocess(json_datafolder, label_list, start, end, window=None):
 
     shiftx = np.reshape(np.array(shiftx), (-1, 1))
     noise = np.reshape(np.array(noise), (-1, 1))
-    FWHM = np.reshape(np.array(FWHM), (-1, 1))
+    fwhm = np.reshape(np.array(fwhm), (-1, 1))
     scatterer = np.reshape(np.array(scatterer), (-1, 1))
     distance = np.reshape(np.array(distance), (-1, 1))
     pressure = np.reshape(np.array(pressure), (-1, 1))
 
-    return X, y, shiftx, noise, FWHM, scatterer, distance, pressure
+    return X, y, shiftx, noise, fwhm, scatterer, distance, pressure
 
 
 def _load_energies(filepath):

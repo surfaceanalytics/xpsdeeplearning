@@ -98,12 +98,14 @@ def plot_prob_predictions_together(data, normalize=False):
     max_counts = 0
     for i, spectrum in enumerate(X):
         color = cmap(i)
-        lw = 5
+        line_width = 5
 
         if normalize:
-            axs[0].plot(energies, _normalize_min_max(spectrum), color=color, lw=lw)
+            axs[0].plot(
+                energies, _normalize_min_max(spectrum), color=color, lw=line_width
+            )
         else:
-            axs[0].plot(energies, spectrum, color=color, lw=lw)
+            axs[0].plot(energies, spectrum, color=color, lw=line_width)
 
         for j, row in enumerate(prob_pred[i].transpose()):
             counts, _, _ = axs[j + 1].hist(

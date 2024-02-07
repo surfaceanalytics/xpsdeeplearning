@@ -146,11 +146,11 @@ class Wrapper(ParserWrapper):
                 ("Fe 2p", 0.85, 0.4),
             ]
 
-            for t in texts:
+            for text in texts:
                 self.axs[0, i].text(
-                    x=t[1],
-                    y=t[2],
-                    s=t[0],
+                    x=text[1],
+                    y=text[2],
+                    s=text[0],
                     horizontalalignment="left",
                     size=25,
                     verticalalignment="center",

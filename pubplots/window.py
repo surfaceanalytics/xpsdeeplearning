@@ -200,16 +200,20 @@ class Wrapper(ParserWrapper):
         quantification = []
 
         for t in thresholds:
-            ng, nb = 0, 0
+            no_smaller, no_bigger = 0, 0
             for i, patch in enumerate(hist_patches):
                 if patch.xy[0] < t:
-                    ng += counts[i]
+                    no_smaller += counts[i]
                 else:
-                    nb += counts[i]
-            ng_p = np.round(ng / (ng + nb) * 100, 1)
-            nb_p = np.round(nb / (ng + nb) * 100, 1)
+                    no_bigger += counts[i]
+            no_smaller_percent = np.round(
+                no_smaller / (no_smaller + no_bigger) * 100, 1
+            )
+            no_bigger_percent = np.round(no_bigger / (no_smaller + no_bigger) * 100, 1)
 
-            quantification.append([t, f"{ng_p} %", f"{nb_p} %"])
+            quantification.append(
+                [t, f"{no_smaller_percent} %", f"{no_bigger_percent} %"]
+            )
 
         col_labels = [
             "MAE threshold",

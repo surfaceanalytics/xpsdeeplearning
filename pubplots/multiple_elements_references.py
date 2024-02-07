@@ -93,10 +93,11 @@ class Wrapper(ParserWrapper):
             "Envelope": "red",
         }
 
+        self.parser = FitTextParser()
+
     def parse_data(self):
         """Load data from file dict."""
         filepath = os.path.join(self.datafolder, self.file_dict["filename"])
-        self.parser = FitTextParser()
         self.parser.parse_file(filepath)
         for key, value in self.file_dict.items():
             setattr(self.parser, key, value)

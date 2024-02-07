@@ -155,6 +155,9 @@ class TextParser:
             "Background",
             "Envelope",
         ]
+        self.header = []
+        self.header_names = []
+        self.data = []
 
     def parse_file(self, filepath, **kwargs):
         """
@@ -199,14 +202,14 @@ class TextParser:
             Data dictionary.
 
         """
-        self.header_names = ["CPS"] + self.header[0].split("\t")[2:]
+        header_names = ["CPS"] + self.header[0].split("\t")[2:]
 
         if "background" in kwargs.keys():
-            self.header_names += ["Background"]
+            header_names += ["Background"]
         if "envelope" in kwargs.keys():
-            self.header_names += ["Envelope"]
+            header_names += ["Envelope"]
 
-        self.header_names = filter_header_list(self.header_names)
+        self.header_names = filter_header_list(header_names)
 
         lines = np.array([[float(i) for i in d.split()] for d in self.data])
         x = lines[:, 0]

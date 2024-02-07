@@ -529,6 +529,7 @@ class SimulatedSpectrum(Spectrum):
         self.spectrum_type = "simulated"
         self.shift_x = None
         self.signal_to_noise = None
+        self.fwhm = None
         self.resolution = None
         self.scatterer = None
         self.pressure = None

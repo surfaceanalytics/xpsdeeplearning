@@ -984,7 +984,7 @@ class CorrPlot(Plot):
             figsize=(self.data.shape[0] * 2.3, self.data.shape[1] * 2)
         )
 
-        p = sns.heatmap(
+        heatmap = sns.heatmap(
             self.data,
             ax=self.ax,
             linewidths=0.1,
@@ -995,8 +995,8 @@ class CorrPlot(Plot):
             "Correlation matrix of the scanned parameters",
             self.font_dict,
         )
-        p.set_xticklabels(self.data, rotation=90)
-        p.set_yticklabels(self.data, rotation=0)
+        heatmap.set_xticklabels(self.data, rotation=90)
+        heatmap.set_yticklabels(self.data, rotation=0)
 
         for tick in self.ax.xaxis.get_major_ticks():
             tick.label.set_fontsize(13)

@@ -705,10 +705,10 @@ class Creator:
             if self.params["normalize_outputs"]:
                 sim.output_spectrum.normalize()
 
-            d1 = {"reference_set": ref_set_key}
-            d2 = self._dict_from_one_simulation(sim)
-            d = {**d1, **d2}
-            dict_list.append(d)
+            dict_1 = {"reference_set": ref_set_key}
+            dict_2 = self._dict_from_one_simulation(sim)
+            new_dict = {**dict_1, **dict_2}
+            dict_list.append(new_dict)
             print("Simulation: " + str(i + 1) + "/" + str(self.no_of_simulations))
 
         print("Number of created spectra: " + str(self.no_of_simulations))
@@ -1070,10 +1070,10 @@ class FileWriter:
 
             hdf5_data = self.prepare_hdf5(self.df)
 
-            with h5py.File(self.hdf5_filepath, "w") as hf:
+            with h5py.File(self.hdf5_filepath, "w") as h5_file:
                 for key, value in hdf5_data.items():
                     try:
-                        hf.create_dataset(
+                        h5_file.create_dataset(
                             key,
                             data=value,
                             compression="gzip",
@@ -1082,7 +1082,7 @@ class FileWriter:
                     except TypeError:
                         value = np.array(value, dtype=object)
                         string_dt = h5py.special_dtype(vlen=str)
-                        hf.create_dataset(
+                        h5_file.create_dataset(
                             key,
                             data=value,
                             dtype=string_dt,
@@ -1171,7 +1171,7 @@ class FileWriter:
 
         shiftx = np.reshape(np.array(shiftx), (-1, 1))
         noise = np.reshape(np.array(noise), (-1, 1))
-        FWHM = np.reshape(np.array(FWHM), (-1, 1))
+        fwhm = np.reshape(np.array(fwhm), (-1, 1))
         scatterer = np.reshape(np.array(scatterer), (-1, 1))
         distance = np.reshape(np.array(distance), (-1, 1))
         pressure = np.reshape(np.array(pressure), (-1, 1))
@@ -1181,7 +1181,7 @@ class FileWriter:
             "y": y,
             "shiftx": shiftx,
             "noise": noise,
-            "FWHM": FWHM,
+            "FWHM": fwhm,
             "scatterer": scatterer,
             "distance": distance,
             "pressure": pressure,
@@ -1209,8 +1209,8 @@ class FileWriter:
         """
         new_labels = np.zeros((len(y), len(self.labels)))
 
-        for i, d in enumerate(y):
-            for species, value in d.items():
+        for i, label_dict in enumerate(y):
+            for species, value in label_dict.items():
                 number = self.labels.index(species)
                 new_labels[i, number] = value
 

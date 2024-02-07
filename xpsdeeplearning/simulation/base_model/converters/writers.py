@@ -44,11 +44,11 @@ class TextWriter:
     def build_lines(self, data):
         """Build header and data to dict."""
         lines = []
-        for d in data:
-            header_line = d["spectrum_type"] + " " + d["group_name"]
+        for data_dict in data:
+            header_line = data_dict["spectrum_type"] + " " + data_dict["group_name"]
             data_lines = [
                 str(np.round(x, 3)) + " " + str(y)
-                for x, y in zip(d["data"]["x"], d["data"]["y0"])
+                for x, y in zip(data_dict["data"]["x"], data_dict["data"]["y0"])
             ]
             lines.append({"header_line": header_line, "data_lines": data_lines})
 

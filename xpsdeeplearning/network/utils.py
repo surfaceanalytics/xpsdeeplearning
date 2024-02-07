@@ -195,8 +195,8 @@ class ClassDistribution:
                 key = list(self.cd.keys())[i]
                 for datapoint in dataset:
                     non_zero_classes_args = np.where(datapoint > 0.0)[0]
-                    for n in non_zero_classes_args:
-                        self.cd[key][str(n)] += 1
+                    for number in non_zero_classes_args:
+                        self.cd[key][str(number)] += 1
 
     def plot(self, labels):
         """
