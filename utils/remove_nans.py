@@ -67,7 +67,7 @@ def write_new_history(history):
 if __name__ == "__main__":
     csv_file = r"C:\Users\pielsticker\Downloads\log.csv"
 
-    history = get_total_history(filepath=csv_file)
+    history = get_total_history(csv_filepath=csv_file)
     history = remove_nan_rows(history)
     history["epoch"] = list(np.arange(0, len(history["loss"]), 1))
 
