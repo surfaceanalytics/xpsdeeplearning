@@ -170,8 +170,6 @@ def predict_cli(param_file: str, clf_path: str):
     with open(clf_param_file, "r") as clf_json_file:
         clf_train_params = json.load(clf_json_file)
 
-    print(clf_train_params)
-
     clf = init_clf_with_data(test_params)
     clf.load_model(model_path=clf_path)
     clf.summary()

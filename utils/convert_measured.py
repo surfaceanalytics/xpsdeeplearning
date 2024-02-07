@@ -298,7 +298,7 @@ def load_data(filepath):
             lines += [line]
     # This takes the species given in the first line
     name = lines[0].split(":")[1]
-    species = str(lines[0]).split(":")[-1].split("\n")[0]
+    species = str(lines[0]).rsplit(":", maxsplit=1)[-1]
     lines = [[float(i) for i in line.split()] for line in lines[8:]]
     xy_data = np.array(lines)[:, 2:]
 
@@ -351,8 +351,6 @@ def convert_and_resample_all_measured_spectra(
     energies: ndarray
         1D array of binding energies
     """
-    import warnings
-
     warnings.filterwarnings("ignore")
     filenames = next(os.walk(input_datafolder))[2]
 

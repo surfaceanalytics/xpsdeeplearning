@@ -28,7 +28,6 @@ from xpsdeeplearning.simulation.base_model.converters.data_converter import (
     DataConverter,
 )
 from xpsdeeplearning.simulation.base_model.peaks import Gauss
-from xpsdeeplearning.simulation.base_model.scatterers import ScatteringMedium
 
 
 def safe_arange_with_edges(start, stop, step):
@@ -689,6 +688,8 @@ class SimulatedSpectrum(Spectrum):
 
         """
         if label in ["He", "H2", "N2", "O2"]:
+            from .scatterers import ScatteringMedium
+
             medium = ScatteringMedium(label)
             # Loss function and lineshape need to have the same step
             # size.

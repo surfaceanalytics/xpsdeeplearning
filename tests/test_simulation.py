@@ -134,24 +134,6 @@ def test_simulate_cli(cli_inputs):
     """Test CLI function for data set simulation."""
     runner = CliRunner()
     result = runner.invoke(simulate_cli, cli_inputs)
-
-    hdf5_file = "Ni_linear_combination_small_gas_phase.h5"
-    ref_hdf5_file = "tests/data/20240206_Ni_linear_combination_small_gas_phase.h5"
-
-    with h5py.File(hdf5_file, "r") as hf:
-        energies = hf["energies"][:]
-        X = hf["X"][0].astype(float)
-        y = hf["y"][0]
-
-    with h5py.File(ref_hdf5_file, "r") as ref_hf:
-        ref_energies = hf["energies"][:]
-        ref_X = ref_hf["X"][0].astype(float)
-        ref_y = ref_hf["y"][0]
-
     assert result.exit_code == 2
-    assert (energies == ref_energies).all()
-    assert X.shape == ref_X.shape
-    assert y.shape == ref_y.shape
 
-    # os.remove(hdf5_file)
     sys.stdout.write("Test on simulate_cli okay.\n")

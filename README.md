@@ -13,7 +13,7 @@
 <p>
     Dr. Lukas Pielsticker,
     Dr. Rachel L. Nicholls,
-    Dr. SerenaDeBeer,
+    Dr. Serena DeBeer,
     Dr. Mark Greiner
     <br>
 </p>

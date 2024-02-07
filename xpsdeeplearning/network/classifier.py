@@ -504,6 +504,7 @@ class Classifier:
                 self.datahandler.pred_train_classes,
                 self.datahandler.pred_test_classes,
             )
+        return None
 
     def save_model(self):
         """

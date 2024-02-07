@@ -106,7 +106,7 @@ def plot_prob_predictions_together(data, normalize=False):
             axs[0].plot(energies, spectrum, color=color, lw=lw)
 
         for j, row in enumerate(prob_pred[i].transpose()):
-            counts, bins, _ = axs[j + 1].hist(
+            counts, _, _ = axs[j + 1].hist(
                 row,
                 bins=100,
                 range=(0.0, 1.0),
