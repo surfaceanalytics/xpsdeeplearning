@@ -29,20 +29,9 @@ from common import RUNFOLDER, SAVE_DIR
 
 
 class Wrapper:
-    """Parser for XPS data stored in TXT files."""
+    """Wrapper for loading and plotting."""
 
     def __init__(self, datafolder):
-        """
-        Initialize empty data dictionary.
-
-        Parameters
-        ----------
-
-        Returns
-        -------
-        None.
-
-        """
         self.datafolder = datafolder
         self.fontdict = {"size": 25}
         self.fontdict_small = {"size": 14}

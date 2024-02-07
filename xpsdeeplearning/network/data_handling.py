@@ -727,7 +727,7 @@ class DataHandler:
     def plot_prob_predictions(
         self, prob_preds, indices, dataset="test", no_of_spectra=10
     ):
-        X, y = self._select_dataset(dataset_name="test")
+        X, y = self._select_dataset(dataset_name=dataset)
 
         if no_of_spectra > y.shape[0]:
             print("Provided no. of spectra was bigger than dataset size.")
@@ -856,8 +856,8 @@ class DataHandler:
                 )
             ]
 
-        else:
-            print("Select a valid kind!")
+        print("Select a valid kind!")
+        return None
 
     def _select_dataset(self, dataset_name):
         """

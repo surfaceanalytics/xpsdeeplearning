@@ -34,6 +34,8 @@ from common import (
 
 
 class Wrapper(ParserWrapper):
+    """Wrapper for loading and plotting."""
+
     def __init__(self, datafolder, file_dict):
         super().__init__(datafolder=datafolder, file_dict=file_dict)
         self.fontdict_small = {"size": 13}
@@ -62,7 +64,7 @@ class Wrapper(ParserWrapper):
         ax.tick_params(axis="x", labelsize=self.fontdict["size"])
         ax.tick_params(axis="y", labelsize=self.fontdict["size"])
 
-        N, bins, hist_patches = ax.hist(
+        _, _, hist_patches = ax.hist(
             losses_test,
             bins=100,
             histtype="bar",
@@ -79,6 +81,7 @@ class Wrapper(ParserWrapper):
         return ax
 
     def _add_peak_fits(self, ax, with_fits=True):
+        """Add a plot of a peak-fitted spectrum to an axis."""
         for i, parser in enumerate(self.parsers):
             x, y = parser.data["x"], parser.data["y"]
 
@@ -137,22 +140,22 @@ class Wrapper(ParserWrapper):
             ax.set_title(parser.title, fontdict=self.fontdict)
             ax.set_xlim(left=np.max(x[start:end]), right=np.min(x[start:end]))
 
-        texts = [
-            ("Ni 2p", 0.065, 0.65),
-            ("Co 2p", 0.45, 0.575),
-            ("Fe 2p", 0.85, 0.4),
-        ]
+            texts = [
+                ("Ni 2p", 0.065, 0.65),
+                ("Co 2p", 0.45, 0.575),
+                ("Fe 2p", 0.85, 0.4),
+            ]
 
-        for t in texts:
-            self.axs[0, i].text(
-                x=t[1],
-                y=t[2],
-                s=t[0],
-                horizontalalignment="left",
-                size=25,
-                verticalalignment="center",
-                transform=self.axs[0, i].transAxes,
-            )
+            for t in texts:
+                self.axs[0, i].text(
+                    x=t[1],
+                    y=t[2],
+                    s=t[0],
+                    horizontalalignment="left",
+                    size=25,
+                    verticalalignment="center",
+                    transform=self.axs[0, i].transAxes,
+                )
 
         for i, parser in enumerate(self.parsers):
             self.axs[0, i].set_title(parser.title, fontdict=self.fontdict)
@@ -187,6 +190,7 @@ class Wrapper(ParserWrapper):
         ax.set_ylim(top=np.max(parser.data["y"] * 1.1))
 
     def plot_all(self, with_fits=True):
+        """Plot results."""
         self.fig, self.axs = plt.subplots(
             nrows=1,
             ncols=2,
@@ -217,7 +221,7 @@ class Wrapper(ParserWrapper):
 
         self.fig.tight_layout(w_pad=3.0)
 
-        return self.fig, self.axs
+        return self.fig
 
 
 def main():
@@ -290,7 +294,7 @@ def main():
     wrapper.losses_test["Neural network"] = mae_nn
     print_mae_info(mae_nn, "Neural network")
 
-    fig, ax = wrapper.plot_all(with_fits=True)
+    fig = wrapper.plot_all(with_fits=True)
     plt.show()
 
     for ext in [".png", ".eps"]:

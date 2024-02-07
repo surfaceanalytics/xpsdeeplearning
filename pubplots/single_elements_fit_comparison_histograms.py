@@ -29,11 +29,12 @@ from common import (
     get_xlsxpath,
     print_mae_info,
     maximum_absolute_error,
-    save_dir,
+    SAVE_DIR,
 )
 
 
 def _add_loss_histogram(ax, mae, title):
+    """Add a histogram of MAE values to an axis."""
     fontdict = {"size": 40}
     ax.set_title(title, fontdict=fontdict, multialignment="center")
 
@@ -193,7 +194,7 @@ def main():
     fig.tight_layout()
 
     for ext in [".png", ".eps"]:
-        fig_path = os.path.join(save_dir, "hist_fits_single" + ext)
+        fig_path = os.path.join(SAVE_DIR, "hist_fits_single" + ext)
         fig.savefig(fig_path, bbox_inches="tight")
 
     dfs = {

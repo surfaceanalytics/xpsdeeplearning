@@ -232,10 +232,10 @@ class Classifier:
             ax.imshow(model_plot, interpolation="nearest")
             plt.tight_layout()
             plt.show()
-        except FileNotFoundError:
+        except FileNotFoundError as exc:
             raise FileNotFoundError(
                 "Model image could not be saved. Please install graphviz first."
-            )
+            ) from exc
 
     def train(
         self,

@@ -25,7 +25,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 import numpy as np
 
-from common import save_dir
+from common import RUNFOLDER, SAVE_DIR
 
 
 def _get_total_history(csv_filepath):
@@ -158,7 +158,7 @@ def plot_metric(
     if to_file:
         # fig_name = os.path.join(fig_dir, f"{metric}.png")
         for ext in [".png", ".eps"]:
-            fig_path = os.path.join(save_dir, "training_loss_single" + ext)
+            fig_path = os.path.join(SAVE_DIR, "training_loss_single" + ext)
             fig.savefig(fig_path, bbox_inches="tight")
 
 
@@ -167,7 +167,6 @@ def main():
     Plot training loss for models trained on artificial data sets of
     different elements.
     """
-    input_datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\runs"
 
     classifiers = {
         "Co": "20220628_08h58m_Co_linear_combination_normalized_inputs_small_gas_phase",
@@ -186,7 +185,7 @@ def main():
     history = {}
 
     for clf_name, clf_path in classifiers.items():
-        logpath = os.path.join(*[input_datafolder, clf_path, "logs/log.csv"])
+        logpath = os.path.join(*[RUNFOLDER, clf_path, "logs/log.csv"])
         history[clf_name] = _get_total_history(logpath)
 
     #  Plot metric vs. epochs

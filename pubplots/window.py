@@ -40,20 +40,9 @@ from common import (
 
 
 class Wrapper(ParserWrapper):
-    """Parser for XPS data stored in TXT files."""
+    """Wrapper for loading and plotting."""
 
     def __init__(self, datafolder: str, file_dict: dict):
-        """
-        Initialize empty data dictionary.
-
-        Parameters
-        ----------
-
-        Returns
-        -------
-        None.
-
-        """
         super().__init__(datafolder=datafolder, file_dict=file_dict)
         self.fontdict = {"size": 25}
         self.fontdict_small = {"size": 14}

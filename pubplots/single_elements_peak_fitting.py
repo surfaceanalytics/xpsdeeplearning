@@ -30,6 +30,8 @@ from common import ParserWrapper, DATAFOLDER, SAVE_DIR
 
 
 class Wrapper(ParserWrapper):
+    """Wrapper for loading and plotting."""
+
     def __init__(self, datafolder, file_dict):
         super().__init__(datafolder=datafolder, file_dict=file_dict)
         self.fontdict["size"] = 32
@@ -48,6 +50,7 @@ class Wrapper(ParserWrapper):
         }
 
     def _add_nn_image(self, ax):
+        """Add the image of a neural network to an axis."""
         ax.set_axis_off()
         ax.set_title("(e) Convolutional Neural network", fontdict=self.fontdict)
 
@@ -61,6 +64,7 @@ class Wrapper(ParserWrapper):
         return ax
 
     def plot_all(self):
+        """Plot data and neural network image."""
         self.fig = plt.figure(figsize=(34, 16), dpi=300)
 
         ncols = 2

@@ -23,7 +23,6 @@ import matplotlib.pyplot as plt
 import pickle
 import csv
 from matplotlib.ticker import MaxNLocator
-import numpy as np
 
 from common import RUNFOLDER, SAVE_DIR
 
@@ -203,17 +202,6 @@ def plot_test_loss_after_1000_epochs(ax, histories, norm=False):
         shadow=False,
         mode=None,
     )
-
-
-def plot_epochs(
-    ax,
-    history,
-):
-    for key, values in history.items():
-        v = np.array(values["val_loss"])
-        pos = np.where(v < 0.1)[0][0]
-
-        ax.scatter(key, pos)
 
 
 def main():

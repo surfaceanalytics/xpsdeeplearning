@@ -26,12 +26,15 @@ from common import TextParser, ParserWrapper, DATAFOLDER, SAVE_DIR
 
 
 class Wrapper(ParserWrapper):
+    """Wrapper for loading and plotting."""
+
     def __init__(self, datafolder, file_dict):
         super().__init__(datafolder=datafolder, file_dict=file_dict)
         self.fontdict_small = {"size": 14}
         self.fontdict_mae = {"size": 14}
 
     def parse_data(self, bg=True, envelope=True):
+        """Load data from file dict."""
         for result_dict in self.file_dict.values():
             for method, d in result_dict.items():
                 filepath = os.path.join(self.datafolder, d["filename"])
@@ -42,6 +45,7 @@ class Wrapper(ParserWrapper):
                 self.parsers.append(parser)
 
     def plot_all(self):
+        """Plot examples with predictions."""
         nrows, ncols = 2, 3
 
         self.fig, self.axs = plt.subplots(

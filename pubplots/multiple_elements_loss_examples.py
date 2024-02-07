@@ -29,6 +29,8 @@ from common import TextParser, ParserWrapper, DATAFOLDER, RUNFOLDER, SAVE_DIR
 
 
 class Wrapper(ParserWrapper):
+    """Wrapper for loading and plotting."""
+
     def __init__(self, datafolder, file_dict):
         super().__init__(datafolder=datafolder, file_dict=file_dict)
         self.fontdict = {"size": 38}
@@ -37,6 +39,7 @@ class Wrapper(ParserWrapper):
         self.fontdict_mae = {"size": 28}
 
     def parse_data(self, bg=True, envelope=True):
+        """Load data from file dict."""
         for result_dict in self.file_dict.values():
             for spectrum_dict in result_dict.values():
                 filepath = os.path.join(self.datafolder, spectrum_dict["filename"])
@@ -85,6 +88,7 @@ class Wrapper(ParserWrapper):
         zoom_x=(None, None),
         zoom_y=(None, None),
     ):
+        """Add a plot of the history for a metric to an axis."""
         metric_cap = metric.capitalize()
 
         if ylabel is None:
@@ -197,6 +201,7 @@ class Wrapper(ParserWrapper):
         return ax
 
     def plot_all(self, history):
+        """Plot results."""
         nrows = 2
         ncols = 3
 

@@ -33,7 +33,7 @@ from xpsdeeplearning.network.data_handling import DataHandler
 
 
 class Wrapper:
-    """Parser for XPS data stored in TXT files."""
+    """Wrapper for loading and plotting."""
 
     def __init__(self, runfolder):
         """
@@ -105,6 +105,7 @@ class Wrapper:
         self.results["losses_test"] = losses_test
 
     def load_sim_values(self, datapath):
+        """Load simulation values from a dataset."""
         print("Loading data...")
         datahandler = DataHandler(intensity_only=False)
 
@@ -123,6 +124,7 @@ class Wrapper:
         self.sim_values_test = loaded_data[-1]
 
     def plot_all(self, keys=["noise"]):
+        """Plot results."""
         self.x_labels = {
             "shift_x": "Absolute Binding\nEnergy Shift (eV)",
             "noise": "S/N ratio",

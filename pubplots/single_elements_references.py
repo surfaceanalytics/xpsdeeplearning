@@ -65,6 +65,8 @@ class FitTextParser(TextParser):
 
 
 class Wrapper(ParserWrapper):
+    """Wrapper for loading and plotting."""
+
     def __init__(self, datafolder, file_dict):
         super().__init__(datafolder=datafolder, file_dict=file_dict)
         self.fontdict["size"] = 30
@@ -98,6 +100,7 @@ class Wrapper(ParserWrapper):
         }
 
     def parse_data(self, bg=True, envelope=True):
+        """Load data from file dict."""
         for element, d in self.file_dict.items():
             filepath = os.path.join(self.datafolder, d["filename"])
             parser = FitTextParser()
@@ -108,6 +111,7 @@ class Wrapper(ParserWrapper):
             self.parsers.append(parser)
 
     def plot_all(self):
+        """Plot reference spectra."""
         ncols = 2
 
         self.fig = plt.figure(figsize=(18, 24), dpi=300)

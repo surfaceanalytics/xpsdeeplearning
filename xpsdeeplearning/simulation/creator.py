@@ -20,13 +20,13 @@ Simulate artifical XPS spectra using the Creator class.
 """
 import warnings
 import os
-import pandas as pd
-import json
 import datetime
+import json
+import pandas as pd
+from pandas.errors import SettingWithCopyWarning
 import h5py
 import matplotlib.pyplot as plt
 import numpy as np
-from pandas.errors import SettingWithCopyWarning
 
 from xpsdeeplearning.simulation.base_model.spectra import (
     safe_arange_with_edges,
@@ -976,11 +976,19 @@ class Creator:
 
 
 class FileWriter:
+    """Write creator data to file."""
+
     def __init__(self, df, params):
         self.df = df
         self.params = params
         self.name = self.params["name"]
         self.labels = self.params["labels"]
+
+        self.main_dir = str
+        self.excel_filepath = str
+        self.json_filepath = str
+        self.pkl_filepath = str
+        self.hdf5_filepath = str
 
     def to_file(self, filetypes, metadata=True):
         """
@@ -1003,7 +1011,7 @@ class FileWriter:
         except FileExistsError:
             pass
 
-        self.filepath = os.path.join(datafolder, self.name)
+        self.main_dir = os.path.join(datafolder, self.name)
 
         valid_filetypes = ["excel", "json", "pickle", "hdf5"]
 
@@ -1011,7 +1019,7 @@ class FileWriter:
             if filetype not in valid_filetypes:
                 print("Saving was not successful. Choose a valid filetype!")
             else:
-                self._save_to_file(self.df, self.filepath, filetype)
+                self._save_to_file(self.df, self.main_dir, filetype)
                 print(f"Data was saved to {filetype.upper()} file.")
 
         if metadata:
@@ -1041,28 +1049,28 @@ class FileWriter:
 
         """
         if filetype == "excel":
-            excel_filepath = filename + ".xlsx"
-            with pd.ExcelWriter(excel_filepath) as writer:
+            self.excel_filepath = filename + ".xlsx"
+            with pd.ExcelWriter(self.excel_filepath) as writer:
                 df.to_excel(writer, sheet_name=filename)
 
         if filetype == "json":
-            json_filepath = filename + ".json"
+            self.json_filepath = filename + ".json"
 
-            with open(json_filepath, "w") as json_file:
+            with open(self.json_filepath, "w") as json_file:
                 df.to_json(json_file, orient="records")
 
         if filetype == "pickle":
-            pkl_filepath = filename + ".pkl"
-            with open(pkl_filepath, "wb") as pickle_file:
+            self.pkl_filepath = filename + ".pkl"
+            with open(self.pkl_filepath, "wb") as pickle_file:
                 df.to_pickle(pickle_file)
 
         if filetype == "hdf5":
             print("Saving data to HDF5...")
-            hdf5_filepath = filename + ".h5"
+            self.hdf5_filepath = filename + ".h5"
 
             hdf5_data = self.prepare_hdf5(self.df)
 
-            with h5py.File(hdf5_filepath, "w") as hf:
+            with h5py.File(self.hdf5_filepath, "w") as hf:
                 for key, value in hdf5_data.items():
                     try:
                         hf.create_dataset(
@@ -1152,12 +1160,12 @@ class FileWriter:
         X = np.array(X, dtype=float)
         try:
             X = np.reshape(X, (X.shape[0], X.shape[1], -1))
-        except IndexError:
+        except IndexError as exc:
             raise IndexError(
                 "Could not concatenate individual spectra because their"
                 "sizes are different. Either set 'ensure_same_length'"
                 "to True or 'eV_window' to a finite integer!"
-            )
+            ) from exc
 
         y = self._one_hot_encode(y)
 
@@ -1217,7 +1225,7 @@ class FileWriter:
         None.
 
         """
-        json_filepath = self.filepath + "_metadata.json"
+        json_filepath = self.main_dir + "_metadata.json"
 
         if self.params["eV_window"]:
             self.params["energy_range"] = [

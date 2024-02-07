@@ -218,6 +218,8 @@ class TextParser:
 
 
 class ParserWrapper:
+    """Abstract wrapper for loading and plotting."""
+
     def __init__(self, datafolder, file_dict):
         self.datafolder = datafolder
         self.file_dict = file_dict
