@@ -106,6 +106,8 @@ class Classifier:
         }
         self.logging.save_hyperparams()
 
+        self.model_summary = ""
+
     def load_data_preprocess(
         self,
         input_filepath,
@@ -954,8 +956,8 @@ class Classifier:
             try:
                 if key == "class_distribution":
                     try:
-                        cd = getattr(self.datahandler, key)
-                        pickle_data[key] = cd.cd
+                        class_dist = getattr(self.datahandler, key)
+                        pickle_data[key] = class_dist.cd
                     except AttributeError:
                         print(f"DataHandler object has no attribute {key}.")
                 else:

@@ -212,9 +212,9 @@ class DataHandler:
             List of data that were in the HDF5 file.
 
         """
-        with h5py.File(self.input_filepath, "r") as hf:
+        with h5py.File(self.input_filepath, "r") as h5_file:
             try:
-                self.energies = hf["energies"][:]
+                self.energies = h5_file["energies"][:]
             except KeyError:
                 self.energies = np.flip(np.arange(694, 750.05, 0.05))
                 print(
@@ -223,9 +223,11 @@ class DataHandler:
                 )
             try:
                 try:
-                    self.labels = [label.decode("utf-8") for label in hf["labels"][:]]
+                    self.labels = [
+                        label.decode("utf-8") for label in h5_file["labels"][:]
+                    ]
                 except AttributeError:
-                    self.labels = [str(label) for label in hf["labels"][:]]
+                    self.labels = [str(label) for label in h5_file["labels"][:]]
                 self.num_classes = len(self.labels)
             except KeyError:
                 print(
@@ -233,7 +235,7 @@ class DataHandler:
                     + "The label list is empty."
                 )
 
-            dataset_size = hf["X"].shape[0]
+            dataset_size = h5_file["X"].shape[0]
 
             # Randomly choose a subset of the whole data set.
             try:
@@ -250,9 +252,9 @@ class DataHandler:
                 )
                 raise ValueError(error_msg) from exc
 
-            X = hf["X"][r : r + self.no_of_examples]
+            X = h5_file["X"][r : r + self.no_of_examples]
             X = X.astype(float)
-            y = hf["y"][r : r + self.no_of_examples]
+            y = h5_file["y"][r : r + self.no_of_examples]
 
             if not self.intensity_only:
                 new_energies = np.tile(
@@ -269,10 +271,10 @@ class DataHandler:
             loaded_data = [X, y]
 
             # Check if the data set was artificially created.
-            if "shiftx" in hf.keys():
-                shift_x = hf["shiftx"][r : r + self.no_of_examples]
-                noise = hf["noise"][r : r + self.no_of_examples]
-                fwhm = hf["FWHM"][r : r + self.no_of_examples]
+            if "shiftx" in h5_file.keys():
+                shift_x = h5_file["shiftx"][r : r + self.no_of_examples]
+                noise = h5_file["noise"][r : r + self.no_of_examples]
+                fwhm = h5_file["FWHM"][r : r + self.no_of_examples]
 
                 loaded_data.extend([shift_x, noise, fwhm])
 
@@ -282,10 +284,10 @@ class DataHandler:
 
                 # If the data set was artificially created, check
                 # if scattering in a gas phase was simulated.
-                if "scatterer" in hf.keys():
-                    scatterer = hf["scatterer"][r : r + self.no_of_examples]
-                    distance = hf["distance"][r : r + self.no_of_examples]
-                    pressure = hf["pressure"][r : r + self.no_of_examples]
+                if "scatterer" in h5_file.keys():
+                    scatterer = h5_file["scatterer"][r : r + self.no_of_examples]
+                    distance = h5_file["distance"][r : r + self.no_of_examples]
+                    pressure = h5_file["pressure"][r : r + self.no_of_examples]
 
                     loaded_data.extend([scatterer, distance, pressure])
 
@@ -295,10 +297,10 @@ class DataHandler:
 
             # Check if the spectra have associated names. Typical for
             # measured spectra.
-            elif "names" in hf.keys():
+            elif "names" in h5_file.keys():
                 names_load_list = [
                     name[0].decode("utf-8")
-                    for name in hf["names"][r : r + self.no_of_examples, :]
+                    for name in h5_file["names"][r : r + self.no_of_examples, :]
                 ]
                 self.names = np.reshape(np.array(names_load_list), (-1, 1))
                 loaded_data.extend([self.names])

@@ -42,8 +42,8 @@ class FitTextParser(TextParser):
             hn.split(":")[1] for hn in self.header[6].split("\t") if "Cycle" in hn
         ]
 
-        for i, hn in enumerate(self.header_names):
-            if hn in ("Ni", "Co", "Fe"):
+        for i, header_name in enumerate(self.header_names):
+            if header_name in ("Ni", "Co", "Fe"):
                 self.header_names[i] += " metal"
 
         self.names = [

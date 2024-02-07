@@ -733,7 +733,7 @@ class Creator:
 
         Returns
         -------
-        d : dict
+        sim_dict : dict
             Dictionaty containing all simulation data.
 
         """
@@ -754,7 +754,7 @@ class Creator:
 
         y = np.reshape(spectrum.lineshape, (spectrum.lineshape.shape[0], -1))
 
-        d = {
+        sim_dict = {
             "label": spectrum.label,
             "shift_x": spectrum.shift_x,
             "noise": spectrum.signal_to_noise,
@@ -766,10 +766,10 @@ class Creator:
             "y": y,
         }
         for label_value in self.labels:
-            if label_value not in d["label"].keys():
-                d["label"][label_value] = 0.0
+            if label_value not in sim_dict["label"].keys():
+                sim_dict["label"][label_value] = 0.0
 
-        return d
+        return sim_dict
 
     def _extend_spectra_in_df(self, df):
         """

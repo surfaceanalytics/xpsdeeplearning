@@ -653,7 +653,7 @@ class ConvBlock(models.Model):
 class ResNet1D(EmptyModel):
     """Class instantiatingthe ResNet50 architecture in 1D."""
 
-    def __init__(self, inputshape, num_classes, ap=False, no_of_inputs=1):
+    def __init__(self, inputshape, num_classes, use_avg_pool=False, no_of_inputs=1):
         """
         Instantiate layers.
 
@@ -681,7 +681,7 @@ class ResNet1D(EmptyModel):
         None.
 
         """
-        self.ap = ap
+        self.use_avg_pool = use_avg_pool
 
         self.input_1 = layers.Input(shape=inputshape, name="input_1")
 
@@ -779,7 +779,7 @@ class ResNet1D(EmptyModel):
         )(self.id_block_5b)
 
         # Average pooling
-        if self.ap:
+        if self.use_avg_pool:
             self.avg_pool = layers.AveragePooling1D(pool_size=3, name="avg_pool")(
                 self.id_block_5c
             )

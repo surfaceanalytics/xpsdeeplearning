@@ -97,11 +97,11 @@ class Wrapper(ParserWrapper):
 
             axs[row, col].set_title(parser.title, fontdict=self.fontdict)
 
-            q1 = [p[0] for p in list(parser.quantification.values())]
-            q2 = [p[1] for p in list(parser.quantification.values())]
+            quant_1 = [p[0] for p in list(parser.quantification.values())]
+            quant_2 = [p[1] for p in list(parser.quantification.values())]
 
-            q1_percentage = [f"{p} %" for p in q1]
-            q2_percentage = [f"{p} %" for p in q2]
+            q1_percentage = [f"{p} %" for p in quant_1]
+            q2_percentage = [f"{p} %" for p in quant_2]
 
             keys = list(parser.quantification.keys())
             col_labels = self._reformat_label_list(keys)
@@ -111,7 +111,7 @@ class Wrapper(ParserWrapper):
                 cellLoc="center",
                 colLabels=col_labels,
                 rowLabels=["Truth", "CNN"],
-                bbox=[0.125, 0.025, 0.16 * len(q1), 0.18],
+                bbox=[0.125, 0.025, 0.16 * len(quant_1), 0.18],
                 zorder=500,
             )
             table.auto_set_font_size(False)

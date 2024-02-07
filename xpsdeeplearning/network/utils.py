@@ -415,43 +415,43 @@ class WeightDistributions:
         ax1 = fig.add_subplot(1, 2, 1)
         ax2 = fig.add_subplot(1, 2, 2)
 
-        for n, qm, qs in zip(self.names, qm_vals, qs_vals):
-            c = next(colors)
+        for n, weights_mean, weights_std in zip(self.names, qm_vals, qs_vals):
+            col = next(colors)
             try:
                 sns.histplot(
-                    np.reshape(qm, newshape=[-1]),
+                    np.reshape(weights_mean, newshape=[-1]),
                     ax=ax1,
                     # bins=50,
                     label=n,
-                    color=c,
+                    color=col,
                     kde=True,
                     stat="density",
                 )
                 sns.histplot(
-                    np.reshape(qs, newshape=[-1]),
+                    np.reshape(weights_std, newshape=[-1]),
                     ax=ax2,
                     # bins=50,
                     label=n,
-                    color=c,
+                    color=col,
                     kde=True,
                     stat="density",
                 )
             except np.linalg.LinAlgError:
                 sns.histplot(
-                    np.reshape(qm, newshape=[-1]),
+                    np.reshape(weights_mean, newshape=[-1]),
                     ax=ax1,
                     # bins=50,
                     label=n,
-                    color=c,
+                    color=col,
                     kde=False,
                     stat="density",
                 )
                 sns.histplot(
-                    np.reshape(qs, newshape=[-1]),
+                    np.reshape(weights_std, newshape=[-1]),
                     ax=ax2,
                     # bins=50,
                     label=n,
-                    color=c,
+                    color=col,
                     kde=False,
                     stat="density",
                 )

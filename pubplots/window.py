@@ -199,10 +199,10 @@ class Wrapper(ParserWrapper):
         thresholds = [0.025, 0.05, 0.075, 0.1, 0.15, 0.2]
         quantification = []
 
-        for t in thresholds:
+        for threshold in thresholds:
             no_smaller, no_bigger = 0, 0
             for i, patch in enumerate(hist_patches):
-                if patch.xy[0] < t:
+                if patch.xy[0] < threshold:
                     no_smaller += counts[i]
                 else:
                     no_bigger += counts[i]
@@ -212,7 +212,7 @@ class Wrapper(ParserWrapper):
             no_bigger_percent = np.round(no_bigger / (no_smaller + no_bigger) * 100, 1)
 
             quantification.append(
-                [t, f"{no_smaller_percent} %", f"{no_bigger_percent} %"]
+                [threshold, f"{no_smaller_percent} %", f"{no_bigger_percent} %"]
             )
 
         col_labels = [
