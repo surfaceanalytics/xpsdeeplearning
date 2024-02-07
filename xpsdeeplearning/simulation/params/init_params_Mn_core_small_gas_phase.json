@@ -18,7 +18,7 @@
          "Mn2p_MnO2.txt"
       ]
    },
-   "no_of_simulations":50,
+   "no_of_simulations":250000,
    "single":false,
    "variable_no_of_inputs":true,
    "always_auger":false,

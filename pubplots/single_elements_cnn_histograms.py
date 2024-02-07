@@ -19,30 +19,19 @@ Histogram of predictions on XPS data with single elements.
 """
 
 import os
+import pickle
 import matplotlib.pyplot as plt
 from matplotlib import gridspec
-import pickle
 from sklearn.metrics import mean_absolute_error
 import numpy as np
 
-from common import save_dir
+from common import RUNFOLDER, SAVE_DIR
 
 
 class Wrapper:
-    """Parser for XPS data stored in TXT files."""
+    """Wrapper for loading and plotting."""
 
     def __init__(self, datafolder):
-        """
-        Initialize empty data dictionary.
-
-        Parameters
-        ----------
-
-        Returns
-        -------
-        None.
-
-        """
         self.datafolder = datafolder
         self.fontdict = {"size": 25}
         self.fontdict_small = {"size": 14}
@@ -57,6 +46,10 @@ class Wrapper:
             "Pd": "(f) Pd 3d",
             "Ti": "(g) Ti 2p",
         }
+
+        self.results = {}
+
+        self.fig = plt.figure(figsize=(16, 24), dpi=300)
 
     def _load_predictions_for_one_run(self, pickle_filepath):
         """
@@ -108,7 +101,6 @@ class Wrapper:
         -------
 
         """
-        self.results = {}
         for clf, clf_name in classifiers.items():
             pkl_path = os.path.join(*[self.datafolder, clf_name, "logs", "results.pkl"])
 
@@ -131,21 +123,19 @@ class Wrapper:
 
         """
         print("Calculating loss for each example...")
-        for clf in self.results.keys():
-            y_test = self.results[clf]["y_test"]
-            pred_test = self.results[clf]["pred_test"]
+        for clf, result in self.results.items():
+            y_test = result["y_test"]
+            pred_test = result["pred_test"]
             losses_test = self._calculate_test_losses_for_one_run(
                 loss_func, y_test, pred_test
             )
-            self.results[clf]["losses_test"] = losses_test
+            result["losses_test"] = losses_test
             print(
                 clf,
                 np.median(losses_test),
                 np.percentile(losses_test, [25, 75]),
             )
         print("Done!")
-
-        return self.results
 
     def _add_loss_histogram(self, ax, losses_test, title):
         """
@@ -164,7 +154,7 @@ class Wrapper:
         ax.tick_params(axis="x", labelsize=self.fontdict["size"])
         ax.tick_params(axis="y", labelsize=self.fontdict["size"])
 
-        N, bins, hist_patches = ax.hist(
+        counts, _, hist_patches = ax.hist(
             losses_test,
             bins=100,
             range=(0.0, 0.5),
@@ -176,21 +166,27 @@ class Wrapper:
         thresholds = [0.025, 0.05, 0.075, 0.1, 0.15, 0.2, 0.3, 0.4, 0.5]
         quantification = []
 
-        for t in thresholds:
-            ng, nb = 0, 0
+        for threshold in thresholds:
+            no_smaller, no_bigger = 0, 0
             for i, patch in enumerate(hist_patches):
-                if patch.xy[0] < t:
-                    ng += N[i]
+                if patch.xy[0] < threshold:
+                    no_smaller += counts[i]
                 else:
-                    nb += N[i]
-            ng_p = np.round(ng / (ng + nb) * 100, 1)
-            nb_p = np.round(nb / (ng + nb) * 100, 1)
+                    no_bigger += counts[i]
+            no_smaller_percent = np.round(
+                no_smaller / (no_smaller + no_bigger) * 100, 1
+            )
+            no_bigger_percent = np.round(no_bigger / (no_smaller + no_bigger) * 100, 1)
 
             try:
                 if float(quantification[-1][1].split(" ")[0]) < 100.0:
-                    quantification.append([t, f"{ng_p} %", f"{nb_p} %"])
+                    quantification.append(
+                        [threshold, f"{no_smaller_percent} %", f"{no_bigger_percent} %"]
+                    )
             except IndexError:
-                quantification.append([t, f"{ng_p} %", f"{nb_p} %"])
+                quantification.append(
+                    [threshold, f"{no_smaller_percent} %", f"{no_bigger_percent} %"]
+                )
 
         col_labels = [
             "MAE threshold",
@@ -217,18 +213,9 @@ class Wrapper:
         return ax
 
     def plot_all(self):
-        self.x_max = {
-            "Co": 0.25,
-            "Cu": 0.25,
-            "Fe": 0.25,
-            "Mn": 0.4,
-            "Ni": 0.25,
-            "Pd": 0.25,
-            "Ti": 0.25,
-        }
+        """Plot histograms."""
         ncols = 2
 
-        self.fig = plt.figure(figsize=(16, 24), dpi=300)
         gs = gridspec.GridSpec(nrows=4, ncols=2 * ncols, wspace=0.2, hspace=0.3)
 
         # Set up 2 plots in first three row and 1 in last row.
@@ -240,26 +227,24 @@ class Wrapper:
         ax2_1 = self.fig.add_subplot(gs[2, 2:])
         ax3 = self.fig.add_subplot(gs[3, 1:3])
 
-        self.axs = np.array(
-            [[ax0_0, ax0_1], [ax1_0, ax1_1], [ax2_0, ax2_1], [ax3, None]]
-        )
+        axs = np.array([[ax0_0, ax0_1], [ax1_0, ax1_1], [ax2_0, ax2_1], [ax3, None]])
 
         for i, clf in enumerate(self.results.keys()):
             row, col = int(i / ncols), i % ncols
             losses_test = self.results[clf]["losses_test"]
             title = self.title_dict[clf]
 
-            self.axs[row, col] = self._add_loss_histogram(
-                ax=self.axs[row, col], losses_test=losses_test, title=title
+            axs[row, col] = self._add_loss_histogram(
+                ax=axs[row, col], losses_test=losses_test, title=title
             )
 
         gs.tight_layout(self.fig)
 
-        return self.fig, self.axs
+        return self.fig
 
 
 def main():
-    datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\runs"
+    """Plot histogram of predictions on XPS data with single elements."""
     classifiers = {
         "Co": "20220628_08h58m_Co_linear_combination_normalized_inputs_small_gas_phase",
         "Cu": "20220628_09h58m_Cu_linear_combination_normalized_inputs_small_gas_phase",
@@ -270,15 +255,15 @@ def main():
         "Ti": "20220628_11h55m_Ti_linear_combination_normalized_inputs_small_gas_phase",
     }
 
-    wrapper = Wrapper(datafolder)
+    wrapper = Wrapper(RUNFOLDER)
     wrapper.load_predictions(classifiers)
-    results = wrapper.calculate_test_losses(loss_func=mean_absolute_error)
+    wrapper.calculate_test_losses(loss_func=mean_absolute_error)
     # results_maae = wrapper.calculate_test_losses(loss_func=maximum_absolute_error)
-    fig, ax = wrapper.plot_all()
+    fig = wrapper.plot_all()
     plt.show()
 
     for ext in [".png", ".eps"]:
-        fig_path = os.path.join(save_dir, "hist_cnn_single" + ext)
+        fig_path = os.path.join(SAVE_DIR, "hist_cnn_single" + ext)
         fig.savefig(fig_path, bbox_inches="tight")
 
 

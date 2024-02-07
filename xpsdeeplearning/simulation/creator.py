@@ -19,13 +19,14 @@
 Simulate artifical XPS spectra using the Creator class.
 """
 import warnings
-import numpy as np
 import os
-import pandas as pd
-import json
 import datetime
+import json
+import pandas as pd
+from pandas.errors import SettingWithCopyWarning
 import h5py
 import matplotlib.pyplot as plt
+import numpy as np
 
 from xpsdeeplearning.simulation.base_model.spectra import (
     safe_arange_with_edges,
@@ -35,7 +36,6 @@ from xpsdeeplearning.simulation.base_model.figures import Figure
 from xpsdeeplearning.simulation.sim import Simulation
 
 
-# %%
 class Creator:
     """Class for simulating mixed XPS spectra."""
 
@@ -134,6 +134,8 @@ class Creator:
             always_core=self.params["always_core"],
         )
 
+        self.df = pd.DataFrame()
+
     def load_input_spectra(self, filenames):
         """
         Load input spectra.
@@ -164,7 +166,7 @@ class Creator:
         )
 
         input_spectra_list = []
-        for set_key, value_list in filenames.items():
+        for value_list in filenames.values():
             ref_spectra_dict = {}
             for filename in value_list:
                 filepath = os.path.join(input_datapath, filename)
@@ -232,7 +234,11 @@ class Creator:
             self.simulation_matrix[
                 i, 1 : self.no_of_linear_params + 1
             ] = self.select_scaling_params(
-                key, single, variable_no_of_inputs, always_auger
+                key=key,
+                single=single,
+                variable_no_of_inputs=variable_no_of_inputs,
+                always_auger=always_auger,
+                always_core=always_core,
             )
 
             self.simulation_matrix[
@@ -317,12 +323,12 @@ class Creator:
         # This ensures that always just one Auger region is used.
         auger_spectra = []
         core_spectra = []
-        for s in inputs.iloc[0]:
-            if str(s) != "nan":
-                if s.spectrum_type == "auger":
-                    auger_spectra.append(s)
-                if s.spectrum_type == "core_level":
-                    core_spectra.append(s)
+        for spec in inputs.iloc[0]:
+            if str(spec) != "nan":
+                if spec.spectrum_type == "auger":
+                    auger_spectra.append(spec)
+                if spec.spectrum_type == "core_level":
+                    core_spectra.append(spec)
         auger_region = self._select_one_auger_region(auger_spectra)
 
         selected_auger_spectra = [
@@ -346,8 +352,8 @@ class Creator:
 
         if single:
             # Set one parameter to 1 and others to 0.
-            q = np.random.choice(indices)
-            linear_params[q] = 1.0
+            rand = np.random.choice(indices)
+            linear_params[rand] = 1.0
         else:
             if variable_no_of_inputs:
                 # Randomly choose how many spectra shall be combined
@@ -358,9 +364,9 @@ class Creator:
 
                     params = self._normalize_float_list(params)
                     # Don"t allow parameters below 0.1.
-                    for p in params:
-                        if p <= 0.1:
-                            params[params.index(p)] = 0.0
+                    for param in params:
+                        if param <= 0.1:
+                            params[params.index(param)] = 0.0
 
                     params = self._normalize_float_list(params)
 
@@ -569,7 +575,7 @@ class Creator:
         if not labels:
             return []
 
-        auger_regions = set([label.split(" ", 1)[0] for label in labels])
+        auger_regions = {label.split(" ", 1)[0] for label in labels}
         auger_regions = list(auger_regions)
 
         r = np.random.randint(0, len(auger_regions))
@@ -667,9 +673,9 @@ class Creator:
                 if str(p) != "nan"
             ]
 
-            self.sim = Simulation(sim_input_spectra)
+            sim = Simulation(sim_input_spectra)
 
-            self.sim.combine_linear(scaling_params=scaling_params)
+            sim.combine_linear(scaling_params=scaling_params)
 
             fwhm = self.simulation_matrix[i][-6]
             shift_x = self.simulation_matrix[i][-5]
@@ -685,7 +691,7 @@ class Creator:
             except ValueError:
                 scatterer_label = None
 
-            self.sim.change_spectrum(
+            sim.change_spectrum(
                 fwhm=fwhm,
                 shift_x=shift_x,
                 signal_to_noise=signal_to_noise,
@@ -697,12 +703,12 @@ class Creator:
             )
 
             if self.params["normalize_outputs"]:
-                self.sim.output_spectrum.normalize()
+                sim.output_spectrum.normalize()
 
-            d1 = {"reference_set": ref_set_key}
-            d2 = self._dict_from_one_simulation(self.sim)
-            d = {**d1, **d2}
-            dict_list.append(d)
+            dict_1 = {"reference_set": ref_set_key}
+            dict_2 = self._dict_from_one_simulation(sim)
+            new_dict = {**dict_1, **dict_2}
+            dict_list.append(new_dict)
             print("Simulation: " + str(i + 1) + "/" + str(self.no_of_simulations))
 
         print("Number of created spectra: " + str(self.no_of_simulations))
@@ -727,7 +733,7 @@ class Creator:
 
         Returns
         -------
-        d : dict
+        sim_dict : dict
             Dictionaty containing all simulation data.
 
         """
@@ -748,7 +754,7 @@ class Creator:
 
         y = np.reshape(spectrum.lineshape, (spectrum.lineshape.shape[0], -1))
 
-        d = {
+        sim_dict = {
             "label": spectrum.label,
             "shift_x": spectrum.shift_x,
             "noise": spectrum.signal_to_noise,
@@ -760,10 +766,10 @@ class Creator:
             "y": y,
         }
         for label_value in self.labels:
-            if label_value not in d["label"].keys():
-                d["label"][label_value] = 0.0
+            if label_value not in sim_dict["label"].keys():
+                sim_dict["label"][label_value] = 0.0
 
-        return d
+        return sim_dict
 
     def _extend_spectra_in_df(self, df):
         """
@@ -786,8 +792,8 @@ class Creator:
         data_list = df[["x", "y"]].values.tolist()
         new_spectra = []
 
-        for x, y in data_list:
-            x_new, y_new = self._extend_xy(x, y, max_length)
+        for x_arr, y_arr in data_list:
+            x_new, y_new = self._extend_xy(x_arr, y_arr, max_length)
             new_data_dict = {"x": x_new, "y": y_new}
             new_spectra.append(new_data_dict)
 
@@ -801,9 +807,9 @@ class Creator:
 
         Parameters
         ----------
-        X0 : TYPE
+        X0 : np.ndarray
             Regularly spaced 1D array.
-        Y0 : TYPE
+        Y0 : np.ndarray
             1D array of the same size as X0.
         new_length : int
             Length of new array.
@@ -813,40 +819,32 @@ class Creator:
         None.
 
         """
-        """
 
-
-        Returns
-        -------
-        None.
-
-        """
-
-        def start_stop_step_from_x(x):
+        def start_stop_step_from_x(arr):
             """
             Calculcate start, stop, and step from a regular array.
 
             Parameters
             ----------
-            x : ndarrray
+            arr : ndarrray
                 A numpy array with regular spacing,
                 i.e. the same step size between all points.
 
             Returns
             -------
             start : int
-                Minimal value of x.
+                Minimal value of arr.
             stop : int
-                Maximal value of x.
+                Maximal value of arr.
             step : float
-                Step size between points in x.
+                Step size between points in arr.
 
             """
-            start = np.min(x)
-            stop = np.max(x)
+            start = np.min(arr)
+            stop = np.max(arr)
 
-            x1 = np.roll(x, -1)
-            diff = np.abs(np.subtract(x, x1))
+            x1 = np.roll(arr, -1)
+            diff = np.abs(np.subtract(arr, x1))
             step = np.round(np.min(diff[diff != 0]), 3)
 
             return start, stop, step
@@ -889,7 +887,7 @@ class Creator:
             no_of_spectra = self.no_of_simulations
 
         random_numbers = []
-        for i in range(no_of_spectra):
+        for _ in range(no_of_spectra):
             r = np.random.randint(0, self.no_of_simulations)
             while r in random_numbers:
                 # prevent repeating figures
@@ -897,10 +895,10 @@ class Creator:
             random_numbers.append(r)
 
             row = self.df.iloc[r]
-            x = row["x"]
-            y = row["y"]
+            energy = row["x"]
+            intensity = row["y"]
             title = "Simulated spectrum no. " + str(r)
-            fig = Figure(x, y, title)
+            fig = Figure(energy, intensity, title)
             spectrum_text = self._write_spectrum_text(row)
             fig.ax.text(
                 0.1,
@@ -978,11 +976,19 @@ class Creator:
 
 
 class FileWriter:
+    """Write creator data to file."""
+
     def __init__(self, df, params):
         self.df = df
         self.params = params
         self.name = self.params["name"]
         self.labels = self.params["labels"]
+
+        self.main_dir = str
+        self.excel_filepath = str
+        self.json_filepath = str
+        self.pkl_filepath = str
+        self.hdf5_filepath = str
 
     def to_file(self, filetypes, metadata=True):
         """
@@ -1005,7 +1011,7 @@ class FileWriter:
         except FileExistsError:
             pass
 
-        self.filepath = os.path.join(datafolder, self.name)
+        self.main_dir = os.path.join(datafolder, self.name)
 
         valid_filetypes = ["excel", "json", "pickle", "hdf5"]
 
@@ -1013,7 +1019,7 @@ class FileWriter:
             if filetype not in valid_filetypes:
                 print("Saving was not successful. Choose a valid filetype!")
             else:
-                self._save_to_file(self.df, self.filepath, filetype)
+                self._save_to_file(self.df, self.main_dir, filetype)
                 print(f"Data was saved to {filetype.upper()} file.")
 
         if metadata:
@@ -1064,10 +1070,10 @@ class FileWriter:
 
             hdf5_data = self.prepare_hdf5(self.df)
 
-            with h5py.File(self.hdf5_filepath, "w") as hf:
+            with h5py.File(self.hdf5_filepath, "w") as h5_file:
                 for key, value in hdf5_data.items():
                     try:
-                        hf.create_dataset(
+                        h5_file.create_dataset(
                             key,
                             data=value,
                             compression="gzip",
@@ -1076,7 +1082,7 @@ class FileWriter:
                     except TypeError:
                         value = np.array(value, dtype=object)
                         string_dt = h5py.special_dtype(vlen=str)
-                        hf.create_dataset(
+                        h5_file.create_dataset(
                             key,
                             data=value,
                             dtype=string_dt,
@@ -1106,7 +1112,7 @@ class FileWriter:
         y = []
         shiftx = []
         noise = []
-        FWHM = []
+        fwhm = []
         scatterer = []
         distance = []
         pressure = []
@@ -1115,8 +1121,6 @@ class FileWriter:
         for index, row in df.iterrows():
             X_one = row["y"]
             if self.params["eV_window"]:
-                from pandas.core.common import SettingWithCopyWarning
-
                 warnings.simplefilter(action="ignore", category=SettingWithCopyWarning)
                 # Only select a random window of some eV as output.
                 step = self.params["energy_range"][-1]
@@ -1132,7 +1136,7 @@ class FileWriter:
             y_one = row["label"]
             shiftx_one = row["shift_x"]
             noise_one = row["noise"]
-            FWHM_one = row["FWHM"]
+            fwhm_one = row["FWHM"]
             scatterer_name = row["scatterer"]
             scatterers = {"He": 0, "H2": 1, "N2": 2, "O2": 3}
             try:
@@ -1146,7 +1150,7 @@ class FileWriter:
             y.append(y_one)
             shiftx.append(shiftx_one)
             noise.append(noise_one)
-            FWHM.append(FWHM_one)
+            fwhm.append(fwhm_one)
             scatterer.append(scatterer_one)
             distance.append(distance_one)
             pressure.append(pressure_one)
@@ -1156,18 +1160,18 @@ class FileWriter:
         X = np.array(X, dtype=float)
         try:
             X = np.reshape(X, (X.shape[0], X.shape[1], -1))
-        except IndexError:
+        except IndexError as exc:
             raise IndexError(
                 "Could not concatenate individual spectra because their"
                 "sizes are different. Either set 'ensure_same_length'"
                 "to True or 'eV_window' to a finite integer!"
-            )
+            ) from exc
 
         y = self._one_hot_encode(y)
 
         shiftx = np.reshape(np.array(shiftx), (-1, 1))
         noise = np.reshape(np.array(noise), (-1, 1))
-        FWHM = np.reshape(np.array(FWHM), (-1, 1))
+        fwhm = np.reshape(np.array(fwhm), (-1, 1))
         scatterer = np.reshape(np.array(scatterer), (-1, 1))
         distance = np.reshape(np.array(distance), (-1, 1))
         pressure = np.reshape(np.array(pressure), (-1, 1))
@@ -1177,7 +1181,7 @@ class FileWriter:
             "y": y,
             "shiftx": shiftx,
             "noise": noise,
-            "FWHM": FWHM,
+            "FWHM": fwhm,
             "scatterer": scatterer,
             "distance": distance,
             "pressure": pressure,
@@ -1205,8 +1209,8 @@ class FileWriter:
         """
         new_labels = np.zeros((len(y), len(self.labels)))
 
-        for i, d in enumerate(y):
-            for species, value in d.items():
+        for i, label_dict in enumerate(y):
+            for species, value in label_dict.items():
                 number = self.labels.index(species)
                 new_labels[i, number] = value
 
@@ -1221,7 +1225,7 @@ class FileWriter:
         None.
 
         """
-        json_filepath = self.filepath + "_metadata.json"
+        json_filepath = self.main_dir + "_metadata.json"
 
         if self.params["eV_window"]:
             self.params["energy_range"] = [

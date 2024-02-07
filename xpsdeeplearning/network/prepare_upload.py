@@ -45,6 +45,8 @@ class Uploader:
         self.model_path = model_path
         self.dataset_metadata_path = dataset_metadata_path
 
+        self.upload_params = {}
+
     def _get_train_params(self):
         """
         Get all relevant parameters from the training log.

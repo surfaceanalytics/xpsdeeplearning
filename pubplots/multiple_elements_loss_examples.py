@@ -21,28 +21,34 @@ Plot of example predictions on a dataset with more than one element.
 import os
 import csv
 import matplotlib.pyplot as plt
-import matplotlib.gridspec as gridspec
+from matplotlib import gridspec
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 import numpy as np
 
-from common import TextParser, ParserWrapper, save_dir
+from common import TextParser, ParserWrapper, DATAFOLDER, RUNFOLDER, SAVE_DIR
 
 
 class Wrapper(ParserWrapper):
+    """Wrapper for loading and plotting."""
+
     def __init__(self, datafolder, file_dict):
-        super(Wrapper, self).__init__(datafolder=datafolder, file_dict=file_dict)
+        super().__init__(datafolder=datafolder, file_dict=file_dict)
         self.fontdict = {"size": 38}
         self.fontdict_inset = {"size": 30}
         self.fontdict_small = {"size": 25}
         self.fontdict_mae = {"size": 28}
 
-    def parse_data(self, bg=True, envelope=True):
+        self.fig = plt.figure(figsize=(32, 20), dpi=300)
+        self.history = {}
+
+    def parse_data(self, background=True, envelope=True):
+        """Load data from file dict."""
         for result_dict in self.file_dict.values():
-            for method, d in result_dict.items():
-                filepath = os.path.join(self.datafolder, d["filename"])
+            for spectrum_dict in result_dict.values():
+                filepath = os.path.join(self.datafolder, spectrum_dict["filename"])
                 parser = TextParser()
-                parser.parse_file(filepath, bg=bg, envelope=envelope)
-                for key, value in d.items():
+                parser.parse_file(filepath, background=background, envelope=envelope)
+                for key, value in spectrum_dict.items():
                     setattr(parser, key, value)
                 self.parsers.append(parser)
 
@@ -58,10 +64,8 @@ class Wrapper(ParserWrapper):
             Dictionary containing the previous training history.
 
         """
-        input_datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\runs"
-        csv_filepath = os.path.join(*[input_datafolder, clf_name, "logs/log.csv"])
+        csv_filepath = os.path.join(*[RUNFOLDER, clf_name, "logs/log.csv"])
 
-        self.history = {}
         try:
             with open(csv_filepath, newline="") as csvfile:
                 reader = csv.DictReader(csvfile)
@@ -85,8 +89,8 @@ class Wrapper(ParserWrapper):
         zoom=False,
         zoom_x=(None, None),
         zoom_y=(None, None),
-        to_file=False,
     ):
+        """Add a plot of the history for a metric to an axis."""
         metric_cap = metric.capitalize()
 
         if ylabel is None:
@@ -101,15 +105,15 @@ class Wrapper(ParserWrapper):
         colors = ["cornflowerblue", "red", "forestgreen", "darkgrey"]
 
         metric_history = history[metric]
-        (h0,) = ax.plot(metric_history, linewidth=3, c=colors[0])
+        (handle_0,) = ax.plot(metric_history, linewidth=3, c=colors[0])
         val_key = "val_" + metric
-        (h1,) = ax.plot(history[val_key], linewidth=3, c=colors[1], alpha=0.6)
+        (handle_1,) = ax.plot(history[val_key], linewidth=3, c=colors[1], alpha=0.6)
         ax.set_xlim(-5, len(metric_history) + 5)
 
         labels = ["Training", "Validation"]
 
         ax.legend(
-            handles=[h0, h1],
+            handles=[handle_0, handle_1],
             labels=labels,
             prop=self.fontdict,
             title="MAE (L$_1$) loss",
@@ -156,14 +160,14 @@ class Wrapper(ParserWrapper):
 
         for j, header_name in enumerate(parser.header_names):
             if header_name == "CPS":
-                handle = ax.plot(x, y[:, j], c=color)
+                _ = ax.plot(x, y[:, j], c=color)
             else:
                 start = parser.fit_start
                 end = parser.fit_end
                 try:
-                    handle = ax.plot(x[start:end], y[start:end, j], c=color)
+                    _ = ax.plot(x[start:end], y[start:end, j], c=color)
                 except IndexError:
-                    handle = ax.plot(x[start:end], y[start:end], c=color)
+                    _ = ax.plot(x[start:end], y[start:end], c=color)
 
             ax.set_title(parser.title, fontdict=self.fontdict)
             ax.set_xlim(left=np.max(x), right=np.min(x))
@@ -199,10 +203,10 @@ class Wrapper(ParserWrapper):
         return ax
 
     def plot_all(self, history):
+        """Plot results."""
         nrows = 2
         ncols = 3
 
-        self.fig = plt.figure(figsize=(32, 20), dpi=150)
         gs = gridspec.GridSpec(nrows=nrows, ncols=ncols, wspace=0.1, hspace=0.3)
 
         ax0 = self.fig.add_subplot(gs[:, 0])
@@ -210,11 +214,6 @@ class Wrapper(ParserWrapper):
         ax0_2 = self.fig.add_subplot(gs[0, 2])
         ax1_1 = self.fig.add_subplot(gs[1, 1])
         ax1_2 = self.fig.add_subplot(gs[1, 2])
-
-        self.axs = [
-            ax0,
-            [[ax0_1, ax0_2], [ax1_1, ax1_2]],
-        ]
 
         ax0 = self._plot_metric(
             ax0,
@@ -234,14 +233,11 @@ class Wrapper(ParserWrapper):
 
         gs.tight_layout(self.fig)
 
-        return self.fig, self.axs
+        return self.fig
 
 
 def main():
     """Plot of example predictions on a dataset with more than one element."""
-
-    datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\utils\exports"
-
     file_dict = {
         "sucesses": {
             "NiCoFe_good_0": {
@@ -321,16 +317,16 @@ def main():
         },
     }
 
-    wrapper = Wrapper(datafolder, file_dict)
-    wrapper.parse_data(bg=False, envelope=False)
+    wrapper = Wrapper(DATAFOLDER, file_dict)
+    wrapper.parse_data(background=False, envelope=False)
 
     classifier = "20210604_23h09m_NiCoFe_9_classes_long_linear_comb_small_gas_phase"
     history = wrapper.get_total_history(classifier)
 
-    fig, axs = wrapper.plot_all(history)
+    fig = wrapper.plot_all(history)
 
     for ext in [".png", ".eps"]:
-        fig_path = os.path.join(save_dir, "loss_examples_multiple" + ext)
+        fig_path = os.path.join(SAVE_DIR, "loss_examples_multiple" + ext)
         fig.savefig(fig_path, bbox_inches="tight")
 
 

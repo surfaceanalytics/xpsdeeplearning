@@ -22,7 +22,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 
-from common import save_dir
+from common import SAVE_DIR
 
 # noqa: E402
 from xpsdeeplearning.network.data_handling import DataHandler
@@ -34,6 +34,8 @@ plt.rcParams["savefig.facecolor"] = "white"
 
 
 class UpdatedClassDistribution(ClassDistribution):
+    """ClassDistribution with enhanced plot functionality."""
+
     def plot(self, labels):
         """
         Plot the class distribution. Using the labels list as legend.
@@ -61,16 +63,16 @@ class UpdatedClassDistribution(ClassDistribution):
             # ax.set_title("Average distribution across the classes", fontdict=fontdict)
             # Plot of the average label distribution in the different
             # data sets.
-            for k, v in self.cd.items():
-                data.append(v)
+            for value in self.cd.values():
+                data.append(value)
             data = np.transpose(np.array(data))
             ax.set_ylabel("Average concentration", fontdict=fontdict)
 
         else:
             ax.set_title("Class distribution", fontdict=fontdict)
-            for k, v in self.cd.items():
+            for value_dict in self.cd.values():
                 data_list = []
-                for key, value in v.items():
+                for value in value_dict.values():
                     data_list.append(value)
             data.append(data_list)
             data = np.transpose(np.array(data))
@@ -106,17 +108,7 @@ def main():
     train_val_split = 0.2
     no_of_examples = 200000
 
-    (
-        X_train,
-        X_val,
-        X_test,
-        y_train,
-        y_val,
-        y_test,
-        aug_values_train,
-        aug_values_val,
-        aug_values_test,
-    ) = datahandler.load_data_preprocess(
+    _ = datahandler.load_data_preprocess(
         input_filepath=input_filepath,
         no_of_examples=no_of_examples,
         train_test_split=train_test_split,
@@ -142,7 +134,7 @@ def main():
     fig = class_distribution.plot(labels=labels_legend)
 
     for ext in [".png", ".eps"]:
-        fig_path = os.path.join(save_dir, "label_distribution" + ext)
+        fig_path = os.path.join(SAVE_DIR, "label_distribution" + ext)
         fig.savefig(fig_path, bbox_inches="tight")
 
 

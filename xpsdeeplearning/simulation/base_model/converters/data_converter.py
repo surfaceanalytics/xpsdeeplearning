@@ -45,6 +45,10 @@ class DataConverter:
         self._writers = {"Text": TextWriter, "Vamas": VamasWriter}
         self._extensions = {"vms": "Vamas", "txt": "Text"}
 
+        self.parser = None
+        self.data = None
+        self.writer = None
+
     def load(self, filename, **kwargs):
         """
         Parse an input file.

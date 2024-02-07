@@ -23,8 +23,6 @@ import matplotlib.pyplot as plt
 from matplotlib import gridspec
 import numpy as np
 
-from common import save_dir
-
 # noqa: E402
 from xpsdeeplearning.simulation.base_model.spectra import (
     MeasuredSpectrum,
@@ -32,9 +30,14 @@ from xpsdeeplearning.simulation.base_model.spectra import (
 )
 from xpsdeeplearning.simulation.sim import Simulation
 
+from common import REPO_PATH, SAVE_DIR
+
 
 def main():
-    input_datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\xpsdeeplearning\xpsdeeplearning\data\references\NiCoFe"
+    """Visualization of XPS data set simulation."""
+    input_datafolder = os.path.join(
+        REPO_PATH, "xpsdeeplearning", "data", "references", "NiCoFe"
+    )
 
     filenames = [
         "Fe2p_Fe_metal.txt",
@@ -203,7 +206,7 @@ def main():
     ax1_0.set_yticklabels([])
     ax1_1.tick_params(axis="y", which="both", right=False, left=False)
     legend = []
-    for i, FWHM in enumerate(sim_values["FWHM"]):
+    for i, fwhm in enumerate(sim_values["FWHM"]):
         spectrum = SimulatedSpectrum(
             start=measured_spectra[0].start,
             stop=measured_spectra[0].stop,
@@ -217,13 +220,13 @@ def main():
             ax1_0.plot(spectrum.x, spectrum.lineshape, c="red", linewidth=2)
             legend.append("original")
 
-        spectrum.change_resolution(FWHM)
+        spectrum.change_resolution(fwhm)
         spectrum.normalize()
         ax1_0.plot(
             spectrum.x, spectrum.lineshape, c=colors[i], alpha=alpha, linewidth=2
         )
         ax1_0.set_xlim(left=np.max(spectrum.x), right=np.min(spectrum.x))
-        legend.append(f"{np.round(FWHM,0)} eV")
+        legend.append(f"{np.round(fwhm,0)} eV")
     legend1_0 = ax1_0.legend(
         legend,
         title="Fe$^{0}$, broadened\n(FWHM of Gaussian)",
@@ -393,7 +396,7 @@ def main():
     fig.show()
 
     for ext in [".png", ".eps"]:
-        fig_path = os.path.join(save_dir, "sim_visualization" + ext)
+        fig_path = os.path.join(SAVE_DIR, "sim_visualization" + ext)
         fig.savefig(fig_path, bbox_inches="tight")
 
     # Only linear combination

@@ -59,7 +59,7 @@ def simulate(
             creator.params = json.load(param_file)  # type: ignore
 
     t0_run = time()
-    df = creator.run()
+    _ = creator.run()
     t1_run = time()
 
     if plot:
@@ -95,14 +95,38 @@ def simulate_cli(
     """The CLI entrypoint for the convert function"""
     try:
         simulate(param_file, reload_from_previous_folder, plot=False)
-    except TypeError as exc:
+    except KeyError as exc:
         sys.tracebacklimit = 0
-        raise TypeError(
+        raise KeyError(
             (
-                "Please make sure you have the  entries in your "
-                "parameter file:\n\n# NeXusParser Parameter File - v0.0.1"
-                "\n\ndataconverter:\n\treader: value\n\tnxdl: value\n\tin"
-                "put-file: value"
+                "Please make sure you have these entries in your "
+                "parameter file:\n"
+                "output_datafolder: str\n"
+                "name: str\n"
+                "labels: list\\n"
+                "spectra: list\n"
+                "input_filenames: Dict\n"
+                "no_of_simulations: int\n"
+                "single: bool\n"
+                "variable_no_of_inputs: bool\n"
+                "always_auger: bool\n"
+                "always_core: bool\n"
+                "same_auger_core_percentage: bool\n"
+                "ensure_same_length: bool\n"
+                "eV_window: int\n"
+                "normalize_inputs: bool\n"
+                "normalize_outputs: bool\n"
+                "broaden: bool\n"
+                "shift_x: bool\n"
+                "noise: bool\n"
+                "scatter: bool\n"
+                "sim_ranges: Dict with the keys\n"
+                "\t shift_x: List[float]\n"
+                "\t noise: List[int]\n"
+                "\t FWHM: List[float]\n"
+                "\t scatterers: Dict[int, str]\n"
+                "\t pressure: List[float]\n"
+                "\t distance: List[float]\n"
             )
         ) from exc
 

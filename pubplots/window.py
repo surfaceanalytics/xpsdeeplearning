@@ -21,6 +21,7 @@ Plot visualization of window fitting.
 import os
 import csv
 import pickle
+from typing import Dict, Any
 import matplotlib.pyplot as plt
 from matplotlib import patches
 from matplotlib import gridspec
@@ -32,29 +33,28 @@ from common import (
     ParserWrapper,
     print_mae_info,
     maximum_absolute_error,
-    save_dir,
+    DATAFOLDER,
+    RUNFOLDER,
+    SAVE_DIR,
 )
 
 
 class Wrapper(ParserWrapper):
-    """Parser for XPS data stored in TXT files."""
+    """Wrapper for loading and plotting."""
 
-    def __init__(self, datafolder, file_dict):
-        """
-        Initialize empty data dictionary.
-
-        Parameters
-        ----------
-
-        Returns
-        -------
-        None.
-
-        """
-        super(Wrapper, self).__init__(datafolder=datafolder, file_dict=file_dict)
+    def __init__(self, datafolder: str, file_dict: dict):
+        super().__init__(datafolder=datafolder, file_dict=file_dict)
         self.fontdict = {"size": 25}
         self.fontdict_small = {"size": 14}
         self.fontdict_legend = {"size": 16}
+
+        self.history: Dict[str, Any] = {}
+        self.y_test = np.array([])
+        self.pred_test = np.array([])
+        self.losses_test = np.array([])
+
+        self.fig = plt.figure(figsize=(24, 16), dpi=300)
+        self.axs = np.array([])
 
         self.color_dict = {
             "CPS": "black",
@@ -67,16 +67,9 @@ class Wrapper(ParserWrapper):
         """
         Load the previous training history from the CSV log file.
 
-        Useful for retraining.
-
-        Returns
-        -------
-        history : dict
-            Dictionary containing the previous training history.
-
         """
         history = {}
-        with open(csv_filepath, newline="") as csvfile:
+        with open(csv_filepath, encoding="utf8", newline="") as csvfile:
             reader = csv.DictReader(csvfile)
             for row in reader:
                 for key, item in row.items():
@@ -86,9 +79,7 @@ class Wrapper(ParserWrapper):
 
         self.history = history
 
-        return self.history
-
-    def _add_metric_plot(self, ax, history, metric, title=None, ylabel=None):
+    def _add_metric_plot(self, ax, metric, ylabel=None):
         """
         Plots the training and validation values of a metric
         against the epochs.
@@ -141,12 +132,7 @@ class Wrapper(ParserWrapper):
 
     def load_predictions(self, pickle_filepath):
         """
-        Load the previous training history from the CSV log file.
-
-        Useful for retraining.
-
-        Returns
-        -------
+        Load the predictions from the pickle file.
 
         """
         with open(pickle_filepath, "rb") as pickle_file:
@@ -156,8 +142,6 @@ class Wrapper(ParserWrapper):
             )
         self.y_test = results["y_test"]
         self.pred_test = results["pred_test"]
-
-        return self.y_test, self.pred_test
 
     def calculate_test_losses(self, loss_func):
         """
@@ -204,7 +188,7 @@ class Wrapper(ParserWrapper):
         ax.tick_params(axis="x", labelsize=self.fontdict["size"])
         ax.tick_params(axis="y", labelsize=self.fontdict["size"])
 
-        N, bins, hist_patches = ax.hist(
+        counts, _, hist_patches = ax.hist(
             losses_test,
             bins=100,
             histtype="bar",
@@ -215,17 +199,21 @@ class Wrapper(ParserWrapper):
         thresholds = [0.025, 0.05, 0.075, 0.1, 0.15, 0.2]
         quantification = []
 
-        for t in thresholds:
-            ng, nb = 0, 0
+        for threshold in thresholds:
+            no_smaller, no_bigger = 0, 0
             for i, patch in enumerate(hist_patches):
-                if patch.xy[0] < t:
-                    ng += N[i]
+                if patch.xy[0] < threshold:
+                    no_smaller += counts[i]
                 else:
-                    nb += N[i]
-            ng_p = np.round(ng / (ng + nb) * 100, 1)
-            nb_p = np.round(nb / (ng + nb) * 100, 1)
+                    no_bigger += counts[i]
+            no_smaller_percent = np.round(
+                no_smaller / (no_smaller + no_bigger) * 100, 1
+            )
+            no_bigger_percent = np.round(no_bigger / (no_smaller + no_bigger) * 100, 1)
 
-            quantification.append([t, f"{ng_p} %", f"{nb_p} %"])
+            quantification.append(
+                [threshold, f"{no_smaller_percent} %", f"{no_bigger_percent} %"]
+            )
 
         col_labels = [
             "MAE threshold",
@@ -250,9 +238,7 @@ class Wrapper(ParserWrapper):
 
         return ax
 
-    def plot_all(self, with_fits=False):
-        self.fig = plt.figure(figsize=(24, 16), dpi=300)
-
+    def plot_all(self, with_fits=False):  #
         gs = gridspec.GridSpec(
             nrows=2,
             ncols=2,
@@ -270,9 +256,7 @@ class Wrapper(ParserWrapper):
 
         self.axs[0, 1] = self._add_metric_plot(
             ax=self.axs[0, 1],
-            history=self.history,
             metric="loss",
-            title="MAE loss",
             ylabel="MAE loss",
         )
 
@@ -344,7 +328,7 @@ class Wrapper(ParserWrapper):
         self.axs[0, 0].set_xlim(left=np.max(x), right=np.min(x))
         self.axs[1, 0].set_xlim(left=window[1], right=window[0])
 
-        ymin, ymax = self.axs[0, 0].get_ylim()
+        ymax = self.axs[0, 0].get_ylim()[1]
 
         rect = patches.Rectangle(
             (window[0], 0.27 * ymax),
@@ -380,21 +364,21 @@ class Wrapper(ParserWrapper):
             ("Fe 2p", 0.79, 0.47),
         ]
 
-        for t in texts:
+        for text in texts:
             self.axs[0, 0].text(
-                x=t[1],
-                y=t[2],
-                s=t[0],
+                x=text[1],
+                y=text[2],
+                s=text[0],
                 horizontalalignment="left",
                 size=self.fontdict["size"],
                 verticalalignment="center",
                 transform=self.axs[0, 0].transAxes,
             )
 
-        for w in window:
+        for win in window:
             con = ConnectionPatch(
-                xyA=(w, 0.27 * ymax),
-                xyB=(w, self.axs[1, 0].get_ylim()[1]),
+                xyA=(win, 0.27 * ymax),
+                xyB=(win, self.axs[1, 0].get_ylim()[1]),
                 coordsA="data",
                 coordsB="data",
                 axesA=self.axs[0, 0],
@@ -424,10 +408,15 @@ class Wrapper(ParserWrapper):
 
         # gs.tight_layout(self.fig)
 
-        return self.fig, self.axs
+        return self.fig
 
 
 def print_diff(losses, threshold):
+    """
+    Print no. of wrong and correct classifications
+    (below loss threshold).
+
+    """
     correct = 0
     wrong = 0
     for loss in losses:
@@ -445,8 +434,11 @@ def print_diff(losses, threshold):
 
 def main():
     """Plot visualization of window fitting."""
-    datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\utils\exports"
-    clfpath = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\runs\20210914_19h13m_FeCo_combined_without_auger_7_classes_100eV_window\logs"
+    clfpath = os.path.join(
+        RUNFOLDER,
+        "20210914_19h13m_FeCo_combined_without_auger_7_classes_100eV_window",
+        "logs",
+    )
     logpath = os.path.join(clfpath, "log.csv")
     predpath = os.path.join(clfpath, "results.pkl")
 
@@ -490,17 +482,17 @@ def main():
         },
     }
 
-    wrapper = Wrapper(datafolder, file_dict)
+    wrapper = Wrapper(DATAFOLDER, file_dict)
     wrapper.parse_data(bg=True, envelope=True)
-    history = wrapper.load_history(logpath)
-    y_test, pred_test = wrapper.load_predictions(predpath)
+    wrapper.load_history(logpath)
+    wrapper.load_predictions(predpath)
     losses_test = wrapper.calculate_test_losses(loss_func=mean_absolute_error)
 
-    fig, ax = wrapper.plot_all()
+    fig = wrapper.plot_all()
     plt.show()
 
     for ext in [".png", ".eps"]:
-        fig_path = os.path.join(save_dir, "window" + ext)
+        fig_path = os.path.join(SAVE_DIR, "window" + ext)
         fig.savefig(fig_path, bbox_inches="tight")
 
     print_mae_info(losses_test, "Window", precision=4)

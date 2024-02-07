@@ -58,30 +58,30 @@ def _load_data(filenames):
     input_datafolder = r"C:\Users\pielsticker\Simulations"
     for filename in filenames[:1]:
         input_filepath = os.path.join(input_datafolder, filename)
-        with h5py.File(input_filepath, "r") as hf:
-            X = hf["X"][:, :, :]
-            y = hf["y"][:, :]
-            shiftx = hf["shiftx"][:]
-            noise = hf["noise"][:]
-            fwhm = hf["FWHM"][:]
-            scatterer = hf["scatterer"][:]
-            distance = hf["distance"][:]
-            pressure = hf["pressure"][:]
-            energies = hf["energies"][:]
-            labels = hf["labels"][:]
+        with h5py.File(input_filepath, "r") as h5_file:
+            X = h5_file["X"][:, :, :]
+            y = h5_file["y"][:, :]
+            shiftx = h5_file["shiftx"][:]
+            noise = h5_file["noise"][:]
+            fwhm = h5_file["FWHM"][:]
+            scatterer = h5_file["scatterer"][:]
+            distance = h5_file["distance"][:]
+            pressure = h5_file["pressure"][:]
+            energies = h5_file["energies"][:]
+            labels = h5_file["labels"][:]
             print("File 0 loaded")
 
     for filename in filenames[1:]:
         input_filepath = os.path.join(input_datafolder, filename)
-        with h5py.File(input_filepath, "r") as hf:
-            X_new = hf["X"][:, :, :]
-            y_new = hf["y"][:, :]
-            shiftx_new = hf["shiftx"][:]
-            noise_new = hf["noise"][:]
-            fhwm_new = hf["FWHM"][:]
-            scatterer_new = hf["scatterer"][:]
-            distance_new = hf["distance"][:]
-            pressure_new = hf["pressure"][:]
+        with h5py.File(input_filepath, "r") as h5_file:
+            X_new = h5_file["X"][:, :, :]
+            y_new = h5_file["y"][:, :]
+            shiftx_new = h5_file["shiftx"][:]
+            noise_new = h5_file["noise"][:]
+            fhwm_new = h5_file["FWHM"][:]
+            scatterer_new = h5_file["scatterer"][:]
+            distance_new = h5_file["distance"][:]
+            pressure_new = h5_file["pressure"][:]
 
             X = np.concatenate((X, X_new), axis=0)
             y = np.concatenate((y, y_new), axis=0)
@@ -150,8 +150,8 @@ def combine_and_shuffle_measured(filenames, output_file):
         pressure_shuff,
     ) = shuffle(X, y, shiftx, noise, fwhm, scatterer, distance, pressure)
 
-    with h5py.File(output_file, "w") as hf:
-        hf.create_dataset(
+    with h5py.File(output_file, "w") as h5_file:
+        h5_file.create_dataset(
             "X",
             data=X_shuff,
             compression="gzip",
@@ -159,7 +159,7 @@ def combine_and_shuffle_measured(filenames, output_file):
             maxshape=(None, X.shape[1], X.shape[2]),
         )
         print("X written")
-        hf.create_dataset(
+        h5_file.create_dataset(
             "y",
             data=y_shuff,
             compression="gzip",
@@ -167,7 +167,7 @@ def combine_and_shuffle_measured(filenames, output_file):
             maxshape=(None, y.shape[1]),
         )
         print("y written")
-        hf.create_dataset(
+        h5_file.create_dataset(
             "shiftx",
             data=shiftx_shuff,
             compression="gzip",
@@ -175,7 +175,7 @@ def combine_and_shuffle_measured(filenames, output_file):
             maxshape=(None, shiftx.shape[1]),
         )
         print("shift written")
-        hf.create_dataset(
+        h5_file.create_dataset(
             "noise",
             data=noise_shuff,
             compression="gzip",
@@ -183,7 +183,7 @@ def combine_and_shuffle_measured(filenames, output_file):
             maxshape=(None, noise.shape[1]),
         )
         print("noise written")
-        hf.create_dataset(
+        h5_file.create_dataset(
             "FWHM",
             data=fwhm_shuff,
             compression="gzip",
@@ -191,7 +191,7 @@ def combine_and_shuffle_measured(filenames, output_file):
             maxshape=(None, fwhm.shape[1]),
         )
         print("fwhm written")
-        hf.create_dataset(
+        h5_file.create_dataset(
             "scatterer",
             data=scatterer_shuff,
             compression="gzip",
@@ -199,7 +199,7 @@ def combine_and_shuffle_measured(filenames, output_file):
             maxshape=(None, scatterer.shape[1]),
         )
         print("scatterer written")
-        hf.create_dataset(
+        h5_file.create_dataset(
             "distance",
             data=distance_shuff,
             compression="gzip",
@@ -207,7 +207,7 @@ def combine_and_shuffle_measured(filenames, output_file):
             maxshape=(None, distance.shape[1]),
         )
         print("distance written")
-        hf.create_dataset(
+        h5_file.create_dataset(
             "pressure",
             data=pressure_shuff,
             compression="gzip",
@@ -215,13 +215,11 @@ def combine_and_shuffle_measured(filenames, output_file):
             maxshape=(None, pressure.shape[1]),
         )
         print("pressure written")
-        hf.create_dataset(
+        h5_file.create_dataset(
             "energies", data=energies, compression="gzip", chunks=True
         )
         print("energies written")
-        hf.create_dataset(
-            "labels", data=labels, compression="gzip", chunks=True
-        )
+        h5_file.create_dataset("labels", data=labels, compression="gzip", chunks=True)
         print("labels written")
 
 
@@ -235,12 +233,12 @@ if __name__ == "__main__":
     combine_and_shuffle_measured(filenames, output_file)
 
     # Test new file.
-    with h5py.File(output_file, "r") as hf:
-        size = hf["X"].shape
-        X_h5 = hf["X"][:100, :, :]
-        y_h5 = hf["y"][:100, :]
-        shiftx_h5 = hf["shiftx"][:100]
-        noise_h5 = hf["noise"][:100]
-        fwhm_h5 = hf["FWHM"][:100]
-        energies_h5 = hf["energies"][:]
-        labels_h5 = [str(label) for label in hf["labels"][:]]
+    with h5py.File(output_file, "r") as h5_file:
+        size = h5_file["X"].shape
+        X_h5 = h5_file["X"][:100, :, :]
+        y_h5 = h5_file["y"][:100, :]
+        shiftx_h5 = h5_file["shiftx"][:100]
+        noise_h5 = h5_file["noise"][:100]
+        fwhm_h5 = h5_file["FWHM"][:100]
+        energies_h5 = h5_file["energies"][:]
+        labels_h5 = [str(label) for label in h5_file["labels"][:]]

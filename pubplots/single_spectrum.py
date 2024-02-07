@@ -22,7 +22,7 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 
-from common import save_dir
+from common import UTILS_FOLDER, SAVE_DIR
 from xpsdeeplearning.simulation.base_model.spectra import MeasuredSpectrum
 
 
@@ -71,7 +71,7 @@ class Figure:
 
 
 class FlippedFigure:
-    """Class for plotting an XPS spectrum."""
+    """Class for plotting an XPS spectrum (flipped X and y axis)."""
 
     def __init__(self, x, y, title, axis_off=True):
         """
@@ -121,10 +121,10 @@ class FlippedFigure:
 
 
 def main():
-    input_datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\utils"
+    """Plot and save a single XPS spectrum."""
     filename = "fe2p_for_comparison_plot.vms"
 
-    filepath = os.path.join(input_datafolder, filename)
+    filepath = os.path.join(UTILS_FOLDER, filename)
     ref_spectrum = MeasuredSpectrum(filepath)
     figure = Figure(x=ref_spectrum.x, y=ref_spectrum.lineshape, title="", axis_off=True)
     figure2 = FlippedFigure(
@@ -134,7 +134,7 @@ def main():
     file_names = {figure: "test_spectrum.tif", figure2: "test_spectrum_flipped.tif"}
 
     for fig, file_name in file_names.items():
-        fig_path = os.path.join(save_dir, file_name)
+        fig_path = os.path.join(SAVE_DIR, file_name)
         fig.fig.savefig(fig_path)
 
 

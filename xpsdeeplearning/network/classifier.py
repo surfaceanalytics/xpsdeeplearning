@@ -20,10 +20,11 @@ Main classifier for training and testing a Keras model.
 """
 import json
 import os
+from typing import Dict
 import pickle
-
-import numpy as np
+import inspect
 from matplotlib import pyplot as plt
+import numpy as np
 
 # Disable tf warnings
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
@@ -48,7 +49,7 @@ class Classifier:
         exp_name="",
         task="regression",
         intensity_only=True,
-        labels=[],
+        labels=None,
     ):
         """
         Initialize folder structure and an empty model.
@@ -105,6 +106,8 @@ class Classifier:
         }
         self.logging.save_hyperparams()
 
+        self.model_summary = ""
+
     def load_data_preprocess(
         self,
         input_filepath,
@@ -157,6 +160,7 @@ class Classifier:
             train_test_split=train_test_split,
             train_val_split=train_val_split,
             shuffle=shuffle,
+            select_random_subset=select_random_subset,
         )
 
         energy_range = [
@@ -228,27 +232,27 @@ class Classifier:
         )
         try:
             model_plot = plt.imread(fig_file_name)
-            fig, ax = plt.subplots(figsize=(18, 2))
-            ax.imshow(model_plot, interpolation="nearest")
+            fig, axs = plt.subplots(figsize=(18, 2))
+            axs.imshow(model_plot, interpolation="nearest")
             plt.tight_layout()
             plt.show()
-        except FileNotFoundError:
+        except FileNotFoundError as exc:
             raise FileNotFoundError(
                 "Model image could not be saved. Please install graphviz first."
-            )
+            ) from exc
 
     def train(
         self,
-        epochs,
-        batch_size,
-        checkpoint=True,
-        early_stopping=False,
-        tb_log=False,
-        csv_log=True,
-        hyperparam_log=True,
-        cb_parameters={},
-        verbose=1,
-        new_learning_rate=None,
+        epochs: int,
+        batch_size: int,
+        cb_parameters: Dict,
+        checkpoint: bool = True,
+        early_stopping: bool = False,
+        tb_log: bool = False,
+        csv_log: bool = True,
+        hyperparam_log: bool = True,
+        verbose: int = 1,
+        new_learning_rate: float = None,
         *args,
         **kwargs,
     ):
@@ -266,6 +270,8 @@ class Classifier:
         batch_size : int, optional
             Batch size for stochastic optimization.
             The default is 32.
+        cb_parameters: dict
+           Additional parameters to be passed to the keras Callbacks.
         checkpoint : bool, optional
             Determines if the model is saved when the val_loss is lowest.
             The default is True.
@@ -453,16 +459,17 @@ class Classifier:
             print(
                 "Regression was chosen as task. " + "No prediction of classes possible!"
             )
+            return None
         if self.task == "multi_class_detection":
             self.datahandler.pred_train_classes = []
             self.datahandler.pred_test_classes = []
 
-            for i, pred in enumerate(self.datahandler.pred_train):
+            for pred in self.datahandler.pred_train:
                 arg_max = list(np.where(pred > 0.05)[0])
                 classes = [self.datahandler.labels[arg] for arg in arg_max]
                 self.datahandler.pred_train_classes.append(classes)
 
-            for i, pred in enumerate(self.datahandler.pred_test):
+            for pred in self.datahandler.pred_test:
                 arg_max = list(np.where(pred > 0.05)[0])
                 classes = [self.datahandler.labels[arg] for arg in arg_max]
                 self.datahandler.pred_test_classes.append(classes)
@@ -474,15 +481,15 @@ class Classifier:
                 self.datahandler.pred_test_classes,
             )
 
-        else:
+        if self.task == "classification":
             pred_train_classes = []
             pred_test_classes = []
 
-            for i, pred in enumerate(self.datahandler.pred_train):
+            for pred in self.datahandler.pred_train:
                 argmax_class = np.argmax(pred, axis=0)
                 pred_train_classes.append(self.datahandler.labels[argmax_class])
 
-            for i, pred in enumerate(self.datahandler.pred_test):
+            for pred in self.datahandler.pred_test:
                 argmax_class = np.argmax(pred, axis=0)
                 pred_test_classes.append(self.datahandler.labels[argmax_class])
 
@@ -499,6 +506,7 @@ class Classifier:
                 self.datahandler.pred_train_classes,
                 self.datahandler.pred_test_classes,
             )
+        return None
 
     def save_model(self):
         """
@@ -558,11 +566,9 @@ class Classifier:
         # Add the current model to the custom_objects dict. This is
         # done to ensure the load_model method from Keras works
         # properly.
-        import inspect
-
         custom_objects = {}
         custom_objects[str(type(self.model).__name__)] = self.model.__class__
-        for name, obj in inspect.getmembers(models):
+        for _, obj in inspect.getmembers(models):
             if inspect.isclass(obj):
                 if obj.__module__.startswith("xpsdeeplearning.network.models"):
                     custom_objects[obj.__module__ + "." + obj.__name__] = obj
@@ -770,18 +776,33 @@ class Classifier:
         self.datahandler.class_distribution.plot(self.datahandler.labels)
 
     def plot_weight_distribution(self, kind="posterior", to_file=True):
+        """
+        Plot weight distribution of Bayesian layers.
+
+        Parameters
+        ----------
+        kind : str, optional
+            "prior" or "posterior". The default is "posterior".
+        to_file : bool, optional
+            If True, the plot is saved to file. The default is True.
+
+        Returns
+        -------
+        None.
+
+        """
         bayesian_layers = [
             layer
             for layer in self.model.layers
             if ("Flipout" or "Reparameterization") in str(layer.__class__)
         ]
 
-        wd = WeightDistributions(bayesian_layers, fig_dir=self.logging.fig_dir)
+        weight_dist = WeightDistributions(bayesian_layers, fig_dir=self.logging.fig_dir)
 
         if kind == "prior":
-            fig = wd.plot_weight_priors(to_file=to_file)
+            fig = weight_dist.plot_weight_priors(to_file=to_file)
         elif kind == "posterior":
-            fig = wd.plot_weight_posteriors(to_file=to_file)
+            fig = weight_dist.plot_weight_posteriors(to_file=to_file)
 
         if to_file:
             epoch = self.logging.hyperparams["epochs_trained"]
@@ -795,7 +816,28 @@ class Classifier:
             print("Saved to {}".format(filename))
 
     def predict_probabilistic(self, dataset="test", no_of_predictions=100, verbose=0):
-        X, y = self.datahandler._select_dataset(dataset_name=dataset)
+        """
+        Run probabilistic prediction (i.e., run predictions multiple
+        times and store mean and std).
+
+        Parameters
+        ----------
+        dataset : str
+            Either "train", "val", or "test".
+            The default is "train".
+        no_of_predictions : int, optional
+            Number of predictions to run. The default is 100.
+        verbose : int, optional
+            Verbosity of keras prediction. The default is 0.
+
+        Returns
+        -------
+        prob_pred : np.ndarray
+            Probabilistic predicitions in the shape,
+            (no_of_predictions, no_of labels, 1).
+
+        """
+        X, _ = self.datahandler._select_dataset(dataset_name=dataset)
 
         prob_pred = np.array(
             [self.model.predict(X, verbose=verbose) for i in range(no_of_predictions)]
@@ -814,6 +856,32 @@ class Classifier:
     def plot_prob_predictions(
         self, dataset="test", kind="random", no_of_spectra=10, to_file=True
     ):
+        """
+        Generate a plot with the probabilistic predictions.
+
+        Parameters
+        ----------
+        dataset : str
+            Either "train", "val", or "test".
+            The default is "train".
+        kind : str, optional
+            One of "random", "min", "max"
+            Selects subsets of probabilistic predictions
+                "random": random probabilistic predictions",
+                "min": probabilistic predictions with lowest std",
+                "max": probabilistic predictions with highest std",
+            The default is "random".
+        no_of_spectra : int, optional
+            No. of spectra for which to create plot of
+            probabilistic predictions. The default is 10.
+        to_file : bool, optional
+            If True, the plot is stored as a file. The default is True.
+
+        Returns
+        -------
+        None.
+
+        """
         if not hasattr(self.datahandler, f"prob_pred_{dataset}"):
             prob_preds = self.predict_probabilistic(
                 dataset=dataset, no_of_predictions=500
@@ -888,8 +956,8 @@ class Classifier:
             try:
                 if key == "class_distribution":
                     try:
-                        cd = getattr(self.datahandler, key)
-                        pickle_data[key] = cd.cd
+                        class_dist = getattr(self.datahandler, key)
+                        pickle_data[key] = class_dist.cd
                     except AttributeError:
                         print(f"DataHandler object has no attribute {key}.")
                 else:
@@ -910,6 +978,7 @@ class Classifier:
         print("Saved results to file.")
 
     def purge_history(self):
+        """Remove existing training history from logging."""
         self.logging._purge_history()
         print("Training history was deleted.")
 

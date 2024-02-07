@@ -25,6 +25,7 @@ from xpsdeeplearning.network.data_handling import DataHandler
 
 
 def test_hdf5_load():
+    """Test loading of simulated data set."""
     np.random.seed(1)
 
     input_filepath = "tests/data/20240206_Ni_linear_combination_small_gas_phase.h5"
@@ -41,9 +42,9 @@ def test_hdf5_load():
         y_train,
         y_val,
         y_test,
-        sim_values_train,
-        sim_values_val,
-        sim_values_test,
+        _,
+        _,
+        _,
     ) = datahandler.load_data_preprocess(
         input_filepath=input_filepath,
         no_of_examples=no_of_examples,

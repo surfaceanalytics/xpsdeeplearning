@@ -36,7 +36,7 @@
          "NiCoFe/Ni2pCo2pFe2p_Fe2O3.txt"
       ]
    },
-   "no_of_simulations":10,
+   "no_of_simulations":250000,
    "single":false,
    "variable_no_of_inputs":true,
    "always_auger":false,

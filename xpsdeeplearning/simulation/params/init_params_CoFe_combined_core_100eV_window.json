@@ -37,14 +37,14 @@
          "NiCoFe/Co2pFe2p_Co3O4.txt"
       ]
    },
-   "no_of_simulations":200,
+   "no_of_simulations":250000,
    "single":false,
    "variable_no_of_inputs":true,
    "always_auger":false,
    "always_core":true,
    "same_auger_core_percentage":true,
    "ensure_same_length":false,
-   "eV_window":100, 
+   "eV_window":100,
    "normalize_inputs":false,
    "normalize_outputs":true,
    "broaden":false,

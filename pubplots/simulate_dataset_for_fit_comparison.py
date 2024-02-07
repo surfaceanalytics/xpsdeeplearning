@@ -29,15 +29,20 @@ from xpsdeeplearning.simulation.base_model.spectra import MeasuredSpectrum
 from xpsdeeplearning.simulation.creator import Creator, FileWriter
 from xpsdeeplearning.simulation.base_model.figures import Figure
 
-# %% Input parameter
+from common import UTILS_FOLDER, REPO_PATH
+
+
 # Change the following line according to your folder structure ###
-init_param_folder = r"C:\Users\pielsticker\Simulations\paper"
 # init_param_filename = "init_params_Fe_core_small_gas_phase.json"
-init_param_filename = "init_params_NiCoFe_combined_core_small_gas_phase.json"
+init_param_filename = "init_params_NiCoFe_combined_core.json"
 
 
 def main():
-    """Simulation of data set for fit comparison.."""
+    """Simulation of data set for fit comparison."""
+    init_param_folder = os.path.join(
+        REPO_PATH, "xpsdeeplearning", "simulation", "params"
+    )
+
     init_param_filepath = os.path.join(init_param_folder, init_param_filename)
 
     with open(init_param_filepath, "r") as param_file:
@@ -56,12 +61,10 @@ def main():
 
     writer.to_file(filetypes=["hdf5"], metadata=True)
     with h5py.File(writer.hdf5_filepath, "r") as hf:
-        X_h5 = hf["X"][:, :, :]
         y_h5 = hf["y"][:, :]
 
     # Save data and metadata.
-    output_datafolder = os.path.join(*[os.getcwd(), "utils", creator.params["name"]])
-    output_datafolder = r"C:\Users\pielsticker\Downloads"
+    output_datafolder = os.path.join(UTILS_FOLDER, creator.params["name"])
 
     # filepath_output = os.path.join(output_datafolder, "truth.csv")
     filepath_output = os.path.join(output_datafolder, "truth_multiple.csv")

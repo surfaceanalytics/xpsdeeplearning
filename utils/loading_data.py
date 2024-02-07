@@ -18,14 +18,14 @@
 This script can be used to test the functionality of the DataHandler
 class as well as inspect some simulated/measured data.
 """
-import numpy as np
 import os
+import numpy as np
 
-os.chdir(r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps")
 from xpsdeeplearning.network.data_handling import DataHandler
 
 
 if __name__ == "__main__":
+    os.chdir(r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps")
     np.random.seed(1)
     input_filepath = r"C:\Users\pielsticker\Simulations\20210528_Ni_linear_combination_small_gas_phase\20210528_Ni_linear_combination_small_gas_phase.h5"
 
@@ -56,8 +56,6 @@ if __name__ == "__main__":
     print("Labels: " + str(datahandler.labels))
     print("No. of classes: " + str(datahandler.num_classes))
 
-    datahandler.plot_random(
-        no_of_spectra=15, dataset="train", with_prediction=False
-    )
+    datahandler.plot_random(no_of_spectra=15, dataset="train", with_prediction=False)
 
     print(np.average(y_test), np.std(y_test))

@@ -22,32 +22,33 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 
-from common import TextParser, ParserWrapper, save_dir
-
-datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\utils\exports"
+from common import TextParser, ParserWrapper, DATAFOLDER, SAVE_DIR
 
 
-# %%
 class Wrapper(ParserWrapper):
+    """Wrapper for loading and plotting."""
+
     def __init__(self, datafolder, file_dict):
-        super(Wrapper, self).__init__(datafolder=datafolder, file_dict=file_dict)
+        super().__init__(datafolder=datafolder, file_dict=file_dict)
         self.fontdict_small = {"size": 14}
         self.fontdict_mae = {"size": 14}
 
-    def parse_data(self, bg=True, envelope=True):
+    def parse_data(self, background=True, envelope=True):
+        """Load data from file dict."""
         for result_dict in self.file_dict.values():
-            for method, d in result_dict.items():
-                filepath = os.path.join(self.datafolder, d["filename"])
+            for spectrum_dict in result_dict.values():
+                filepath = os.path.join(self.datafolder, spectrum_dict["filename"])
                 parser = TextParser()
-                parser.parse_file(filepath, bg=bg, envelope=envelope)
-                for key, value in d.items():
+                parser.parse_file(filepath, background=background, envelope=envelope)
+                for key, value in spectrum_dict.items():
                     setattr(parser, key, value)
                 self.parsers.append(parser)
 
     def plot_all(self):
+        """Plot examples with predictions."""
         nrows, ncols = 2, 3
 
-        self.fig, self.axs = plt.subplots(
+        fig, axs = plt.subplots(
             nrows=nrows,
             ncols=ncols,
             figsize=(len(self.parsers) / 2 * 8, 14),
@@ -71,77 +72,69 @@ class Wrapper(ParserWrapper):
 
             col = i % ncols
 
-            self.axs[row, col].set_xlabel("Binding energy (eV)", fontdict=self.fontdict)
-            self.axs[row, col].set_ylabel(
-                "Intensity (arb. units)", fontdict=self.fontdict
-            )
-            self.axs[row, col].tick_params(axis="x", labelsize=self.fontdict["size"])
-            self.axs[row, col].tick_params(
-                axis="y", which="both", right=False, left=False
-            )
+            axs[row, col].set_xlabel("Binding energy (eV)", fontdict=self.fontdict)
+            axs[row, col].set_ylabel("Intensity (arb. units)", fontdict=self.fontdict)
+            axs[row, col].tick_params(axis="x", labelsize=self.fontdict["size"])
+            axs[row, col].tick_params(axis="y", which="both", right=False, left=False)
 
-            self.axs[row, col].set_yticklabels([])
+            axs[row, col].set_yticklabels([])
 
             for j, header_name in enumerate(parser.header_names):
                 if header_name == "CPS":
-                    handle = self.axs[row, col].plot(x, y[:, j], c=color)
+                    _ = axs[row, col].plot(x, y[:, j], c=color)
                 else:
                     start = parser.fit_start
                     end = parser.fit_end
                     try:
-                        handle = self.axs[row, col].plot(
-                            x[start:end], y[start:end, j], c=color
-                        )
+                        _ = axs[row, col].plot(x[start:end], y[start:end, j], c=color)
                     except IndexError:
-                        handle = self.axs[row, col].plot(
-                            x[start:end], y[start:end], c=color
-                        )
+                        _ = axs[row, col].plot(x[start:end], y[start:end], c=color)
 
-            self.axs[row, col].set_title(parser.title, fontdict=self.fontdict)
-            self.axs[row, col].set_xlim(left=np.max(x), right=np.min(x))
+            axs[row, col].set_title(parser.title, fontdict=self.fontdict)
+            axs[row, col].set_xlim(left=np.max(x), right=np.min(x))
             if row == 1 and col == 0:
-                self.axs[row, col].set_ylim(bottom=np.min(y) * 0.999)
+                axs[row, col].set_ylim(bottom=np.min(y) * 0.999)
 
-            self.axs[row, col].set_title(parser.title, fontdict=self.fontdict)
+            axs[row, col].set_title(parser.title, fontdict=self.fontdict)
 
-            q1 = [p[0] for p in list(parser.quantification.values())]
-            q2 = [p[1] for p in list(parser.quantification.values())]
+            quant_1 = [p[0] for p in list(parser.quantification.values())]
+            quant_2 = [p[1] for p in list(parser.quantification.values())]
 
-            q1_percentage = [f"{p} %" for p in q1]
-            q2_percentage = [f"{p} %" for p in q2]
+            q1_percentage = [f"{p} %" for p in quant_1]
+            q2_percentage = [f"{p} %" for p in quant_2]
 
             keys = list(parser.quantification.keys())
             col_labels = self._reformat_label_list(keys)
 
-            table = self.axs[row, col].table(
+            table = axs[row, col].table(
                 cellText=[q1_percentage, q2_percentage],
                 cellLoc="center",
                 colLabels=col_labels,
                 rowLabels=["Truth", "CNN"],
-                bbox=[0.125, 0.025, 0.16 * len(q1), 0.18],
+                bbox=[0.125, 0.025, 0.16 * len(quant_1), 0.18],
                 zorder=500,
             )
             table.auto_set_font_size(False)
             table.set_fontsize(self.fontdict_small["size"])
 
-            self.axs[row, col].text(
+            axs[row, col].text(
                 0.01,
                 0.245,
                 "Quantification:",
                 horizontalalignment="left",
                 size=self.fontdict_small["size"],
                 verticalalignment="center",
-                transform=self.axs[row, col].transAxes,
+                transform=axs[row, col].transAxes,
             )
 
             mae = f"MAE:\n{np.round(parser.mae,3)}"
-            self.axs[row, col].text(
+            axs[row, col].text(
                 x=0.85,
                 y=0.85,
                 s=mae,
                 size=self.fontdict_mae["size"],
                 verticalalignment="center",
-                transform=self.axs[row, col].transAxes,
+                transform=axs[row, col].transAxes,
             )
 
             scatterer_dict = {
@@ -154,21 +147,21 @@ class Wrapper(ParserWrapper):
                 scat_text = f"Scattered in {scatterer_dict[parser.scatterer]} \n"
                 scat_text += f"p = {parser.pressure} mbar \n"
                 scat_text += f"d = {parser.distance} mm"
-                self.axs[row, col].text(
+                axs[row, col].text(
                     0.6,
                     0.5,
                     scat_text,
                     horizontalalignment="left",
                     size=self.fontdict_mae["size"],
                     verticalalignment="center",
-                    transform=self.axs[row, col].transAxes,
+                    transform=axs[row, col].transAxes,
                 )
             except AttributeError:
                 pass
 
-        self.fig.tight_layout()
+        fig.tight_layout()
 
-        return self.fig, self.axs
+        return fig
 
 
 def main():
@@ -340,13 +333,13 @@ def main():
         },
     }
 
-    wrapper = Wrapper(datafolder, file_dict)
-    wrapper.parse_data(bg=False, envelope=False)
-    fig, ax = wrapper.plot_all()
+    wrapper = Wrapper(DATAFOLDER, file_dict)
+    wrapper.parse_data(background=False, envelope=False)
+    fig = wrapper.plot_all()
     plt.show()
 
     for ext in [".png", ".eps"]:
-        fig_path = os.path.join(save_dir, "examples_single" + ext)
+        fig_path = os.path.join(SAVE_DIR, "examples_single" + ext)
         fig.savefig(fig_path, bbox_inches="tight")
 
 

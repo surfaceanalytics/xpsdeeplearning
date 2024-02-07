@@ -17,12 +17,15 @@
 #
 """
 Utils for model training:
-    1) Plotting
-    2) Reporting in .docx format
+    1) Plotting of spectra
+    2) Plotting of training results
+    3) Weight distribution of Bayesian models
+    4) Reporting in .docx format
 """
 import json
 import os
 import pickle
+import warnings
 
 import matplotlib.colors as mcolors
 import numpy as np
@@ -177,7 +180,7 @@ class ClassDistribution:
         if self.task == "classification":
             for i, dataset in enumerate(data_list):
                 key = list(self.cd.keys())[i]
-                for j, datapoint in enumerate(dataset):
+                for datapoint in dataset:
                     argmax_class = np.argmax(datapoint, axis=0)
                     self.cd[key][str(argmax_class)] += 1
 
@@ -190,10 +193,10 @@ class ClassDistribution:
         elif self.task == "multi_class_detection":
             for i, dataset in enumerate(data_list):
                 key = list(self.cd.keys())[i]
-                for j, datapoint in enumerate(dataset):
+                for datapoint in dataset:
                     non_zero_classes_args = np.where(datapoint > 0.0)[0]
-                    for n in non_zero_classes_args:
-                        self.cd[key][str(n)] += 1
+                    for number in non_zero_classes_args:
+                        self.cd[key][str(number)] += 1
 
     def plot(self, labels):
         """
@@ -218,16 +221,16 @@ class ClassDistribution:
             plt.title("Average distribution across the classes")
             # Plot of the average label distribution in the different
             # data sets.
-            for k, v in self.cd.items():
-                data.append(v)
+            for value in self.cd.values():
+                data.append(value)
             data = np.transpose(np.array(data))
             ax.set_ylabel("Average concentration")
 
         else:
             plt.title("Class distribution")
-            for k, v in self.cd.items():
+            for value_dict in self.cd.values():
                 data_list = []
-                for key, value in v.items():
+                for value in value_dict.values():
                     data_list.append(value)
             data.append(data_list)
             data = np.transpose(np.array(data))
@@ -343,8 +346,19 @@ class WeightDistributions:
     """
 
     def __init__(self, bayesian_layers, fig_dir):
-        import warnings
+        """
+        Parameters
+        ----------
+        bayesian_layers : list
+            List of tfp.layers objects.
+        fig_dir : str
+        .
 
+        Returns
+        -------
+        None.
+
+        """
         warnings.filterwarnings("ignore")
 
         self.bayesian_layers = bayesian_layers
@@ -353,6 +367,7 @@ class WeightDistributions:
         self.fig_dir = fig_dir
 
     def plot_weight_priors(self, to_file=True):
+        """Plot weight priors of all bayesian_layers."""
         qm_vals = [layer.kernel_prior.mean().numpy() for layer in self.bayesian_layers]
         qs_vals = [
             layer.kernel_prior.stddev().numpy() for layer in self.bayesian_layers
@@ -361,6 +376,7 @@ class WeightDistributions:
         return self.plot_distribution(qm_vals, qs_vals, kind="prior", to_file=to_file)
 
     def plot_weight_posteriors(self, to_file=True):
+        """Plot all weight posteriors of all bayesian_layers."""
         qm_vals = [
             layer.kernel_posterior.mean().numpy() for layer in self.bayesian_layers
         ]
@@ -373,49 +389,69 @@ class WeightDistributions:
         )
 
     def plot_distribution(self, qm_vals, qs_vals, kind="posterior", to_file=True):
+        """
+        Plot distribution of weights for all bayesian layers
+
+        Parameters
+        ----------
+        qm_vals : list
+            List of mean weights for all bayesian layers.
+        qs_vals : list
+            List of standard distribution of weights for all bayesian layers.
+        kind : str, optional
+            "prior" or "posterior". The default is "posterior".
+        to_file : bool, optional
+            If True, the plot is saved to a file. The default is True.
+
+        Returns
+        -------
+        fig : plt.figure
+            Figure object.
+
+        """
         fig, _ = plt.subplots(figsize=(12, 6))
         colors = iter(mcolors.TABLEAU_COLORS.keys())
 
         ax1 = fig.add_subplot(1, 2, 1)
         ax2 = fig.add_subplot(1, 2, 2)
 
-        for n, qm, qs in zip(self.names, qm_vals, qs_vals):
-            c = next(colors)
+        for n, weights_mean, weights_std in zip(self.names, qm_vals, qs_vals):
+            col = next(colors)
             try:
                 sns.histplot(
-                    np.reshape(qm, newshape=[-1]),
+                    np.reshape(weights_mean, newshape=[-1]),
                     ax=ax1,
                     # bins=50,
                     label=n,
-                    color=c,
+                    color=col,
                     kde=True,
                     stat="density",
                 )
                 sns.histplot(
-                    np.reshape(qs, newshape=[-1]),
+                    np.reshape(weights_std, newshape=[-1]),
                     ax=ax2,
                     # bins=50,
                     label=n,
-                    color=c,
+                    color=col,
                     kde=True,
                     stat="density",
                 )
             except np.linalg.LinAlgError:
                 sns.histplot(
-                    np.reshape(qm, newshape=[-1]),
+                    np.reshape(weights_mean, newshape=[-1]),
                     ax=ax1,
                     # bins=50,
                     label=n,
-                    color=c,
+                    color=col,
                     kde=False,
                     stat="density",
                 )
                 sns.histplot(
-                    np.reshape(qs, newshape=[-1]),
+                    np.reshape(weights_std, newshape=[-1]),
                     ax=ax2,
                     # bins=50,
                     label=n,
-                    color=c,
+                    color=col,
                     kde=False,
                     stat="density",
                 )
@@ -425,7 +461,10 @@ class WeightDistributions:
         ax2.set_title(f"{kind.capitalize()}" + " weight standard deviations")
 
         fig.tight_layout()
-        # plt.show()
+
+        if to_file:
+            fig_name = os.path.join(self.fig_dir, f"weight_distribution_{kind}.png")
+            fig.savefig(fig_name)
 
         return fig
 
@@ -482,11 +521,6 @@ class Report:
     def create_document(self):
         """
         Add data from the results to the report.
-
-        Returns
-        -------
-        None.
-
         """
         self.document.add_heading("Training report", 0)
 
@@ -512,7 +546,7 @@ class Report:
             j = int(list(self.class_dist.keys()).index(item)) + 1
             dist_table.cell(j, 0).text = item
 
-            for key, value in enumerate(self.class_dist[item]):
+            for key, value in enumerate(param):
                 k = int(key) + 1
                 dist_table.cell(j, k).text = str(np.round(value, 3))
 
@@ -582,39 +616,39 @@ class Report:
         pred_train_5 = self.results["pred_train"][r : r + 5, :]
         y_train_5 = self.results["y_train"][r : r + 5, :]
 
-        p = self.document.add_paragraph()
-        p.paragraph_format.space_before = Pt(12)
-        p.paragraph_format.space_after = None
-        run = p.add_run()
+        par = self.document.add_paragraph()
+        par.paragraph_format.space_before = Pt(12)
+        par.paragraph_format.space_after = None
+        run = par.add_run()
         run.text = "Predictions:"
         run.font.underline = True
         _ = self.add_result_table(pred_train_5)
 
-        p = self.document.add_paragraph()
-        p.paragraph_format.space_before = Pt(12)
-        p.paragraph_format.space_after = None
-        run = p.add_run()
+        par = self.document.add_paragraph()
+        par.paragraph_format.space_before = Pt(12)
+        par.paragraph_format.space_after = None
+        run = par.add_run()
         run.text = "Correct labels:"
         run.font.underline = True
         self.add_result_table(y_train_5)
 
         self.document.add_heading("Test data", 2)
-        s = np.random.randint(0, self.results["y_test"].shape[0] - 5)
-        pred_test_5 = self.results["pred_test"][s : s + 5, :]
-        y_test_5 = self.results["y_test"][s : s + 5, :]
+        rand = np.random.randint(0, self.results["y_test"].shape[0] - 5)
+        pred_test_5 = self.results["pred_test"][rand : rand + 5, :]
+        y_test_5 = self.results["y_test"][rand : rand + 5, :]
 
-        p = self.document.add_paragraph()
-        p.paragraph_format.space_before = Pt(12)
-        p.paragraph_format.space_after = None
-        run = p.add_run()
+        par = self.document.add_paragraph()
+        par.paragraph_format.space_before = Pt(12)
+        par.paragraph_format.space_after = None
+        run = par.add_run()
         run.text = "Predictions:"
         run.font.underline = True
         self.add_result_table(pred_test_5)
 
-        p = self.document.add_paragraph()
-        p.paragraph_format.space_before = Pt(12)
-        p.paragraph_format.space_after = None
-        run = p.add_run()
+        par = self.document.add_paragraph()
+        par.paragraph_format.space_before = Pt(12)
+        par.paragraph_format.space_after = None
+        run = par.add_run()
         run.text = "Correct labels:"
         run.font.underline = True
         self.add_result_table(y_test_5)
@@ -627,10 +661,6 @@ class Report:
         ----------
         data_array : ndarray
             Array with the results from training.
-
-        Returns
-        -------
-        None.
 
         """
         new_table = self.document.add_table(
@@ -645,9 +675,9 @@ class Report:
             new_table.cell(0, i).paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
 
         if data_array.dtype == "float32":
-            a = np.around(data_array, decimals=4)
-            row_sums = a.sum(axis=1)
-            data_array = a / row_sums[:, np.newaxis]
+            arr = np.around(data_array, decimals=4)
+            row_sums = arr.sum(axis=1)
+            data_array = arr / row_sums[:, np.newaxis]
             data_array = np.around(data_array, decimals=2)
 
         for i in range(data_array.shape[0]):

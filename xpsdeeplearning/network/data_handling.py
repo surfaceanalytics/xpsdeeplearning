@@ -212,9 +212,9 @@ class DataHandler:
             List of data that were in the HDF5 file.
 
         """
-        with h5py.File(self.input_filepath, "r") as hf:
+        with h5py.File(self.input_filepath, "r") as h5_file:
             try:
-                self.energies = hf["energies"][:]
+                self.energies = h5_file["energies"][:]
             except KeyError:
                 self.energies = np.flip(np.arange(694, 750.05, 0.05))
                 print(
@@ -223,9 +223,11 @@ class DataHandler:
                 )
             try:
                 try:
-                    self.labels = [label.decode("utf-8") for label in hf["labels"][:]]
+                    self.labels = [
+                        label.decode("utf-8") for label in h5_file["labels"][:]
+                    ]
                 except AttributeError:
-                    self.labels = [str(label) for label in hf["labels"][:]]
+                    self.labels = [str(label) for label in h5_file["labels"][:]]
                 self.num_classes = len(self.labels)
             except KeyError:
                 print(
@@ -233,7 +235,7 @@ class DataHandler:
                     + "The label list is empty."
                 )
 
-            dataset_size = hf["X"].shape[0]
+            dataset_size = h5_file["X"].shape[0]
 
             # Randomly choose a subset of the whole data set.
             try:
@@ -242,17 +244,17 @@ class DataHandler:
                 else:
                     r = 0
 
-            except ValueError as e:
+            except ValueError as exc:
                 error_msg = (
                     "There are not enough spectra in this data set. "
                     + f"Please choose a value of no more than {dataset_size} "
                     + "for no_of_examples."
                 )
-                raise type(e)(error_msg)
+                raise ValueError(error_msg) from exc
 
-            X = hf["X"][r : r + self.no_of_examples]
+            X = h5_file["X"][r : r + self.no_of_examples]
             X = X.astype(float)
-            y = hf["y"][r : r + self.no_of_examples]
+            y = h5_file["y"][r : r + self.no_of_examples]
 
             if not self.intensity_only:
                 new_energies = np.tile(
@@ -269,10 +271,10 @@ class DataHandler:
             loaded_data = [X, y]
 
             # Check if the data set was artificially created.
-            if "shiftx" in hf.keys():
-                shift_x = hf["shiftx"][r : r + self.no_of_examples]
-                noise = hf["noise"][r : r + self.no_of_examples]
-                fwhm = hf["FWHM"][r : r + self.no_of_examples]
+            if "shiftx" in h5_file.keys():
+                shift_x = h5_file["shiftx"][r : r + self.no_of_examples]
+                noise = h5_file["noise"][r : r + self.no_of_examples]
+                fwhm = h5_file["FWHM"][r : r + self.no_of_examples]
 
                 loaded_data.extend([shift_x, noise, fwhm])
 
@@ -282,10 +284,10 @@ class DataHandler:
 
                 # If the data set was artificially created, check
                 # if scattering in a gas phase was simulated.
-                if "scatterer" in hf.keys():
-                    scatterer = hf["scatterer"][r : r + self.no_of_examples]
-                    distance = hf["distance"][r : r + self.no_of_examples]
-                    pressure = hf["pressure"][r : r + self.no_of_examples]
+                if "scatterer" in h5_file.keys():
+                    scatterer = h5_file["scatterer"][r : r + self.no_of_examples]
+                    distance = h5_file["distance"][r : r + self.no_of_examples]
+                    pressure = h5_file["pressure"][r : r + self.no_of_examples]
 
                     loaded_data.extend([scatterer, distance, pressure])
 
@@ -295,10 +297,10 @@ class DataHandler:
 
             # Check if the spectra have associated names. Typical for
             # measured spectra.
-            elif "names" in hf.keys():
+            elif "names" in h5_file.keys():
                 names_load_list = [
                     name[0].decode("utf-8")
-                    for name in hf["names"][r : r + self.no_of_examples, :]
+                    for name in h5_file["names"][r : r + self.no_of_examples, :]
                 ]
                 self.names = np.reshape(np.array(names_load_list), (-1, 1))
                 loaded_data.extend([self.names])
@@ -348,8 +350,6 @@ class DataHandler:
         and the rest of the labels = 0.0.
         """
         indices = np.where(self.y == 1.0)[0]
-
-        print(indices)
 
         self.X, self.y = self.X[indices], self.y[indices]
 
@@ -491,14 +491,13 @@ class DataHandler:
         data = []
         texts = []
 
-        X, y = self._select_dataset(dataset)
+        X, _ = self._select_dataset(dataset)
 
         if len(indices) < no_of_spectra:
             no_of_spectra = len(indices)
 
         for i in range(no_of_spectra):
             index = indices[i]
-            label = str(np.around(y[index], decimals=3))
             if self.intensity_only:
                 new_energies = np.reshape(np.array(self.energies), (-1, 1))
                 data.append(np.hstack((new_energies, X[index])))
@@ -516,7 +515,7 @@ class DataHandler:
         data = np.array(data)
 
         graphic = SpectraPlot(data=data, annots=texts)
-        fig, axs = graphic.plot()
+        graphic.plot()
 
     def plot_random(self, no_of_spectra, dataset, with_prediction):
         """
@@ -542,10 +541,10 @@ class DataHandler:
         None.
 
         """
-        X, y = self._select_dataset(dataset)
+        X, _ = self._select_dataset(dataset)
 
         indices = []
-        for i in range(no_of_spectra):
+        for _ in range(no_of_spectra):
             r = np.random.randint(0, X.shape[0])
             indices.append(r)
 
@@ -583,8 +582,8 @@ class DataHandler:
         None.
 
         """
-        X, y = self._select_dataset("test")
-        pred, losses = self._get_predictions("test")
+        _, y = self._select_dataset("test")
+        _, losses = self._get_predictions("test")
 
         if kind == "all":
             indices = [
@@ -723,12 +722,34 @@ class DataHandler:
             data = np.array(data)
 
             graphic = SpectraPlot(data=data, annots=texts)
-            fig, axs = graphic.plot()
+            _ = graphic.plot()
 
     def plot_prob_predictions(
         self, prob_preds, indices, dataset="test", no_of_spectra=10
     ):
-        X, y = self._select_dataset(dataset_name="test")
+        """
+        Generate a plot with the probabilistic predictions.
+
+        Parameters
+        ----------
+        prob_preds : np.ndarray
+            Array with probabilistic predictions.
+        indices: list
+            List of spectrum indices.
+        dataset : str
+            Either "train", "val", or "test".
+            The default is "train".
+        no_of_spectra : int
+            No. of spectra for which to create plot of
+            probabilistic predictions
+
+        Returns
+        -------
+        fig : plt.figure
+            Figure object.
+
+        """
+        X, y = self._select_dataset(dataset_name=dataset)
 
         if no_of_spectra > y.shape[0]:
             print("Provided no. of spectra was bigger than dataset size.")
@@ -830,7 +851,7 @@ class DataHandler:
         self, prob_preds, kind, dataset="test", no_of_spectra=10
     ):
         if kind == "random":
-            X, y = self._select_dataset(dataset_name="test")
+            X, _ = self._select_dataset(dataset_name=dataset)
             indices = []
             for i in range(no_of_spectra):
                 r = np.random.randint(0, X.shape[0])
@@ -839,7 +860,7 @@ class DataHandler:
                 indices.append(r)
             return indices
 
-        elif kind == "min":
+        if kind == "min":
             return [
                 j[1]
                 for j in sorted(
@@ -848,7 +869,7 @@ class DataHandler:
                 )
             ]
 
-        elif kind == "max":
+        if kind == "max":
             return [
                 j[1]
                 for j in sorted(
@@ -857,8 +878,8 @@ class DataHandler:
                 )
             ]
 
-        else:
-            print("Select a valid kind!")
+        print("Select a valid kind!")
+        return None
 
     def _select_dataset(self, dataset_name):
         """
@@ -937,7 +958,7 @@ class DataHandler:
             Descriptive text for one spectrum.
 
         """
-        X, y = self._select_dataset(dataset)
+        _, y = self._select_dataset(dataset)
 
         label = str(np.around(y[index], decimals=3))
         text = "Real: " + label + "\n"

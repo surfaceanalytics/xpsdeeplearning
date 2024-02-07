@@ -36,7 +36,10 @@ class TextParser:
         None.
 
         """
+        self.filepath: str = ""
         self.data_dict = []
+        self.header: str = ""
+        self.data = []
 
     def parse_file(self, filepath):
         """
@@ -55,8 +58,8 @@ class TextParser:
     def _read_lines(self, filepath):
         self.data = []
         self.filepath = filepath
-        with open(filepath) as fp:
-            for line in fp:
+        with open(filepath) as txt_file:
+            for line in txt_file:
                 self.data += [line]
 
     def _parse_header(self):
@@ -68,7 +71,7 @@ class TextParser:
         None.
 
         """
-        self.header = str(self.data[0]).split("\n")[0]
+        self.header = str(self.data[0]).split("\n", maxsplit=1)[0]
         self.data = self.data[1:]
 
     def _build_dict(self):

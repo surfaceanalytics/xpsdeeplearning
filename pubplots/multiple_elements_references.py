@@ -22,13 +22,13 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 
-from common import TextParser, ParserWrapper, save_dir
+from common import TextParser, ParserWrapper, DATAFOLDER, SAVE_DIR
 
 
 class FitTextParser(TextParser):
     """Parser for XPS data stored in TXT files."""
 
-    def _build_data(self, bg=True, envelope=True):
+    def _build_data(self):
         """
         Build dictionary from the loaded data.
 
@@ -42,8 +42,8 @@ class FitTextParser(TextParser):
             hn.split(":")[1] for hn in self.header[6].split("\t") if "Cycle" in hn
         ]
 
-        for i, hn in enumerate(self.header_names):
-            if hn == "Ni" or hn == "Co" or hn == "Fe":
+        for i, header_name in enumerate(self.header_names):
+            if header_name in ("Ni", "Co", "Fe"):
                 self.header_names[i] += " metal"
 
         self.names = [
@@ -72,8 +72,10 @@ class FitTextParser(TextParser):
 
 
 class Wrapper(ParserWrapper):
+    """Wrapper for loading and plotting."""
+
     def __init__(self, datafolder, file_dict):
-        super(Wrapper, self).__init__(datafolder=datafolder, file_dict=file_dict)
+        super().__init__(datafolder=datafolder, file_dict=file_dict)
         self.fontdict_legend = {"size": 17}
 
         self.color_dict = {
@@ -91,16 +93,18 @@ class Wrapper(ParserWrapper):
             "Envelope": "red",
         }
 
-    def parse_data(self):
-        filepath = os.path.join(self.datafolder, self.file_dict["filename"])
         self.parser = FitTextParser()
+
+    def parse_data(self):
+        """Load data from file dict."""
+        filepath = os.path.join(self.datafolder, self.file_dict["filename"])
         self.parser.parse_file(filepath)
-        self.parser.title = self.file_dict["title"]
-        self.parser.fit_start = self.file_dict["fit_start"]
-        self.parser.fit_end = self.file_dict["fit_end"]
+        for key, value in self.file_dict.items():
+            setattr(self.parser, key, value)
 
     def plot_all(self):
-        self.fig, self.axs = plt.subplots(
+        """Plot references."""
+        fig, axs = plt.subplots(
             nrows=3,
             ncols=1,
             figsize=(10, 12),
@@ -123,15 +127,11 @@ class Wrapper(ParserWrapper):
             elif "Fe" in header_name:
                 row = 2
 
-            self.axs[row, 0].set_xlabel("Binding energy (eV)", fontdict=self.fontdict)
-            self.axs[row, 0].set_ylabel(
-                "Intensity (arb. units)", fontdict=self.fontdict
-            )
-            self.axs[row, 0].tick_params(axis="x", labelsize=self.fontdict["size"])
-            self.axs[row, 0].tick_params(
-                axis="y", which="both", right=False, left=False
-            )
-            self.axs[row, 0].set_yticklabels([])
+            axs[row, 0].set_xlabel("Binding energy (eV)", fontdict=self.fontdict)
+            axs[row, 0].set_ylabel("Intensity (arb. units)", fontdict=self.fontdict)
+            axs[row, 0].tick_params(axis="x", labelsize=self.fontdict["size"])
+            axs[row, 0].tick_params(axis="y", which="both", right=False, left=False)
+            axs[row, 0].set_yticklabels([])
 
             for spectrum_name in self.parser.names:
                 if spectrum_name in header_name:
@@ -142,9 +142,9 @@ class Wrapper(ParserWrapper):
             start = self.parser.fit_start
             end = self.parser.fit_end
 
-            handle = self.axs[row, 0].plot(x[start:end], y[start:end, j], c=color)
+            handle = axs[row, 0].plot(x[start:end], y[start:end, j], c=color)
 
-            self.axs[row, 0].set_xlim(left=np.max(x), right=np.min(x))
+            axs[row, 0].set_xlim(left=np.max(x), right=np.min(x))
 
             if name not in handle_dict:
                 handle_dict[name] = handle
@@ -168,7 +168,7 @@ class Wrapper(ParserWrapper):
                 handles_sort.append(handles[index])
                 labels_sort.append(label)
 
-            self.axs[key, 0].legend(
+            axs[key, 0].legend(
                 handles=handles_sort,
                 labels=labels_sort,
                 ncol=1,
@@ -176,14 +176,13 @@ class Wrapper(ParserWrapper):
                 loc="best",
             )
 
-        self.fig.tight_layout()
+        fig.tight_layout()
 
-        return self.fig, self.axs
+        return fig
 
 
 def main():
     """Plot of reference data with multiple elements."""
-    datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\utils\exports"
 
     file_dict = {
         "filename": "nicofe_references.txt",
@@ -192,14 +191,14 @@ def main():
         "fit_end": -1,
     }
 
-    wrapper = Wrapper(datafolder, file_dict)
+    wrapper = Wrapper(DATAFOLDER, file_dict)
     wrapper.parse_data()
-    fig, ax = wrapper.plot_all()
+    fig = wrapper.plot_all()
 
     plt.show()
 
     for ext in [".png", ".eps"]:
-        fig_path = os.path.join(save_dir, "references_multiple" + ext)
+        fig_path = os.path.join(SAVE_DIR, "references_multiple" + ext)
         fig.savefig(fig_path, bbox_inches="tight")
 
 

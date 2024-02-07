@@ -19,13 +19,12 @@ Plot effect of data set size on model training.
 """
 
 import os
-import matplotlib.pyplot as plt
-import pickle
 import csv
+import pickle
+import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
-import numpy as np
 
-from common import save_dir
+from common import RUNFOLDER, SAVE_DIR
 
 
 def _get_total_history(csv_filepath):
@@ -76,9 +75,6 @@ def plot_metric(
     history,
     metric,
     title=None,
-    zoom=False,
-    zoom_x=(None, None),
-    zoom_y=(None, None),
 ):
     """
     Plots the training and validation values of a metric
@@ -140,6 +136,7 @@ def plot_metric(
 
 
 def plot_test_loss_after_1000_epochs(ax, histories, norm=False):
+    """Plot the test loss of all histories after 1000 epochs."""
     fontdict = {"size": 35}
     fontdict_legend = {"size": 28}
 
@@ -205,20 +202,8 @@ def plot_test_loss_after_1000_epochs(ax, histories, norm=False):
     )
 
 
-def plot_epochs(
-    ax,
-    history,
-):
-    for key, values in history.items():
-        v = np.array(values["val_loss"])
-        pos = np.where(v < 0.1)[0][0]
-
-        ax.scatter(key, pos)
-
-
 def main():
     """Plot effect of data set size on model training."""
-    input_datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\runs"
 
     classifiers_Ni = {
         25: "20230427_14h58m_Ni_linear_combination_normalized_inputs_small_gas_phase_25k",
@@ -242,15 +227,15 @@ def main():
     history_Mn = {}
 
     for clf_name, clf_path in classifiers_Ni.items():
-        logpath = os.path.join(*[input_datafolder, clf_path, "logs/log.csv"])
+        logpath = os.path.join(*[RUNFOLDER, clf_path, "logs/log.csv"])
         history_Ni[clf_name] = _get_total_history(logpath)
-        pkl_path = os.path.join(*[input_datafolder, clf_path, "logs", "results.pkl"])
+        pkl_path = os.path.join(*[RUNFOLDER, clf_path, "logs", "results.pkl"])
         test_loss = load_test_loss_for_one_run(pkl_path)
         history_Ni[clf_name]["test_loss"] = test_loss
     for clf_name, clf_path in classifiers_Mn.items():
-        logpath = os.path.join(*[input_datafolder, clf_path, "logs/log.csv"])
+        logpath = os.path.join(*[RUNFOLDER, clf_path, "logs/log.csv"])
         history_Mn[clf_name] = _get_total_history(logpath)
-        pkl_path = os.path.join(*[input_datafolder, clf_path, "logs", "results.pkl"])
+        pkl_path = os.path.join(*[RUNFOLDER, clf_path, "logs", "results.pkl"])
         test_loss = load_test_loss_for_one_run(pkl_path)
         history_Mn[clf_name]["test_loss"] = test_loss
 
@@ -273,9 +258,6 @@ def main():
             hist_dict,
             metric,
             title=titles[j],
-            zoom=False,
-            zoom_x=(None, None),
-            zoom_y=(None, None),
         )
 
     plot_test_loss_after_1000_epochs(axs[1, 0], histories, norm=False)
@@ -285,7 +267,7 @@ def main():
     plt.show()
 
     for ext in [".png", ".eps"]:
-        fig_path = os.path.join(save_dir, "sample_size_effect" + ext)
+        fig_path = os.path.join(SAVE_DIR, "sample_size_effect" + ext)
         fig.savefig(fig_path, bbox_inches="tight")
 
 

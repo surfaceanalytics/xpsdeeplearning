@@ -34,6 +34,7 @@ from xpsdeeplearning.simulation.sim import Simulation
 
 
 def test_vms_load():
+    """Test for loading VAMAS data."""
     filepath = "tests/data/vms_test.vms"
 
     measured_spectrum = MeasuredSpectrum(filepath)
@@ -46,6 +47,7 @@ def test_vms_load():
 
 
 def test_txt_load():
+    """Test for loading exported data in txt format."""
     filepath = "tests/data/vms_export.txt"
 
     measured_spectrum = MeasuredSpectrum(filepath)
@@ -98,7 +100,7 @@ def test_creator():
         params = json.load(param_file)
 
     creator = Creator(params=params)
-    df = creator.run()
+    _ = creator.run()
 
     ref_hdf5_file = "tests/data/20240206_Ni_linear_combination_small_gas_phase.h5"
 
@@ -129,27 +131,9 @@ def test_creator():
     ],
 )
 def test_simulate_cli(cli_inputs):
+    """Test CLI function for data set simulation."""
     runner = CliRunner()
-    timestamp = datetime.datetime.now().strftime("%Y%m%d")
     result = runner.invoke(simulate_cli, cli_inputs)
-
-    hdf5_file = "Ni_linear_combination_small_gas_phase.h5"
-    ref_hdf5_file = "tests/data/20240206_Ni_linear_combination_small_gas_phase.h5"
-
-    with h5py.File(ref_hdf5_file, "r") as hf:
-        energies = hf["energies"][:]
-        X = hf["X"][0].astype(float)
-        y = hf["y"][0]
-
-    with h5py.File(ref_hdf5_file, "r") as hf:
-        ref_energies = hf["energies"][:]
-        ref_X = hf["X"][0].astype(float)
-        ref_y = hf["y"][0]
-
     assert result.exit_code == 2
-    assert (energies == ref_energies).all()
-    assert X.shape == ref_X.shape
-    assert y.shape == ref_y.shape
 
-    # os.remove(hdf5_file)
     sys.stdout.write("Test on simulate_cli okay.\n")

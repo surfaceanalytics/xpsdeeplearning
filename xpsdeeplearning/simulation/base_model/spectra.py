@@ -74,8 +74,8 @@ def _resample_array(y, x0, x1):
         DESCRIPTION.
 
     """
-    fn = interp1d(x0, y, axis=0, fill_value="extrapolate")
-    return fn(x1)
+    func = interp1d(x0, y, axis=0, fill_value="extrapolate")
+    return func(x1)
 
 
 class Spectrum:
@@ -108,6 +108,7 @@ class Spectrum:
         self.stop = stop
         self.step = step
         self.x = np.flip(safe_arange_with_edges(self.start, self.stop, self.step))
+        self.lineshape = np.array([])
         self.clear_lineshape()
         self.label = label
         self.spectrum_type = None
@@ -223,9 +224,7 @@ class MeasuredSpectrum(Spectrum):
         if not hasattr(self, "label"):
             self.label = {species: 1.0}
 
-        super(MeasuredSpectrum, self).__init__(
-            self.start, self.stop, self.step, self.label
-        )
+        super().__init__(self.start, self.stop, self.step, self.label)
         self.x = np.round(x, 3)
         self.lineshape = y
 
@@ -358,9 +357,6 @@ class MeasuredSpectrum(Spectrum):
 class FittedSpectrum(MeasuredSpectrum):
     """Class for loading and resizing a fitted spectrum."""
 
-    def __init__(self, filepath):
-        super(FittedSpectrum, self).__init__(filepath)
-
     def load(self, filepath):
         """
         Overwrite load method from the MeasuredSpectrum class.
@@ -388,7 +384,7 @@ class FittedSpectrum(MeasuredSpectrum):
                 lines += [line]
         # This takes the species given in the first line
         self.label = str(lines[0]).split(" ", maxsplit=2)[2].split(":")[0]
-        species = str(lines[0]).split(":")[-1].split("\n")[0]
+        species = str(lines[0]).rsplit(":", maxsplit=1)[-1]
         self.number = int(str(lines[0]).split(" ", maxsplit=2)[1].split(":")[1])
         lines = [[float(i) for i in line.split()] for line in lines[8:]]
         xy_data = np.array(lines)[:, 2:]
@@ -429,7 +425,7 @@ class SyntheticSpectrum(Spectrum):
         None.
 
         """
-        super(SyntheticSpectrum, self).__init__(start, stop, step, label)
+        super().__init__(start, stop, step, label)
         self.spectrum_type = "synthetic"
         self.components = []
 
@@ -529,10 +525,11 @@ class SimulatedSpectrum(Spectrum):
         None.
 
         """
-        super(SimulatedSpectrum, self).__init__(start, stop, step, label)
+        super().__init__(start, stop, step, label)
         self.spectrum_type = "simulated"
         self.shift_x = None
         self.signal_to_noise = None
+        self.fwhm = None
         self.resolution = None
         self.scatterer = None
         self.pressure = None
@@ -693,7 +690,6 @@ class SimulatedSpectrum(Spectrum):
 
         """
         if label in ["He", "H2", "N2", "O2"]:
-            # Make sure that the ScatteringMedium class is imported.
             from .scatterers import ScatteringMedium
 
             medium = ScatteringMedium(label)

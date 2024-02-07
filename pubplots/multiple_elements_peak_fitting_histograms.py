@@ -18,17 +18,26 @@
 Peak fitting histograms for spectra with more than one element.
 """
 import os
-
 import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
-from common import ParserWrapper, get_xlsxpath, print_mae_info, save_dir
 from sklearn.metrics import mean_absolute_error
+import numpy as np
+
+from common import (
+    ParserWrapper,
+    get_xlsxpath,
+    print_mae_info,
+    UTILS_FOLDER,
+    DATAFOLDER,
+    SAVE_DIR,
+)
 
 
 class Wrapper(ParserWrapper):
+    """Wrapper for loading and plotting."""
+
     def __init__(self, datafolder, file_dict):
-        super(Wrapper, self).__init__(datafolder=datafolder, file_dict=file_dict)
+        super().__init__(datafolder=datafolder, file_dict=file_dict)
         self.fontdict_small = {"size": 13}
         self.fontdict_legend = {"size": 14.5}
         self.losses_test = {}
@@ -55,7 +64,7 @@ class Wrapper(ParserWrapper):
         ax.tick_params(axis="x", labelsize=self.fontdict["size"])
         ax.tick_params(axis="y", labelsize=self.fontdict["size"])
 
-        N, bins, hist_patches = ax.hist(
+        _, _, hist_patches = ax.hist(
             losses_test,
             bins=100,
             histtype="bar",
@@ -72,6 +81,7 @@ class Wrapper(ParserWrapper):
         return ax
 
     def _add_peak_fits(self, ax, with_fits=True):
+        """Add a plot of a peak-fitted spectrum to an axis."""
         for i, parser in enumerate(self.parsers):
             x, y = parser.data["x"], parser.data["y"]
 
@@ -130,22 +140,22 @@ class Wrapper(ParserWrapper):
             ax.set_title(parser.title, fontdict=self.fontdict)
             ax.set_xlim(left=np.max(x[start:end]), right=np.min(x[start:end]))
 
-        texts = [
-            ("Ni 2p", 0.065, 0.65),
-            ("Co 2p", 0.45, 0.575),
-            ("Fe 2p", 0.85, 0.4),
-        ]
+            texts = [
+                ("Ni 2p", 0.065, 0.65),
+                ("Co 2p", 0.45, 0.575),
+                ("Fe 2p", 0.85, 0.4),
+            ]
 
-        for t in texts:
-            self.axs[0, i].text(
-                x=t[1],
-                y=t[2],
-                s=t[0],
-                horizontalalignment="left",
-                size=25,
-                verticalalignment="center",
-                transform=self.axs[0, i].transAxes,
-            )
+            for text in texts:
+                self.axs[0, i].text(
+                    x=text[1],
+                    y=text[2],
+                    s=text[0],
+                    horizontalalignment="left",
+                    size=25,
+                    verticalalignment="center",
+                    transform=self.axs[0, i].transAxes,
+                )
 
         for i, parser in enumerate(self.parsers):
             self.axs[0, i].set_title(parser.title, fontdict=self.fontdict)
@@ -180,6 +190,7 @@ class Wrapper(ParserWrapper):
         ax.set_ylim(top=np.max(parser.data["y"] * 1.1))
 
     def plot_all(self, with_fits=True):
+        """Plot results."""
         self.fig, self.axs = plt.subplots(
             nrows=1,
             ncols=2,
@@ -210,13 +221,11 @@ class Wrapper(ParserWrapper):
 
         self.fig.tight_layout(w_pad=3.0)
 
-        return self.fig, self.axs
+        return self.fig
 
 
 def main():
     """Peak fitting histograms for spectra with more than one element."""
-
-    datafolder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\utils\exports"
     file_dict = {
         "nicofe": {
             "filename": "nicofe_fit.txt",
@@ -243,12 +252,10 @@ def main():
         }
     }
 
-    wrapper = Wrapper(datafolder, file_dict)
+    wrapper = Wrapper(DATAFOLDER, file_dict)
     wrapper.parse_data(bg=True, envelope=True)
 
-    fit_datafolder = (
-        r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\utils\fit_comparison"
-    )
+    fit_datafolder = os.path.join(UTILS_FOLDER, "fit_comparison")
     cols = [
         "Ni metal",
         "NiO",
@@ -260,7 +267,6 @@ def main():
         "Fe3O4",
         "Fe2O3",
     ]
-    cols2 = ["Fe metal", "FeO", "Fe3O4", "Fe2O3"]
     df_true = pd.read_csv(
         get_xlsxpath(fit_datafolder, "truth_multiple"), index_col=0, sep=";"
     )
@@ -288,11 +294,11 @@ def main():
     wrapper.losses_test["Neural network"] = mae_nn
     print_mae_info(mae_nn, "Neural network")
 
-    fig, ax = wrapper.plot_all(with_fits=True)
+    fig = wrapper.plot_all(with_fits=True)
     plt.show()
 
     for ext in [".png", ".eps"]:
-        fig_path = os.path.join(save_dir, "fit_histograms_multiple" + ext)
+        fig_path = os.path.join(SAVE_DIR, "fit_histograms_multiple" + ext)
         fig.savefig(fig_path, bbox_inches="tight")
 
     dfs = {"Neural network": df_nn, "Lineshapes": df_fit}

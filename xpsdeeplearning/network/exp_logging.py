@@ -206,7 +206,7 @@ class ExperimentLogging:
         try:
             with open(csv_file, newline="") as csvfile:
                 reader = csv.DictReader(csvfile)
-                for row in reader:
+                for _ in reader:
                     epochs += 1
         except FileNotFoundError:
             pass
@@ -253,7 +253,7 @@ class ExperimentLogging:
 
         self.update_saved_hyperparams({"epochs_trained": 0})
 
-        for root, dirs, files in os.walk(self.log_dir):
+        for root, _, files in os.walk(self.log_dir):
             if root != self.log_dir:
                 shutil.rmtree(root)
             else:
@@ -450,19 +450,19 @@ class CustomModelCheckpoint(callbacks.ModelCheckpoint):
                         )
 
                 self._maybe_remove_file()
-            except IsADirectoryError:  # h5py 3.x
+            except IsADirectoryError as exc:  # h5py 3.x
                 raise IOError(
                     "Please specify a non-directory filepath for "
                     "ModelCheckpoint. Filepath used is an existing "
                     f"directory: {filepath}"
-                )
-            except IOError as e:  # h5py 2.x
+                ) from exc
+            except IOError as exc:  # h5py 2.x
                 # `e.errno` appears to be `None` so checking the content of `e.args[0]`.
-                if "is a directory" in str(e.args[0]).lower():
+                if "is a directory" in str(exc.args[0]).lower():
                     raise IOError(
                         "Please specify a non-directory filepath for "
                         "ModelCheckpoint. Filepath used is an existing "
                         f"directory: f{filepath}"
-                    )
+                    ) from exc
                 # Re-throw the error for any other causes.
-                raise e
+                raise exc

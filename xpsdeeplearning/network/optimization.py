@@ -58,6 +58,10 @@ class Hyperoptimization:
 
         self.scans = []
         self.full_data = pd.DataFrame()
+        self.best_params = {}
+        self.analyzer = None
+        self.all_weights: np.ndarray = np.array([])
+        self.fig_dir: str = ""
 
         if os.path.isdir(self.test_dir) is False:
             os.makedirs(self.test_dir)
@@ -203,9 +207,7 @@ class Hyperoptimization:
         self.scans.append(scan)
 
         try:
-            from talos.scan.scan_run import scan_run
-
-            scan_run(scan)
+            talos.scan.scan_run.scan_run(scan)
             print(("\n Parameter space was scanned. " + "Training log was saved."))
 
         except KeyboardInterrupt:
@@ -429,7 +431,7 @@ class Scan(talos.Scan):
         In comparison to original talos.Scan, scan_round is
         not run on implementation (see talos docs),
         """
-        super(Scan, self).__init__(
+        super().__init__(
             x=x,
             y=y,
             params=params,
@@ -457,6 +459,7 @@ class Scan(talos.Scan):
             save_weights=save_weights,
             number=number,
         )
+        self.round_params = None
 
     def deploy(self):
         """
@@ -516,18 +519,12 @@ class Scan(talos.Scan):
         """Catch an interruption and still save the data."""
         self.round_params = self.param_object.round_parameters()
 
-        from talos.scan.scan_round import scan_round
-
-        scan_round(self)
+        talos.scan.scan_round.scan_round(self)
 
         self.pbar.close()
 
-        from talos.logging.logging_finish import logging_finish
-
-        logging_finish(self)
-        from talos.scan.scan_finish import scan_finish
-
-        scan_finish(self)
+        talos.logging.logging_finish.logging_finish(self)
+        talos.scan.scan_finish.scan_finish(self)
 
 
 class RestoredScan:
@@ -645,7 +642,9 @@ class Analysis:
             ID of the best round.
 
         """
-        return self.df[self.df[metric] == self.df[metric].min()].index[0]
+        if low:
+            return self.df[self.df[metric] == self.df[metric].min()].index[0]
+        return self.df[self.df[metric] == self.df[metric].max()].index[0]
 
     def _minimum_value(self, metric):
         """Return the minimum value for a given metric."""
@@ -793,7 +792,7 @@ class Plot:
         """
         self.data = data
         self.name = None
-        self.fig = None
+        self.fig, self.ax = plt.subplots(figsize=(10, 8))
 
         self.font_dict = {
             "fontsize": 15,
@@ -830,8 +829,8 @@ class Plot:
 
         """
         filename = self.name + ".png"
-        self.fig_dir = os.path.join(filepath, filename)
-        self.fig.savefig(self.fig_dir)
+        fig_dir = os.path.join(filepath, filename)
+        self.fig.savefig(fig_dir)
         print("File saved to figures directory!")
 
 
@@ -853,9 +852,11 @@ class LinePlot(Plot):
         None.
 
         """
-        super(LinePlot, self).__init__(data)
+        super().__init__(data)
         self.data = data
         self.name = "line plot_" + self.metric
+
+        self.x = range(self.data.shape[0])
 
     def plot(self):
         """
@@ -866,10 +867,6 @@ class LinePlot(Plot):
         None.
 
         """
-        self.x = range(self.data.shape[0])
-
-        self.fig, self.ax = plt.subplots(figsize=(10, 8))
-
         self.ax.plot(
             self.x,
             self.data,
@@ -914,7 +911,7 @@ class HistPlot(Plot):
         None.
 
         """
-        super(HistPlot, self).__init__(data)
+        super().__init__(data)
         self.name = "histogram_" + self.metric
 
     def plot(self, bins=10):
@@ -932,7 +929,7 @@ class HistPlot(Plot):
         None.
 
         """
-        self.fig, self.ax = plt.subplots(figsize=(10, 8))
+
         self.ax.hist(self.data, bins=bins)
 
         self.ax.set_title(
@@ -971,7 +968,7 @@ class CorrPlot(Plot):
         None.
 
         """
-        super(CorrPlot, self).__init__(data)
+        super().__init__(data)
         self.name = "correlation_plot"
 
     def plot(self):
@@ -987,7 +984,7 @@ class CorrPlot(Plot):
             figsize=(self.data.shape[0] * 2.3, self.data.shape[1] * 2)
         )
 
-        p = sns.heatmap(
+        heatmap = sns.heatmap(
             self.data,
             ax=self.ax,
             linewidths=0.1,
@@ -998,8 +995,8 @@ class CorrPlot(Plot):
             "Correlation matrix of the scanned parameters",
             self.font_dict,
         )
-        p.set_xticklabels(self.data, rotation=90)
-        p.set_yticklabels(self.data, rotation=0)
+        heatmap.set_xticklabels(self.data, rotation=90)
+        heatmap.set_yticklabels(self.data, rotation=0)
 
         for tick in self.ax.xaxis.get_major_ticks():
             tick.label.set_fontsize(13)
@@ -1029,12 +1026,14 @@ class KDEPlot(Plot):
         None.
 
         """
-        super(KDEPlot, self).__init__(data)
+        super().__init__(data)
         self.x = x
         self.y = y
         self.name = "kde_plot_" + self.x
         if y is not None:
             self.name += "-" + self.y
+
+        self.fig, self.ax = plt.subplots(figsize=(10, 10))
 
     def plot(self):
         """
@@ -1045,8 +1044,6 @@ class KDEPlot(Plot):
         None.
 
         """
-        self.fig, self.ax = plt.subplots(figsize=(10, 10))
-
         if self.y is not None:
             data2 = self.data[self.y]
         else:
@@ -1101,7 +1098,7 @@ class BarPlot(Plot):
         None.
 
         """
-        super(BarPlot, self).__init__(data)
+        super().__init__(data)
         self.x = x
         self.y = y
         self.hue = hue
@@ -1119,8 +1116,6 @@ class BarPlot(Plot):
         None.
 
         """
-        # self.fig, self.ax = plt.subplots(figsize = (10,10))
-
         self.fig = sns.catplot(
             data=self.data,
             x=self.x,

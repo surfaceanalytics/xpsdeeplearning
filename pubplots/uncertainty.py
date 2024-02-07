@@ -19,17 +19,18 @@ Plot uncertainty prediction.
 """
 
 import os
+from string import ascii_lowercase
 import pickle
 import matplotlib.pyplot as plt
 from matplotlib import gridspec
-from string import ascii_lowercase
 from matplotlib.ticker import MaxNLocator
 import numpy as np
 
-from common import save_dir
+from common import RUNFOLDER, SAVE_DIR
 
 
 def load_pickled_data(filepath):
+    """Load pickled classifier results."""
     with open(filepath, "rb") as pickle_file:
         pickle_data = pickle.load(pickle_file)
 
@@ -37,10 +38,12 @@ def load_pickled_data(filepath):
 
 
 def _normalize_min_max(data):
+    """Min-max normalize data array."""
     return (data - np.min(data)) / (np.max(data) - np.min(data))
 
 
 def create_grid_suptitle(fig, grid, title, fontdict):
+    """Create a suptitle for the figure grid."""
     row = fig.add_subplot(grid)
     row.set_title(f"{title}\n", fontweight="semibold", fontdict=fontdict)
     row.set_frame_on(False)
@@ -48,10 +51,9 @@ def create_grid_suptitle(fig, grid, title, fontdict):
 
 
 def plot_prob_predictions_together(data, normalize=False):
+    """Plot all probabilistic predictions together."""
     X_test = data["X_test_selected"]
     X_syn = data["X_syn"]
-    y_test = data["y_test_selected"]
-    y_syn = data["y_syn"]
     prob_pred_test = data["prob_pred_test_selected"]
     prob_pred_syn = data["prob_pred_syn"]
 
@@ -96,15 +98,17 @@ def plot_prob_predictions_together(data, normalize=False):
     max_counts = 0
     for i, spectrum in enumerate(X):
         color = cmap(i)
-        lw = 5
+        line_width = 5
 
         if normalize:
-            axs[0].plot(energies, _normalize_min_max(spectrum), color=color, lw=lw)
+            axs[0].plot(
+                energies, _normalize_min_max(spectrum), color=color, lw=line_width
+            )
         else:
-            axs[0].plot(energies, spectrum, color=color, lw=lw)
+            axs[0].plot(energies, spectrum, color=color, lw=line_width)
 
         for j, row in enumerate(prob_pred[i].transpose()):
-            counts, bins, patches = axs[j + 1].hist(
+            counts, _, _ = axs[j + 1].hist(
                 row,
                 bins=100,
                 range=(0.0, 1.0),
@@ -153,8 +157,12 @@ def plot_prob_predictions_together(data, normalize=False):
 
 def main():
     """Plot uncertainty prediction."""
+    folder = os.path.join(
+        RUNFOLDER,
+        "20221123_18h55m_Ni_2_classes_MC_dropout_test_predict_using_20220224_16h08m",
+        "logs",
+    )
 
-    folder = r"C:\Users\pielsticker\Lukas\MPI-CEC\Projects\deepxps\runs\20221123_18h55m_Ni_2_classes_MC_dropout_test_predict_using_20220224_16h08m\logs"
     filename = "results_synthetic.pkl"
 
     pickle_data = load_pickled_data(os.path.join(folder, filename))
@@ -162,7 +170,7 @@ def main():
     fig = plot_prob_predictions_together(pickle_data, normalize=False)
 
     for ext in [".png", ".eps"]:
-        fig_path = os.path.join(save_dir, "uncertainty_ni" + ext)
+        fig_path = os.path.join(SAVE_DIR, "uncertainty_ni" + ext)
         fig.savefig(fig_path, bbox_inches="tight")
 
 
