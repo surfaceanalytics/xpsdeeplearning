@@ -49,7 +49,7 @@ class FitTextParser(TextParser):
             self.header_names += ["Envelope"]
 
         for i, hn in enumerate(self.header_names):
-            if hn == "Ni" or hn == "Co" or hn == "Fe":
+            if hn in ("Ni", "Co", "Fe"):
                 self.header_names[i] += " metal"
 
         lines = np.array([[float(i) for i in d.split()] for d in self.data])
@@ -101,13 +101,13 @@ class Wrapper(ParserWrapper):
 
     def parse_data(self, bg=True, envelope=True):
         """Load data from file dict."""
-        for element, d in self.file_dict.items():
-            filepath = os.path.join(self.datafolder, d["filename"])
+        for element_dict in self.file_dict.values():
+            filepath = os.path.join(self.datafolder, element_dict["filename"])
             parser = FitTextParser()
             parser.parse_file(filepath, bg=bg, envelope=envelope)
-            parser.title = d["title"]
-            parser.fit_start = d["fit_start"]
-            parser.fit_end = d["fit_end"]
+            parser.title = element_dict["title"]
+            parser.fit_start = element_dict["fit_start"]
+            parser.fit_end = element_dict["fit_end"]
             self.parsers.append(parser)
 
     def plot_all(self):
@@ -172,6 +172,8 @@ class Wrapper(ParserWrapper):
                 ]
                 labels = self._reformat_label_list(labels)
 
+                self.axs[row, col].set_xlim(left=x[start, j], right=x[end, j])
+
             self.axs[row, col].legend(
                 handles=handles,
                 labels=labels,
@@ -181,11 +183,10 @@ class Wrapper(ParserWrapper):
             )
 
             self.axs[row, col].set_title(parser.title, fontdict=self.fontdict)
-            self.axs[row, col].set_xlim(left=x[start, j], right=x[end, j])
 
         gs.tight_layout(self.fig)
 
-        return self.fig, self.axs
+        return self.fig
 
 
 def main():
@@ -238,7 +239,7 @@ def main():
 
     wrapper = Wrapper(DATAFOLDER, file_dict)
     wrapper.parse_data(bg=False, envelope=False)
-    fig, ax = wrapper.plot_all()
+    fig = wrapper.plot_all()
 
     plt.show()
 

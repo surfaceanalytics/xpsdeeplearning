@@ -28,7 +28,7 @@ from common import TextParser, ParserWrapper, DATAFOLDER, SAVE_DIR
 class FitTextParser(TextParser):
     """Parser for XPS data stored in TXT files."""
 
-    def _build_data(self, bg=True, envelope=True):
+    def _build_data(self):
         """
         Build dictionary from the loaded data.
 
@@ -43,7 +43,7 @@ class FitTextParser(TextParser):
         ]
 
         for i, hn in enumerate(self.header_names):
-            if hn == "Ni" or hn == "Co" or hn == "Fe":
+            if hn in ("Ni", "Co", "Fe"):
                 self.header_names[i] += " metal"
 
         self.names = [
@@ -182,7 +182,7 @@ class Wrapper(ParserWrapper):
 
         self.fig.tight_layout()
 
-        return self.fig, self.axs
+        return self.fig
 
 
 def main():
@@ -197,7 +197,7 @@ def main():
 
     wrapper = Wrapper(DATAFOLDER, file_dict)
     wrapper.parse_data()
-    fig, ax = wrapper.plot_all()
+    fig = wrapper.plot_all()
 
     plt.show()
 

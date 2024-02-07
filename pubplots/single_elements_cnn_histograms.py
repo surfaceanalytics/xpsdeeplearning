@@ -20,8 +20,8 @@ Histogram of predictions on XPS data with single elements.
 
 import os
 import matplotlib.pyplot as plt
-from matplotlib import gridspec
 import pickle
+from matplotlib import gridspec
 from sklearn.metrics import mean_absolute_error
 import numpy as np
 
@@ -120,13 +120,13 @@ class Wrapper:
 
         """
         print("Calculating loss for each example...")
-        for clf in self.results.keys():
-            y_test = self.results[clf]["y_test"]
-            pred_test = self.results[clf]["pred_test"]
+        for clf, result in self.results.items():
+            y_test = result["y_test"]
+            pred_test = result["pred_test"]
             losses_test = self._calculate_test_losses_for_one_run(
                 loss_func, y_test, pred_test
             )
-            self.results[clf]["losses_test"] = losses_test
+            result["losses_test"] = losses_test
             print(
                 clf,
                 np.median(losses_test),
@@ -151,7 +151,7 @@ class Wrapper:
         ax.tick_params(axis="x", labelsize=self.fontdict["size"])
         ax.tick_params(axis="y", labelsize=self.fontdict["size"])
 
-        N, bins, hist_patches = ax.hist(
+        N, _, hist_patches = ax.hist(
             losses_test,
             bins=100,
             range=(0.0, 0.5),
@@ -204,6 +204,7 @@ class Wrapper:
         return ax
 
     def plot_all(self):
+        """Plot histograms."""
         self.x_max = {
             "Co": 0.25,
             "Cu": 0.25,
@@ -242,10 +243,11 @@ class Wrapper:
 
         gs.tight_layout(self.fig)
 
-        return self.fig, self.axs
+        return self.fig
 
 
 def main():
+    """Plot histogram of predictions on XPS data with single elements."""
     classifiers = {
         "Co": "20220628_08h58m_Co_linear_combination_normalized_inputs_small_gas_phase",
         "Cu": "20220628_09h58m_Cu_linear_combination_normalized_inputs_small_gas_phase",
@@ -260,7 +262,7 @@ def main():
     wrapper.load_predictions(classifiers)
     wrapper.calculate_test_losses(loss_func=mean_absolute_error)
     # results_maae = wrapper.calculate_test_losses(loss_func=maximum_absolute_error)
-    fig, ax = wrapper.plot_all()
+    fig = wrapper.plot_all()
     plt.show()
 
     for ext in [".png", ".eps"]:

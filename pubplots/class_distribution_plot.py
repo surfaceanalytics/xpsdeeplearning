@@ -34,6 +34,8 @@ plt.rcParams["savefig.facecolor"] = "white"
 
 
 class UpdatedClassDistribution(ClassDistribution):
+    """ClassDistribution with enhanced plot functionality."""
+
     def plot(self, labels):
         """
         Plot the class distribution. Using the labels list as legend.
@@ -68,9 +70,9 @@ class UpdatedClassDistribution(ClassDistribution):
 
         else:
             ax.set_title("Class distribution", fontdict=fontdict)
-            for k, v in self.cd.items():
+            for value_dict in self.cd.values():
                 data_list = []
-                for key, value in v.items():
+                for value in value_dict.values():
                     data_list.append(value)
             data.append(data_list)
             data = np.transpose(np.array(data))
@@ -106,17 +108,7 @@ def main():
     train_val_split = 0.2
     no_of_examples = 200000
 
-    (
-        X_train,
-        X_val,
-        X_test,
-        y_train,
-        y_val,
-        y_test,
-        aug_values_train,
-        aug_values_val,
-        aug_values_test,
-    ) = datahandler.load_data_preprocess(
+    _ = datahandler.load_data_preprocess(
         input_filepath=input_filepath,
         no_of_examples=no_of_examples,
         train_test_split=train_test_split,

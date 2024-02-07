@@ -18,6 +18,7 @@
 Common function for pubplots
 """
 import os
+from abc import ABC, abstractmethod
 import numpy as np
 
 
@@ -217,7 +218,8 @@ class TextParser:
         return self.data
 
 
-class ParserWrapper:
+@abstractmethod
+class ParserWrapper(ABC):
     """Abstract wrapper for loading and plotting."""
 
     def __init__(self, datafolder, file_dict):
@@ -248,7 +250,6 @@ class ParserWrapper:
         self.label_dict = {
             "Cu2O": "Cu$_{2}$O",
             "Co3O4": "Co$_{3}$O$_{4}$",
-            "Fe sat": "Fe satellite",
             "Fe3O4": "Fe$_{3}$O$_{4}$",
             "Fe2O3": "Fe$_{2}$O$_{3}$",
             "Fe sat": "Fe satellite",
@@ -259,6 +260,7 @@ class ParserWrapper:
         }
 
     def parse_data(self, bg=True, envelope=True):
+        """Parse data from file dict."""
         for method, d in self.file_dict.items():
             filepath = os.path.join(self.datafolder, d["filename"])
             parser = TextParser()
@@ -268,6 +270,7 @@ class ParserWrapper:
             self.parsers.append(parser)
 
     def _reformat_label_list(self, label_list):
+        """Reformat lavbel list according to label dict."""
         formatted_label_list = []
 
         for item in label_list:
@@ -279,4 +282,5 @@ class ParserWrapper:
         return formatted_label_list
 
     def plot_all(self, with_fits=True, with_nn_col=True, with_quantification=True):
+        """Abstract method for plotting the results."""
         pass

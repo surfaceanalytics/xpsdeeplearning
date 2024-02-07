@@ -19,10 +19,10 @@ Plot effect of simulation parameters on model training.
 """
 
 import os
-import matplotlib.pyplot as plt
 import pickle
 import string
 from sklearn.metrics import mean_absolute_error
+import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
 import numpy as np
@@ -71,8 +71,6 @@ class Wrapper:
 
         self.results["y_test"] = results["y_test"]
         self.results["pred_test"] = results["pred_test"]
-
-        return self.results["y_test"], self.results["pred_test"]
 
     def calculate_test_losses(self, loss_func):
         """
@@ -123,7 +121,7 @@ class Wrapper:
 
         self.sim_values_test = loaded_data[-1]
 
-    def plot_all(self, keys=["noise"]):
+    def plot_all(self, keys):
         """Plot results."""
         self.x_labels = {
             "shift_x": "Absolute Binding\nEnergy Shift (eV)",
@@ -225,7 +223,7 @@ def main():
     datapath = r"C:\Users\pielsticker\Simulations\20220624_Mn_linear_combination_small_gas_phase\20220624_Mn_linear_combination_small_gas_phase.h5"
 
     wrapper = Wrapper(RUNFOLDER)
-    y_test, pred_test = wrapper.load_predictions(clf_name)
+    wrapper.load_predictions(clf_name)
     wrapper.calculate_test_losses(loss_func=mean_absolute_error)
     wrapper.load_sim_values(datapath)
     fig, ax = wrapper.plot_all(keys=["shift_x", "noise", "fwhm"])

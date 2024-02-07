@@ -58,7 +58,6 @@ def _get_total_history(csv_filepath):
 def plot_metric(
     history,
     metric,
-    title=None,
     ylabel=None,
     zoom=False,
     zoom_x=(None, None),

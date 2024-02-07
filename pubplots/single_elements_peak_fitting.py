@@ -186,7 +186,7 @@ class Wrapper(ParserWrapper):
 
         gs.tight_layout(self.fig)
 
-        return self.fig, self.axs
+        return self.fig
 
 
 def main():
@@ -254,7 +254,7 @@ def main():
 
     wrapper = Wrapper(DATAFOLDER, file_dict)
     wrapper.parse_data(bg=True, envelope=True)
-    fig, axs = wrapper.plot_all()
+    fig = wrapper.plot_all()
     plt.show()
 
     for ext in [".png", ".eps"]:

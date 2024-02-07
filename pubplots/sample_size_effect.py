@@ -19,9 +19,9 @@ Plot effect of data set size on model training.
 """
 
 import os
-import matplotlib.pyplot as plt
-import pickle
 import csv
+import pickle
+import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
 
 from common import RUNFOLDER, SAVE_DIR
@@ -75,9 +75,6 @@ def plot_metric(
     history,
     metric,
     title=None,
-    zoom=False,
-    zoom_x=(None, None),
-    zoom_y=(None, None),
 ):
     """
     Plots the training and validation values of a metric
@@ -139,6 +136,7 @@ def plot_metric(
 
 
 def plot_test_loss_after_1000_epochs(ax, histories, norm=False):
+    """Plot the test loss of all histories after 1000 epochs."""
     fontdict = {"size": 35}
     fontdict_legend = {"size": 28}
 
@@ -260,9 +258,6 @@ def main():
             hist_dict,
             metric,
             title=titles[j],
-            zoom=False,
-            zoom_x=(None, None),
-            zoom_y=(None, None),
         )
 
     plot_test_loss_after_1000_epochs(axs[1, 0], histories, norm=False)

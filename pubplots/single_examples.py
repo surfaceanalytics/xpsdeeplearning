@@ -36,11 +36,11 @@ class Wrapper(ParserWrapper):
     def parse_data(self, bg=True, envelope=True):
         """Load data from file dict."""
         for result_dict in self.file_dict.values():
-            for method, d in result_dict.items():
-                filepath = os.path.join(self.datafolder, d["filename"])
+            for spectrum_dict in result_dict.values():
+                filepath = os.path.join(self.datafolder, spectrum_dict["filename"])
                 parser = TextParser()
                 parser.parse_file(filepath, bg=bg, envelope=envelope)
-                for key, value in d.items():
+                for key, value in spectrum_dict.items():
                     setattr(parser, key, value)
                 self.parsers.append(parser)
 
