@@ -29,7 +29,7 @@ from common import TextParser, ParserWrapper, DATAFOLDER, SAVE_DIR
 class FitTextParser(TextParser):
     """Parser for XPS data stored in TXT files."""
 
-    def _build_data(self, bg=True, envelope=True):
+    def _build_data(self, background=True, envelope=True):
         """
         Build dictionary from the loaded data.
 
@@ -43,7 +43,7 @@ class FitTextParser(TextParser):
             hn.split(":")[1] for hn in self.header[6].split("\t") if "Cycle" in hn
         ]
 
-        if bg:
+        if background:
             self.header_names += ["Background"]
         if envelope:
             self.header_names += ["Envelope"]
@@ -99,12 +99,12 @@ class Wrapper(ParserWrapper):
             "Envelope": "red",
         }
 
-    def parse_data(self, bg=True, envelope=True):
+    def parse_data(self, background=True, envelope=True):
         """Load data from file dict."""
         for element_dict in self.file_dict.values():
             filepath = os.path.join(self.datafolder, element_dict["filename"])
             parser = FitTextParser()
-            parser.parse_file(filepath, bg=bg, envelope=envelope)
+            parser.parse_file(filepath, background=background, envelope=envelope)
             for key, value in element_dict.items():
                 setattr(parser, key, value)
             self.parsers.append(parser)
@@ -231,7 +231,7 @@ def main():
     }
 
     wrapper = Wrapper(DATAFOLDER, file_dict)
-    wrapper.parse_data(bg=False, envelope=False)
+    wrapper.parse_data(background=False, envelope=False)
     fig = wrapper.plot_all()
 
     plt.show()
