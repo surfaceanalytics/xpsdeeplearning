@@ -206,7 +206,7 @@ def main():
     ax1_0.set_yticklabels([])
     ax1_1.tick_params(axis="y", which="both", right=False, left=False)
     legend = []
-    for i, FWHM in enumerate(sim_values["FWHM"]):
+    for i, fwhm in enumerate(sim_values["FWHM"]):
         spectrum = SimulatedSpectrum(
             start=measured_spectra[0].start,
             stop=measured_spectra[0].stop,
@@ -220,13 +220,13 @@ def main():
             ax1_0.plot(spectrum.x, spectrum.lineshape, c="red", linewidth=2)
             legend.append("original")
 
-        spectrum.change_resolution(FWHM)
+        spectrum.change_resolution(fwhm)
         spectrum.normalize()
         ax1_0.plot(
             spectrum.x, spectrum.lineshape, c=colors[i], alpha=alpha, linewidth=2
         )
         ax1_0.set_xlim(left=np.max(spectrum.x), right=np.min(spectrum.x))
-        legend.append(f"{np.round(FWHM,0)} eV")
+        legend.append(f"{np.round(fwhm,0)} eV")
     legend1_0 = ax1_0.legend(
         legend,
         title="Fe$^{0}$, broadened\n(FWHM of Gaussian)",
