@@ -51,6 +51,16 @@ class Wrapper:
         self.fontdict = {"size": 55}
 
         self.results = {}
+        self.sim_values_test = None
+
+        self.x_labels = {
+            "shift_x": "Absolute Binding\nEnergy Shift (eV)",
+            "noise": "S/N ratio",
+            "fwhm": "FWHM of Gaussian\nBroadening Peak (eV)",
+            "scatterer": "Scattering Medium",
+            "distance": "Distance Travelled\nin Gas Phase (mm)",
+            "pressure": "Gas Phase Pressure (mbar)",
+        }
 
     def load_predictions(self, clf_name):
         """
@@ -123,15 +133,6 @@ class Wrapper:
 
     def plot_all(self, keys):
         """Plot results."""
-        self.x_labels = {
-            "shift_x": "Absolute Binding\nEnergy Shift (eV)",
-            "noise": "S/N ratio",
-            "fwhm": "FWHM of Gaussian\nBroadening Peak (eV)",
-            "scatterer": "Scattering Medium",
-            "distance": "Distance Travelled\nin Gas Phase (mm)",
-            "pressure": "Gas Phase Pressure (mbar)",
-        }
-
         titles = [f"({s})" for s in list(string.ascii_lowercase)]
 
         ncols = len(keys)
@@ -255,7 +256,7 @@ def main():
     corr_data = df_out.corr(method="pearson")
 
     fig, ax = plt.subplots(figsize=(2, 4))
-    p = sns.heatmap(
+    heatmap = sns.heatmap(
         corr_data[["MAE"]],
         ax=ax,
         linewidths=0.1,
@@ -265,8 +266,8 @@ def main():
     )
     ax.set_title("Correlation of the scanned parameters")
 
-    p.set_xticklabels(corr_data[["MAE"]], rotation=0)
-    p.set_yticklabels(corr_data[["MAE"]].index, rotation=0)
+    heatmap.set_xticklabels(corr_data[["MAE"]], rotation=0)
+    heatmap.set_yticklabels(corr_data[["MAE"]].index, rotation=0)
 
     for tick in ax.xaxis.get_major_ticks():
         tick.label.set_fontsize(13)

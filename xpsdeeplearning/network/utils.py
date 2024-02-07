@@ -616,39 +616,39 @@ class Report:
         pred_train_5 = self.results["pred_train"][r : r + 5, :]
         y_train_5 = self.results["y_train"][r : r + 5, :]
 
-        p = self.document.add_paragraph()
-        p.paragraph_format.space_before = Pt(12)
-        p.paragraph_format.space_after = None
-        run = p.add_run()
+        par = self.document.add_paragraph()
+        par.paragraph_format.space_before = Pt(12)
+        par.paragraph_format.space_after = None
+        run = par.add_run()
         run.text = "Predictions:"
         run.font.underline = True
         _ = self.add_result_table(pred_train_5)
 
-        p = self.document.add_paragraph()
-        p.paragraph_format.space_before = Pt(12)
-        p.paragraph_format.space_after = None
-        run = p.add_run()
+        par = self.document.add_paragraph()
+        par.paragraph_format.space_before = Pt(12)
+        par.paragraph_format.space_after = None
+        run = par.add_run()
         run.text = "Correct labels:"
         run.font.underline = True
         self.add_result_table(y_train_5)
 
         self.document.add_heading("Test data", 2)
-        s = np.random.randint(0, self.results["y_test"].shape[0] - 5)
-        pred_test_5 = self.results["pred_test"][s : s + 5, :]
-        y_test_5 = self.results["y_test"][s : s + 5, :]
+        rand = np.random.randint(0, self.results["y_test"].shape[0] - 5)
+        pred_test_5 = self.results["pred_test"][rand : rand + 5, :]
+        y_test_5 = self.results["y_test"][rand : rand + 5, :]
 
-        p = self.document.add_paragraph()
-        p.paragraph_format.space_before = Pt(12)
-        p.paragraph_format.space_after = None
-        run = p.add_run()
+        par = self.document.add_paragraph()
+        par.paragraph_format.space_before = Pt(12)
+        par.paragraph_format.space_after = None
+        run = par.add_run()
         run.text = "Predictions:"
         run.font.underline = True
         self.add_result_table(pred_test_5)
 
-        p = self.document.add_paragraph()
-        p.paragraph_format.space_before = Pt(12)
-        p.paragraph_format.space_after = None
-        run = p.add_run()
+        par = self.document.add_paragraph()
+        par.paragraph_format.space_before = Pt(12)
+        par.paragraph_format.space_after = None
+        run = par.add_run()
         run.text = "Correct labels:"
         run.font.underline = True
         self.add_result_table(y_test_5)
@@ -675,9 +675,9 @@ class Report:
             new_table.cell(0, i).paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
 
         if data_array.dtype == "float32":
-            a = np.around(data_array, decimals=4)
-            row_sums = a.sum(axis=1)
-            data_array = a / row_sums[:, np.newaxis]
+            arr = np.around(data_array, decimals=4)
+            row_sums = arr.sum(axis=1)
+            data_array = arr / row_sums[:, np.newaxis]
             data_array = np.around(data_array, decimals=2)
 
         for i in range(data_array.shape[0]):

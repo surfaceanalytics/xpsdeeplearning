@@ -230,8 +230,8 @@ class Classifier:
         )
         try:
             model_plot = plt.imread(fig_file_name)
-            fig, ax = plt.subplots(figsize=(18, 2))
-            ax.imshow(model_plot, interpolation="nearest")
+            fig, axs = plt.subplots(figsize=(18, 2))
+            axs.imshow(model_plot, interpolation="nearest")
             plt.tight_layout()
             plt.show()
         except FileNotFoundError as exc:
@@ -795,12 +795,12 @@ class Classifier:
             if ("Flipout" or "Reparameterization") in str(layer.__class__)
         ]
 
-        wd = WeightDistributions(bayesian_layers, fig_dir=self.logging.fig_dir)
+        weight_dist = WeightDistributions(bayesian_layers, fig_dir=self.logging.fig_dir)
 
         if kind == "prior":
-            fig = wd.plot_weight_priors(to_file=to_file)
+            fig = weight_dist.plot_weight_priors(to_file=to_file)
         elif kind == "posterior":
-            fig = wd.plot_weight_posteriors(to_file=to_file)
+            fig = weight_dist.plot_weight_posteriors(to_file=to_file)
 
         if to_file:
             epoch = self.logging.hyperparams["epochs_trained"]
@@ -835,7 +835,7 @@ class Classifier:
             (no_of_predictions, no_of labels, 1).
 
         """
-        X, y = self.datahandler._select_dataset(dataset_name=dataset)
+        X, _ = self.datahandler._select_dataset(dataset_name=dataset)
 
         prob_pred = np.array(
             [self.model.predict(X, verbose=verbose) for i in range(no_of_predictions)]

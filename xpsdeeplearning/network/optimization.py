@@ -58,6 +58,10 @@ class Hyperoptimization:
 
         self.scans = []
         self.full_data = pd.DataFrame()
+        self.best_params = {}
+        self.analyzer = None
+        self.all_weights: np.ndarray = np.array([])
+        self.fig_dir: str = ""
 
         if os.path.isdir(self.test_dir) is False:
             os.makedirs(self.test_dir)
@@ -455,6 +459,7 @@ class Scan(talos.Scan):
             save_weights=save_weights,
             number=number,
         )
+        self.round_params = None
 
     def deploy(self):
         """
@@ -787,7 +792,7 @@ class Plot:
         """
         self.data = data
         self.name = None
-        self.fig = None
+        self.fig, self.ax = plt.subplots(figsize=(10, 8))
 
         self.font_dict = {
             "fontsize": 15,
@@ -824,8 +829,8 @@ class Plot:
 
         """
         filename = self.name + ".png"
-        self.fig_dir = os.path.join(filepath, filename)
-        self.fig.savefig(self.fig_dir)
+        fig_dir = os.path.join(filepath, filename)
+        self.fig.savefig(fig_dir)
         print("File saved to figures directory!")
 
 
@@ -851,6 +856,8 @@ class LinePlot(Plot):
         self.data = data
         self.name = "line plot_" + self.metric
 
+        self.x = range(self.data.shape[0])
+
     def plot(self):
         """
         Create a line plot of the data.
@@ -860,10 +867,6 @@ class LinePlot(Plot):
         None.
 
         """
-        self.x = range(self.data.shape[0])
-
-        self.fig, self.ax = plt.subplots(figsize=(10, 8))
-
         self.ax.plot(
             self.x,
             self.data,
@@ -926,7 +929,7 @@ class HistPlot(Plot):
         None.
 
         """
-        self.fig, self.ax = plt.subplots(figsize=(10, 8))
+
         self.ax.hist(self.data, bins=bins)
 
         self.ax.set_title(
@@ -1030,6 +1033,8 @@ class KDEPlot(Plot):
         if y is not None:
             self.name += "-" + self.y
 
+        self.fig, self.ax = plt.subplots(figsize=(10, 10))
+
     def plot(self):
         """
         Plot the KDE plot.
@@ -1039,8 +1044,6 @@ class KDEPlot(Plot):
         None.
 
         """
-        self.fig, self.ax = plt.subplots(figsize=(10, 10))
-
         if self.y is not None:
             data2 = self.data[self.y]
         else:
@@ -1113,8 +1116,6 @@ class BarPlot(Plot):
         None.
 
         """
-        # self.fig, self.ax = plt.subplots(figsize = (10,10))
-
         self.fig = sns.catplot(
             data=self.data,
             x=self.x,

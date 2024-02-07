@@ -44,11 +44,11 @@ def filter_header_list(header_list):
     """Filter a list of strings to only have non-nan values."""
     header_list = list(filter(None, header_list))
 
-    header_list = [hn for hn in header_list if hn != "\n"]
+    header_list = [header_name for header_name in header_list if header_name != "\n"]
 
-    for i, hn in enumerate(header_list):
-        if "\n" in hn:
-            header_list[i] = hn.strip("\n")
+    for i, header_name in enumerate(header_list):
+        if "\n" in header_name:
+            header_list[i] = header_name.strip("\n")
 
     return header_list
 
@@ -125,6 +125,7 @@ class TextParser:
         None.
 
         """
+        self.filepath: str = None
         self.data_dict = []
 
         self.names = [
@@ -172,8 +173,8 @@ class TextParser:
     def _read_lines(self, filepath):
         self.data = []
         self.filepath = filepath
-        with open(filepath) as fp:
-            for line in fp:
+        with open(filepath) as file:
+            for line in file:
                 self.data += [line]
 
     def _parse_header(self):
@@ -200,7 +201,7 @@ class TextParser:
         """
         self.header_names = ["CPS"] + self.header[0].split("\t")[2:]
 
-        if "bg" in kwargs.keys():
+        if "background" in kwargs.keys():
             self.header_names += ["Background"]
         if "envelope" in kwargs.keys():
             self.header_names += ["Envelope"]
@@ -259,12 +260,12 @@ class ParserWrapper(ABC):
             "TiO2": "TiO$_{2}$",
         }
 
-    def parse_data(self, bg=True, envelope=True):
+    def parse_data(self, background=True, envelope=True):
         """Parse data from file dict."""
         for single_dict in self.file_dict.values():
             filepath = os.path.join(self.datafolder, single_dict["filename"])
             parser = TextParser()
-            parser.parse_file(filepath, bg=bg, envelope=envelope)
+            parser.parse_file(filepath, background=background, envelope=envelope)
             for key, value in single_dict.items():
                 setattr(parser, key, value)
             self.parsers.append(parser)

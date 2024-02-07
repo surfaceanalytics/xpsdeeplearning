@@ -151,7 +151,7 @@ class ScatteringMedium:
         self.scatterer = Scatterer(label)
         self.R = 8.314463e25  # Gas constant in nm^3.mbar.K^-1.mol^-1
         self.avagadro = 6.022141e23  # Avagadro contant
-        self.T = 300  # Temperature in Kelvin
+        self.temp = 300  # Temperature in Kelvin
         self.pressure = 1  # In mbar
         self.distance = 0.80  # In millimeters
         self.calc_density()
@@ -165,7 +165,7 @@ class ScatteringMedium:
         None.
 
         """
-        self.density = self.pressure / (self.R * self.T) * self.avagadro
+        self.density = self.pressure / (self.R * self.temp) * self.avagadro
 
     def convert_distance(self):
         """

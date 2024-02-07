@@ -815,7 +815,7 @@ class ResNet1D(EmptyModel):
 class ResNet1DSubclassed(models.Model):
     """Class instantiatingthe ResNet50 architecture in 1D."""
 
-    def __init__(self, num_classes, ap=False, no_of_inputs=1):
+    def __init__(self, num_classes, use_avg_pool=False, no_of_inputs=1):
         """
         Instantiate layers.
 
@@ -830,9 +830,9 @@ class ResNet1DSubclassed(models.Model):
         ----------
         num_classes : int
             Number of output classes.
-        ap : bool, optional
-            If ap, then an AveragePooling1D layer is added after the
-            residual blocks. The default is False.
+        use_avg_pool : bool, optional
+            If use_avg_pool, then an AveragePooling1D layer is added
+            after the residual blocks. The default is False.
         no_of_inputs : int, optional
             Number of input layers. The default is 1.
             (not working here)
@@ -842,9 +842,8 @@ class ResNet1DSubclassed(models.Model):
         None.
 
         """
-        self.ap = ap
-
         super().__init__(name="ResNet1D")
+        self.use_avg_pool = use_avg_pool
 
         # Zero-Padding
         self.zero_pad_1 = layers.ZeroPadding1D(padding=3)
@@ -938,7 +937,7 @@ class ResNet1DSubclassed(models.Model):
         )
 
         # Average pooling
-        if self.ap:
+        if self.use_avg_pool:
             self.avg_pool = layers.AveragePooling1D(pool_size=3, name="avg_pool")
 
         # output layer
@@ -1003,7 +1002,7 @@ class ResNet1DSubclassed(models.Model):
             x = block(x)
 
         # Average pooling
-        if self.ap:
+        if self.use_avg_pool:
             x = self.avg_pool(x)
 
         # output layer

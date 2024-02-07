@@ -58,8 +58,8 @@ class Wrapper(ParserWrapper):
             SAVE_DIR,
             "neural_net_peak_fitting.tif",
         )
-        with Image.open(infile) as im:
-            ax.imshow(im)
+        with Image.open(infile) as img:
+            ax.imshow(img)
 
         return ax
 

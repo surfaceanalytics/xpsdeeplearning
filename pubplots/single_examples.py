@@ -48,7 +48,7 @@ class Wrapper(ParserWrapper):
         """Plot examples with predictions."""
         nrows, ncols = 2, 3
 
-        self.fig, self.axs = plt.subplots(
+        fig, axs = plt.subplots(
             nrows=nrows,
             ncols=ncols,
             figsize=(len(self.parsers) / 2 * 8, 14),
@@ -72,36 +72,30 @@ class Wrapper(ParserWrapper):
 
             col = i % ncols
 
-            self.axs[row, col].set_xlabel("Binding energy (eV)", fontdict=self.fontdict)
-            self.axs[row, col].set_ylabel(
-                "Intensity (arb. units)", fontdict=self.fontdict
-            )
-            self.axs[row, col].tick_params(axis="x", labelsize=self.fontdict["size"])
-            self.axs[row, col].tick_params(
-                axis="y", which="both", right=False, left=False
-            )
+            axs[row, col].set_xlabel("Binding energy (eV)", fontdict=self.fontdict)
+            axs[row, col].set_ylabel("Intensity (arb. units)", fontdict=self.fontdict)
+            axs[row, col].tick_params(axis="x", labelsize=self.fontdict["size"])
+            axs[row, col].tick_params(axis="y", which="both", right=False, left=False)
 
-            self.axs[row, col].set_yticklabels([])
+            axs[row, col].set_yticklabels([])
 
             for j, header_name in enumerate(parser.header_names):
                 if header_name == "CPS":
-                    _ = self.axs[row, col].plot(x, y[:, j], c=color)
+                    _ = axs[row, col].plot(x, y[:, j], c=color)
                 else:
                     start = parser.fit_start
                     end = parser.fit_end
                     try:
-                        _ = self.axs[row, col].plot(
-                            x[start:end], y[start:end, j], c=color
-                        )
+                        _ = axs[row, col].plot(x[start:end], y[start:end, j], c=color)
                     except IndexError:
-                        _ = self.axs[row, col].plot(x[start:end], y[start:end], c=color)
+                        _ = axs[row, col].plot(x[start:end], y[start:end], c=color)
 
-            self.axs[row, col].set_title(parser.title, fontdict=self.fontdict)
-            self.axs[row, col].set_xlim(left=np.max(x), right=np.min(x))
+            axs[row, col].set_title(parser.title, fontdict=self.fontdict)
+            axs[row, col].set_xlim(left=np.max(x), right=np.min(x))
             if row == 1 and col == 0:
-                self.axs[row, col].set_ylim(bottom=np.min(y) * 0.999)
+                axs[row, col].set_ylim(bottom=np.min(y) * 0.999)
 
-            self.axs[row, col].set_title(parser.title, fontdict=self.fontdict)
+            axs[row, col].set_title(parser.title, fontdict=self.fontdict)
 
             q1 = [p[0] for p in list(parser.quantification.values())]
             q2 = [p[1] for p in list(parser.quantification.values())]
@@ -112,7 +106,7 @@ class Wrapper(ParserWrapper):
             keys = list(parser.quantification.keys())
             col_labels = self._reformat_label_list(keys)
 
-            table = self.axs[row, col].table(
+            table = axs[row, col].table(
                 cellText=[q1_percentage, q2_percentage],
                 cellLoc="center",
                 colLabels=col_labels,
@@ -123,24 +117,24 @@ class Wrapper(ParserWrapper):
             table.auto_set_font_size(False)
             table.set_fontsize(self.fontdict_small["size"])
 
-            self.axs[row, col].text(
+            axs[row, col].text(
                 0.01,
                 0.245,
                 "Quantification:",
                 horizontalalignment="left",
                 size=self.fontdict_small["size"],
                 verticalalignment="center",
-                transform=self.axs[row, col].transAxes,
+                transform=axs[row, col].transAxes,
             )
 
             mae = f"MAE:\n{np.round(parser.mae,3)}"
-            self.axs[row, col].text(
+            axs[row, col].text(
                 x=0.85,
                 y=0.85,
                 s=mae,
                 size=self.fontdict_mae["size"],
                 verticalalignment="center",
-                transform=self.axs[row, col].transAxes,
+                transform=axs[row, col].transAxes,
             )
 
             scatterer_dict = {
@@ -153,21 +147,21 @@ class Wrapper(ParserWrapper):
                 scat_text = f"Scattered in {scatterer_dict[parser.scatterer]} \n"
                 scat_text += f"p = {parser.pressure} mbar \n"
                 scat_text += f"d = {parser.distance} mm"
-                self.axs[row, col].text(
+                axs[row, col].text(
                     0.6,
                     0.5,
                     scat_text,
                     horizontalalignment="left",
                     size=self.fontdict_mae["size"],
                     verticalalignment="center",
-                    transform=self.axs[row, col].transAxes,
+                    transform=axs[row, col].transAxes,
                 )
             except AttributeError:
                 pass
 
-        self.fig.tight_layout()
+        fig.tight_layout()
 
-        return self.fig
+        return fig
 
 
 def main():

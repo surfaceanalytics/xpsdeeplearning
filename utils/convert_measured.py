@@ -237,32 +237,34 @@ def convert_multiple_exported_spectra(
         plot_all=plot_all,
     )
 
-    with h5py.File(output_file, "w") as hf:
-        hf.create_dataset(
+    with h5py.File(output_file, "w") as hf_file:
+        hf_file.create_dataset(
             "X",
             data=X,
             compression="gzip",
             chunks=True,
             maxshape=(None, X.shape[1], X.shape[2]),
         )
-        hf.create_dataset(
+        hf_file.create_dataset(
             "y",
             data=y,
             compression="gzip",
             chunks=True,
             maxshape=(None, y.shape[1]),
         )
-        hf.create_dataset(
+        hf_file.create_dataset(
             "names",
             data=np.array(names, dtype="S"),
             compression="gzip",
             chunks=True,
             maxshape=(None, names.shape[1]),
         )
-        hf.create_dataset("energies", data=energies, compression="gzip", chunks=True)
+        hf_file.create_dataset(
+            "energies", data=energies, compression="gzip", chunks=True
+        )
         labels = np.array(label_list, dtype=object)
         string_dt = h5py.special_dtype(vlen=str)
-        hf.create_dataset(
+        hf_file.create_dataset(
             "labels",
             data=labels,
             dtype=string_dt,
@@ -414,8 +416,8 @@ def convert_multiple_measured_spectra(
         plot_all=plot_all,
     )
 
-    with h5py.File(output_file, "w") as hf:
-        hf.create_dataset(
+    with h5py.File(output_file, "w") as hf_file:
+        hf_file.create_dataset(
             "X",
             data=X,
             compression="gzip",
@@ -423,19 +425,21 @@ def convert_multiple_measured_spectra(
             maxshape=(None, X.shape[1], X.shape[2]),
         )
 
-        hf.create_dataset("energies", data=energies, compression="gzip", chunks=True)
+        hf_file.create_dataset(
+            "energies", data=energies, compression="gzip", chunks=True
+        )
         string_dt = h5py.special_dtype(vlen=str)
 
         labels = np.array(label_list, dtype=object)
         string_dt = h5py.special_dtype(vlen=str)
-        hf.create_dataset(
+        hf_file.create_dataset(
             "labels",
             data=labels,
             dtype=string_dt,
             compression="gzip",
             chunks=True,
         )
-        hf.create_dataset(
+        hf_file.create_dataset(
             "names",
             data=names,
             dtype=string_dt,
@@ -519,10 +523,10 @@ if __name__ == "__main__":
 
     """Test one of the created files.."""
     # saved_file = ""
-    # with h5py.File(saved_file, "r") as hf:
-    # size = hf["X"].shape
-    # X_h5 = hf["X"][:, :, :]
-    # y_h5 = hf["y"][:, :]
-    # names_h5 = hf["names"][:]
-    # energies_h5 = hf["energies"][:]
-    # labels_h5 = [str(label) for label in hf["labels"][:]]
+    # with h5py.File(saved_file, "r") as hf_file:
+    # size = hf_file["X"].shape
+    # X_h5 = hf_file["X"][:, :, :]
+    # y_h5 = hf_file["y"][:, :]
+    # names_h5 = hf_file["names"][:]
+    # energies_h5 = hf_file["energies"][:]
+    # labels_h5 = [str(label) for label in hf_file["labels"][:]]

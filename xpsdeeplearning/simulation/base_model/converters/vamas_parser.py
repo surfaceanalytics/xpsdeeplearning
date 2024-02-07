@@ -236,8 +236,8 @@ class VamasParser:
         self.data = []
         self.filepath = filepath
 
-        with open(filepath, "rb") as fp:
-            for line in fp:
+        with open(filepath, "rb") as vms_file:
+            for line in vms_file:
                 if line.endswith(b"\r\n") or line.endswith(b"\n"):
                     self.data += [line.decode("utf-8").strip()]
 
@@ -370,10 +370,10 @@ class VamasParser:
         block.abscissaStart = float(self.data.pop(0).strip())
         block.abscissaStep = float(self.data.pop(0).strip())
         block.noVariables = int(self.data.pop(0).strip())
-        for p in range(block.noVariables):
-            name = "variableLabel" + str(p + 1)
+        for param in range(block.noVariables):
+            name = "variableLabel" + str(param + 1)
             setattr(block, name, self.data.pop(0).strip())
-            name = "variableUnits" + str(p + 1)
+            name = "variableUnits" + str(param + 1)
             setattr(block, name, self.data.pop(0).strip())
         block.signalMode = self.data.pop(0).strip()
         block.dwellTime = float(self.data.pop(0).strip())
@@ -383,18 +383,18 @@ class VamasParser:
         block.sampleTiltAzimuth = float(self.data.pop(0).strip())
         block.sampleRotation = float(self.data.pop(0).strip())
         block.noAdditionalParams = int(self.data.pop(0).strip())
-        for p in range(block.noAdditionalParams):
-            name = "paramLabel" + str(p + 1)
+        for param in range(block.noAdditionalParams):
+            name = "paramLabel" + str(param + 1)
             setattr(block, name, self.data.pop(0))
-            name = "paramUnit" + str(p + 1)
+            name = "paramUnit" + str(param + 1)
             setattr(block, name, self.data.pop(0))
-            name = "paramValue" + str(p + 1)
+            name = "paramValue" + str(param + 1)
             setattr(block, name, self.data.pop(0))
         block.numOrdValues = int(self.data.pop(0).strip())
-        for p in range(block.noVariables):
-            name = "minOrdValue" + str(p + 1)
+        for param in range(block.noVariables):
+            name = "minOrdValue" + str(param + 1)
             setattr(block, name, float(self.data.pop(0).strip()))
-            name = "maxOrdValue" + str(p + 1)
+            name = "maxOrdValue" + str(param + 1)
             setattr(block, name, float(self.data.pop(0).strip()))
 
         # stop = time.time()
@@ -517,19 +517,19 @@ class VamasParser:
 
         setattr(block, "x", x)
 
-        for v in range(block.noVariables):
-            name = "y" + str(v)
+        for var in range(block.noVariables):
+            name = "y" + str(var)
             data_dict[name] = []
 
-        d = list(np.array(self.data[: block.numOrdValues], dtype=np.float32))
+        data_list = list(np.array(self.data[: block.numOrdValues], dtype=np.float32))
 
         self.data = self.data[block.numOrdValues :]
 
-        for v in range(block.noVariables):
-            n = block.noVariables
-            name = "y" + str(v)
-            dd = d[v::n]
-            data_dict[name] = dd
+        for var in range(block.noVariables):
+            max_var = block.noVariables
+            name = "y" + str(var)
+            data_one = data_list[var::max_var]
+            data_dict[name] = data_one
             setattr(block, name, data_dict[name])
 
     def _build_dict(self):
@@ -544,8 +544,8 @@ class VamasParser:
         temp_group_name = ""
         spectra = []
 
-        for idx, b in enumerate(self.blocks):
-            group_name = b.sampleID
+        for idx, block in enumerate(self.blocks):
+            group_name = block.sampleID
 
             # This set of conditions detects if the group name has
             # changed. If it has, then it increments the group_idx.
@@ -553,40 +553,40 @@ class VamasParser:
                 temp_group_name = group_name
                 group_id += 1
 
-            spectrum_type = str(b.speciesLabel + b.transitionLabel)
+            spectrum_type = str(block.speciesLabel + block.transitionLabel)
             spectrum_id = idx
 
             settings = {
-                "analysis_method": b.technique,
-                "dwell_time": b.dwellTime,
-                "workfunction": b.workFunction,
-                "excitation_energy": b.sourceEnergy,
-                "pass_energy": b.resolution,
-                "scan_mode": b.analyzerMode,
-                "source_label": b.sourceLabel,
-                "nr_values": int(b.numOrdValues / b.noVariables),
-                "x_units": b.abscissaLabel,
-                "y_units": b.variableLabel1,
+                "analysis_method": block.technique,
+                "dwell_time": block.dwellTime,
+                "workfunction": block.workFunction,
+                "excitation_energy": block.sourceEnergy,
+                "pass_energy": block.resolution,
+                "scan_mode": block.analyzerMode,
+                "source_label": block.sourceLabel,
+                "nr_values": int(block.numOrdValues / block.noVariables),
+                "x_units": block.abscissaLabel,
+                "y_units": block.variableLabel1,
             }
 
             date = (
-                str(b.year)
+                str(block.year)
                 + "-"
-                + str(b.month)
+                + str(block.month)
                 + "-"
-                + str(b.day)
+                + str(block.day)
                 + " "
-                + str(b.hour)
+                + str(block.hour)
                 + ":"
-                + str(b.minute)
+                + str(block.minute)
                 + ":"
-                + str(b.second)
+                + str(block.second)
             )
 
-            data = {"x": b.x}
-            for n in range(int(b.noVariables)):
+            data = {"x": block.x}
+            for n in range(int(block.noVariables)):
                 key = "y" + str(n)
-                data[key] = getattr(b, key)
+                data[key] = getattr(block, key)
 
             spec_dict = {
                 "date": date,
@@ -594,7 +594,7 @@ class VamasParser:
                 "group_id": group_id,
                 "spectrum_type": spectrum_type,
                 "spectrum_id": spectrum_id,
-                "scans": b.noScans,
+                "scans": block.noScans,
                 "settings": settings,
                 "data": data,
             }

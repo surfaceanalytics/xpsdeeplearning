@@ -47,6 +47,10 @@ class Wrapper:
             "Ti": "(g) Ti 2p",
         }
 
+        self.results = {}
+
+        self.fig = plt.figure(figsize=(16, 24), dpi=300)
+
     def _load_predictions_for_one_run(self, pickle_filepath):
         """
         Load the previous training history from the CSV log file.
@@ -97,7 +101,6 @@ class Wrapper:
         -------
 
         """
-        self.results = {}
         for clf, clf_name in classifiers.items():
             pkl_path = os.path.join(*[self.datafolder, clf_name, "logs", "results.pkl"])
 
@@ -151,7 +154,7 @@ class Wrapper:
         ax.tick_params(axis="x", labelsize=self.fontdict["size"])
         ax.tick_params(axis="y", labelsize=self.fontdict["size"])
 
-        N, _, hist_patches = ax.hist(
+        counts, _, hist_patches = ax.hist(
             losses_test,
             bins=100,
             range=(0.0, 0.5),
@@ -163,21 +166,27 @@ class Wrapper:
         thresholds = [0.025, 0.05, 0.075, 0.1, 0.15, 0.2, 0.3, 0.4, 0.5]
         quantification = []
 
-        for t in thresholds:
-            ng, nb = 0, 0
+        for threshold in thresholds:
+            no_smaller, no_bigger = 0, 0
             for i, patch in enumerate(hist_patches):
-                if patch.xy[0] < t:
-                    ng += N[i]
+                if patch.xy[0] < threshold:
+                    no_smaller += counts[i]
                 else:
-                    nb += N[i]
-            ng_p = np.round(ng / (ng + nb) * 100, 1)
-            nb_p = np.round(nb / (ng + nb) * 100, 1)
+                    no_bigger += counts[i]
+            no_smaller_percent = np.round(
+                no_smaller / (no_smaller + no_bigger) * 100, 1
+            )
+            no_bigger_percent = np.round(no_bigger / (no_smaller + no_bigger) * 100, 1)
 
             try:
                 if float(quantification[-1][1].split(" ")[0]) < 100.0:
-                    quantification.append([t, f"{ng_p} %", f"{nb_p} %"])
+                    quantification.append(
+                        [threshold, f"{no_smaller_percent} %", f"{no_bigger_percent} %"]
+                    )
             except IndexError:
-                quantification.append([t, f"{ng_p} %", f"{nb_p} %"])
+                quantification.append(
+                    [threshold, f"{no_smaller_percent} %", f"{no_bigger_percent} %"]
+                )
 
         col_labels = [
             "MAE threshold",
@@ -205,18 +214,8 @@ class Wrapper:
 
     def plot_all(self):
         """Plot histograms."""
-        self.x_max = {
-            "Co": 0.25,
-            "Cu": 0.25,
-            "Fe": 0.25,
-            "Mn": 0.4,
-            "Ni": 0.25,
-            "Pd": 0.25,
-            "Ti": 0.25,
-        }
         ncols = 2
 
-        self.fig = plt.figure(figsize=(16, 24), dpi=300)
         gs = gridspec.GridSpec(nrows=4, ncols=2 * ncols, wspace=0.2, hspace=0.3)
 
         # Set up 2 plots in first three row and 1 in last row.
@@ -228,17 +227,15 @@ class Wrapper:
         ax2_1 = self.fig.add_subplot(gs[2, 2:])
         ax3 = self.fig.add_subplot(gs[3, 1:3])
 
-        self.axs = np.array(
-            [[ax0_0, ax0_1], [ax1_0, ax1_1], [ax2_0, ax2_1], [ax3, None]]
-        )
+        axs = np.array([[ax0_0, ax0_1], [ax1_0, ax1_1], [ax2_0, ax2_1], [ax3, None]])
 
         for i, clf in enumerate(self.results.keys()):
             row, col = int(i / ncols), i % ncols
             losses_test = self.results[clf]["losses_test"]
             title = self.title_dict[clf]
 
-            self.axs[row, col] = self._add_loss_histogram(
-                ax=self.axs[row, col], losses_test=losses_test, title=title
+            axs[row, col] = self._add_loss_histogram(
+                ax=axs[row, col], losses_test=losses_test, title=title
             )
 
         gs.tight_layout(self.fig)

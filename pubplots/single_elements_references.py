@@ -48,8 +48,8 @@ class FitTextParser(TextParser):
         if envelope:
             self.header_names += ["Envelope"]
 
-        for i, hn in enumerate(self.header_names):
-            if hn in ("Ni", "Co", "Fe"):
+        for i, header_name in enumerate(self.header_names):
+            if header_name in ("Ni", "Co", "Fe"):
                 self.header_names[i] += " metal"
 
         lines = np.array([[float(i) for i in d.split()] for d in self.data])
@@ -105,46 +105,39 @@ class Wrapper(ParserWrapper):
             filepath = os.path.join(self.datafolder, element_dict["filename"])
             parser = FitTextParser()
             parser.parse_file(filepath, bg=bg, envelope=envelope)
-            parser.title = element_dict["title"]
-            parser.fit_start = element_dict["fit_start"]
-            parser.fit_end = element_dict["fit_end"]
+            for key, value in element_dict.items():
+                setattr(parser, key, value)
             self.parsers.append(parser)
 
     def plot_all(self):
         """Plot reference spectra."""
         ncols = 2
 
-        self.fig = plt.figure(figsize=(18, 24), dpi=300)
+        fig = plt.figure(figsize=(18, 24), dpi=300)
         gs = gridspec.GridSpec(4, ncols * 2, wspace=0.5, hspace=0.5)
 
         # Set up 2 plots in first three row and 1 in last row.
-        ax0_0 = self.fig.add_subplot(gs[0, :2])
-        ax0_1 = self.fig.add_subplot(gs[0, 2:])
-        ax1_0 = self.fig.add_subplot(gs[1, :2])
-        ax1_1 = self.fig.add_subplot(gs[1, 2:])
-        ax2_0 = self.fig.add_subplot(gs[2, :2])
-        ax2_1 = self.fig.add_subplot(gs[2, 2:])
-        ax3 = self.fig.add_subplot(gs[3, 1:3])
+        ax0_0 = fig.add_subplot(gs[0, :2])
+        ax0_1 = fig.add_subplot(gs[0, 2:])
+        ax1_0 = fig.add_subplot(gs[1, :2])
+        ax1_1 = fig.add_subplot(gs[1, 2:])
+        ax2_0 = fig.add_subplot(gs[2, :2])
+        ax2_1 = fig.add_subplot(gs[2, 2:])
+        ax3 = fig.add_subplot(gs[3, 1:3])
 
-        self.axs = np.array(
-            [[ax0_0, ax0_1], [ax1_0, ax1_1], [ax2_0, ax2_1], [ax3, None]]
-        )
+        axs = np.array([[ax0_0, ax0_1], [ax1_0, ax1_1], [ax2_0, ax2_1], [ax3, None]])
 
         for i, parser in enumerate(self.parsers):
             x, y = parser.data["x"], parser.data["y"]
 
             row, col = int(i / ncols), i % ncols
 
-            self.axs[row, col].set_xlabel("Binding energy (eV)", fontdict=self.fontdict)
-            self.axs[row, col].set_ylabel(
-                "Intensity (arb. units)", fontdict=self.fontdict
-            )
-            self.axs[row, col].tick_params(axis="x", labelsize=self.fontdict["size"])
-            self.axs[row, col].tick_params(
-                axis="y", which="both", right=False, left=False
-            )
+            axs[row, col].set_xlabel("Binding energy (eV)", fontdict=self.fontdict)
+            axs[row, col].set_ylabel("Intensity (arb. units)", fontdict=self.fontdict)
+            axs[row, col].tick_params(axis="x", labelsize=self.fontdict["size"])
+            axs[row, col].tick_params(axis="y", which="both", right=False, left=False)
 
-            self.axs[row, col].set_yticklabels([])
+            axs[row, col].set_yticklabels([])
 
             handle_dict = {}
             labels = []
@@ -159,7 +152,7 @@ class Wrapper(ParserWrapper):
                 start = parser.fit_start
                 end = parser.fit_end
 
-                handle = self.axs[row, col].plot(
+                handle = axs[row, col].plot(
                     x[start:end, j], y[start:end, j], c=color, linewidth=2
                 )
 
@@ -172,9 +165,9 @@ class Wrapper(ParserWrapper):
                 ]
                 labels = self._reformat_label_list(labels)
 
-                self.axs[row, col].set_xlim(left=x[start, j], right=x[end, j])
+                axs[row, col].set_xlim(left=x[start, j], right=x[end, j])
 
-            self.axs[row, col].legend(
+            axs[row, col].legend(
                 handles=handles,
                 labels=labels,
                 ncol=1,
@@ -182,11 +175,11 @@ class Wrapper(ParserWrapper):
                 loc="upper left",
             )
 
-            self.axs[row, col].set_title(parser.title, fontdict=self.fontdict)
+            axs[row, col].set_title(parser.title, fontdict=self.fontdict)
 
-        gs.tight_layout(self.fig)
+        gs.tight_layout(fig)
 
-        return self.fig
+        return fig
 
 
 def main():

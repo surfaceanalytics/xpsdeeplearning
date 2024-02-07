@@ -98,13 +98,12 @@ class Wrapper(ParserWrapper):
         filepath = os.path.join(self.datafolder, self.file_dict["filename"])
         self.parser = FitTextParser()
         self.parser.parse_file(filepath)
-        self.parser.title = self.file_dict["title"]
-        self.parser.fit_start = self.file_dict["fit_start"]
-        self.parser.fit_end = self.file_dict["fit_end"]
+        for key, value in self.file_dict.items():
+            setattr(self.parser, key, value)
 
     def plot_all(self):
         """Plot references."""
-        self.fig, self.axs = plt.subplots(
+        fig, axs = plt.subplots(
             nrows=3,
             ncols=1,
             figsize=(10, 12),
@@ -127,15 +126,11 @@ class Wrapper(ParserWrapper):
             elif "Fe" in header_name:
                 row = 2
 
-            self.axs[row, 0].set_xlabel("Binding energy (eV)", fontdict=self.fontdict)
-            self.axs[row, 0].set_ylabel(
-                "Intensity (arb. units)", fontdict=self.fontdict
-            )
-            self.axs[row, 0].tick_params(axis="x", labelsize=self.fontdict["size"])
-            self.axs[row, 0].tick_params(
-                axis="y", which="both", right=False, left=False
-            )
-            self.axs[row, 0].set_yticklabels([])
+            axs[row, 0].set_xlabel("Binding energy (eV)", fontdict=self.fontdict)
+            axs[row, 0].set_ylabel("Intensity (arb. units)", fontdict=self.fontdict)
+            axs[row, 0].tick_params(axis="x", labelsize=self.fontdict["size"])
+            axs[row, 0].tick_params(axis="y", which="both", right=False, left=False)
+            axs[row, 0].set_yticklabels([])
 
             for spectrum_name in self.parser.names:
                 if spectrum_name in header_name:
@@ -146,9 +141,9 @@ class Wrapper(ParserWrapper):
             start = self.parser.fit_start
             end = self.parser.fit_end
 
-            handle = self.axs[row, 0].plot(x[start:end], y[start:end, j], c=color)
+            handle = axs[row, 0].plot(x[start:end], y[start:end, j], c=color)
 
-            self.axs[row, 0].set_xlim(left=np.max(x), right=np.min(x))
+            axs[row, 0].set_xlim(left=np.max(x), right=np.min(x))
 
             if name not in handle_dict:
                 handle_dict[name] = handle
@@ -172,7 +167,7 @@ class Wrapper(ParserWrapper):
                 handles_sort.append(handles[index])
                 labels_sort.append(label)
 
-            self.axs[key, 0].legend(
+            axs[key, 0].legend(
                 handles=handles_sort,
                 labels=labels_sort,
                 ncol=1,
@@ -180,9 +175,9 @@ class Wrapper(ParserWrapper):
                 loc="best",
             )
 
-        self.fig.tight_layout()
+        fig.tight_layout()
 
-        return self.fig
+        return fig
 
 
 def main():

@@ -323,12 +323,12 @@ class Creator:
         # This ensures that always just one Auger region is used.
         auger_spectra = []
         core_spectra = []
-        for s in inputs.iloc[0]:
-            if str(s) != "nan":
-                if s.spectrum_type == "auger":
-                    auger_spectra.append(s)
-                if s.spectrum_type == "core_level":
-                    core_spectra.append(s)
+        for spec in inputs.iloc[0]:
+            if str(spec) != "nan":
+                if spec.spectrum_type == "auger":
+                    auger_spectra.append(spec)
+                if spec.spectrum_type == "core_level":
+                    core_spectra.append(spec)
         auger_region = self._select_one_auger_region(auger_spectra)
 
         selected_auger_spectra = [
@@ -352,8 +352,8 @@ class Creator:
 
         if single:
             # Set one parameter to 1 and others to 0.
-            q = np.random.choice(indices)
-            linear_params[q] = 1.0
+            rand = np.random.choice(indices)
+            linear_params[rand] = 1.0
         else:
             if variable_no_of_inputs:
                 # Randomly choose how many spectra shall be combined
@@ -364,9 +364,9 @@ class Creator:
 
                     params = self._normalize_float_list(params)
                     # Don"t allow parameters below 0.1.
-                    for p in params:
-                        if p <= 0.1:
-                            params[params.index(p)] = 0.0
+                    for param in params:
+                        if param <= 0.1:
+                            params[params.index(param)] = 0.0
 
                     params = self._normalize_float_list(params)
 
@@ -792,8 +792,8 @@ class Creator:
         data_list = df[["x", "y"]].values.tolist()
         new_spectra = []
 
-        for x, y in data_list:
-            x_new, y_new = self._extend_xy(x, y, max_length)
+        for x_arr, y_arr in data_list:
+            x_new, y_new = self._extend_xy(x_arr, y_arr, max_length)
             new_data_dict = {"x": x_new, "y": y_new}
             new_spectra.append(new_data_dict)
 
@@ -807,9 +807,9 @@ class Creator:
 
         Parameters
         ----------
-        X0 : TYPE
+        X0 : np.ndarray
             Regularly spaced 1D array.
-        Y0 : TYPE
+        Y0 : np.ndarray
             1D array of the same size as X0.
         new_length : int
             Length of new array.
@@ -820,31 +820,31 @@ class Creator:
 
         """
 
-        def start_stop_step_from_x(x):
+        def start_stop_step_from_x(arr):
             """
             Calculcate start, stop, and step from a regular array.
 
             Parameters
             ----------
-            x : ndarrray
+            arr : ndarrray
                 A numpy array with regular spacing,
                 i.e. the same step size between all points.
 
             Returns
             -------
             start : int
-                Minimal value of x.
+                Minimal value of arr.
             stop : int
-                Maximal value of x.
+                Maximal value of arr.
             step : float
-                Step size between points in x.
+                Step size between points in arr.
 
             """
-            start = np.min(x)
-            stop = np.max(x)
+            start = np.min(arr)
+            stop = np.max(arr)
 
-            x1 = np.roll(x, -1)
-            diff = np.abs(np.subtract(x, x1))
+            x1 = np.roll(arr, -1)
+            diff = np.abs(np.subtract(arr, x1))
             step = np.round(np.min(diff[diff != 0]), 3)
 
             return start, stop, step
@@ -895,10 +895,10 @@ class Creator:
             random_numbers.append(r)
 
             row = self.df.iloc[r]
-            x = row["x"]
-            y = row["y"]
+            energy = row["x"]
+            intensity = row["y"]
             title = "Simulated spectrum no. " + str(r)
-            fig = Figure(x, y, title)
+            fig = Figure(energy, intensity, title)
             spectrum_text = self._write_spectrum_text(row)
             fig.ax.text(
                 0.1,
@@ -1112,7 +1112,7 @@ class FileWriter:
         y = []
         shiftx = []
         noise = []
-        FWHM = []
+        fwhm = []
         scatterer = []
         distance = []
         pressure = []
@@ -1136,7 +1136,7 @@ class FileWriter:
             y_one = row["label"]
             shiftx_one = row["shift_x"]
             noise_one = row["noise"]
-            FWHM_one = row["FWHM"]
+            fwhm_one = row["FWHM"]
             scatterer_name = row["scatterer"]
             scatterers = {"He": 0, "H2": 1, "N2": 2, "O2": 3}
             try:
@@ -1150,7 +1150,7 @@ class FileWriter:
             y.append(y_one)
             shiftx.append(shiftx_one)
             noise.append(noise_one)
-            FWHM.append(FWHM_one)
+            fwhm.append(fwhm_one)
             scatterer.append(scatterer_one)
             distance.append(distance_one)
             pressure.append(pressure_one)

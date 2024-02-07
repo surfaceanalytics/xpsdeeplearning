@@ -71,9 +71,9 @@ class Peakfinder:
 
         """
         self.all_peaks = []
-        for x in self.X:
-            x = np.squeeze(x)
-            peaks, _ = find_peaks(x, prominence=prominence)
+        for x_arr in self.X:
+            x_arr = np.squeeze(x_arr)
+            peaks, _ = find_peaks(x_arr, prominence=prominence)
             self.all_peaks.append(peaks)
 
         return self.all_peaks

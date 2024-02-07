@@ -74,8 +74,8 @@ def _resample_array(y, x0, x1):
         DESCRIPTION.
 
     """
-    fn = interp1d(x0, y, axis=0, fill_value="extrapolate")
-    return fn(x1)
+    func = interp1d(x0, y, axis=0, fill_value="extrapolate")
+    return func(x1)
 
 
 class Spectrum:
@@ -108,6 +108,7 @@ class Spectrum:
         self.stop = stop
         self.step = step
         self.x = np.flip(safe_arange_with_edges(self.start, self.stop, self.step))
+        self.lineshape = np.array([])
         self.clear_lineshape()
         self.label = label
         self.spectrum_type = None

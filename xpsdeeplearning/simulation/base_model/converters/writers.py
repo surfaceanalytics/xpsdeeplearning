@@ -60,12 +60,7 @@ class VamasWriter:
 
     def __init__(self):
         self.normalize = 0
-
-    def write(self, data, filename):
-        """This method converts a nested dictionary into vamas format
-        and writes it to a vamas file.
-        """
-        self.filename = filename
+        self.filename = ""
         self.num_spectra = 0
         self.file_path = ""
         self.millenium = 2000
@@ -79,6 +74,13 @@ class VamasWriter:
         self.count_type = "Counts per Second"
         self.blocks_counter = 0
         self.blocks = []
+
+    def write(self, data, filename):
+        """This method converts a nested dictionary into vamas format
+        and writes it to a vamas file.
+        """
+        self.filename = ""
+
         for spec in data:
             block = Block()
             block.sampleID = spec["group_name"]

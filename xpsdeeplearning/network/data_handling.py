@@ -242,13 +242,13 @@ class DataHandler:
                 else:
                     r = 0
 
-            except ValueError as e:
+            except ValueError as exc:
                 error_msg = (
                     "There are not enough spectra in this data set. "
                     + f"Please choose a value of no more than {dataset_size} "
                     + "for no_of_examples."
                 )
-                raise type(e)(error_msg)
+                raise ValueError(error_msg) from exc
 
             X = hf["X"][r : r + self.no_of_examples]
             X = X.astype(float)
@@ -348,8 +348,6 @@ class DataHandler:
         and the rest of the labels = 0.0.
         """
         indices = np.where(self.y == 1.0)[0]
-
-        print(indices)
 
         self.X, self.y = self.X[indices], self.y[indices]
 
@@ -491,7 +489,7 @@ class DataHandler:
         data = []
         texts = []
 
-        X, y = self._select_dataset(dataset)
+        X, _ = self._select_dataset(dataset)
 
         if len(indices) < no_of_spectra:
             no_of_spectra = len(indices)
@@ -541,7 +539,7 @@ class DataHandler:
         None.
 
         """
-        X, y = self._select_dataset(dataset)
+        X, _ = self._select_dataset(dataset)
 
         indices = []
         for _ in range(no_of_spectra):
@@ -582,8 +580,8 @@ class DataHandler:
         None.
 
         """
-        X, y = self._select_dataset("test")
-        pred, losses = self._get_predictions("test")
+        _, y = self._select_dataset("test")
+        _, losses = self._get_predictions("test")
 
         if kind == "all":
             indices = [
@@ -722,7 +720,7 @@ class DataHandler:
             data = np.array(data)
 
             graphic = SpectraPlot(data=data, annots=texts)
-            fig, axs = graphic.plot()
+            _ = graphic.plot()
 
     def plot_prob_predictions(
         self, prob_preds, indices, dataset="test", no_of_spectra=10
@@ -851,7 +849,7 @@ class DataHandler:
         self, prob_preds, kind, dataset="test", no_of_spectra=10
     ):
         if kind == "random":
-            X, y = self._select_dataset(dataset_name=dataset)
+            X, _ = self._select_dataset(dataset_name=dataset)
             indices = []
             for i in range(no_of_spectra):
                 r = np.random.randint(0, X.shape[0])
@@ -958,7 +956,7 @@ class DataHandler:
             Descriptive text for one spectrum.
 
         """
-        X, y = self._select_dataset(dataset)
+        _, y = self._select_dataset(dataset)
 
         label = str(np.around(y[index], decimals=3))
         text = "Real: " + label + "\n"

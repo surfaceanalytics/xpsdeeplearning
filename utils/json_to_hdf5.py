@@ -385,7 +385,7 @@ def to_hdf5(json_datafolder, output_file, no_of_files_per_load=50, window=None):
                 y_new,
                 shiftx_new,
                 noise_new,
-                FWHM_new,
+                fwhm_new,
                 scatterer_new,
                 distance_new,
                 pressure_new,
@@ -400,8 +400,8 @@ def to_hdf5(json_datafolder, output_file, no_of_files_per_load=50, window=None):
             hf["shiftx"][-X_new.shape[0] :] = shiftx_new
             hf["noise"].resize((hf["noise"].shape[0] + noise_new.shape[0]), axis=0)
             hf["noise"][-X_new.shape[0] :] = noise_new
-            hf["FWHM"].resize((hf["FWHM"].shape[0] + FWHM_new.shape[0]), axis=0)
-            hf["FWHM"][-X_new.shape[0] :] = FWHM_new
+            hf["FWHM"].resize((hf["FWHM"].shape[0] + fwhm_new.shape[0]), axis=0)
+            hf["FWHM"][-X_new.shape[0] :] = fwhm_new
 
             hf["scatterer"].resize(
                 (hf["scatterer"].shape[0] + scatterer_new.shape[0]),

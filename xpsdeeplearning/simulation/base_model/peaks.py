@@ -254,7 +254,7 @@ class Tougaard:
         self.C = C
         self.D = D
         self.Eg = Eg
-        self.t = 300  # Temperature in Kelvin
+        self.temp = 300  # Temperature in Kelvin
         self.kb = 0.000086  # Boltzman constant
 
     def function(self, x):
@@ -282,7 +282,7 @@ class Tougaard:
             (self.B * x)
             / ((C - x**2) ** 2 + self.D * x**2)
             * 1
-            / (np.exp((self.Eg - x) / (self.t * self.kb)) + 1)
+            / (np.exp((self.Eg - x) / (self.temp * self.kb)) + 1)
         )
 
         return tougaard

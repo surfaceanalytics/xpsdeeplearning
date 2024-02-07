@@ -38,6 +38,9 @@ class Wrapper(ParserWrapper):
         self.fontdict_small = {"size": 25}
         self.fontdict_mae = {"size": 28}
 
+        self.fig = plt.figure(figsize=(32, 20), dpi=300)
+        self.history = {}
+
     def parse_data(self, bg=True, envelope=True):
         """Load data from file dict."""
         for result_dict in self.file_dict.values():
@@ -63,7 +66,6 @@ class Wrapper(ParserWrapper):
         """
         csv_filepath = os.path.join(*[RUNFOLDER, clf_name, "logs/log.csv"])
 
-        self.history = {}
         try:
             with open(csv_filepath, newline="") as csvfile:
                 reader = csv.DictReader(csvfile)
@@ -103,15 +105,15 @@ class Wrapper(ParserWrapper):
         colors = ["cornflowerblue", "red", "forestgreen", "darkgrey"]
 
         metric_history = history[metric]
-        (h0,) = ax.plot(metric_history, linewidth=3, c=colors[0])
+        (handle_0,) = ax.plot(metric_history, linewidth=3, c=colors[0])
         val_key = "val_" + metric
-        (h1,) = ax.plot(history[val_key], linewidth=3, c=colors[1], alpha=0.6)
+        (handle_1,) = ax.plot(history[val_key], linewidth=3, c=colors[1], alpha=0.6)
         ax.set_xlim(-5, len(metric_history) + 5)
 
         labels = ["Training", "Validation"]
 
         ax.legend(
-            handles=[h0, h1],
+            handles=[handle_0, handle_1],
             labels=labels,
             prop=self.fontdict,
             title="MAE (L$_1$) loss",
@@ -205,7 +207,6 @@ class Wrapper(ParserWrapper):
         nrows = 2
         ncols = 3
 
-        self.fig = plt.figure(figsize=(32, 20), dpi=150)
         gs = gridspec.GridSpec(nrows=nrows, ncols=ncols, wspace=0.1, hspace=0.3)
 
         ax0 = self.fig.add_subplot(gs[:, 0])
@@ -213,11 +214,6 @@ class Wrapper(ParserWrapper):
         ax0_2 = self.fig.add_subplot(gs[0, 2])
         ax1_1 = self.fig.add_subplot(gs[1, 1])
         ax1_2 = self.fig.add_subplot(gs[1, 2])
-
-        self.axs = [
-            ax0,
-            [[ax0_1, ax0_2], [ax1_1, ax1_2]],
-        ]
 
         ax0 = self._plot_metric(
             ax0,

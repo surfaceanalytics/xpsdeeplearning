@@ -188,7 +188,7 @@ class Wrapper(ParserWrapper):
         ax.tick_params(axis="x", labelsize=self.fontdict["size"])
         ax.tick_params(axis="y", labelsize=self.fontdict["size"])
 
-        N, _, hist_patches = ax.hist(
+        counts, _, hist_patches = ax.hist(
             losses_test,
             bins=100,
             histtype="bar",
@@ -203,9 +203,9 @@ class Wrapper(ParserWrapper):
             ng, nb = 0, 0
             for i, patch in enumerate(hist_patches):
                 if patch.xy[0] < t:
-                    ng += N[i]
+                    ng += counts[i]
                 else:
-                    nb += N[i]
+                    nb += counts[i]
             ng_p = np.round(ng / (ng + nb) * 100, 1)
             nb_p = np.round(nb / (ng + nb) * 100, 1)
 
@@ -360,21 +360,21 @@ class Wrapper(ParserWrapper):
             ("Fe 2p", 0.79, 0.47),
         ]
 
-        for t in texts:
+        for text in texts:
             self.axs[0, 0].text(
-                x=t[1],
-                y=t[2],
-                s=t[0],
+                x=text[1],
+                y=text[2],
+                s=text[0],
                 horizontalalignment="left",
                 size=self.fontdict["size"],
                 verticalalignment="center",
                 transform=self.axs[0, 0].transAxes,
             )
 
-        for w in window:
+        for win in window:
             con = ConnectionPatch(
-                xyA=(w, 0.27 * ymax),
-                xyB=(w, self.axs[1, 0].get_ylim()[1]),
+                xyA=(win, 0.27 * ymax),
+                xyB=(win, self.axs[1, 0].get_ylim()[1]),
                 coordsA="data",
                 coordsB="data",
                 axesA=self.axs[0, 0],
