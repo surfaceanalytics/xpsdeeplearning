@@ -29,8 +29,9 @@ files and store them in a hdf5 file as a test data set for the neural
 network studies.
 """
 import os
-from typing import List
 import warnings
+from typing import List
+
 import h5py
 import numpy as np
 import pandas as pd
@@ -75,7 +76,8 @@ def resample_one_reference_spectrum(
     ref_spectrum = MeasuredSpectrum(filepath)
     Figure(x=ref_spectrum.x, y=ref_spectrum.lineshape, title="old")
 
-    ref_spectrum.resample(start=new_start, stop=new_stop, step=new_step)
+    if new_start and new_stop and new_step:
+        ref_spectrum.resample(start=new_start, stop=new_stop, step=new_step)
     Figure(x=ref_spectrum.x, y=ref_spectrum.lineshape, title="new")
 
     new_filename = filename.split(".")[0] + "_new.vms"
@@ -117,7 +119,8 @@ def resample_one_fitted_spectrum(
     filepath = os.path.join(input_datafolder, filename)
     fit_spectrum = FittedSpectrum(filepath)
     Figure(x=fit_spectrum.x, y=fit_spectrum.lineshape, title="old")
-    fit_spectrum.resample(start=new_start, stop=new_stop, step=new_step)
+    if new_start and new_stop and new_step:
+        fit_spectrum.resample(start=new_start, stop=new_stop, step=new_step)
     Figure(x=fit_spectrum.x, y=fit_spectrum.lineshape, title="new")
     new_filename = filename.split(".")[0] + "_new.vms"
     fit_spectrum.write(output_folder=input_datafolder, new_filename=new_filename)
@@ -200,7 +203,8 @@ def convert_and_resample_all_exported_spectra(
         filepath = os.path.join(input_datafolder, name)
         spectrum = FittedSpectrum(filepath)
         index = filenames.index(name)
-        spectrum.resample(start=new_start, stop=new_stop, step=new_step)
+        if new_start and new_stop and new_step:
+            spectrum.resample(start=new_start, stop=new_stop, step=new_step)
         spectrum.normalize()
         spectra.append(spectrum)
         X[index] = np.reshape(spectrum.lineshape, (-1, 1))
@@ -317,9 +321,9 @@ def load_data(filepath):
 
 def convert_and_resample_all_measured_spectra(
     input_datafolder: str,
-    new_start: float,
-    new_stop: float,
-    new_step: float,
+    new_start: float = None,
+    new_stop: float = None,
+    new_step: float = None,
     plot_all: bool = True,
 ):
     """
@@ -383,7 +387,8 @@ def convert_and_resample_all_measured_spectra(
 
         index = filenames.index(filename)
 
-        spectrum.resample(start=new_start, stop=new_stop, step=new_step)
+        if new_start and new_stop and new_step:
+            spectrum.resample(start=new_start, stop=new_stop, step=new_step)
         spectrum.normalize()
         spectra.append(spectrum)
         X[index] = np.reshape(spectrum.lineshape, (-1, 1))
