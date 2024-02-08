@@ -241,11 +241,6 @@ class MeasuredSpectrum(Spectrum):
         filepath : str
             The file should be a .vms or .txt file.
 
-        Returns
-        -------
-        TYPE
-            DESCRIPTION.
-
         """
         self.converter = DataConverter()
         self.converter.load(filepath)
@@ -373,7 +368,7 @@ class FittedSpectrum(MeasuredSpectrum):
         Returns
         -------
         label : dict
-            Name of the spectrum given in the first row of the xy file.
+            Name of the spectrum given in the first row of the txt file.
         data : ndarray
             2D array with the x and y values from the file.
 

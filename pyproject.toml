@@ -29,7 +29,7 @@ dependencies = [
     "nbconvert>=7.14.2",
     "jupyter==1.0.0",
     "numpy>=1.25",
-    "pandas>=2.2.0",
+    "pandas>=1.5.3",
     "pillow>=10.2.0",
     "pydot>=2.0.0",
     "pydotplus>=2.0.2",
@@ -60,6 +60,10 @@ dev = [
     "types-requests",
     "pip-tools",
     "pre-commit",
+]
+colab = [
+    "google",
+    "google-colab @ git+https://github.com/googlecolab/colabtools#egg=google.colab",
 ]
 
 [project.scripts]
