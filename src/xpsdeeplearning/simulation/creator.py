@@ -18,6 +18,7 @@
 """
 Simulate artifical XPS spectra using the Creator class.
 """
+
 import warnings
 import os
 import datetime
@@ -97,7 +98,7 @@ class Creator:
                         self.sim_ranges[subkey] = params["sim_ranges"][subkey]
 
         # Print parameter file name.
-        print("Parameters were taken from " f"{self.params['init_param_filepath']}.")
+        print(f"Parameters were taken from {self.params['init_param_filepath']}.")
         del self.params["init_param_filepath"]
 
         self.name = self.params["timestamp"] + "_" + self.params["name"]
@@ -231,19 +232,19 @@ class Creator:
             key = self.select_reference_set()  # select a set of references
             self.simulation_matrix[i, 0] = int(key)
 
-            self.simulation_matrix[
-                i, 1 : self.no_of_linear_params + 1
-            ] = self.select_scaling_params(
-                key=key,
-                single=single,
-                variable_no_of_inputs=variable_no_of_inputs,
-                always_auger=always_auger,
-                always_core=always_core,
+            self.simulation_matrix[i, 1 : self.no_of_linear_params + 1] = (
+                self.select_scaling_params(
+                    key=key,
+                    single=single,
+                    variable_no_of_inputs=variable_no_of_inputs,
+                    always_auger=always_auger,
+                    always_core=always_core,
+                )
             )
 
-            self.simulation_matrix[
-                i, self.no_of_linear_params + 1 :
-            ] = self.select_sim_params(key)
+            self.simulation_matrix[i, self.no_of_linear_params + 1 :] = (
+                self.select_sim_params(key)
+            )
 
             print(
                 "Random parameters: " + str(i + 1) + "/" + str(self.no_of_simulations)

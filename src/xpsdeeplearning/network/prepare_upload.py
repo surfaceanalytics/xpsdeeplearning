@@ -18,6 +18,7 @@
 """
 Prepare classsifier for website upload.
 """
+
 import os
 import json
 import shutil

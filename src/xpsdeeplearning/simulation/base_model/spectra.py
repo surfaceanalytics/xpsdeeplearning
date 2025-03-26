@@ -18,6 +18,7 @@
 """
 Basic definition of classes and peak shapes for simulating spectra.
 """
+
 import os
 
 import numpy as np

@@ -1,0 +1,37 @@
+Model: "Loaded_Model"
+__________________________________________________________________________________________________
+ Layer (type)                Output Shape                 Param #   Connected to                  
+==================================================================================================
+ input_1 (InputLayer)        [(None, 501, 1)]             0         []                            
+                                                                                                  
+ conv_1_short (Conv1D)       (None, 501, 12)              72        ['input_1[0][0]']             
+                                                                                                  
+ conv_1_medium (Conv1D)      (None, 501, 12)              132       ['input_1[0][0]']             
+                                                                                                  
+ conv_1_long (Conv1D)        (None, 501, 12)              192       ['input_1[0][0]']             
+                                                                                                  
+ concatenate (Concatenate)   (None, 501, 36)              0         ['conv_1_short[0][0]',        
+                                                                     'conv_1_medium[0][0]',       
+                                                                     'conv_1_long[0][0]']         
+                                                                                                  
+ conv_2 (Conv1D)             (None, 497, 10)              1810      ['concatenate[0][0]']         
+                                                                                                  
+ conv_3 (Conv1D)             (None, 493, 10)              510       ['conv_2[0][0]']              
+                                                                                                  
+ average_pool_1 (AveragePoo  (None, 246, 10)              0         ['conv_3[0][0]']              
+ ling1D)                                                                                          
+                                                                                                  
+ flatten1 (Flatten)          (None, 2460)                 0         ['average_pool_1[0][0]']      
+                                                                                                  
+ dense_1 (Dense)             (None, 4000)                 9844000   ['flatten1[0][0]']            
+                                                                                                  
+ dense_2 (Dense)             (None, 2)                    8002      ['dense_1[0][0]']             
+                                                                                                  
+ output_normalization (Lamb  (None, 2)                    0         ['dense_2[0][0]']             
+ da)                                                                                              
+                                                                                                  
+==================================================================================================
+Total params: 9854718 (37.59 MB)
+Trainable params: 9854718 (37.59 MB)
+Non-trainable params: 0 (0.00 Byte)
+__________________________________________________________________________________________________

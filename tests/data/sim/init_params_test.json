@@ -1,0 +1,60 @@
+{
+   "output_datafolder":"tests/data",
+   "name":"Ni_linear_combination_small_gas_phase",
+   "labels":[
+      "Ni metal",
+      "NiO"
+   ],
+   "spectra":[
+      "Ni2p Ni metal",
+      "Ni2p NiO"
+   ],
+   "input_filenames":{
+      "reference_set_0":[
+         "Ni2p_Ni_metal.txt",
+         "Ni2p_NiO.txt"
+      ]
+   },
+   "no_of_simulations":20,
+   "single":false,
+   "variable_no_of_inputs":true,
+   "always_auger":false,
+   "always_core":true,
+   "same_auger_core_percentage":true,
+   "ensure_same_length":false,
+   "eV_window":null,
+   "normalize_inputs":true,
+   "normalize_outputs":true,
+   "broaden":true,
+   "shift_x":true,
+   "noise":true,
+   "scatter":true,
+   "sim_ranges":{
+      "shift_x":[
+         -3,
+         3
+      ],
+      "noise":[
+         3,
+         35
+      ],
+      "FWHM":[
+         0.5,
+         2.0
+      ],
+      "scatterers":{
+         "0":"He",
+         "1":"H2",
+         "2":"N2",
+         "3":"O2"
+      },
+      "pressure":[
+         0.1,
+         0.5
+      ],
+      "distance":[
+         0.1,
+         1
+      ]
+   }
+}

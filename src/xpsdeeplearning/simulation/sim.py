@@ -18,6 +18,7 @@
 """
 Simulate a single spectrum from reference spectra.
 """
+
 import numpy as np
 
 from xpsdeeplearning.simulation.base_model.figures import Figure
@@ -188,9 +189,9 @@ class Simulation:
             m = int(np.where(auger_spectrum.x == np.mean(auger_spectrum.x))[0])
             n = int(np.where(x == np.mean(x))[0])
             if n > m:
-                shifted_auger_spectrum.lineshape[
-                    n - m : n + m
-                ] = auger_spectrum.lineshape[: 2 * m]
+                shifted_auger_spectrum.lineshape[n - m : n + m] = (
+                    auger_spectrum.lineshape[: 2 * m]
+                )
                 shifted_auger_spectrum.lineshape[: n - m] = auger_spectrum.lineshape[0]
                 shifted_auger_spectrum.lineshape[n + m :] = auger_spectrum.lineshape[
                     2 * m

@@ -35,7 +35,7 @@ The package combines
 2) a supervised machine learning framework based on artificial convolutional neural networks that is able to accurately perform automated quantitative analysis of the phases present in such XP spectra.
 
 # Installation
-It is recommended to use **python 3.11** (you will need at least python 3.9) with a dedicated virtual environment for this package.
+It is recommended to use **python 3.11** (you will need a version between python 3.9 and 3.11) with a dedicated virtual environment for this package.
 Learn how to manage [python versions](https://github.com/pyenv/pyenv) and
 [virtual environments](https://realpython.com/python-virtual-environments-a-primer/).
 
@@ -45,15 +45,18 @@ The quickest way to get started is to clone this repository:
 git clone https://github.com/surfaceanalytics/xpsdeeplearning.git
 cd xpsdeeplearning
 ```
-...and install it with pip:
+...and install it with [uv](https://docs.astral.sh/uv/) (recommended) or pip:
 ```shell
+# with uv
+uv pip install .
+# with pip
 pip install .
 ```
 
 ## A note on model visualization
 In case you want to save and plot an image of your Tensorflow/Keras model during training/prediction, you can call the `save_and_print_model_image` method of the [`Classifier`](https://github.com/surfaceanalytics/xpsdeeplearning/tree/main/xpsdeeplearning/network/classifier.py) class. This method utilizes the [`plot_model`](https://keras.io/api/utils/model_plotting_utils/) function of Keras to convert the model to dot format and save the image to a file. However, for the conversion to work, you need to have `graphviz` installed locally. You can simply [download the binary](https://www.graphviz.org/download/source/) and install.
 
-For conda users, it is also possible to install the binary in a a decicated environment by running
+For conda users, it is also possible to install the binary in a decicated environment by running
 ```shell
 conda install anaconda::graphviz
 ```
@@ -95,9 +98,7 @@ Install the package with its dependencies:
 git clone https://github.com/surfaceanalytics/xpsdeeplearning.git \\
     --branch main xpsdeeplearning
 cd xpsdeeplearning
-python -m pip install --upgrade pip
-python -m pip install -e .
-python -m pip install -e ".[dev]"
+uv pip install -e ".[dev]"
 ```
 
 There is also a [pre-commit hook](https://pre-commit.com/#intro) available
@@ -127,4 +128,4 @@ on how to build on this work, or to get your XPS data ready for neural network a
 
 # License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the Apache License - see the [LICENSE](LICENSE) file for details.

@@ -18,6 +18,7 @@
 """
 Logging for training and testing a Keras model.
 """
+
 import os
 import json
 import csv
@@ -375,7 +376,7 @@ class CustomModelCheckpoint(callbacks.ModelCheckpoint):
                     current = logs.get(self.monitor)
                     if current is None:
                         logging.warning(
-                            "Can save best model only with %s available, " "skipping.",
+                            "Can save best model only with %s available, skipping.",
                             self.monitor,
                         )
                     else:

@@ -18,6 +18,7 @@
 """
 Data handler for Classifier class.
 """
+
 import h5py
 import matplotlib.colors as mcolors
 import matplotlib.pyplot as plt

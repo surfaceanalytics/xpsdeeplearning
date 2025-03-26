@@ -18,6 +18,7 @@
 """
 Main classifier for training and testing a Keras model.
 """
+
 import json
 import os
 from typing import Dict
@@ -91,7 +92,10 @@ class Classifier:
 
         self.datahandler = DataHandler(intensity_only)
         self.datahandler.labels = labels
-        self.datahandler.num_classes = len(self.datahandler.labels)
+        if self.datahandler.labels:
+            self.datahandler.num_classes = len(self.datahandler.labels)
+        else:
+            self.datahandler.num_classes = 0
 
         dir_name = self.time + "_" + self.exp_name
         self.logging = ExperimentLogging(dir_name)
@@ -245,7 +249,7 @@ class Classifier:
         self,
         epochs: int,
         batch_size: int,
-        cb_parameters: Dict,
+        cb_parameters: Dict = {},
         checkpoint: bool = True,
         early_stopping: bool = False,
         tb_log: bool = False,
@@ -392,7 +396,7 @@ class Classifier:
         score = self.model.evaluate(
             self.datahandler.X_test,
             self.datahandler.y_test,
-            batch_size=self.logging.hyperparams["batch_size"],
+            batch_size=self.logging.hyperparams.get("batch_size", 32),
             verbose=True,
         )
         print("Evaluation done! \n")

@@ -1,0 +1,13 @@
+{
+  "time":"20250101",
+  "input_filepath":"tests/data/20240206_Ni_linear_combination_small_gas_phase.h5",
+  "exp_name":"Ni_small_gas_phase",
+  "task":"regression",
+  "intensity_only":true,
+  "no_of_examples":20,
+  "train_test_split":0.2,
+  "train_val_split":0.2,
+  "learning_rate":1e-05,
+  "epochs":1,
+  "batch_size":32
+}

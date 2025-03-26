@@ -14,7 +14,7 @@ authors = [
 description = "A toolbox for XPS data analysis using Convolutional Neural Networks."
 readme = "README.md"
 license = { file = "LICENSE" }
-requires-python = ">=3.9"
+requires-python = ">=3.9,!=3.12"
 classifiers = [
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
@@ -28,7 +28,7 @@ dependencies = [
     "matplotlib>=3.8.0",
     "nbconvert>=7.14.2",
     "jupyter==1.0.0",
-    "numpy>=1.25",
+    "numpy>=1.25,<2.0",
     "pandas>=2.2.0",
     "pillow>=10.2.0",
     "pydot>=2.0.0",
@@ -39,8 +39,8 @@ dependencies = [
     "scipy>=1.12",
     "scikit-learn>=1.4",
     "talos @ git+https://github.com/lukaspie/talos.git@v1.3.2#egg=talos",
-    "tensorflow>=2.8.0",
-    "tensorflow_probability>=0.23",
+    "tensorflow>=2.8.0,<=2.15.0",
+    "tensorflow_probability==0.23",
     "xlsxwriter>=3.1.9",
 ]
 

@@ -18,6 +18,7 @@
 """
 Basic definition of scattering objects for simulating spectra.
 """
+
 import json
 
 import numpy as np

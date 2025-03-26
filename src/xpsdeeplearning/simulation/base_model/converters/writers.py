@@ -17,6 +17,7 @@
 """
 Write for XPS data to vms/txt format.
 """
+
 import re
 from copy import copy
 

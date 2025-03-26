@@ -22,6 +22,7 @@ Utils for model training:
     3) Weight distribution of Bayesian models
     4) Reporting in .docx format
 """
+
 import json
 import os
 import pickle

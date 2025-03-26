@@ -29,7 +29,6 @@ jobs:
       - name: Test with pytest
         run: |
           coverage run -m pytest -sv --show-capture=no tests 
-        # --ignore=tests/test_classifier.py
       - name: Submit to coveralls
         continue-on-error: true
         if: "${{ matrix.python-version == '3.12'}}"

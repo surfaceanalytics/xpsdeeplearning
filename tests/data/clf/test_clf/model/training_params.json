@@ -1,0 +1,80 @@
+{
+    "name": "Ni_linear_combination_normalized_inputs_small_gas_phase",
+    "labels": [
+        "Ni metal",
+        "NiO"
+    ],
+    "dataset_params": {
+        "name": "20220624_Ni_linear_combination_small_gas_phase",
+        "spectra": [
+            "Ni2p Ni metal",
+            "Ni2p NiO"
+        ],
+        "input_filenames": {
+            "reference_set_0": [
+                "Ni2p_Ni_metal.txt",
+                "Ni2p_NiO.txt"
+            ]
+        },
+        "always_auger": false,
+        "always_core": true,
+        "same_auger_core_percentage": true,
+        "ensure_same_length": false,
+        "eV_window": null,
+        "normalize_inputs": true,
+        "normalize_outputs": true,
+        "broaden": true,
+        "shift_x": true,
+        "noise": true,
+        "scatter": true,
+        "sim_ranges": {
+            "shift_x": [
+                -3,
+                3
+            ],
+            "noise": [
+                3,
+                35
+            ],
+            "FWHM": [
+                0.5,
+                2.0
+            ],
+            "scatterers": {
+                "0": "He",
+                "1": "H2",
+                "2": "N2",
+                "3": "O2"
+            },
+            "pressure": [
+                0.1,
+                0.5
+            ],
+            "distance": [
+                0.1,
+                1
+            ]
+        },
+        "timestamp": "20220624",
+        "energy_range": [
+            840.0,
+            890.0,
+            0.1
+        ]
+    },
+    "train_params": {
+        "task": "regression",
+        "intensity_only": true,
+        "epochs_trained": 500,
+        "no_of_examples": 200000,
+        "energy_range": [
+            840.0,
+            890.0,
+            0.1
+        ],
+        "batch_size": 32,
+        "loss": "MeanAbsoluteError",
+        "optimizer": "Adam",
+        "learning_rate": "1e-05"
+    }
+}

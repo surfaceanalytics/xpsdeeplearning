@@ -1,0 +1,30 @@
+{
+    "time": "20240101_00h00m",
+    "exp_name": "test",
+    "task": "regression",
+    "intensity_only": true,
+    "epochs_trained": 3,
+    "input_filepath": "tests/data/20240206_Ni_linear_combination_small_gas_phase.h5",
+    "train_test_split": 0.2,
+    "train_val_split": 0.2,
+    "labels": [
+        "Ni metal",
+        "NiO"
+    ],
+    "num_of_classes": 2,
+    "no_of_examples": 20,
+    "energy_range": [
+        840.0,
+        890.0,
+        0.1
+    ],
+    "No. of training samples": "12",
+    "No. of validation samples": "4",
+    "No. of test samples": "4",
+    "Shape of each sample": "501 features (X) + 2 labels (y)",
+    "batch_size": 32,
+    "model_summary": "",
+    "loss": "MeanAbsoluteError",
+    "optimizer": "Adam",
+    "learning_rate": "1e-05"
+}

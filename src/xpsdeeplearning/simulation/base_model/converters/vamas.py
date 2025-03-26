@@ -32,8 +32,7 @@ class VamasHeader:
 
         """
         self.formatID = (
-            "VAMAS Surface Chemical Analysis Standard "
-            "Data Transfer Format 1988 May 4"
+            "VAMAS Surface Chemical Analysis Standard Data Transfer Format 1988 May 4"
         )
         self.instituteID = "Not Specified"
         self.instriumentModelID = "Not Specified"

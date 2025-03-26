@@ -18,6 +18,7 @@
 """
 Basic definition of peak shapes for simulating spectra.
 """
+
 import warnings
 import numpy as np
 

@@ -20,6 +20,7 @@ This script is used to simulate many spectra using the Creator class
 and save the data to a HDF5 file, along with the metadata in a JSON
 file.
 """
+
 from time import time
 import os
 import sys

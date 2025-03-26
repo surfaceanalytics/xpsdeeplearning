@@ -18,6 +18,7 @@
 """
 Hyperoptimation of keras models using Talos.
 """
+
 import os
 
 import numpy as np

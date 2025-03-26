@@ -18,6 +18,7 @@
 """
 CLI tools for classification and prediction.
 """
+
 import os
 import json
 import datetime
@@ -39,10 +40,17 @@ from xpsdeeplearning.network import models
 
 def init_clf(exp_params):
     """Init a blank classifier."""
+    start_time = exp_params.get("time", None)
+
+    if not start_time:
+        start_time = (
+            datetime.datetime.now()
+            .astimezone(pytz.timezone("Europe/Berlin"))
+            .strftime("%Y%m%d_%Hh%Mm")
+        )
+
     return Classifier(
-        time=datetime.datetime.now()
-        .astimezone(pytz.timezone("Europe/Berlin"))
-        .strftime("%Y%m%d_%Hh%Mm"),
+        time=start_time,
         exp_name=exp_params["exp_name"],
         task=exp_params["task"],
         intensity_only=exp_params["intensity_only"],
@@ -97,6 +105,7 @@ def select_loss_and_metrics(task: str = "regression"):
 
 @click.command()
 @click.option(
+    "-p",
     "--param-file",
     default=None,
     required=True,
@@ -104,8 +113,14 @@ def select_loss_and_metrics(task: str = "regression"):
 )
 def train_cli(param_file: str):
     """Train a CNN on new data."""
-    with open(param_file, "r") as json_file:
-        training_params = json.load(json_file)
+    if not os.path.exists(param_file):
+        raise FileNotFoundError(f"The file {param_file} does not exist.")
+
+    try:
+        with open(param_file, "r") as json_file:
+            training_params = json.load(json_file)
+    except json.JSONDecodeError:
+        raise ValueError(f"The file {param_file} is not a valid JSON.")
 
     clf = init_clf_with_data(training_params)
 
