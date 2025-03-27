@@ -494,8 +494,7 @@ class DataHandler:
 
         X, _ = self._select_dataset(dataset)
 
-        if len(indices) < no_of_spectra:
-            no_of_spectra = len(indices)
+        no_of_spectra = min(no_of_spectra, len(indices))
 
         for i in range(no_of_spectra):
             index = indices[i]

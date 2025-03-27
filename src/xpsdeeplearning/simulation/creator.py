@@ -883,9 +883,7 @@ class Creator:
         None.
 
         """
-        if no_of_spectra > self.no_of_simulations:
-            # In this case, plot all spectra.
-            no_of_spectra = self.no_of_simulations
+        no_of_spectra = min(no_of_spectra, self.no_of_simulations)
 
         random_numbers = []
         for _ in range(no_of_spectra):

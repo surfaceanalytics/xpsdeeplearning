@@ -22,7 +22,7 @@ jobs:
           ruff check xpsdeeplearning pubplots notebooks tests utils
       - name: ruff formatting
         run: |
-          ruff format --check xpsdeeplearning pubplots notebooks tests utils
+          ruff format --check xpsdeeplearning pubplots tests utils
       - name: mypy
         run: |
           mypy xpsdeeplearning pubplots tests utils

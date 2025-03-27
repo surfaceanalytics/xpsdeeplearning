@@ -56,8 +56,8 @@ def simulate(
         param_filename = dataset_name + "_metadata.json"
         param_filepath = os.path.join(reload_from_previous_folder, param_filename)
 
-        with open(param_filepath, "r") as param_file:  # type: ignore
-            creator.params = json.load(param_file)  # type: ignore
+        with open(param_filepath, "r") as param_file_reload:  # type: ignore
+            creator.params = json.load(param_file_reload)  # type: ignore
 
     t0_run = time()
     _ = creator.run()

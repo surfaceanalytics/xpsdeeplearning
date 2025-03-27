@@ -248,9 +248,9 @@ def test_upload():
                 train_cli,
                 "--param-file",
                 "tests/data/clf/train_params.json",
-            ], 
+            ],
             "tests/data/clf/ref_output_train.txt",
-            id="train"
+            id="train",
         ),
         pytest.param(
             [
@@ -259,15 +259,18 @@ def test_upload():
                 "tests/data/clf/test_params.json",
                 "--clf-path",
                 "tests/data/clf/test_clf/model",
-            ], 
+            ],
             "tests/data/clf/ref_output_test.txt",
-            id="predict"
+            id="predict",
         ),
     ],
 )
 def test_cli(cli_inputs, ref_file):
     """Test CLI functions for training and prediction."""
-    def assert_loss_within_tolerance(pattern: re.Pattern, line: str, ref_line: str, tolerance: float = 0.05):
+
+    def assert_loss_within_tolerance(
+        pattern: re.Pattern, line: str, ref_line: str, tolerance: float = 0.05
+    ):
         """Compare loss and mse values between actual and reference lines within a given tolerance."""
         match_output = pattern.search(line)
         match_expected = pattern.search(ref_line)
@@ -278,15 +281,20 @@ def test_cli(cli_inputs, ref_file):
             values_expected = [float(x) for x in match_expected.groups()]
 
             # Ensure both lists have the same number of values
-            assert len(values_output) == len(values_expected), "Mismatched loss/mse value count!"
+            assert len(values_output) == len(values_expected), (
+                "Mismatched loss/mse value count!"
+            )
 
             # Check if each value is within the allowed tolerance
             for out, exp in zip(values_output, values_expected):
-                assert abs(out - exp) / exp <= tolerance, f"Value {out} not within {tolerance*100}% of {exp}"
+                assert abs(out - exp) / exp <= tolerance, (
+                    f"Value {out} not within {tolerance * 100}% of {exp}"
+                )
         else:
             # Fallback: If no loss/mse match, compare the lines directly
-            assert line.strip() == ref_line.strip(), f"Line mismatch:\nExpected: {ref_line}\nActual: {line}"
-
+            assert line.strip() == ref_line.strip(), (
+                f"Line mismatch:\nExpected: {ref_line}\nActual: {line}"
+            )
 
     runner = CliRunner()
     result = runner.invoke(cli_inputs[0], cli_inputs[1:])
@@ -294,14 +302,12 @@ def test_cli(cli_inputs, ref_file):
     assert result.exit_code == 0
 
     output = result.stdout.split("\n")
-    
+
     with open(ref_file, "r") as file:
         expected_messages = [line.strip() for line in file.readlines()]
-        
+
     # Regular expressions for matching losses and MSEs
-    loss_mse_pattern = re.compile(
-        r"loss: ([\d.]+) - mse: ([\d.]+)"
-    )
+    loss_mse_pattern = re.compile(r"loss: ([\d.]+) - mse: ([\d.]+)")
     loss_mse_val_pattern = re.compile(
         r"loss: ([\d.]+) - mse: ([\d.]+) - val_loss: ([\d.]+) - val_mse: ([\d.]+)"
     )
@@ -312,9 +318,13 @@ def test_cli(cli_inputs, ref_file):
     for line, ref_line in zip(output, expected_messages):
         if loss_mse_pattern.search(line):
             try:
-                assert_loss_within_tolerance(loss_mse_pattern, line, ref_line, tolerance)
+                assert_loss_within_tolerance(
+                    loss_mse_pattern, line, ref_line, tolerance
+                )
             except AssertionError:
-                assert_loss_within_tolerance(loss_mse_val_pattern, line, ref_line, tolerance)
+                assert_loss_within_tolerance(
+                    loss_mse_val_pattern, line, ref_line, tolerance
+                )
         elif test_loss_pattern.search(line):
             assert_loss_within_tolerance(test_loss_pattern, line, ref_line, tolerance)
         else:
