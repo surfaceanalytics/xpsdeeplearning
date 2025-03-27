@@ -19,10 +19,10 @@ jobs:
           uv pip install .[dev]
       - name: ruff check
         run: |
-          ruff check xpsdeeplearning pubplots notebooks tests utils
+          ruff check src/xpsdeeplearning/ pubplots/ notebooks/ tests/ utils/
       - name: ruff formatting
         run: |
-          ruff format --check xpsdeeplearning pubplots tests utils
+          ruff format --check src/xpsdeeplearning/ pubplots/ notebooks/ tests/ utils/
       - name: mypy
         run: |
-          mypy xpsdeeplearning pubplots tests utils
+          mypy src/xpsdeeplearning/ pubplots/ tests/ utils/
