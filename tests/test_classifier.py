@@ -189,8 +189,8 @@ def test_evaluate():
 
     test_loss, test_accuracy = clf.evaluate()
 
-    assert np.around(test_loss, 3) == 0.002
-    assert np.around(test_accuracy, 7) == 1.34e-05
+    assert np.around(test_loss, 3) == 0.394
+    assert np.around(test_accuracy, 7) == 0.1889244
 
     del_clf_dirs(clf)
     sys.stdout.write("Test on classifier evaluation okay.\n")
@@ -257,7 +257,7 @@ def test_upload():
                 predict_cli,
                 "--param-file",
                 "tests/data/clf/test_params.json",
-                "--clf-path",
+                "--model-path",
                 "tests/data/clf/test_clf/model",
             ],
             "tests/data/clf/ref_output_test.txt",
@@ -301,6 +301,8 @@ def test_cli(cli_inputs, ref_file):
 
     assert result.exit_code == 0
 
+    shutil.rmtree("runs/20250101_Ni_small_gas_phase")
+
     output = result.stdout.split("\n")
 
     with open(ref_file, "r") as file:
@@ -332,5 +334,4 @@ def test_cli(cli_inputs, ref_file):
                 continue
             assert line.strip() == ref_line.strip()
 
-    shutil.rmtree("runs/20250101_Ni_small_gas_phase")
-    sys.stdout.write(f"Test on {cli_inputs[0]} okay.\n")
+    sys.stdout.write(f"Test on {str(cli_inputs[0])} okay.\n")

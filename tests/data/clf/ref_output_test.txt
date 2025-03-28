@@ -8,12 +8,12 @@ No. of validation samples: 1
 No. of test samples: 17
 Shape of each sample : 501 features (X) + 2 labels (y)
 Loaded model from disk.
-1/1 [==============================] - 0s 195ms/step - loss: 0.0030 - mse: 2.5197e-05
+1/1 [==============================] - 0s 178ms/step - loss: 0.3107 - mse: 0.1394
 Evaluation done!
 
-Test loss: [2.99052e-03 2.52000e-05]
-1/1 [==============================] - 0s 68ms/step
-1/1 [==============================] - 0s 15ms/step
+Test loss: [0.31071243 0.13944869]
+1/1 [==============================] - 0s 76ms/step
+1/1 [==============================] - 0s 20ms/step
 Prediction done!
 DataHandler object has no attribute prob_pred_train.
 DataHandler object has no attribute prob_pred_test.

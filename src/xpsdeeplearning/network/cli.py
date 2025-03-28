@@ -166,27 +166,29 @@ def train_cli(param_file: str):
 
 @click.command()
 @click.option(
+    "-p",
     "--param-file",
     default=None,
     required=True,
     help="The path to the parameter file for this experiment.",
 )
 @click.option(
-    "--clf-path",
+    "-m",
+    "--model-path",
     default=None,
     required=True,
-    help="The path to the existing classifier.",
+    help="The path to the existing model.",
 )
-def predict_cli(param_file: str, clf_path: str):
+def predict_cli(param_file: str, model_path: str):
     """Predict using an existing classifier."""
     with open(param_file, "r") as json_file:
         test_params = json.load(json_file)
-    clf_param_file = os.path.join(clf_path, "training_params.json")
+    clf_param_file = os.path.join(model_path, "training_params.json")
     with open(clf_param_file, "r") as clf_json_file:
         clf_train_params = json.load(clf_json_file)
 
     clf = init_clf_with_data(test_params)
-    clf.load_model(model_path=clf_path)
+    clf.load_model(model_path=model_path)
     clf.summary()
 
     clf.logging.hyperparams["batch_size"] = clf_train_params["train_params"][

@@ -21,7 +21,13 @@ jobs:
       - name: Install uv and set the python version to ${{ matrix.python-version }}
         uses: astral-sh/setup-uv@v5
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: ${{ matrix.python-version }}          
+      - name: Download and extract model files
+        run: |
+          uv pip install gdown
+          gdown 1u-NIqH14pGqelqnZPqgtWMPVJFO84Y1U -O model.zip
+          unzip -q -j model.zip -d tests/data/clf/test_clf/model
+          rm model.zip
       - name: Install package and dependencies
         run: |
           uv pip install ".[dev]"
@@ -31,7 +37,7 @@ jobs:
           coverage run -m pytest -sv --show-capture=no tests 
       - name: Submit to coveralls
         continue-on-error: true
-        if: "${{ matrix.python-version == '3.12'}}"
+        if: "${{ matrix.python-version == '3.11'}}"
         env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
