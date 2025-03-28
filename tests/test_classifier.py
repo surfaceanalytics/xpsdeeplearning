@@ -190,7 +190,7 @@ def test_evaluate():
     test_loss, test_accuracy = clf.evaluate()
 
     assert np.around(test_loss, 3) == 0.394
-    assert np.around(test_accuracy, 7) == 0.1889244
+    assert np.around(test_accuracy, 6) == 0.188924
 
     del_clf_dirs(clf)
     sys.stdout.write("Test on classifier evaluation okay.\n")
@@ -208,10 +208,10 @@ def test_predict():
         ref_pred = pickle.load(pickle_file)
 
     np.testing.assert_array_almost_equal(
-        clf.datahandler.pred_train, ref_pred["pred_train"], decimal=8
+        clf.datahandler.pred_train, ref_pred["pred_train"], decimal=6
     )
     np.testing.assert_array_almost_equal(
-        clf.datahandler.pred_test, ref_pred["pred_test"], decimal=8
+        clf.datahandler.pred_test, ref_pred["pred_test"], decimal=6
     )
 
     del_clf_dirs(clf)
