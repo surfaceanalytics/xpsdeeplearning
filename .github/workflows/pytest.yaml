@@ -26,7 +26,7 @@ jobs:
         run: |
           uv pip install gdown
           gdown 1u-NIqH14pGqelqnZPqgtWMPVJFO84Y1U -O model.zip
-          unzip -q -j model.zip -d tests/data/clf/test_clf/model
+          unzip -q model.zip -d tests/data/clf/test_clf/
           rm model.zip
       - name: Install package and dependencies
         run: |
