@@ -112,3 +112,6 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+# Custom settings
+tests/data/clf/test_clf/model/

@@ -17,6 +17,7 @@
 """
 Tests for simulation
 """
+
 import datetime
 import json
 import os
@@ -35,7 +36,7 @@ from xpsdeeplearning.simulation.sim import Simulation
 
 def test_vms_load():
     """Test for loading VAMAS data."""
-    filepath = "tests/data/vms_test.vms"
+    filepath = "tests/data/sim/vms_test.vms"
 
     measured_spectrum = MeasuredSpectrum(filepath)
     assert "Fe2p zero line" in measured_spectrum.label
@@ -48,7 +49,7 @@ def test_vms_load():
 
 def test_txt_load():
     """Test for loading exported data in txt format."""
-    filepath = "tests/data/vms_export.txt"
+    filepath = "tests/data/sim/vms_export.txt"
 
     measured_spectrum = MeasuredSpectrum(filepath)
     assert "Fe2p all_zero" in measured_spectrum.label
@@ -60,7 +61,7 @@ def test_txt_load():
 
 def test_single_sim():
     """Test simluation of single spectrum."""
-    datapath = "tests/data"
+    datapath = "tests/data/sim/"
 
     filenames = ["Ni2p_Ni_metal.txt", "Ni2p_NiO.txt"]
     input_spectra = []
@@ -78,23 +79,18 @@ def test_single_sim():
         scatterer={"label": "O2", "distance": 0.2, "pressure": 1.0},
     )
 
-    np.savez_compressed(
-        "tests/data/ref_sim_spectrum.npz",
-        energy=sim.output_spectrum.x,
-        lineshape=sim.output_spectrum.lineshape,
-    )
-    ref_sim_file = "tests/data/ref_sim_spectrum.npz"  ######
+    ref_sim_file = "tests/data/sim/ref_sim_spectrum.npz"
     data = np.load(ref_sim_file)
 
-    assert (sim.output_spectrum.x == data["energy"]).all()
-    assert (sim.output_spectrum.lineshape == data["lineshape"]).all()
+    for ref, val in zip(data["lineshape"], sim.output_spectrum.lineshape):
+        np.testing.assert_allclose(ref, val, rtol=0.05)
 
     sys.stdout.write("Test on single simulation okay.\n")
 
 
 def test_creator():
     """Test creator class."""
-    init_param_filepath = "tests/data/init_params_test.json"
+    init_param_filepath = "tests/data/sim/init_params_test.json"
 
     with open(init_param_filepath, "r") as param_file:
         params = json.load(param_file)
@@ -125,7 +121,7 @@ def test_creator():
         pytest.param(
             [
                 "--init_param_filepath",
-                "tests/data/init_params_test.json",
+                "tests/data/sim/init_params_test.json",
             ],
         ),
     ],

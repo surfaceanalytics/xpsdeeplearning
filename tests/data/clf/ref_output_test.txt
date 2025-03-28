@@ -1,0 +1,20 @@
+Model folder created at /20250101_Ni_small_gas_phase/model
+Logs folder created at /20250101_Ni_small_gas_phase/logs
+Figures folder created at /20250101_Ni_small_gas_phase/figures
+Data was loaded!
+Total no. of samples: 20
+No. of training samples: 2
+No. of validation samples: 1
+No. of test samples: 17
+Shape of each sample : 501 features (X) + 2 labels (y)
+Loaded model from disk.
+1/1 [==============================] - 0s 178ms/step - loss: 0.3107 - mse: 0.1394
+Evaluation done!
+
+Test loss: [0.31071243 0.13944869]
+1/1 [==============================] - 0s 76ms/step
+1/1 [==============================] - 0s 20ms/step
+Prediction done!
+DataHandler object has no attribute prob_pred_train.
+DataHandler object has no attribute prob_pred_test.
+Saved results to file.

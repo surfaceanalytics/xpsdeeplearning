@@ -28,7 +28,7 @@ dependencies = [
     "matplotlib>=3.8.0",
     "nbconvert>=7.14.2",
     "jupyter==1.0.0",
-    "numpy>=1.25",
+    "numpy>=1.25,<2.0",
     "pandas>=2.2.0",
     "pillow>=10.2.0",
     "pydot>=2.0.0",
@@ -39,8 +39,8 @@ dependencies = [
     "scipy>=1.12",
     "scikit-learn>=1.4",
     "talos @ git+https://github.com/lukaspie/talos.git@v1.3.2#egg=talos",
-    "tensorflow>=2.8.0",
-    "tensorflow_probability>=0.23",
+    "tensorflow>=2.8.0,<=2.15.0",
+    "tensorflow_probability==0.23",
     "xlsxwriter>=3.1.9",
 ]
 
@@ -52,13 +52,12 @@ dependencies = [
 dev = [
     "mypy",
     "nbdime",
-    "ruff",
+    "ruff==0.11.2",
     "pytest",
     "pytest-timeout",
     "pytest-cov",
     "types-pytz",
     "types-requests",
-    "pip-tools",
     "pre-commit",
 ]
 
@@ -67,21 +66,27 @@ simulate = "xpsdeeplearning.simulation.run:simulate_cli"
 train = "xpsdeeplearning.network.cli:train_cli"
 predict = "xpsdeeplearning.network.cli:predict_cli"
 
-[tool.setuptools]
-packages = ["xpsdeeplearning"]
+[tool.setuptools.packages.find]
+where = [
+    "src",
+]
 
 [tool.setuptools_scm]
 version_scheme = "no-guess-dev"
 local_scheme = "node-and-date"
 
 [tool.ruff]
-include = ["xpsdeeplearning/*.py", "xpsdeeplearning/notebooks/*.ipynb", "tests/*.py"]
-lint.select = [
+include = ["src/*.py", "src/xpsdeeplearning/notebooks/*.ipynb", "tests/*.py"]
+line-length = 88
+indent-width = 4
+
+[tool.ruff.lint]
+select = [
     "E", # pycodestyle
     "W", # pycodestyle
     "PL", # pylint
 ]
-lint.ignore = [
+ignore = [
     "E501", # Line too long ({width} > {limit} characters)
     "E701", # Multiple statements on one line (colon)
     "E731", # Do not assign a lambda expression, use a def
@@ -96,7 +101,13 @@ lint.ignore = [
     "PLR1714", # consider-using-in
     "PLR5501", # else-if-used
 ]
-lint.fixable = ["ALL"]
+fixable = ["ALL"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
 
 [tool.mypy]
 strict = false
