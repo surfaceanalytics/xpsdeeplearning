@@ -30,7 +30,7 @@ dependencies = [
     "jupyter==1.0.0",
     "numpy>=1.25,<2.0",
     "pandas>=2.2.0",
-    "pillow>=10.2.0",
+    "pillow>=10.3.0",
     "pydot>=2.0.0",
     "pydotplus>=2.0.2",
     "pytz>=2024.1",
