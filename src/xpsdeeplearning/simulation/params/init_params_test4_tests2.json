@@ -1,0 +1,63 @@
+{
+   "output_datafolder":"C:\\Users\\pielsticker\\Simulations\\",
+   "name":"Test4_tests1",
+   "labels":[
+      "LaCo_0211",
+      "LaCo_0212_1",
+      "LaCo_0212_2",
+      "LaCo_0608",
+      "LaCo_0605_2",
+      "LaCo_0603_1",
+      "FeSe_0720",
+      "FeSe_0706"
+   ],
+   "spectra":[
+      "Samples4Survey LaCo_0211",
+      "Samples4Survey LaCo_0212_1",
+      "Samples4Survey LaCo_0212_2",
+      "Samples4Survey LaCo_0608",
+      "Samples4Survey LaCo_0605_2",
+      "Samples4Survey LaCo_0603_1",
+      "Samples4Survey FeSe_0720",
+      "Samples4Survey FeSe_0706"
+   ],
+   "input_filenames":{
+      "reference_set_0":[
+         "Samples4Survey/4_LaCo_0211.txt",
+         "Samples4Survey/4_LaCo_0212_1.txt",
+         "Samples4Survey/4_LaCo_0212_2.txt",
+         "Samples4Survey/4_LaCo_0608.txt",
+         "Samples4Survey/4_LaCo_0605_2.txt",
+         "Samples4Survey/4_LaCo_0603_1.txt",
+         "Samples4Survey/4_FeSe_0720.txt",
+         "Samples4Survey/4_FeSe_0706.txt"
+      ]
+   },
+   "no_of_simulations":8,
+   "single":true,
+   "variable_no_of_inputs":false,
+   "always_auger":false,
+   "always_core":true,
+   "same_auger_core_percentage":true,
+   "ensure_same_length":false,
+   "eV_window":null,
+   "normalize_inputs":false,
+   "normalize_outputs":true,
+   "broaden":false,
+   "shift_x":false,
+   "noise":false,
+   "scatter":false,
+   "sim_ranges":{
+      "shift_x":[-5,5],
+      "noise":[4,35],
+      "FWHM":[145,722],
+      "scatterers":{
+         "0":"He",
+         "1":"H2",
+         "2":"N2",
+         "3":"O2"
+      },
+      "pressure":[0.1,0.5],
+      "distance":[0.1,1]
+   }
+}
