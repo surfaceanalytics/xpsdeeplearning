@@ -1,0 +1,51 @@
+{
+   "output_datafolder":"C:\\Users\\pielsticker\\Simulations\\",
+   "name":"Prediction_testing",
+   "labels":[
+      "compound1_MMDD",
+      "compound2_MMDD",
+      "compound3_MMDD",
+      "(Use the same labels used in the .txt files)"
+   ],
+   "spectra":[
+      "XXXSurvey compound1_MMDD",
+      "XXXSurvey compound2_MMDD",
+      "XXXSurvey compound3_MMDD",
+      "(Enter the first line of each .txt file)"
+   ],
+   "input_filenames":{
+      "reference_set_0":[
+         "Folder/filename1.txt",
+         "Folder/filename2.txt",
+         "Folder/filename3.txt",
+         "(Enter the path to the .txt files from the site-packages/xpsdeeplearning/data/references directory)"
+      ]
+   },
+   "no_of_simulations":3,
+   "single":true,
+   "variable_no_of_inputs":false,
+   "always_auger":false,
+   "always_core":true,
+   "same_auger_core_percentage":true,
+   "ensure_same_length":false,
+   "eV_window":null,
+   "normalize_inputs":false,
+   "normalize_outputs":true,
+   "broaden":false,
+   "shift_x":false,
+   "noise":false,
+   "scatter":false,
+   "sim_ranges":{
+      "shift_x":[-5,5],
+      "noise":[4,35],
+      "FWHM":[145,722],
+      "scatterers":{
+         "0":"He",
+         "1":"H2",
+         "2":"N2",
+         "3":"O2"
+      },
+      "pressure":[0.1,0.5],
+      "distance":[0.1,1]
+   }
+}

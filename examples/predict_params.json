@@ -5,5 +5,5 @@
   "intensity_only":true,
   "no_of_examples":250000,
   "train_test_split":0.99,
-  "train_val_split":0,
+  "train_val_split":0
 }

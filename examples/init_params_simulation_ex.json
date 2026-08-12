@@ -1,0 +1,89 @@
+{
+   "output_datafolder":"C:\\Users\\pielsticker\\Simulations\\",
+   "name":"test_3_8_2",
+   "labels":[
+      "SrIr_0224",
+      "SrIr_0225",
+      "FeSe",
+      "FeSe_0629",
+      "LaCo_0122",
+      "LaCo_0116",
+      "LaCo_0603",
+      "LaCo_0605",
+      "LaCo_0607",
+      "LaCo_0203"
+   ],
+   "spectra":[
+      "Samples4Survey SrIr_0224",
+      "Samples4Survey SrIr_0225",
+      "Samples4Survey FeSe",
+      "Samples4Survey FeSe_0629",
+      "Samples4Survey LaCo_0122",
+      "Samples4Survey LaCo_0116",
+      "Samples4Survey LaCo_0603",
+      "Samples4Survey LaCo_0605",
+      "Samples4Survey LaCo_0607",
+      "Samples4Survey LaCo_0203"
+   ],
+   "input_filenames":{
+      "reference_set_0":[
+         "Samples4Survey/4_SrIr_0224.txt",
+         "Samples4Survey/4_SrIr_0225.txt",
+         "Samples4Survey/4_FeSe.txt",
+         "Samples4Survey/4_FeSe_0629.txt",
+         "Samples4Survey/4_LaCo_0122.txt",
+         "Samples4Survey/4_LaCo_0116.txt",
+         "Samples4Survey/4_LaCo_0603.txt",
+         "Samples4Survey/4_LaCo_0605.txt",
+         "Samples4Survey/4_LaCo_0607.txt",
+         "Samples4Survey/4_LaCo_0203.txt"
+      ]
+   },
+   "new_labels":[
+      "Ir",
+      "Sr",
+      "Fe",
+      "Se",
+      "La",
+      "Co"
+   ],
+   "concentrations":{
+      "SrIr_0224":[0.8117, 0.1883, 0, 0, 0, 0],
+      "SrIr_0225":[0.7716, 0.2284, 0, 0, 0, 0],
+      "FeSe":[0, 0, 0.811, 0.189, 0, 0],
+      "FeSe_0629":[0, 0, 0.966, 0.034, 0, 0],
+      "LaCo_0122":[0, 0, 0, 0, 0.8553, 0.1447],
+      "LaCo_0116":[0, 0, 0, 0, 0.7676, 0.2324],
+      "LaCo_0603":[0, 0, 0, 0, 0.5897, 0.4103],
+      "LaCo_0605":[0, 0, 0, 0, 0.5326, 0.4674],
+      "LaCo_0607":[0, 0, 0, 0, 0.555, 0.445],
+      "LaCo_0203":[0, 0, 0, 0, 0.6218, 0.3782]
+   },
+   "no_of_simulations":5000,
+   "single":false,
+   "variable_no_of_inputs":true,
+   "always_auger":false,
+   "always_core":true,
+   "same_auger_core_percentage":true,
+   "ensure_same_length":false,
+   "eV_window":null,
+   "normalize_inputs":false,
+   "normalize_outputs":true,
+   "broaden":false,
+   "shift_x":true,
+   "noise":true,
+   "scatter":false,
+   "sim_ranges":{
+      "shift_x":[-5,5],
+      "noise":[4,35],
+      "FWHM":[145,722],
+      "scatterers":{
+         "0":"He",
+         "1":"H2",
+         "2":"N2",
+         "3":"O2"
+      },
+      "pressure":[0.1,0.5],
+      "distance":[0.1,1]
+   }
+}

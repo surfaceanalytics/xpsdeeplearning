@@ -1,0 +1,66 @@
+{
+   "output_datafolder":"C:\\Users\\pielsticker\\Simulations\\",
+   "name":"test_1",
+   "labels":[
+      "compound1_MMDD",
+      "compound2_MMDD",
+      "compound3_MMDD",
+      "(Use the same labels used in the .txt files)"
+   ],
+   "spectra":[
+      "XXXSurvey compound1_MMDD",
+      "XXXSurvey compound2_MMDD",
+      "XXXSurvey compound3_MMDD",
+      "(Enter the first line of each .txt file)"
+   ],
+   "input_filenames":{
+      "reference_set_0":[
+         "Folder/filename1.txt",
+         "Folder/filename2.txt",
+         "Folder/filename3.txt",
+         "(Enter the path to the .txt files from the site-packages/xpsdeeplearning/data/references directory)"
+      ]
+   },
+   "new_labels":[
+      "Ir",
+      "Sr",
+      "Fe",
+      "Se",
+      "La",
+      "Co",
+      "(Add whatever elemental labels the spectra should be classified by)"
+   ],
+   "concentrations":{
+      "compound1_MMDD":[0.8117, 0.1883, 0, 0, 0, 0],
+      "compound2_MMDD":[0.7716, 0.2284, 0, 0, 0, 0],
+      "compound3_MMDD":[0, 0, 0.811, 0.189, 0, 0],
+      "(Label spectra using fractional composition by elements)": [0, 0, 0, 0, 0, 1]
+   },
+   "no_of_simulations":5000,
+   "single":false,
+   "variable_no_of_inputs":true,
+   "always_auger":false,
+   "always_core":true,
+   "same_auger_core_percentage":true,
+   "ensure_same_length":false,
+   "eV_window":null,
+   "normalize_inputs":false,
+   "normalize_outputs":true,
+   "broaden":false,
+   "shift_x":true,
+   "noise":true,
+   "scatter":false,
+   "sim_ranges":{
+      "shift_x":[-5,5],
+      "noise":[4,35],
+      "FWHM":[145,722],
+      "scatterers":{
+         "0":"He",
+         "1":"H2",
+         "2":"N2",
+         "3":"O2"
+      },
+      "pressure":[0.1,0.5],
+      "distance":[0.1,1]
+   }
+}

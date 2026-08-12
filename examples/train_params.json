@@ -1,0 +1,12 @@
+{
+  "input_filepath":"20260804_test_3_8_2.h5",
+  "exp_name":"Test4_5_0804",
+  "task":"regression",
+  "intensity_only":true,
+  "no_of_examples":5000,
+  "train_test_split":0.2,
+  "train_val_split":0.2,
+  "learning_rate":1e-05,
+  "epochs":750,
+  "batch_size":32
+}
